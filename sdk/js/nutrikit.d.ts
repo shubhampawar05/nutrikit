@@ -125,6 +125,7 @@ export class NutrikitError extends Error {
 }
 
 export class Nutrikit {
+  /** `baseUrl` defaults to the page's origin in a browser, otherwise `http://localhost:8787`. */
   constructor(options: { apiKey: string; baseUrl?: string; fetch?: typeof fetch; maxRetries?: number; timeoutMs?: number });
   lastUsage: { charged: number; remaining: number | null } | null;
   searchFoods(q: string, opts?: { limit?: number; offset?: number; source?: FoodSource }): Promise<SearchResult>;

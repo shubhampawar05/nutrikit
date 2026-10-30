@@ -251,6 +251,10 @@ gets `429 rate_limited` with a `Retry-After` header.
 
 ## SDK
 
+The SDK in `sdk/js/` is packaged for npm as `@nutrikit/sdk` (see [sdk/js/README.md](sdk/js/README.md)). To publish a
+release: bump `version` in `sdk/js/package.json`, check the contents with `npm pack --dry-run -w sdk/js`, then
+`npm publish -w sdk/js` (needs an npm account that belongs to the `nutrikit` npm organization).
+
 ```js
 import { Nutrikit } from './sdk/js/nutrikit.mjs';   // types in nutrikit.d.ts
 

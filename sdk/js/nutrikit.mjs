@@ -35,11 +35,14 @@ async function encodeImage(image, mediaType) {
   throw new TypeError('image must be a File/Blob, ArrayBuffer, typed array, data URL or base64 string');
 }
 
+// Without a baseUrl: the page's own origin in a browser, otherwise a local development server.
+const defaultBaseUrl = () => globalThis.location?.origin || 'http://localhost:8787';
+
 export class Nutrikit {
   /**
    * @param {{apiKey: string, baseUrl?: string, fetch?: typeof fetch, maxRetries?: number, timeoutMs?: number}} options
    */
-  constructor({ apiKey, baseUrl = 'http://localhost:8787', fetch: fetchImpl, maxRetries = 2, timeoutMs = 60_000 } = {}) {
+  constructor({ apiKey, baseUrl = defaultBaseUrl(), fetch: fetchImpl, maxRetries = 2, timeoutMs = 60_000 } = {}) {
     if (!apiKey) throw new TypeError('apiKey is required');
     this.apiKey = apiKey;
     this.baseUrl = baseUrl.replace(/\/+$/, '');

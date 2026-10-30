@@ -1,15 +1,44 @@
 {
   "name": "@nutrikit/sdk",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
-  "description": "JavaScript SDK for the Nutrikit API.",
+  "description": "JavaScript SDK for the Nutrikit API: food search, nutrient breakdowns, text/voice/photo meal logging, barcode and label scanning, meal plans.",
+  "keywords": [
+    "nutrition",
+    "food",
+    "calories",
+    "macros",
+    "meal-logging",
+    "barcode",
+    "usda",
+    "nutrikit"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shubhampawar05/nutrikit.git",
+    "directory": "sdk/js"
+  },
+  "homepage": "https://github.com/shubhampawar05/nutrikit/tree/main/sdk/js#readme",
+  "bugs": "https://github.com/shubhampawar05/nutrikit/issues",
   "main": "nutrikit.mjs",
   "types": "nutrikit.d.ts",
   "exports": {
     ".": {
       "types": "./nutrikit.d.ts",
       "default": "./nutrikit.mjs"
-    }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "nutrikit.mjs",
+    "nutrikit.d.ts"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
