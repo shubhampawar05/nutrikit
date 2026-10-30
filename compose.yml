@@ -1,0 +1,45 @@
+# Local stack.
+#   docker compose up -d postgres   only the database (localhost:5433), for `npm run dev` and `npm test`
+#   docker compose up -d --build    database + the app image on http://localhost:8787
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nutrikit
+      POSTGRES_PASSWORD: nutrikit
+      POSTGRES_DB: nutrikit
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nutrikit -d nutrikit"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: nutrikit:local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://nutrikit:nutrikit@postgres:5432/nutrikit
+      # Development-only defaults; set real values in your shell or a .env file for anything shared.
+      NUTRIKIT_TOKEN_SECRET: ${NUTRIKIT_TOKEN_SECRET:-local-compose-only-change-me}
+      NUTRIKIT_ADMIN_TOKEN: ${NUTRIKIT_ADMIN_TOKEN:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+    # Apply pending migrations, then start the server.
+    command: ["sh", "-c", "node dist/cli/migrate.js && exec node dist/main.js"]
+    ports:
+      - "8787:8787"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,15 @@
+{
+  "name": "@nutrikit/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "JavaScript SDK for the Nutrikit API.",
+  "main": "nutrikit.mjs",
+  "types": "nutrikit.d.ts",
+  "exports": {
+    ".": {
+      "types": "./nutrikit.d.ts",
+      "default": "./nutrikit.mjs"
+    }
+  }
+}

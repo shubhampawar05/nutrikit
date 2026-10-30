@@ -1,0 +1,4 @@
+/* API reference page: Scalar sits below the site's sticky header (min-height 68px + 1px border). */
+.reference-page { --scalar-custom-header-height: 69px; }
+.reference-head { padding-top: 40px; }
+.reference-scalar { margin-top: 24px; }

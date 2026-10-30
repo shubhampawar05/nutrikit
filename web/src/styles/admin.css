@@ -1,0 +1,8 @@
+/* Operator console (/admin): stat tiles and a toolbar above each table; everything else uses site.css. */
+.admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.admin-stats .card { padding: 18px 20px; }
+.admin-stats .big-number { font-size: 2.2rem; margin-top: 6px; }
+.admin-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.admin-toolbar .input { width: min(320px, 100%); }
+.admin-signin { max-width: 440px; margin: 72px auto; }
+.admin-sub { display: block; }

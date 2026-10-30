@@ -1,0 +1,1934 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Nutrikit API",
+    "version": "0.1.0",
+    "description": "Food search, nutrient breakdowns, meal logging from text/voice/photos, barcode and nutrition-label scanning, and meal plans. Data: USDA FoodData Central (public domain) and Open Food Facts (ODbL). Usage is metered in tokens; AI-assisted calls add 1 token per 1,000 model tokens."
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Secret API key `nk_...` (also accepted as X-Api-Key) or an access token `nkat_...` from POST /v1/auth/token"
+      },
+      "admin": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "NUTRIKIT_ADMIN_TOKEN"
+      }
+    },
+    "schemas": {
+      "NutrientMap": {
+        "title": "NutrientMap",
+        "type": "object",
+        "propertyNames": {
+          "enum": [
+            "calories",
+            "protein",
+            "fat",
+            "carbs",
+            "fiber",
+            "sugar",
+            "addedSugar",
+            "saturatedFat",
+            "transFat",
+            "monounsaturatedFat",
+            "polyunsaturatedFat",
+            "cholesterol",
+            "sodium",
+            "potassium",
+            "calcium",
+            "iron",
+            "magnesium",
+            "phosphorus",
+            "zinc",
+            "vitaminA",
+            "vitaminC",
+            "vitaminD",
+            "vitaminE",
+            "vitaminK",
+            "thiamin",
+            "riboflavin",
+            "niacin",
+            "vitaminB6",
+            "folate",
+            "vitaminB12",
+            "caffeine",
+            "alcohol",
+            "water"
+          ]
+        },
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string"
+            },
+            "dailyValuePercent": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          }
+        }
+      },
+      "SearchResult": {
+        "title": "SearchResult",
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "relaxed": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "score": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Food": {
+        "title": "Food",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "per100g": {
+            "type": "object"
+          },
+          "portions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "number"
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "grams": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "FoodNutrients": {
+        "title": "FoodNutrients",
+        "type": "object",
+        "properties": {
+          "food": {
+            "type": "object"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "grams": {
+            "type": "number"
+          },
+          "portionBasis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "portionMethod": {
+            "type": "string"
+          },
+          "nutrients": {
+            "$ref": "#/components/schemas/NutrientMap"
+          }
+        }
+      },
+      "LogResult": {
+        "title": "LogResult",
+        "type": "object",
+        "properties": {
+          "meal": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "input": {
+                  "type": "string"
+                },
+                "food": {
+                  "type": "object"
+                },
+                "quantity": {
+                  "type": "number"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "grams": {
+                  "type": "number"
+                },
+                "confidence": {
+                  "type": "string",
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                  ]
+                },
+                "nutrients": {
+                  "$ref": "#/components/schemas/NutrientMap"
+                },
+                "alternatives": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          "unmatched": {
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/NutrientMap"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "transcript": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "BarcodeProduct": {
+        "title": "BarcodeProduct",
+        "type": "object",
+        "properties": {
+          "barcode": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "brand": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "servingSize": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "servingGrams": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "per100g": {
+            "type": "object"
+          },
+          "perServing": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NutrientMap"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "license": {
+            "type": "string"
+          },
+          "cached": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LabelResult": {
+        "title": "LabelResult",
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "text",
+              "image"
+            ]
+          },
+          "servingSize": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "servingGrams": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "servingsPerContainer": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "perServing": {
+            "type": "object"
+          },
+          "per100g": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Usage": {
+        "title": "Usage",
+        "type": "object",
+        "properties": {
+          "keyId": {
+            "type": "string"
+          },
+          "periodStart": {
+            "type": "string"
+          },
+          "tokenLimit": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "used": {
+            "type": "integer"
+          },
+          "remaining": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "byEndpoint": {
+            "type": "array"
+          }
+        }
+      },
+      "Error": {
+        "title": "Error",
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v1/health": {
+      "get": {
+        "summary": "Service health",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/nutrients": {
+      "get": {
+        "summary": "Nutrient catalog with units and daily values",
+        "description": "Public and free.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object",
+                  "properties": {
+                    "nutrients": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "dailyValue": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "group": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/foods/search": {
+      "get": {
+        "summary": "Search foods",
+        "description": "Costs 1 token(s)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "in": "query",
+            "name": "q",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000,
+              "default": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "survey",
+                "foundation",
+                "sr_legacy"
+              ]
+            },
+            "in": "query",
+            "name": "source",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or monthly token allowance exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/foods/{id}": {
+      "get": {
+        "summary": "Food detail with per-100 g nutrients and household portions",
+        "description": "Costs 1 token(s)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Food"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/foods/{id}/nutrients": {
+      "get": {
+        "summary": "Nutrients for a portion",
+        "description": "Costs 1 token(s). Give `grams`, or `quantity` + `unit` (g, oz, cup, tbsp, tsp, fl oz, ml, slice, piece, medium, large, ...).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 10000
+            },
+            "in": "query",
+            "name": "grams",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1000
+            },
+            "in": "query",
+            "name": "quantity",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "in": "query",
+            "name": "unit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoodNutrients"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/log/text": {
+      "post": {
+        "summary": "Log a meal from free text",
+        "description": "Costs 5 token(s). Set `ai: true` to parse with the AI provider.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "maxLength": 2000
+                  },
+                  "ai": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or monthly token allowance exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "AI provider not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/log/voice": {
+      "post": {
+        "summary": "Log a meal from a speech transcript",
+        "description": "Costs 5 token(s). Transcription happens on the device; filler words are removed.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "transcript"
+                ],
+                "properties": {
+                  "transcript": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "maxLength": 2000
+                  },
+                  "ai": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or monthly token allowance exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "AI provider not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/log/photo": {
+      "post": {
+        "summary": "Recognize foods in a meal photo",
+        "description": "Costs 20 token(s) + AI usage. Requires an AI provider. Body: JSON or a raw image/* body.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "image"
+                ],
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "Base64 image or data URL (max 5 MB decoded)"
+                  },
+                  "mediaType": {
+                    "type": "string",
+                    "enum": [
+                      "image/jpeg",
+                      "image/png",
+                      "image/webp",
+                      "image/gif"
+                    ]
+                  },
+                  "hint": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Input could not be processed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or monthly token allowance exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "AI provider not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream source failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI provider unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/barcodes/{code}": {
+      "get": {
+        "summary": "Packaged food by EAN/UPC barcode",
+        "description": "Costs 5 token(s)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8,14}$"
+            },
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "description": "EAN/UPC with a correct check digit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BarcodeProduct"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream source failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/labels/parse": {
+      "post": {
+        "summary": "Read a Nutrition Facts label",
+        "description": "Text: 5 tokens. Image: 20 tokens + AI usage (requires an AI provider).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "text"
+                    ],
+                    "properties": {
+                      "text": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "image"
+                    ],
+                    "properties": {
+                      "image": {
+                        "type": "string",
+                        "description": "Base64 image or data URL (max 5 MB decoded)"
+                      },
+                      "mediaType": {
+                        "type": "string",
+                        "enum": [
+                          "image/jpeg",
+                          "image/png",
+                          "image/webp",
+                          "image/gif"
+                        ]
+                      },
+                      "hint": {
+                        "type": "string",
+                        "maxLength": 500
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Input could not be processed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "AI provider not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/meal-plans": {
+      "post": {
+        "summary": "Generate a meal plan",
+        "description": "Costs 20 token(s)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "calories": {
+                    "type": "number",
+                    "minimum": 1000,
+                    "maximum": 5000,
+                    "default": 2000
+                  },
+                  "proteinGrams": {
+                    "type": "integer"
+                  },
+                  "diet": {
+                    "type": "string",
+                    "enum": [
+                      "omnivore",
+                      "vegetarian",
+                      "vegan",
+                      "pescatarian",
+                      "dairy-free",
+                      "gluten-free"
+                    ]
+                  },
+                  "meals": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "breakfast",
+                        "lunch",
+                        "dinner",
+                        "snack"
+                      ]
+                    }
+                  },
+                  "days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  },
+                  "exclude": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "seed": {
+                    "type": "integer",
+                    "description": "Same seed + inputs reproduces the plan"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or monthly token allowance exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/usage": {
+      "get": {
+        "summary": "Token usage for the calling key this month",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/token": {
+      "post": {
+        "summary": "Exchange an API key for a short-lived access token",
+        "description": "Free. Send your secret API key as the bearer credential; receive an `nkat_` token valid for 1 hour. Give access tokens to browsers and mobile apps instead of the secret key. Access tokens cannot mint new tokens.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "token_type": {
+                      "type": "string",
+                      "enum": [
+                        "Bearer"
+                      ]
+                    },
+                    "expires_in": {
+                      "type": "integer"
+                    },
+                    "expires_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Credential not allowed for this operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/keys": {
+      "post": {
+        "summary": "Create an API key (admin)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "tokenLimit": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created; the plaintext key is only returned here",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Created; the plaintext key is only returned here",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List API keys with their owner's email (admin)",
+        "description": "Active keys first, newest first; at most 200.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "description": "Filter by email or name (substring)"
+          }
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/overview": {
+      "get": {
+        "summary": "Accounts, plans, payments and usage at a glance (admin)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/accounts": {
+      "get": {
+        "summary": "List accounts with plan, paid-until, keys, usage and payments (admin)",
+        "description": "Newest first; at most 200.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "description": "Filter by email or name (substring)"
+          }
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/payments": {
+      "get": {
+        "summary": "List Razorpay payments with the paying account (admin)",
+        "description": "Newest first; at most 200. Amounts in rupees.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "description": "Filter by email or name (substring)"
+          }
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/upgrade-requests": {
+      "get": {
+        "summary": "List plan upgrade requests (admin)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/accounts/{id}/plan": {
+      "post": {
+        "summary": "Change an account's plan (admin)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "plan"
+                ],
+                "properties": {
+                  "plan": {
+                    "type": "string",
+                    "description": "One of free, starter, growth, enterprise"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Updated",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/keys/{id}": {
+      "delete": {
+        "summary": "Revoke an API key (admin)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Revoked",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8787"
+    }
+  ],
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

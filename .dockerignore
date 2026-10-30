@@ -1,0 +1,13 @@
+# Only sources go into the build; dependencies are installed inside the image.
+**/node_modules
+**/dist
+.env
+.git
+openspec
+server/data/raw
+server/data/app.db*
+server/test
+**/*.test.ts
+**/*.test.tsx
+.DS_Store
+**/test-results

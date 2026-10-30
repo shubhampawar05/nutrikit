@@ -1,0 +1,13 @@
+node_modules/
+server/data/raw/
+server/data/app.db*
+server/dist/
+
+# Local env and secrets (keep .env.example in the repo as the template).
+.env
+.env.*
+!.env.example
+
+web/dist/
+e2e/test-results/
+e2e/playwright-report/

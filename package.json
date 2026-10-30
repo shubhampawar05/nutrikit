@@ -1,0 +1,34 @@
+{
+  "name": "nutrikit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hostable nutrition API + SDK: food search, nutrient breakdowns, text/voice/photo meal logging, barcode and label scanning, meal plans. Built on open data (USDA FoodData Central, Open Food Facts).",
+  "workspaces": [
+    "server",
+    "web",
+    "sdk/js",
+    "e2e"
+  ],
+  "scripts": {
+    "build:db": "npm run build:db -w server",
+    "migrate": "npm run migrate -w server --",
+    "migrate:sqlite": "npm run migrate:sqlite -w server --",
+    "dev": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "build": "npm run build -w web && npm run build -w server",
+    "start": "npm start -w server",
+    "create-key": "npm run create-key -w server --",
+    "openapi": "npm run openapi -w server",
+    "test": "docker compose up -d --wait postgres && npm run test:unit && npm run test:e2e",
+    "test:unit": "npm test -w server && npm test -w web",
+    "test:e2e": "docker compose up -d --build --wait && npm test -w e2e",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web && tsc -p e2e"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "^1.15.0"
+  }
+}
