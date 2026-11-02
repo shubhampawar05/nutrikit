@@ -13,3 +13,11 @@ test('test database is migrated and isolated per file', async () => {
   const [{ n }] = await sql`SELECT COUNT(*) AS n FROM accounts`;
   assert.equal(n, 1, 'bigint counts come back as numbers');
 });
+
+test('migrations read sslmode=require the libpq way (encrypt, do not verify)', async () => {
+  const { migrationConnection } = await import('../src/pg.ts');
+  const pooler = 'postgres://u:p@aws-0-ap-south-1.pooler.supabase.com:5432/postgres';
+  assert.deepEqual(migrationConnection(`${pooler}?sslmode=require`), { connectionString: pooler, ssl: { rejectUnauthorized: false } });
+  assert.equal(migrationConnection(`${pooler}?sslmode=verify-full`), `${pooler}?sslmode=verify-full`);
+  assert.equal(migrationConnection('postgres://u:p@localhost:5433/nutrikit'), 'postgres://u:p@localhost:5433/nutrikit');
+});

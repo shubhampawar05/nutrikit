@@ -5,6 +5,7 @@ import postgres from 'postgres';
 import type { Sql } from 'postgres';
 import { runner } from 'node-pg-migrate';
 import type { RunnerOption } from 'node-pg-migrate';
+import type { ClientConfig } from 'pg';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 export const MIGRATIONS_DIR = path.join(ROOT, 'migrations');
@@ -31,5 +32,16 @@ export async function closeAll(): Promise<void> {
 
 export async function migrate(url = process.env.DATABASE_URL, direction: RunnerOption['direction'] = 'up', count?: number) {
   if (!url) throw new Error('DATABASE_URL is not set (see .env.example)');
-  return runner({ databaseUrl: url, dir: MIGRATIONS_DIR, direction, count, migrationsTable: 'pgmigrations', log: () => {}, singleTransaction: true });
+  return runner({ databaseUrl: migrationConnection(url), dir: MIGRATIONS_DIR, direction, count, migrationsTable: 'pgmigrations', log: () => {}, singleTransaction: true });
+}
+
+// The migration runner uses pg, which reads sslmode=require/prefer as verify-full; postgres.js (the app's
+// pool) and libpq read them as "encrypt, don't verify". Give pg the libpq meaning so one DATABASE_URL works
+// for both against hosted Postgres whose certificate is signed by the provider's own CA (Supabase, Render).
+export function migrationConnection(url: string): string | ClientConfig {
+  const parsed = new URL(url);
+  const mode = parsed.searchParams.get('sslmode');
+  if (mode !== 'require' && mode !== 'prefer') return url;
+  parsed.searchParams.delete('sslmode');
+  return { connectionString: parsed.toString(), ssl: { rejectUnauthorized: false } };
 }
