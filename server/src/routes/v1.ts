@@ -33,7 +33,7 @@ const documentOnly = () => () => true;
 async function requireProvider<C extends AICapability>(capability: C): Promise<AIProvider & Required<Pick<AIProvider, C>>> {
   const provider = await getProvider();
   if (typeof provider[capability] !== 'function') {
-    throw new HttpError(501, 'ai_provider_unavailable', 'this endpoint needs an AI provider; set ANTHROPIC_API_KEY (or NUTRIKIT_AI_PROVIDER) on the server');
+    throw new HttpError(501, 'ai_provider_unavailable', 'this endpoint needs an AI provider; set ANTHROPIC_API_KEY or OPENAI_API_KEY (or NUTRIKIT_AI_PROVIDER) on the server');
   }
   return provider as AIProvider & Required<Pick<AIProvider, C>>;
 }

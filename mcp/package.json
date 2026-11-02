@@ -1,0 +1,53 @@
+{
+  "name": "@nutrikit/mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "MCP server for the Nutrikit API: lets Claude and other MCP clients search foods, log meals from text and photos, scan barcodes and labels, and build meal plans.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "nutrition",
+    "calories",
+    "meal-logging",
+    "nutrikit"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shubhampawar05/nutrikit.git",
+    "directory": "mcp"
+  },
+  "bin": {
+    "nutrikit-mcp": "dist/main.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p .",
+    "dev": "node --env-file-if-exists=../.env --import tsx src/main.ts",
+    "start": "node dist/main.js",
+    "smoke": "node --import tsx scripts/smoke.ts",
+    "test": "node --import tsx --test test/",
+    "typecheck": "tsc -p . --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@nutrikit/sdk": "^0.1.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

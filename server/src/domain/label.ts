@@ -1,5 +1,5 @@
 // US "Nutrition Facts" label parsing from text (OCR output or typed). The AI provider can read a
-// label photo straight into the same shape (see providers/anthropic.ts).
+// label photo straight into the same shape (see providers/prompts.ts).
 import { BY_KEY, NUTRIENTS } from './nutrients.ts';
 
 const num = '(\\d+(?:[.,]\\d+)?)';

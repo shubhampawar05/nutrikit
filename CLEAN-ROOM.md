@@ -12,7 +12,7 @@ designed and written independently. This file records what informed it.
   product-category features, and only the feature list was used.
 - **Open data and public standards:** USDA FoodData Central, Open Food Facts, the FDA
   Nutrition Facts format and its daily values, and GS1 GTIN check digits.
-- **Public platform APIs:** the Web Speech API, the BarcodeDetector API, and the Anthropic Messages API.
+- **Public platform APIs:** the Web Speech API, the BarcodeDetector API, the Anthropic Messages API and the OpenAI Chat Completions API.
 
 ## Inputs deliberately not used
 

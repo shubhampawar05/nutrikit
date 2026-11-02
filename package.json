@@ -8,6 +8,7 @@
     "server",
     "web",
     "sdk/js",
+    "mcp",
     "e2e"
   ],
   "scripts": {
@@ -21,9 +22,10 @@
     "create-key": "npm run create-key -w server --",
     "openapi": "npm run openapi -w server",
     "test": "docker compose up -d --wait postgres && npm run test:unit && npm run test:e2e",
-    "test:unit": "npm test -w server && npm test -w web",
+    "test:unit": "npm test -w server && npm test -w web && npm test -w mcp",
     "test:e2e": "docker compose up -d --build --wait && npm test -w e2e",
-    "typecheck": "npm run typecheck -w server && npm run typecheck -w web && tsc -p e2e"
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web && npm run typecheck -w mcp && tsc -p e2e",
+    "dev:mcp": "npm run dev -w mcp"
   },
   "engines": {
     "node": ">=22.13"
