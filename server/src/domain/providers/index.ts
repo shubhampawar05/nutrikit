@@ -53,10 +53,14 @@ let active: AIProvider | undefined;
 
 export async function getProvider(): Promise<AIProvider> {
   if (active) return active;
-  const name = process.env.NUTRIKIT_AI_PROVIDER || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'none');
+  const name = process.env.NUTRIKIT_AI_PROVIDER
+    || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : process.env.OPENAI_API_KEY ? 'openai' : 'none');
   if (name === 'anthropic') {
     const { createAnthropicProvider } = await import('./anthropic.ts');
     active = await createAnthropicProvider();
+  } else if (name === 'openai') {
+    const { createOpenAIProvider } = await import('./openai.ts');
+    active = await createOpenAIProvider();
   } else {
     active = { name: 'none' };
   }

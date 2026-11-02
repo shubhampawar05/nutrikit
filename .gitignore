@@ -2,11 +2,13 @@ node_modules/
 server/data/raw/
 server/data/app.db*
 server/dist/
+mcp/dist/
 
 # Local env and secrets (keep .env.example in the repo as the template).
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 web/dist/
 e2e/test-results/

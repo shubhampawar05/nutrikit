@@ -86,6 +86,10 @@ function score(row: SearchRow, tokens: string[], rawQuery: string) {
   const core = name.split(',').slice(0, 2).join(' ').split(/\s+/).filter(Boolean).map(singular);
   if (core.length <= qWords.length + 1 && qWords.every((t) => core.some((w) => w.startsWith(t)))) s += 7;
   if (qWords.every((t) => name.includes(t))) s += 3;
+  // FTS matches prefixes, so "roti" also finds "rotisserie"; a whole-word match is the likelier meaning
+  // ("Bread, chapati or roti").
+  const nameWords = name.split(/[^a-z0-9']+/).filter(Boolean).map(singular);
+  if (qWords.every((t) => nameWords.includes(t))) s += 4;
   // "Beans and white rice" is a combination dish; only prefer it when the query asks for one.
   if (/\b(and|with)\b/.test(head) && !/\b(and|with)\b/.test(rawQuery)) s -= 6;
   if (GENERIC.test(name)) s += 2.5;

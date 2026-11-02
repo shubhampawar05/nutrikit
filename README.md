@@ -45,6 +45,7 @@ modifies the SQLite file.
 | `server/` | also `migrations/` (SQL), `scripts/`, `test/`, `data/` (food catalog) and `docs/openapi.json` |
 | `web/` | the website, docs, developer portal and playground: a React + Vite + TypeScript single-page app (`src/pages/`, `src/components/`, `src/api/client.ts`); Fastify serves its build from `web/dist/` |
 | `sdk/js/` | JavaScript SDK |
+| `mcp/` | MCP server, so Claude and other AI clients can use the API as tools ([mcp/README.md](mcp/README.md)) |
 | `openspec/` | change proposals and designs ([OpenSpec](https://github.com/Fission-AI/OpenSpec)) |
 | `compose.yml` | local PostgreSQL (`docker compose up -d postgres`; see `.env.example`), and the app image (`docker compose up -d --build`) |
 | `docker/Dockerfile` | the production image (see *Deployment*) |
@@ -65,9 +66,12 @@ unzip them into `server/data/raw/`: `FoodData_Central_sr_legacy_food_csv_2018-04
 | `TEST_DATABASE_URL` | local compose | Server where `npm test` creates and drops a throwaway database per test file |
 | `PORT` | `8787` | HTTP port |
 | `ANTHROPIC_API_KEY` | – | Enables the Claude provider: photo logging, label photos, `ai: true` text parsing |
-| `NUTRIKIT_AI_PROVIDER` | auto | `anthropic` or `none` |
-| `NUTRIKIT_ANTHROPIC_MODEL` | `claude-opus-5-5` | Model used by the provider |
+| `OPENAI_API_KEY` | – | Enables the OpenAI provider instead (same capabilities); used when `ANTHROPIC_API_KEY` is not set |
+| `NUTRIKIT_AI_PROVIDER` | auto | `anthropic`, `openai` or `none` |
+| `NUTRIKIT_ANTHROPIC_MODEL` | `claude-opus-5-5` | Model used by the Claude provider |
 | `NUTRIKIT_ANTHROPIC_EFFORT` | `medium` | `low` … `max` |
+| `NUTRIKIT_OPENAI_MODEL` | `gpt-5-mini` | Model used by the OpenAI provider (needs vision and structured outputs) |
+| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | Any OpenAI-compatible endpoint: Azure OpenAI, OpenRouter, a local Ollama |
 | `NUTRIKIT_ADMIN_TOKEN` | – | Bearer token for `/v1/admin/keys` |
 | `NUTRIKIT_AUTH` | on | `off` disables API keys, for local development only |
 | `NUTRIKIT_RATE_LIMIT` | `120` | Requests per minute per key |
@@ -191,7 +195,7 @@ compressed (250 MB unpacked, on `node:24-alpine`).
 | `NUTRIKIT_TOKEN_SECRET` | Required (`NODE_ENV=production` is set in the image). Generate once with `openssl rand -hex 32`, keep it stable across deploys and identical on every instance |
 | `NUTRIKIT_SECURE_COOKIES` | `1` once the site is served over HTTPS |
 | `NUTRIKIT_ADMIN_TOKEN` | For `/v1/admin/*`; leave unset to disable the admin API |
-| `ANTHROPIC_API_KEY` | Optional: photo logging, label photos and `ai: true` parsing |
+| `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` | Optional: photo logging, label photos and `ai: true` parsing |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | Optional: paid upgrades (see *Payments*) |
 
 **Release order: migrate, then start.** Run the migrations once per release, before new instances take
@@ -224,11 +228,11 @@ modified, so the SQLite-based release stays available as a fallback until you re
 | Food search | `GET /v1/foods/search?q=` | SQLite FTS5 recall over 13,359 foods, then a reranker that prefers the generic, as-eaten form ("banana" → *Banana, raw*) |
 | Food detail | `GET /v1/foods/{id}` | 33 nutrients per 100 g, plus USDA household portions (30k) |
 | Portion nutrients | `GET /v1/foods/{id}/nutrients?quantity=&unit=` | Converts mass, volume and household units ("2 medium", "1.5 cups", "12 fl oz") to grams; returns %DV against FDA reference values |
-| Text logging | `POST /v1/log/text` | A rule-based parser handles quantities, fractions, units, "with" add-ons and meal words. Set `ai: true` to parse with Claude |
+| Text logging | `POST /v1/log/text` | A rule-based parser handles quantities, fractions, units, "with" add-ons and meal words. Set `ai: true` to parse with the AI provider (Claude or OpenAI) |
 | Voice logging | `POST /v1/log/voice` | Speech is transcribed on the device (`Nutrikit.listen()` uses the Web Speech API); the server strips filler words and logs the transcript |
-| Photo logging | `POST /v1/log/photo` | Claude vision lists the foods with gram estimates, then each item is matched to the database |
+| Photo logging | `POST /v1/log/photo` | The AI provider's vision model lists the foods with gram estimates, then each item is matched to the database |
 | Barcodes | `GET /v1/barcodes/{ean}` | Validates the GTIN check digit, looks the product up in Open Food Facts, and caches the result for 30 days |
-| Nutrition labels | `POST /v1/labels/parse` | Parses label text (current and legacy FDA formats). A label photo is read by Claude |
+| Nutrition labels | `POST /v1/labels/parse` | Parses label text (current and legacy FDA formats). A label photo is read by the AI provider |
 | Meal plans | `POST /v1/meal-plans` | Builds 1–7 days of plans for 6 diets with exclusions, drawn from USDA survey dishes. Portions are scaled to a calorie target; the same seed gives the same plan |
 | Usage | `GET /v1/usage` | Tokens used this month, broken down by endpoint |
 | Access tokens | `POST /v1/auth/token` | Exchanges a secret key for a 1-hour token for apps |
@@ -276,14 +280,22 @@ const code = await Nutrikit.scanBarcode(videoElement); // BarcodeDetector API
 The SDK retries 429, 502 and 503 responses, honouring `Retry-After`, but does not retry quota
 exhaustion. Errors are thrown as `NutrikitError` with `status`, `code` and `retryAfter`.
 
+## MCP server
+
+`mcp/` (`@nutrikit/mcp`) wraps the SDK as an MCP server, so Claude Desktop, Claude Code and other MCP clients
+can search foods, log meals from text and photos, scan barcodes and labels, and build meal plans in conversation.
+Build it with `npm run build -w mcp` and register `node mcp/dist/main.js` with `NUTRIKIT_API_KEY` set; see
+[mcp/README.md](mcp/README.md) for the client configuration.
+
 ## Tests
 
 Everything needs only Node and Docker:
 
 ```bash
 npm test                         # all of the below; starts the compose Postgres, then the compose app for the browser test
-npm run test:unit                # server: 53 node:test tests (parsing, search, labels, barcodes, meal plans, HTTP API,
-                                 # SDK, portal, access tokens, shared limits); web: 37 Vitest tests (API client, every page)
+npm run test:unit                # server: 70 node:test tests (parsing, search, labels, barcodes, meal plans, HTTP API,
+                                 # SDK, portal, access tokens, shared limits, OpenAI provider); web: 45 Vitest tests
+                                 # (API client, every page); mcp: 5 tests (every tool through an MCP client)
 npm run test:e2e                 # builds and starts the app image, then a Playwright smoke test: sign up -> dashboard ->
                                  # create key -> playground food search
 npm run multi-instance -w e2e    # two app containers on one database: rate limit, login throttle and sessions are shared
@@ -305,8 +317,8 @@ against another deployment.
 - Diet filters work from food names, plus a cholesterol check for vegan. Survey food names can hide
   ingredients, so treat the filters as best effort.
 - Photo and label recognition depend on the AI provider. Without one, those endpoints return `501`.
-  The Claude provider is covered by contract tests with a fake provider; a live call has not been run
-  in this repository's test suite.
+  The Claude provider is covered by contract tests with a fake provider, and the OpenAI provider by tests
+  against a stub Chat Completions server; neither has a live call in this repository's test suite.
 
 ## Data and attribution
 

@@ -203,7 +203,7 @@ export const HINTS: Record<string, string> = {
   token_expired: 'Your access token expired. Paste a fresh one, or log in.',
   quota_exceeded: 'Your plan’s monthly tokens are used up. Request an upgrade from the dashboard.',
   rate_limited: 'Too many requests in a minute. Wait a moment and try again.',
-  ai_provider_unavailable: 'This server has no AI provider configured (set ANTHROPIC_API_KEY). Text logging and label text work without it.',
+  ai_provider_unavailable: 'This server has no AI provider configured (set ANTHROPIC_API_KEY or OPENAI_API_KEY). Text logging and label text work without it.',
   invalid_barcode: 'Barcodes are 8, 12, 13 or 14 digits with a valid check digit.',
   no_key: '',
 };
