@@ -173,6 +173,32 @@ Nutrikit ships as one Docker image (`docker/Dockerfile`): the API, the developer
 port 8787, with the food catalog inside. It needs a PostgreSQL 16+ database. Any host that runs a container
 next to a managed Postgres works (Fly.io, Render, Railway, a VM); nothing in the image is host-specific.
 
+### Free deployment: Render + Supabase
+
+One free Render web service runs the whole app (website, portal and API on one URL); Supabase's free tier
+holds the database. Limits: the Render service sleeps after 15 minutes idle and takes about a minute to
+wake; a Supabase project pauses after 7 days without activity (resume it from its dashboard) and holds 500 MB.
+
+1. **Database.** Create a Supabase project (region: Mumbai / `ap-south-1`, close to Render's Singapore).
+   Open **Connect** and copy the **Session pooler** string (port 5432), then append `?sslmode=require`:
+   `postgres://postgres.<ref>:<password>@aws-0-ap-south-1.pooler.supabase.com:5432/postgres?sslmode=require`.
+   Use the session pooler, not the direct connection (IPv6 only) or the transaction pooler on port 6543
+   (it breaks the prepared statements the server uses).
+2. **App.** Render dashboard → **New → Blueprint** → this repository. [render.yaml](render.yaml) creates the
+   `nutrikit` service (Docker, free plan, Singapore, health check `/v1/health`), generates
+   `NUTRIKIT_TOKEN_SECRET` and `NUTRIKIT_ADMIN_TOKEN`, and asks for `DATABASE_URL`, `OPENAI_API_KEY` and
+   the Razorpay keys. Leave the Razorpay ones empty to run without payments.
+3. **Deploy.** Each start applies pending migrations, then serves. Check
+   `https://<service>.onrender.com/v1/health`, then sign up on the site and create an API key in the dashboard.
+   Pushes to `main` deploy automatically.
+4. **Admin.** The generated admin token is in the service's **Environment** tab; sign in at `/admin` with it.
+5. **Payments (optional).** In Razorpay, add a webhook to `https://<service>.onrender.com/webhooks/razorpay`
+   for `order.paid`, and put its secret in `RAZORPAY_WEBHOOK_SECRET`. Switch to `rzp_live_…` keys to take real payments.
+
+`sslmode=require` encrypts the connection without verifying the provider's certificate (libpq semantics),
+for both the app's pool and the migration runner. For full verification, use `sslmode=verify-full` and
+give Node the provider's CA certificate through `NODE_EXTRA_CA_CERTS`.
+
 **Try the image locally.** `docker compose up -d --build` builds it and starts it next to the compose
 Postgres on http://localhost:8787 (it applies migrations first). Stop the stack with `docker compose down`;
 add `-v` to also delete the database volume.
@@ -293,7 +319,7 @@ Everything needs only Node and Docker:
 
 ```bash
 npm test                         # all of the below; starts the compose Postgres, then the compose app for the browser test
-npm run test:unit                # server: 70 node:test tests (parsing, search, labels, barcodes, meal plans, HTTP API,
+npm run test:unit                # server: 71 node:test tests (parsing, search, labels, barcodes, meal plans, HTTP API,
                                  # SDK, portal, access tokens, shared limits, OpenAI provider); web: 45 Vitest tests
                                  # (API client, every page); mcp: 5 tests (every tool through an MCP client)
 npm run test:e2e                 # builds and starts the app image, then a Playwright smoke test: sign up -> dashboard ->
