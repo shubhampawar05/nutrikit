@@ -45,6 +45,11 @@ Render dashboard → **New → Blueprint** → pick this repository. It reads [r
 | `OPENAI_API_KEY` | Optional: photo and label features |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | Optional: leave empty to run without payments |
 
+Creating the service by hand (**New → Web Service**) instead? Pick **Docker** as the language, set
+**Dockerfile Path** to `./docker/Dockerfile`, **Docker Command** to `node dist/cli/start.js` (migrates, then
+serves; don't chain commands with `sh -c "…"`, as Render passes the quotes through literally), and
+**Health Check Path** to `/v1/health`.
+
 Variables marked `sync: false` in `render.yaml` are typed in the dashboard, never stored in git, and never
 overwritten by later deploys. Change them later in the service's **Environment** tab.
 
