@@ -13,7 +13,7 @@ services:
     dockerfilePath: ./docker/Dockerfile
     dockerContext: .
     # The free plan has no pre-deploy step, so apply migrations at start (safe with a single instance).
-    dockerCommand: sh -c "node dist/cli/migrate.js && exec node dist/main.js"
+    dockerCommand: node dist/cli/start.js
     healthCheckPath: /v1/health
     envVars:
       # Supabase -> Connect -> Session pooler (port 5432), with ?sslmode=require appended.
