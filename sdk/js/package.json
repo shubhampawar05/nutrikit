@@ -1,6 +1,6 @@
 {
   "name": "@nutrikit/sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "JavaScript SDK for the Nutrikit API: food search, nutrient breakdowns, text/voice/photo meal logging, barcode and label scanning, meal plans.",
   "keywords": [
