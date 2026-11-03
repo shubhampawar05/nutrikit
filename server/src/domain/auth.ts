@@ -98,6 +98,7 @@ export const COSTS = {
   logPhoto: 20,
   labelImage: 20,
   mealPlan: 20,
+  advisor: 5,
 };
 
 export type CostKey = keyof typeof COSTS;

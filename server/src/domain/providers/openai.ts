@@ -3,7 +3,7 @@
 // points it at any OpenAI-compatible endpoint (Azure OpenAI, OpenRouter, a local Ollama, …).
 import type { AIUsage } from '../types.ts';
 import type { AIProvider } from './index.ts';
-import { FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
+import { ADVICE_SCHEMA, ADVICE_SYSTEM, FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, adviceMessage, type AdviceOutput, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
 
 const MODEL = process.env.NUTRIKIT_OPENAI_MODEL || 'gpt-5-mini';
 const BASE_URL = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, '');
@@ -88,6 +88,11 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
     async parseMeal({ text }) {
       const { data: out, usage } = await call<FoodItemsOutput>('meal_items', TEXT_SYSTEM, [{ type: 'text', text }], FOOD_ITEMS_SCHEMA);
       return { meal: out.meal, items: out.items, notes: out.notes, usage };
+    },
+
+    async advise({ question, context }) {
+      const { data: out, usage } = await call<AdviceOutput>('nutrition_advice', ADVICE_SYSTEM, [{ type: 'text', text: adviceMessage(question, context) }], ADVICE_SCHEMA);
+      return { ...out, usage };
     },
   };
 }

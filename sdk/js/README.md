@@ -56,6 +56,7 @@ const client = new Nutrikit({ apiKey: access_token, baseUrl: 'https://api.exampl
 | `lookupBarcode(code)` | Packaged product by EAN/UPC |
 | `parseLabel({ text })` / `parseLabel({ image })` | Read a nutrition label from text or a photo |
 | `createMealPlan({ calories, proteinGrams, diet, meals, days, exclude, seed })` | 1–7 day meal plan |
+| `askAdvisor(question, { context })` | Nutrition question answered by the server's AI provider (declines medical questions) |
 | `getUsage()` | Tokens used this month, by endpoint |
 | `createAccessToken()` | Short-lived token for client apps |
 

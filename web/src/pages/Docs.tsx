@@ -9,7 +9,7 @@ interface NutrientInfo { key: string; name: string; unit: string; dailyValue: nu
 
 const NAV: [string, [string, string][]][] = [
   ['Getting started', [['introduction', 'Introduction'], ['quick-start', 'Quick start'], ['authentication', 'Authentication'], ['access-tokens', 'Access tokens for apps']]],
-  ['Guides', [['food-search', 'Food search & nutrients'], ['text-logging', 'Text & voice logging'], ['photo-logging', 'Photo logging'], ['barcodes', 'Barcodes'], ['labels', 'Nutrition labels'], ['meal-plans', 'Meal plans']]],
+  ['Guides', [['food-search', 'Food search & nutrients'], ['text-logging', 'Text & voice logging'], ['photo-logging', 'Photo logging'], ['barcodes', 'Barcodes'], ['labels', 'Nutrition labels'], ['meal-plans', 'Meal plans'], ['advisor', 'Nutrition advisor']]],
   ['SDK', [['sdk', 'JavaScript SDK'], ['sdk-browser', 'On-device capture']]],
   ['Platform', [['tokens', 'Tokens & usage'], ['rate-limits', 'Rate limits'], ['errors', 'Errors'], ['nutrients', 'Nutrient keys'], ['data', 'Data sources'], ['changelog', 'Changelog']]],
 ];
@@ -183,6 +183,17 @@ GET /v1/foods/2709224/nutrients?grams=150`}</code></CodeBlock>
           <p>Diets: <code>omnivore</code>, <code>vegetarian</code>, <code>vegan</code>, <code>pescatarian</code>, <code>dairy-free</code>, <code>gluten-free</code>. Choose <code>meals</code> from breakfast, lunch, dinner and snack. The same <code>seed</code> and inputs always return the same plan — store it to reproduce a plan later.</p>
         </section>
 
+        <section id="advisor">
+          <h2>Nutrition advisor</h2>
+          <p>Answers a food or nutrition question in short markdown. Pass optional <code>context</code> — the user's goals, preferences and what they logged today — to make the answer specific; it is treated as data, never as instructions. Needs an AI provider on the server; 5 tokens + AI usage.</p>
+          <CodeBlock><code>{`POST /v1/advisor
+{ "question": "What's a high-protein vegetarian breakfast?",
+  "context": "Goal: build muscle. Avoids: peanuts. Logged today: 2 eggs, toast" }
+
+→ { "answer": "- **Greek yogurt bowl** …", "declined": false, "provider": "openai" }`}</code></CodeBlock>
+          <p>General guidance, not medical advice: questions about medication, diagnosis, treatment, pregnancy or very low calorie intakes come back with <code>declined: true</code> and an <code>answer</code> that explains why and suggests a doctor or registered dietitian. Show that answer to the user as it is.</p>
+        </section>
+
         <section id="sdk">
           <h2>JavaScript SDK</h2>
           <p>One dependency-free ES module for browsers and Node 18+. Download <a href="/sdk/nutrikit.mjs">nutrikit.mjs</a> and <a href="/sdk/nutrikit.d.ts">nutrikit.d.ts</a> (types).</p>
@@ -197,6 +208,7 @@ const photo   = await nk.logPhoto(fileInput.files[0]);
 const product = await nk.lookupBarcode('3017624010701');
 const label   = await nk.parseLabel({ text: labelText });
 const plan    = await nk.createMealPlan({ calories: 2000, diet: 'vegan' });
+const advice  = await nk.askAdvisor('Is oatmeal a good breakfast?', { context: 'Goal: steady energy' });
 const usage   = await nk.getUsage();
 const token   = await nk.createAccessToken();   // server-side only
 
@@ -277,6 +289,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
         <section id="changelog">
           <h2>Changelog</h2>
           <ul>
+            <li><b>v1.2</b> — Nutrition advisor (<code>POST /v1/advisor</code>, SDK <code>askAdvisor</code>).</li>
             <li><b>v1.1</b> — Developer portal, self-serve accounts and plans, access tokens (<code>POST /v1/auth/token</code>).</li>
             <li><b>v1.0</b> — Food search and nutrients, text/voice/photo logging, barcodes, labels, meal plans, usage metering.</li>
           </ul>

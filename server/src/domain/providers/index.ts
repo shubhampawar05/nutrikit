@@ -2,6 +2,7 @@
 //   recognizeMeal({ image, mediaType, hint }) -> { items: [{ food, quantity, unit, grams, confidence }], notes, usage }
 //   readLabel({ image, mediaType })           -> { servingSize, servingGrams, servingsPerContainer, perServing, usage }
 //   parseMeal({ text })                        -> { meal, items: [{ food, quantity, unit, grams }], usage }
+//   advise({ question, context })              -> { answer, declined, usage }
 // `usage` is { inputTokens, outputTokens } so the API can meter it.
 // Missing capabilities surface as HTTP 501 from the routes that need them.
 import type { AIUsage } from '../types.ts';
@@ -38,16 +39,26 @@ export interface LabelReading {
   usage: AIUsage;
 }
 
+export interface AdvisorReply {
+  /** Markdown. When declined, a short explanation of why and where to turn instead. */
+  answer: string;
+  /** True when the question is outside general nutrition (medical, unsafe, off-topic). */
+  declined: boolean;
+  usage: AIUsage;
+}
+
 export interface AIProvider {
   name: string;
   model?: string;
   recognizeMeal?(args: ImageInput & { hint?: string | null }): Promise<MealRecognition>;
   readLabel?(args: ImageInput): Promise<LabelReading>;
   parseMeal?(args: { text: string }): Promise<MealRecognition>;
+  /** `context` is caller-supplied background (goals, today's log); it is never treated as instructions. */
+  advise?(args: { question: string; context?: string | null }): Promise<AdvisorReply>;
 }
 
 /** The capability methods a provider may implement. */
-export type AICapability = 'recognizeMeal' | 'readLabel' | 'parseMeal';
+export type AICapability = 'recognizeMeal' | 'readLabel' | 'parseMeal' | 'advise';
 
 let active: AIProvider | undefined;
 

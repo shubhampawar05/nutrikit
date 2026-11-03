@@ -104,6 +104,8 @@ export class Nutrikit {
   // ---- planning & account
   /** @param {{calories?: number, proteinGrams?: number, diet?: string, meals?: string[], days?: number, exclude?: string[], seed?: number}} [opts] */
   createMealPlan(opts = {}) { return this.request('POST', '/v1/meal-plans', { body: opts }); }
+  /** Nutrition question, answered by the server's AI provider. `context` (goals, today's log) is treated as data. Not medical advice. */
+  askAdvisor(question, { context } = {}) { return this.request('POST', '/v1/advisor', { body: { question, ...(context ? { context } : {}) } }); }
   getUsage() { return this.request('GET', '/v1/usage'); }
   /**
    * Exchange this client's secret API key for a 1-hour access token (server-side only).

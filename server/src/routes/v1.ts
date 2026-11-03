@@ -227,6 +227,23 @@ export async function v1Routes(fastify: FastifyInstance) {
     throw bad('send {"text": "..."} or {"image": "...", "mediaType": "image/jpeg"} (or a raw image body)');
   });
 
+  app.post('/v1/advisor', {
+    config: v1('advisor'),
+    schema: {
+      summary: 'Ask a nutrition question',
+      description: `${cost('advisor')} + AI usage. Requires an AI provider. General nutrition guidance, not medical advice: medical, medication and other out-of-scope questions come back with \`declined: true\`. Pass \`context\` (goals, preferences, today's log) to tailor the answer; it is treated as data, not instructions.`,
+      body: Type.Object({ question: nonBlank(1000), context: Type.Optional(Type.String({ maxLength: 6000 })) }),
+      response: {
+        ...ok({ type: 'object', required: ['answer', 'declined', 'provider'], properties: { answer: { type: 'string', description: 'Markdown' }, declined: { type: 'boolean' }, provider: { type: 'string' } } }),
+        ...errors(400, 401, 422, 429, 501, 502, 503),
+      },
+    },
+  }, async (req) => {
+    const provider = await requireProvider('advise');
+    const out = await provider.advise({ question: req.body.question.trim(), context: req.body.context?.trim() || null });
+    return { answer: out.answer, declined: out.declined, provider: provider.name, usage: out.usage };
+  });
+
   app.post('/v1/meal-plans', {
     config: v1('mealPlan'),
     schema: {

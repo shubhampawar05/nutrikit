@@ -56,6 +56,7 @@ export function Pricing() {
               <tr><td>Photo meal logging</td><td>20</td><td>+ AI usage</td></tr>
               <tr><td>Nutrition label from a photo</td><td>20</td><td>+ AI usage</td></tr>
               <tr><td>Meal plan</td><td>20</td><td>Per request, 1–7 days</td></tr>
+              <tr><td>Nutrition advisor question</td><td>5</td><td>+ AI usage</td></tr>
               <tr><td>Nutrient catalog, usage, access tokens</td><td>0</td><td>Free</td></tr>
             </tbody>
           </table>
