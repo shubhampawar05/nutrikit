@@ -14,6 +14,18 @@ Besides the API, the server hosts everything other developers need to sign up an
 | `/playground` | Try any endpoint in the browser |
 | `/admin` | Operator console (not linked from the site) |
 
+## Search engines and link previews
+
+- Every page's title, description and whether it may be indexed live in [web/src/seo.json](../web/src/seo.json).
+  Add a page there when you add a route.
+- The server puts them into each page's HTML (with canonical URL, Open Graph and Twitter tags, and
+  structured data on the homepage), so crawlers and link previews don't need JavaScript.
+- `/robots.txt` and `/sitemap.xml` are generated from the same list. Unknown pages return a real `404`.
+- Login, dashboard and admin are marked `noindex`.
+- Icons and the link-preview image are in `web/public/`; regenerate them with `web/scripts/render-icons.mjs`.
+- Once the site is live, add it in [Google Search Console](https://search.google.com/search-console) and
+  submit `/sitemap.xml`.
+
 ## Plans
 
 A plan sets the monthly token allowance, requests per minute, and how many keys an account can have. All keys on

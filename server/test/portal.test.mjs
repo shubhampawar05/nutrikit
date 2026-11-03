@@ -197,7 +197,7 @@ test('upgrade requests are recorded', async () => {
 test('the web app is served for page URLs, with API paths left alone', async () => {
   for (const path of ['/', '/pricing', '/docs', '/docs/', '/docs/reference', '/signup', '/login', '/dashboard', '/playground', '/no-such-page']) {
     const res = await fetch(base + path, { headers: { Accept: 'text/html,application/xhtml+xml' } });
-    assert.equal(res.status, 200, path);
+    assert.equal(res.status, path === '/no-such-page' ? 404 : 200, path);
     assert.match(res.headers.get('content-type'), /text\/html/, path);
     assert.equal(res.headers.get('x-frame-options'), 'DENY', path);
     assert.equal(res.headers.get('cache-control'), 'no-cache', path);
@@ -219,6 +219,52 @@ test('the web app is served for page URLs, with API paths left alone', async () 
   assert.equal((await fetch(`${base}/sdk/nutrikit.d.ts`)).status, 200);
   const nutrients = await (await fetch(`${base}/v1/nutrients`)).json();
   assert.equal(nutrients.nutrients.length, 33, 'nutrient catalog is public');
+});
+
+test('pages carry their own title, description, canonical URL and robots rule', async () => {
+  const page = async (path, headers = {}) => {
+    const res = await fetch(base + path, { headers: { Accept: 'text/html', ...headers } });
+    return { status: res.status, html: await res.text() };
+  };
+  const pricing = await page('/pricing/', { 'X-Forwarded-Proto': 'https' });
+  assert.match(pricing.html, /<title>Pricing — Nutrikit Nutrition API<\/title>/);
+  assert.match(pricing.html, /<meta name="description" content="Start free with 2,000 tokens/);
+  assert.equal(pricing.html.match(/<meta name="description"/g).length, 1, 'one description');
+  assert.match(pricing.html, new RegExp(`<link rel="canonical" href="https://${new URL(base).host}/pricing">`));
+  assert.match(pricing.html, /<meta name="robots" content="index, follow">/);
+  assert.match(pricing.html, /<meta property="og:image" content="https:\/\/[^"]+\/og-image.png">/);
+  assert.match(pricing.html, /<meta name="twitter:card" content="summary_large_image">/);
+
+  const home = await page('/');
+  const [, json] = home.html.match(/<script type="application\/ld\+json">(.*?)<\/script>/);
+  assert.deepEqual(JSON.parse(json).map((d) => d['@type']), ['Organization', 'WebSite']);
+
+  assert.match((await page('/dashboard')).html, /<meta name="robots" content="noindex, follow">/);
+  const missing = await page('/no-such-page');
+  assert.equal(missing.status, 404);
+  assert.match(missing.html, /<title>Page not found — Nutrikit<\/title>/);
+  assert.match(missing.html, /noindex/);
+  assert.doesNotMatch(missing.html, /rel="canonical"/);
+
+  // A forged Host header can't break out of the attribute.
+  const forged = await page('/pricing', { Host: 'evil.test"><script>x</script>' }).catch(() => null);
+  if (forged) assert.doesNotMatch(forged.html, /<script>x<\/script>/);
+});
+
+test('robots.txt and sitemap.xml list the public pages with absolute URLs', async () => {
+  const robots = await fetch(`${base}/robots.txt`);
+  assert.equal(robots.status, 200);
+  const text = await robots.text();
+  assert.match(text, /^User-agent: \*$/m);
+  assert.match(text, /^Disallow: \/v1\/$/m);
+  assert.match(text, new RegExp(`^Sitemap: http://${new URL(base).host}/sitemap.xml$`, 'm'));
+
+  const sitemap = await fetch(`${base}/sitemap.xml`);
+  assert.match(sitemap.headers.get('content-type'), /application\/xml/);
+  const xml = await sitemap.text();
+  const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+  assert.deepEqual(locs, ['/', '/pricing', '/docs', '/docs/reference', '/playground', '/signup']);
+  assert.doesNotMatch(xml, /dashboard|admin|login/);
 });
 
 test('homepage demo: works without an account, needs the CSRF header, is rate limited', async () => {

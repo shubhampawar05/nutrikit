@@ -21,7 +21,7 @@
     },
     "/docs": {
       "title": "Documentation — Nutrikit Nutrition API",
-      "description": "Quick start, authentication, access tokens and guides for every Nutrikit feature: food search, nutrients, meal logging, barcodes, labels, meal plans and the JavaScript SDK.",
+      "description": "Quick start, authentication and guides for every Nutrikit feature: food search, nutrients, meal logging, barcodes, labels, meal plans and the JavaScript SDK.",
       "index": true,
       "priority": 0.9
     },

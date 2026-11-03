@@ -16,6 +16,7 @@ Templates: [.env.example](../.env.example) (local) and [.env.production.example]
 |---|---|
 | `NUTRIKIT_SECURE_COOKIES` | `1` marks session cookies `Secure`. Use when serving over HTTPS |
 | `NUTRIKIT_ADMIN_TOKEN` | Password for `/admin` and `/v1/admin/*`. Unset disables the admin console |
+| `NUTRIKIT_PUBLIC_URL` | The site's address, e.g. `https://nutrikit.onrender.com`. Used for canonical URLs, link previews and the sitemap; without it they follow the request's host |
 
 ## AI (optional)
 
