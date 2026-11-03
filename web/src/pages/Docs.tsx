@@ -4,7 +4,6 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { CodeBlock } from '../components/CodeBlock.tsx';
-import { useTitle } from '../hooks.ts';
 
 interface NutrientInfo { key: string; name: string; unit: string; dailyValue: number | null }
 
@@ -77,7 +76,6 @@ function NutrientTable() {
 }
 
 export function Docs() {
-  useTitle('Documentation — Nutrikit');
   const base = window.location.origin;
   return (
     <main className="wrap docs-layout">

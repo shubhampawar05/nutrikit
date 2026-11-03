@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../api/client.ts';
-import { useMe, useTitle } from '../hooks.ts';
+import { useMe } from '../hooks.ts';
 
 type Mode = 'signup' | 'login';
 interface AuthFields { name: string; email: string; password: string }
@@ -26,8 +26,6 @@ function AuthForm({ mode }: { mode: Mode }) {
   const me = useMe();
   const submitted = useRef(false);
   const [formError, setFormError] = useState<string | null>(null);
-
-  useTitle(isLogin ? 'Log in — Nutrikit' : 'Sign up — Nutrikit');
 
   const { register, handleSubmit, setError, clearErrors, setFocus, formState: { errors, isSubmitting } } = useForm<AuthFields>({
     defaultValues: { name: '', email: '', password: '' },

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api, ApiError } from './api/client.ts';
 
@@ -16,8 +15,4 @@ export function useMe() {
     },
     staleTime: 30_000,
   });
-}
-
-export function useTitle(title: string) {
-  useEffect(() => { document.title = title; }, [title]);
 }

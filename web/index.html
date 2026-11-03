@@ -3,14 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nutrikit — Describe a meal, get the nutrition label</title>
-  <meta name="description" content="A nutrition API for developers: food search, portion-aware nutrients and meal logging from text, voice, photos, barcodes and labels.">
+  <title>Nutrikit — Nutrition API for food search, meal logging and barcodes</title>
+  <meta name="description" content="Nutrition API for developers: food search, portion-aware nutrients, and meal logging from text, voice, photos, barcodes and nutrition labels.">
+  <!-- The server fills in each page's canonical URL, robots, Open Graph and Twitter tags (server/src/routes/spa.ts). -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#f7f2e8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#12110f" media="(prefers-color-scheme: dark)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="root"></div>
+  <noscript>Nutrikit is a nutrition API for developers. Turn on JavaScript to use the site, or read the API description at <a href="/openapi.json">/openapi.json</a>.</noscript>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

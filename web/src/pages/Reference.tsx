@@ -3,10 +3,8 @@ import { Link } from 'react-router';
 import { ApiReferenceReact } from '@scalar/api-reference-react';
 import '@scalar/api-reference-react/style.css';
 import '../styles/reference.css';
-import { useTitle } from '../hooks.ts';
 
 export function Reference() {
-  useTitle('API reference — Nutrikit');
   return (
     <main className="reference-page">
       <div className="wrap reference-head">

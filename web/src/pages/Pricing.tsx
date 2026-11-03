@@ -1,6 +1,5 @@
 // Public pricing page: plans, per-endpoint token costs and FAQ (static plan data).
 import { Link } from 'react-router';
-import { useTitle } from '../hooks.ts';
 
 interface PlanCard {
   name: string;
@@ -21,7 +20,6 @@ const PLANS: PlanCard[] = [
 ];
 
 export function Pricing() {
-  useTitle('Pricing — Nutrikit');
   return (
     <main className="wrap">
       <section>
