@@ -1,7 +1,7 @@
 # Render Blueprint: one free web service serving the website, developer portal and API.
-# The database is external (Supabase or any PostgreSQL 16+); see "Free deployment" in README.md.
+# The database is external (Supabase or any PostgreSQL 16+); see docs/deployment.md.
 # Render dashboard -> New -> Blueprint -> pick this repository. Values marked sync: false are asked for
-# on the first deploy; generateValue creates a random secret once and keeps it.
+# on the first deploy and kept out of git; later syncs never overwrite them.
 services:
   - type: web
     name: nutrikit
@@ -19,11 +19,12 @@ services:
       # Supabase -> Connect -> Session pooler (port 5432), with ?sslmode=require appended.
       - key: DATABASE_URL
         sync: false
+      # Generate each with `openssl rand -hex 32`. Keep the token secret stable across deploys.
       - key: NUTRIKIT_TOKEN_SECRET
-        generateValue: true
-      # Bearer token for /admin; read it from the service's Environment tab.
+        sync: false
+      # Bearer token for /admin.
       - key: NUTRIKIT_ADMIN_TOKEN
-        generateValue: true
+        sync: false
       - key: NUTRIKIT_SECURE_COOKIES
         value: "1"
       - key: OPENAI_API_KEY
