@@ -92,6 +92,14 @@ export interface LabelResult {
 export type Diet = 'omnivore' | 'vegetarian' | 'vegan' | 'pescatarian' | 'dairy-free' | 'gluten-free';
 export type MealName = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
+export interface AdvisorAnswer {
+  /** Markdown. */
+  answer: string;
+  /** True for medical, medication and other out-of-scope questions; `answer` then explains why. */
+  declined: boolean;
+  provider: string;
+}
+
 export interface MealPlan {
   seed: number;
   diet: Diet;
@@ -138,6 +146,7 @@ export class Nutrikit {
   lookupBarcode(code: string): Promise<BarcodeProduct>;
   parseLabel(input: { text: string } | { image: ImageInput; mediaType?: string }): Promise<LabelResult>;
   createMealPlan(opts?: { calories?: number; proteinGrams?: number; diet?: Diet; meals?: MealName[]; days?: number; exclude?: string[]; seed?: number }): Promise<MealPlan>;
+  askAdvisor(question: string, opts?: { context?: string }): Promise<AdvisorAnswer>;
   getUsage(): Promise<Usage>;
   createAccessToken(): Promise<AccessToken>;
   voiceLog(opts?: { lang?: string; timeoutMs?: number; ai?: boolean }): Promise<VoiceLogResult>;

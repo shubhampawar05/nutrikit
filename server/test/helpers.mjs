@@ -77,5 +77,14 @@ export function fakeProvider() {
         usage: { inputTokens: 300, outputTokens: 100 },
       };
     },
+    async advise(args) {
+      calls.push(['advise', args]);
+      const declined = /medication|insulin/i.test(args.question);
+      return {
+        answer: declined ? 'I can’t advise on medication. Please ask your doctor.' : '- **Greek yogurt**: about 10 g protein per 100 g',
+        declined,
+        usage: { inputTokens: 800, outputTokens: 250 },
+      };
+    },
   };
 }

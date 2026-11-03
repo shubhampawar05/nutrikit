@@ -12,7 +12,7 @@ import type {
 } from '@anthropic-ai/sdk/resources/beta/messages';
 import type { AIUsage } from '../types.ts';
 import type { AIProvider } from './index.ts';
-import { FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
+import { ADVICE_SCHEMA, ADVICE_SYSTEM, FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, adviceMessage, type AdviceOutput, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
 
 const MODEL = process.env.NUTRIKIT_ANTHROPIC_MODEL || 'claude-opus-5-5';
 const EFFORT = (process.env.NUTRIKIT_ANTHROPIC_EFFORT || 'medium') as BetaOutputConfig['effort'];
@@ -80,6 +80,11 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
     async parseMeal({ text }) {
       const { data: out, usage } = await call<FoodItemsOutput>(TEXT_SYSTEM, [{ type: 'text', text }], FOOD_ITEMS_SCHEMA);
       return { meal: out.meal, items: out.items, notes: out.notes, usage };
+    },
+
+    async advise({ question, context }) {
+      const { data: out, usage } = await call<AdviceOutput>(ADVICE_SYSTEM, [{ type: 'text', text: adviceMessage(question, context) }], ADVICE_SCHEMA);
+      return { ...out, usage };
     },
   };
 }

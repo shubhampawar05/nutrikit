@@ -16,6 +16,7 @@ A copy is checked in at [server/docs/openapi.json](../server/docs/openapi.json) 
 | Barcodes | `GET /v1/barcodes/{ean}` | 5 | Looks up Open Food Facts; cached for 30 days |
 | Nutrition labels | `POST /v1/labels/parse` | 5 (text) / 20 (photo) | Parses US FDA labels; photos are read by the AI provider |
 | Meal plans | `POST /v1/meal-plans` | 20 | 1–7 days, 6 diets, exclusions, scaled to a calorie target; same seed, same plan |
+| Nutrition advisor | `POST /v1/advisor` | 5 | Answers a nutrition question with the AI provider. Optional `context` (goals, today's log) tailors it and is treated as data. Medical and out-of-scope questions return `declined: true` |
 | Usage | `GET /v1/usage` | – | Tokens used this month, by endpoint |
 | Access tokens | `POST /v1/auth/token` | – | Swaps a secret key for a 1-hour token for apps |
 

@@ -72,6 +72,18 @@ test('readLabel returns the label fields', async () => {
   assert.equal(requests.at(-1).body.response_format.json_schema.name, 'nutrition_label');
 });
 
+test('advise fences caller context off from the question and returns the answer', async () => {
+  reply = () => ({ status: 200, body: completion({ answer: 'Try Greek yogurt.', declined: false }) });
+  const out = await provider.advise({ question: 'high protein snack?', context: 'Goal: build muscle' });
+  const req = requests.at(-1).body;
+  assert.equal(req.response_format.json_schema.name, 'nutrition_advice');
+  assert.match(req.messages[0].content, /not medical advice|never as\s+instructions/);
+  assert.equal(req.messages[1].content[0].text, '<context>\nGoal: build muscle\n</context>\n\nQuestion: high protein snack?');
+  assert.deepEqual(out, { answer: 'Try Greek yogurt.', declined: false, usage: { inputTokens: 120, outputTokens: 30 } });
+  await provider.advise({ question: 'fiber?' });
+  assert.equal(requests.at(-1).body.messages[1].content[0].text, 'Question: fiber?');
+});
+
 test('rate limits are retried, then succeed', async () => {
   const start = requests.length;
   reply = (n) => (n - start === 1

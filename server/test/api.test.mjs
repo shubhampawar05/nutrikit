@@ -121,6 +121,27 @@ test('label parsing from text and image', async () => {
   assert.equal((await call('/v1/labels/parse', { method: 'POST', body: {} })).status, 400);
 });
 
+test('advisor: answers, declines out-of-scope questions, passes context, meters AI usage', async () => {
+  setProvider({ name: 'none' });
+  assert.equal((await call('/v1/advisor', { method: 'POST', body: { question: 'high protein snacks?' } })).status, 501);
+
+  setProvider(provider);
+  const r = await call('/v1/advisor', { method: 'POST', body: { question: '  high protein snacks?  ', context: 'Goal: build muscle. Avoids: peanuts.' } });
+  assert.equal(r.status, 200);
+  // 5 flat + ceil((800 + 250) / 1000) = 7
+  assert.equal(r.headers.get('x-tokens-charged'), '7');
+  assert.deepEqual(await r.json(), { answer: '- **Greek yogurt**: about 10 g protein per 100 g', declined: false, provider: 'fake' });
+  const [, args] = provider.calls.findLast(([m]) => m === 'advise');
+  assert.deepEqual(args, { question: 'high protein snacks?', context: 'Goal: build muscle. Avoids: peanuts.' });
+
+  const declined = await (await call('/v1/advisor', { method: 'POST', body: { question: 'Should I change my insulin dose?' } })).json();
+  assert.equal(declined.declined, true);
+  assert.equal(provider.calls.findLast(([m]) => m === 'advise')[1].context, null);
+
+  assert.equal((await call('/v1/advisor', { method: 'POST', body: { question: '   ' } })).status, 400);
+  assert.equal((await call('/v1/advisor', { method: 'POST', body: { question: 'x'.repeat(1001) } })).status, 400);
+});
+
 test('AI text parsing goes through the provider', async () => {
   setProvider(provider);
   const r = await (await call('/v1/log/text', { method: 'POST', body: { text: 'a cup of oatmeal', ai: true } })).json();
@@ -219,7 +240,7 @@ test('OpenAPI spec documents every API route', async () => {
   assert.equal(spec.openapi, '3.1.0');
   const documented = new Set(Object.entries(spec.paths).flatMap(([p, ops]) => Object.keys(ops).map((m) => `${m.toUpperCase()} ${p}`)));
   const api = app.routeTable.filter((r) => r.url.startsWith('/v1/') && r.method !== 'HEAD' && !r.hidden);
-  assert.equal(api.length, 21, 'all /v1 routes are registered');
+  assert.equal(api.length, 22, 'all /v1 routes are registered');
   for (const r of api) {
     const p = r.url.replace(/:(\w+)(\([^/]*\))?/g, '{$1}');
     assert.ok(documented.has(`${r.method} ${p}`), `${r.method} ${p} missing from openapi.json`);
