@@ -1,0 +1,62 @@
+{
+  "site": {
+    "name": "Nutrikit",
+    "description": "Nutrition API for developers: food search, portion-aware nutrients, and meal logging from text, voice, photos, barcodes and nutrition labels.",
+    "image": "/og-image.png",
+    "imageAlt": "Nutrikit: describe a meal, get the nutrition label",
+    "notFoundTitle": "Page not found — Nutrikit"
+  },
+  "pages": {
+    "/": {
+      "title": "Nutrikit — Nutrition API for food search, meal logging and barcodes",
+      "description": "Turn text, voice, photos, barcodes and nutrition labels into matched foods, real portions and 33 nutrients. One API key, a tiny SDK, 2,000 free tokens a month.",
+      "index": true,
+      "priority": 1.0
+    },
+    "/pricing": {
+      "title": "Pricing — Nutrikit Nutrition API",
+      "description": "Start free with 2,000 tokens a month, no card needed. Simple token pricing for food search, meal logging, barcode lookup, label parsing and meal plans.",
+      "index": true,
+      "priority": 0.8
+    },
+    "/docs": {
+      "title": "Documentation — Nutrikit Nutrition API",
+      "description": "Quick start, authentication and guides for every Nutrikit feature: food search, nutrients, meal logging, barcodes, labels, meal plans and the JavaScript SDK.",
+      "index": true,
+      "priority": 0.9
+    },
+    "/docs/reference": {
+      "title": "API reference — Nutrikit Nutrition API",
+      "description": "Every Nutrikit REST endpoint with parameters, request and response schemas, errors and token costs, generated from the OpenAPI specification.",
+      "index": true,
+      "priority": 0.8
+    },
+    "/playground": {
+      "title": "API playground — Nutrikit",
+      "description": "Try the Nutrikit nutrition API in your browser: search foods, log a meal from text, look up a barcode or parse a nutrition label, and see the JSON response.",
+      "index": true,
+      "priority": 0.6
+    },
+    "/signup": {
+      "title": "Sign up — Nutrikit",
+      "description": "Create a free Nutrikit account and get a nutrition API key in 30 seconds. 2,000 free tokens a month, no card needed.",
+      "index": true,
+      "priority": 0.5
+    },
+    "/login": {
+      "title": "Log in — Nutrikit",
+      "description": "Log in to your Nutrikit developer dashboard to manage API keys and usage.",
+      "index": false
+    },
+    "/dashboard": {
+      "title": "Dashboard — Nutrikit",
+      "description": "Manage your Nutrikit API keys, usage and plan.",
+      "index": false
+    },
+    "/admin": {
+      "title": "Admin — Nutrikit",
+      "description": "Nutrikit operator console.",
+      "index": false
+    }
+  }
+}

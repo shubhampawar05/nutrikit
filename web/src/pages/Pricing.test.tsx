@@ -15,6 +15,5 @@ describe('Pricing', () => {
     expect(screen.getByRole('link', { name: 'Start free' }).getAttribute('href')).toBe('/signup');
     expect(screen.getByText('What each call costs')).toBeTruthy();
     expect(screen.getByText('Do failed requests cost tokens?')).toBeTruthy();
-    expect(document.title).toBe('Pricing — Nutrikit');
   });
 });

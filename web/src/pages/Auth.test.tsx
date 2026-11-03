@@ -67,7 +67,6 @@ describe('Signup', () => {
     expect(screen.getByLabelText('Password').getAttribute('autocomplete')).toBe('new-password');
     expect(screen.getByText('At least 10 characters.')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Log in' }).getAttribute('href')).toBe('/login');
-    expect(document.title).toBe('Sign up — Nutrikit');
   });
 
   it('shows server field errors under the right inputs and clears them on edit', async () => {

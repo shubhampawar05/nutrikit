@@ -4,7 +4,6 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError, fmt, fmtDate, fmtPrice } from '../api/client.ts';
 import { adminApi, adminToken, type AdminAccount, type AdminKey } from '../api/admin.ts';
-import { useTitle } from '../hooks.ts';
 import { useToast } from '../components/Toast.tsx';
 import '../styles/admin.css';
 
@@ -258,7 +257,6 @@ function RequestsTab() {
 }
 
 export function Admin() {
-  useTitle('Admin — Nutrikit');
   const queryClient = useQueryClient();
   const [signedIn, setSignedIn] = useState(() => adminToken.get() !== null);
   const [tab, setTab] = useState<Tab>('Overview');

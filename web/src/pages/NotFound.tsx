@@ -1,8 +1,6 @@
 import { Link } from 'react-router';
-import { useTitle } from '../hooks.ts';
 
 export function NotFound() {
-  useTitle('Page not found — Nutrikit');
   return (
     <main className="wrap" style={{ padding: '96px 0' }}>
       <span className="kicker">404</span>

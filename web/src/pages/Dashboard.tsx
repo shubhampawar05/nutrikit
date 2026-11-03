@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, fmt, fmtDate, fmtPrice, type Me } from '../api/client.ts';
 import { payWithRazorpay } from '../api/razorpay.ts';
-import { useMe, useTitle } from '../hooks.ts';
+import { useMe } from '../hooks.ts';
 import { useToast } from '../components/Toast.tsx';
 import { CodeBlock } from '../components/CodeBlock.tsx';
 import { UsageChart } from './dashboard/UsageChart.tsx';
@@ -260,7 +260,6 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
 // ---------------------------------------------------------------- page
 
 export function Dashboard() {
-  useTitle('Dashboard — Nutrikit');
   const me = useMe();
   const navigate = useNavigate();
   const queryClient = useQueryClient();

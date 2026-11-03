@@ -1,13 +1,11 @@
 // Homepage: hero with the live meal → Nutrition Facts demo, input types, features, code samples.
 import { Link } from 'react-router';
 import { Icon } from '../components/Icon.tsx';
-import { useTitle } from '../hooks.ts';
 import { Demo } from './home/Demo.tsx';
 import { CodeSamples } from './home/CodeSamples.tsx';
 import { BARCODE_BITS } from './home/demo.ts';
 
 export function Home() {
-  useTitle('Nutrikit — Describe a meal, get the nutrition label');
   return (
     <main>
       {/* Hero: the product, working */}

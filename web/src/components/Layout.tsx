@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet, ScrollRestoration, useLocation, type Location } from 'react-router';
 import { Icon, Logo } from './Icon.tsx';
 import { useMe } from '../hooks.ts';
+import { usePageMeta } from '../seo.ts';
 
 const NAV: [string, string][] = [
   ['/docs', 'Docs'],
@@ -112,6 +113,7 @@ const scrollKey = (location: Location) =>
   location.hash && location.key === 'default' ? `fresh-${Math.random()}` : location.key;
 
 export function Layout() {
+  usePageMeta();
   return (
     <>
       <Header />

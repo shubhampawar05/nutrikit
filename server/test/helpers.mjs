@@ -14,6 +14,8 @@ fs.mkdirSync(path.join(webDist, 'assets'));
 fs.writeFileSync(path.join(webDist, 'index.html'), '<!doctype html><title>Nutrikit</title><div id="root"></div><script type="module" src="/assets/app-3f9a1c.js"></script>');
 fs.writeFileSync(path.join(webDist, 'assets/app-3f9a1c.js'), 'console.log("nutrikit")');
 fs.writeFileSync(path.join(webDist, 'favicon.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>');
+// The page list the web build emits (web/src/seo.json is the real one).
+fs.copyFileSync(new URL('../../web/src/seo.json', import.meta.url), path.join(webDist, 'seo.json'));
 process.env.NUTRIKIT_WEB_DIST = webDist;
 
 process.env.NUTRIKIT_OFFLINE = '0';

@@ -4,7 +4,7 @@ import { flushSync } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { Nutrikit, NutrikitError } from '../sdk.ts';
 import { api, ApiError } from '../api/client.ts';
-import { useMe, useTitle } from '../hooks.ts';
+import { useMe } from '../hooks.ts';
 import { CodeBlock } from '../components/CodeBlock.tsx';
 import { Icon } from '../components/Icon.tsx';
 import { useToast } from '../components/Toast.tsx';
@@ -54,7 +54,6 @@ function ErrorBox({ status, body }: { status: number; body: ErrorBody }) {
 }
 
 export function Playground() {
-  useTitle('Playground — Nutrikit');
   const toast = useToast();
   const location = useLocation();
   const navigate = useNavigate();
