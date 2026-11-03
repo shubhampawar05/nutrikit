@@ -6,8 +6,7 @@
 A self-hostable nutrition API, with a website, a developer portal, a JavaScript SDK and an MCP server.
 
 **Try it:** [nutrikit.onrender.com](https://nutrikit.onrender.com) (free API key) ·
-[Docs](https://nutrikit.onrender.com/docs) · [SDK on npm](https://www.npmjs.com/package/@nutrikit/sdk) ·
-[Example app](https://github.com/shubhampawar05/nutrikit-demo)
+[Docs](https://nutrikit.onrender.com/docs) · [SDK on npm](https://www.npmjs.com/package/@nutrikit/sdk)
 
 - **Search 13,000+ foods** and get 33 nutrients for any portion ("2 medium", "1.5 cups")
 - **Log meals** from text, voice or a photo

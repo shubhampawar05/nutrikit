@@ -7,7 +7,7 @@ breakdowns, meal logging from text, voice and photos, barcode and nutrition-labe
 nutrition advisor.
 
 **[Get a free API key](https://nutrikit.onrender.com/signup)** · [Docs](https://nutrikit.onrender.com/docs#sdk) ·
-[API reference](https://nutrikit.onrender.com/docs/reference) · [Example app](https://github.com/shubhampawar05/nutrikit-demo) ·
+[API reference](https://nutrikit.onrender.com/docs/reference) ·
 [Source](https://github.com/shubhampawar05/nutrikit)
 
 - No dependencies. Works in browsers and Node 18+ (anything with `fetch`).
@@ -48,8 +48,6 @@ const { access_token } = await nk.createAccessToken();
 // browser
 const client = new Nutrikit({ apiKey: access_token, baseUrl: 'https://nutrikit.onrender.com' });
 ```
-
-[nutrikit-demo](https://github.com/shubhampawar05/nutrikit-demo) is a complete working example of this pattern.
 
 ## Methods
 

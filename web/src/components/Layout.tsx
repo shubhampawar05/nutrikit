@@ -64,7 +64,7 @@ function Footer() {
             <p style={{ marginTop: 16, maxWidth: '30ch' }}>Nutrition data and food logging for developers. One key, one SDK, honest pricing.</p>
           </div>
           <div><h4>Product</h4><ul><li><Link to="/#how">How it works</Link></li><li><Link to="/pricing">Pricing</Link></li><li><Link to="/playground">Playground</Link></li></ul></div>
-          <div><h4>Developers</h4><ul><li><Link to="/docs">Documentation</Link></li><li><Link to="/docs/reference">API reference</Link></li><li><a href="/openapi.json">OpenAPI spec</a></li><li><a href="https://www.npmjs.com/package/@nutrikit/sdk" target="_blank" rel="noopener">JavaScript SDK (npm)</a></li><li><a href="https://github.com/shubhampawar05/nutrikit-demo" target="_blank" rel="noopener">Example app</a></li><li><a href="https://github.com/shubhampawar05/nutrikit" target="_blank" rel="noopener">GitHub</a></li></ul></div>
+          <div><h4>Developers</h4><ul><li><Link to="/docs">Documentation</Link></li><li><Link to="/docs/reference">API reference</Link></li><li><a href="/openapi.json">OpenAPI spec</a></li><li><a href="https://www.npmjs.com/package/@nutrikit/sdk" target="_blank" rel="noopener">JavaScript SDK (npm)</a></li><li><a href="https://github.com/shubhampawar05/nutrikit" target="_blank" rel="noopener">GitHub</a></li></ul></div>
           <div><h4>Account</h4><ul><li><Link to="/signup">Sign up</Link></li><li><Link to="/login">Log in</Link></li><li><Link to="/dashboard">Dashboard</Link></li></ul></div>
         </div>
         <div className="footer-bottom">

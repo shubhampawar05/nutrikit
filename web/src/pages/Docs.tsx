@@ -214,7 +214,7 @@ const usage   = await nk.getUsage();
 const token   = await nk.createAccessToken();   // server-side only
 
 console.log(nk.lastUsage); // { charged: 5, remaining: 1984 }`}</code></CodeBlock>
-          <p>No build step? Load it straight from this server: <code>{`import { Nutrikit } from '${base}/sdk/nutrikit.mjs'`}</code> (types: <a href="/sdk/nutrikit.d.ts">nutrikit.d.ts</a>). For a complete app — text, voice, photo, barcode and label logging, advisor and meal plans, with the key kept server-side — see the <a href="https://github.com/shubhampawar05/nutrikit-demo" target="_blank" rel="noopener">nutrikit-demo</a> example.</p>
+          <p>No build step? Load it straight from this server: <code>{`import { Nutrikit } from '${base}/sdk/nutrikit.mjs'`}</code> (types: <a href="/sdk/nutrikit.d.ts">nutrikit.d.ts</a>).</p>
           <p>In the browser, construct the client with an access token from your backend: <code>new Nutrikit({'{ apiKey: accessToken }'})</code>.</p>
           <h3>Errors and retries</h3>
           <CodeBlock><code>{`try {
