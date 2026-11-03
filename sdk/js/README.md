@@ -1,7 +1,14 @@
 # @nutrikit/sdk
 
-JavaScript client for a [Nutrikit](https://github.com/shubhampawar05/nutrikit) server: food search, nutrient
-breakdowns, meal logging from text, voice and photos, barcode and nutrition-label scanning, and meal plans.
+[![npm](https://img.shields.io/npm/v/@nutrikit/sdk)](https://www.npmjs.com/package/@nutrikit/sdk)
+
+JavaScript client for the [Nutrikit](https://nutrikit.onrender.com) nutrition API: food search, nutrient
+breakdowns, meal logging from text, voice and photos, barcode and nutrition-label scanning, meal plans and a
+nutrition advisor.
+
+**[Get a free API key](https://nutrikit.onrender.com/signup)** · [Docs](https://nutrikit.onrender.com/docs#sdk) ·
+[API reference](https://nutrikit.onrender.com/docs/reference) ·
+[Source](https://github.com/shubhampawar05/nutrikit)
 
 - No dependencies. Works in browsers and Node 18+ (anything with `fetch`).
 - TypeScript types included.
@@ -20,7 +27,7 @@ import { Nutrikit } from '@nutrikit/sdk';
 
 const nk = new Nutrikit({
   apiKey: process.env.NUTRIKIT_KEY,          // nk_… secret key (server-side only)
-  baseUrl: 'https://api.example.com',        // your Nutrikit server
+  baseUrl: 'https://nutrikit.onrender.com',  // the hosted API, or your own Nutrikit server
 });
 
 const meal = await nk.logText('2 eggs, a slice of toast and coffee with milk');
@@ -28,7 +35,7 @@ meal.totals.calories;   // { amount: 234, unit: 'kcal', dailyValuePercent: 12 }
 ```
 
 `baseUrl` defaults to the page's own origin in a browser and to `http://localhost:8787` elsewhere, so set it
-whenever your API lives on another host.
+whenever your API lives on another host. Nutrikit is self-hostable: point `baseUrl` at your own server instead.
 
 ### In browsers and mobile apps
 
@@ -39,7 +46,7 @@ Never ship the secret key to a client. Have your server exchange it for a 1-hour
 const { access_token } = await nk.createAccessToken();
 
 // browser
-const client = new Nutrikit({ apiKey: access_token, baseUrl: 'https://api.example.com' });
+const client = new Nutrikit({ apiKey: access_token, baseUrl: 'https://nutrikit.onrender.com' });
 ```
 
 ## Methods

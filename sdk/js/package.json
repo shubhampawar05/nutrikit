@@ -1,6 +1,6 @@
 {
   "name": "@nutrikit/sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "JavaScript SDK for the Nutrikit API: food search, nutrient breakdowns, text/voice/photo meal logging, barcode and label scanning, meal plans.",
   "keywords": [
@@ -11,6 +11,10 @@
     "meal-logging",
     "barcode",
     "usda",
+    "nutrition-api",
+    "calorie-tracker",
+    "food-recognition",
+    "meal-plan",
     "nutrikit"
   ],
   "license": "MIT",
@@ -19,7 +23,7 @@
     "url": "git+https://github.com/shubhampawar05/nutrikit.git",
     "directory": "sdk/js"
   },
-  "homepage": "https://github.com/shubhampawar05/nutrikit/tree/main/sdk/js#readme",
+  "homepage": "https://nutrikit.onrender.com/docs#sdk",
   "bugs": "https://github.com/shubhampawar05/nutrikit/issues",
   "main": "nutrikit.mjs",
   "types": "nutrikit.d.ts",

@@ -10,7 +10,7 @@ const C = (...parts: ReactNode[]) => createElement('span', { className: 'tok-c' 
 
 const js = (
   <pre><code>
-    {K('import')}{' { Nutrikit } '}{K('from')}{' '}{S("'./nutrikit.mjs'")}{';\n\n'}
+    {K('import')}{' { Nutrikit } '}{K('from')}{' '}{S("'@nutrikit/sdk'")}{';\n\n'}
     {K('const')}{' nk = '}{K('new')}{' '}{P('Nutrikit')}{'({ apiKey: process.env.'}{P('NUTRIKIT_KEY')}{' });\n\n'}
     {C('// text, voice transcript, photo, barcode or label')}{'\n'}
     {K('const')}{' meal = '}{K('await')}{' nk.'}{P('logText')}{'('}{S("'a bowl of oatmeal and a coffee'")}{');\n\n'}
@@ -48,7 +48,7 @@ export function CodeSamples() {
   return (
     <Tabs
       tabs={[
-        { id: 'js', label: 'nutrikit.mjs', panel: js },
+        { id: 'js', label: 'JavaScript', panel: js },
         { id: 'curl', label: 'curl', panel: curl },
         { id: 'res', label: 'response', panel: res },
       ]}
