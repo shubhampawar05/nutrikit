@@ -7,7 +7,7 @@ services:
     name: nutrikit
     runtime: docker
     plan: free # sleeps after 15 minutes idle; the next request wakes it in about a minute
-    region: singapore
+    region: frankfurt # close to the Supabase database in eu-west-1 (Ireland)
     branch: main
     autoDeploy: true
     dockerfilePath: ./docker/Dockerfile
