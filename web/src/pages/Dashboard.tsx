@@ -336,7 +336,7 @@ curl "${window.location.origin}/v1/log/text" \\
   -d '{"text": "a bowl of oatmeal with blueberries and a coffee"}'`}</code>
         </CodeBlock>
         <p className="small muted" style={{ margin: 0 }}>
-          Next: <Link to="/docs#access-tokens">use access tokens in apps</Link> · <Link to="/docs/reference">API reference</Link> · <a href="/sdk/nutrikit.mjs">download the SDK</a>
+          Next: <Link to="/docs#access-tokens">use access tokens in apps</Link> · <Link to="/docs/reference">API reference</Link> · <a href="https://www.npmjs.com/package/@nutrikit/sdk" target="_blank" rel="noopener">install the SDK</a> (<code>npm i @nutrikit/sdk</code>) · <a href="https://github.com/shubhampawar05/nutrikit-demo" target="_blank" rel="noopener">example app</a>
         </p>
       </section>
     </main>

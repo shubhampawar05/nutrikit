@@ -196,8 +196,9 @@ GET /v1/foods/2709224/nutrients?grams=150`}</code></CodeBlock>
 
         <section id="sdk">
           <h2>JavaScript SDK</h2>
-          <p>One dependency-free ES module for browsers and Node 18+. Download <a href="/sdk/nutrikit.mjs">nutrikit.mjs</a> and <a href="/sdk/nutrikit.d.ts">nutrikit.d.ts</a> (types).</p>
-          <CodeBlock><code>{`import { Nutrikit, NutrikitError } from './nutrikit.mjs';
+          <p>Published on npm as <a href="https://www.npmjs.com/package/@nutrikit/sdk" target="_blank" rel="noopener"><code>@nutrikit/sdk</code></a>: no dependencies, TypeScript types included, works in browsers and Node 18+. Source on <a href="https://github.com/shubhampawar05/nutrikit/tree/main/sdk/js" target="_blank" rel="noopener">GitHub</a>.</p>
+          <CodeBlock><code>npm install @nutrikit/sdk</code></CodeBlock>
+          <CodeBlock><code>{`import { Nutrikit, NutrikitError } from '@nutrikit/sdk';
 
 const nk = new Nutrikit({ apiKey: process.env.NUTRIKIT_KEY, baseUrl: '${base}' });
 
@@ -213,6 +214,7 @@ const usage   = await nk.getUsage();
 const token   = await nk.createAccessToken();   // server-side only
 
 console.log(nk.lastUsage); // { charged: 5, remaining: 1984 }`}</code></CodeBlock>
+          <p>No build step? Load it straight from this server: <code>{`import { Nutrikit } from '${base}/sdk/nutrikit.mjs'`}</code> (types: <a href="/sdk/nutrikit.d.ts">nutrikit.d.ts</a>). For a complete app — text, voice, photo, barcode and label logging, advisor and meal plans, with the key kept server-side — see the <a href="https://github.com/shubhampawar05/nutrikit-demo" target="_blank" rel="noopener">nutrikit-demo</a> example.</p>
           <p>In the browser, construct the client with an access token from your backend: <code>new Nutrikit({'{ apiKey: accessToken }'})</code>.</p>
           <h3>Errors and retries</h3>
           <CodeBlock><code>{`try {

@@ -1,6 +1,13 @@
 # Nutrikit
 
+[![npm](https://img.shields.io/npm/v/@nutrikit/sdk?label=%40nutrikit%2Fsdk)](https://www.npmjs.com/package/@nutrikit/sdk)
+[![Live](https://img.shields.io/badge/live-nutrikit.onrender.com-e0462b)](https://nutrikit.onrender.com)
+
 A self-hostable nutrition API, with a website, a developer portal, a JavaScript SDK and an MCP server.
+
+**Try it:** [nutrikit.onrender.com](https://nutrikit.onrender.com) (free API key) ·
+[Docs](https://nutrikit.onrender.com/docs) · [SDK on npm](https://www.npmjs.com/package/@nutrikit/sdk) ·
+[Example app](https://github.com/shubhampawar05/nutrikit-demo)
 
 - **Search 13,000+ foods** and get 33 nutrients for any portion ("2 medium", "1.5 cups")
 - **Log meals** from text, voice or a photo
@@ -54,7 +61,7 @@ Open http://localhost:5173, sign up, and create an API key in the dashboard.
 ```js
 import { Nutrikit } from '@nutrikit/sdk';
 
-const nk = new Nutrikit({ apiKey: 'nk_...', baseUrl: 'http://localhost:8787' });
+const nk = new Nutrikit({ apiKey: 'nk_...', baseUrl: 'https://nutrikit.onrender.com' });  // or http://localhost:8787
 
 await nk.logText('2 eggs, a slice of toast and coffee with milk');
 await nk.lookupBarcode('3017624010701');
