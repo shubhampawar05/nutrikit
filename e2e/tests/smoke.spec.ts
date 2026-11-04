@@ -11,18 +11,21 @@ test('sign up → dashboard → create key → playground food search', async ({
   await page.getByLabel('Password').fill('correct horse battery');
   await page.getByRole('button', { name: 'Create account' }).click();
 
-  // The dashboard shows the first key once.
+  // The dashboard shows the first key once, in a read-only field. Dismissing a key that was never copied asks
+  // to confirm first; accept it.
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByText(email)).toBeVisible();
   const reveal = page.locator('.key-reveal');
-  await expect(reveal.locator('code')).toHaveText(/^nk_/);
+  await expect(reveal.locator('.key-reveal-key')).toHaveValue(/^nk_/);
+  page.once('dialog', (dialog) => dialog.accept());
   await reveal.getByRole('button', { name: "I've saved it" }).click();
+  await expect(reveal).toHaveCount(0);
 
   // Create a second key; it is revealed once and listed.
   await page.getByLabel('New key name').fill('e2e key');
   await page.getByRole('button', { name: 'Create key' }).click();
-  await expect(reveal.locator('code')).toHaveText(/^nk_/);
-  await expect(page.getByRole('cell', { name: 'e2e key' })).toBeVisible();
+  await expect(reveal.locator('.key-reveal-key')).toHaveValue(/^nk_/);
+  await expect(page.getByRole('button', { name: 'Revoke e2e key' })).toBeVisible();
 
   // The playground signs in with a short-lived token for the newest key and searches.
   await page.goto('/playground#search');
