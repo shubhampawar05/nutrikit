@@ -40,6 +40,15 @@ const SYNONYMS: Record<string, string> = lookup({
   toast: 'bread toasted', aubergine: 'eggplant', courgette: 'zucchini', prawns: 'shrimp', prawn: 'shrimp', mince: 'ground beef',
 });
 
+// A bare everyday word (the whole query, nothing else) means one particular food: "tea" is a cup of hot black
+// tea, not iced tea; "salad" is a green salad, not beef salad. "iced tea" or "chicken salad" are untouched.
+// The default food is pinned first; the other matches still follow, so searching "tea" lists every tea.
+const BARE_DEFAULTS: Record<string, string> = lookup({
+  tea: 'Tea, hot, leaf, black',
+  chai: 'Tea, hot, leaf, black',
+  salad: 'Lettuce, salad with assorted vegetables including tomatoes and/or carrots, no dressing',
+});
+
 const GENERIC = /\b(raw|nfs|plain|cooked|regular|fresh|boiled|baked|brewed|without salt|ns as to)\b/i;
 // The variety people mean by the bare staple name.
 const STAPLE_DEFAULTS: Record<string, string> = lookup({ bread: 'white', rice: 'white', milk: 'whole', sugar: 'granulated' });
@@ -68,6 +77,12 @@ const singular = (t: string) => {
   return t;
 };
 
+// The same food from two sources ("Yogurt, Greek, whole milk, plain" and "Yogurt, Greek, plain, whole milk"):
+// same words in any order, ignoring punctuation and all-caps brand names.
+const sameFoodKey = (name: string) =>
+  name.split(/[^A-Za-z0-9']+/).filter((w) => w && !(w.length > 1 && w === w.toUpperCase() && /[A-Z]/.test(w)))
+    .map((w) => singular(w.toLowerCase())).sort().join(' ');
+
 function ftsQuery(tokens: string[], op: 'AND' | 'OR') {
   return tokens.map((t) => `"${t.replace(/"/g, '')}"*`).join(` ${op} `);
 }
@@ -92,6 +107,8 @@ function score(row: SearchRow, tokens: string[], rawQuery: string) {
   if (qWords.every((t) => nameWords.includes(t))) s += 4;
   // "Beans and white rice" is a combination dish; only prefer it when the query asks for one.
   if (/\b(and|with)\b/.test(head) && !/\b(and|with)\b/.test(rawQuery)) s -= 6;
+  // A drink is hot unless the query says iced ("green tea" is a cup of green tea, not iced tea).
+  if (/\biced\b/.test(name) && !/\b(iced?|cold)\b/.test(rawQuery)) s -= 5;
   if (GENERIC.test(name)) s += 2.5;
   if (NICHE.test(name) && !NICHE.test(rawQuery)) s -= 8;
   const variant = name.match(SPECIALTY);
@@ -129,11 +146,29 @@ export function searchFoods(query: string | null | undefined, { limit = 10, offs
   const ranked = rows
     .map((r) => ({ ...r, score: score(r, tokens, q) }))
     .sort((a, b) => b.score - a.score);
+  const preferred = BARE_DEFAULTS[tokens.map(singular).join(' ')];
+  if (preferred) {
+    const i = ranked.findIndex((r) => r.name === preferred);
+    if (i >= 0) ranked.unshift(...ranked.splice(i, 1));
+    else {
+      const row = foods().prepare(`SELECT id, name, source, category, 0 AS rank FROM foods WHERE name = ? ${source ? 'AND source = ?' : ''}`)
+        .get(...(source ? [preferred, source] : [preferred])) as unknown as SearchRow | undefined;
+      if (row) ranked.unshift({ ...row, score: ranked[0] ? ranked[0].score + 1 : 0 });
+    }
+  }
+  // Keep the best-ranked entry of each food (rows are already in rank order).
+  const seen = new Set<string>();
+  const unique = ranked.filter((r) => {
+    const key = sameFoodKey(r.name);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   return {
     query: q,
     relaxed,
-    total: ranked.length,
-    results: ranked.slice(offset, offset + limit).map((r) => ({
+    total: unique.length,
+    results: unique.slice(offset, offset + limit).map((r) => ({
       id: r.id,
       name: r.name,
       source: r.source,

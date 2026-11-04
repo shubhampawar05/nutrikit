@@ -1,14 +1,16 @@
 // Sign up / log in: one form for both pages (the legacy portal.js auth half).
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
-import { api, ApiError } from '../api/client.ts';
+import { api, ApiError, errorText } from '../api/client.ts';
 import { useMe } from '../hooks.ts';
 
 type Mode = 'signup' | 'login';
 interface AuthFields { name: string; email: string; password: string }
 const FIELD_ORDER: (keyof AuthFields)[] = ['name', 'email', 'password'];
+const PASSWORD_RULE = 'At least 10 characters.';
+const LOG_IN_INSTEAD = 'log in instead';
 
 /** Where to go after signing in: `?next=` when it is a same-site path, else the dashboard. */
 export function safeNext(next: string | null): string {
@@ -25,6 +27,15 @@ export function waitText(seconds: number | undefined): string {
   return minutes < 90 ? `in about ${minutes} minutes` : `in about ${Math.round(minutes / 60)} hours`;
 }
 
+/** An auth page path that keeps the visitor's `?next=` (and, for login, the email they typed). */
+export function authPath(path: '/login' | '/signup', next: string | null, email?: string): string {
+  const q = new URLSearchParams();
+  if (email) q.set('email', email);
+  if (next) q.set('next', next);
+  const query = q.toString();
+  return query ? `${path}?${query}` : path;
+}
+
 // The server's throttles (per network and per email), worded for the form.
 const THROTTLED: Record<string, string> = {
   too_many_signups: 'Too many accounts were created from your network recently. Please try again',
@@ -34,15 +45,17 @@ const THROTTLED: Record<string, string> = {
 function AuthForm({ mode }: { mode: Mode }) {
   const isLogin = mode === 'login';
   const [params] = useSearchParams();
-  const target = safeNext(params.get('next'));
+  const next = params.get('next');
+  const target = safeNext(next);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const me = useMe();
   const submitted = useRef(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { register, handleSubmit, setError, clearErrors, setFocus, formState: { errors, isSubmitting } } = useForm<AuthFields>({
-    defaultValues: { name: '', email: '', password: '' },
+  const { register, handleSubmit, setError, clearErrors, setFocus, getValues, formState: { errors, isSubmitting } } = useForm<AuthFields>({
+    // "log in instead" links here with the email filled in.
+    defaultValues: { name: '', email: params.get('email') ?? '', password: '' },
   });
 
   // Already signed in? Go straight to the target.
@@ -65,7 +78,6 @@ function AuthForm({ mode }: { mode: Mode }) {
       await queryClient.invalidateQueries({ queryKey: ['me'] });
       navigate(target);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Something went wrong';
       const fields = err instanceof ApiError ? err.fields : undefined;
       if (err instanceof ApiError && THROTTLED[err.code]) {
         setFormError(`${THROTTLED[err.code]} ${waitText(err.retryAfter)}.`);
@@ -76,14 +88,28 @@ function AuthForm({ mode }: { mode: Mode }) {
         }
         if (shown[0]) setFocus(shown[0]);
       } else {
-        setFormError(message.charAt(0).toUpperCase() + message.slice(1) + '.');
+        setFormError(errorText(err));
       }
     }
   };
 
-  // A field's error clears as soon as the user edits it.
-  const field = (name: keyof AuthFields) => register(name, { onChange: () => clearErrors(name) });
+  // A field's error clears as soon as the user edits it. The input points at its error (or, for the signup
+  // password, at the rule) so screen readers announce it with the field.
+  const showRule = !isLogin && !errors.password;
+  const fieldProps = (name: keyof AuthFields) => ({
+    ...register(name, { onChange: () => clearErrors(name) }),
+    'aria-invalid': errors[name] ? true : undefined,
+    'aria-describedby': errors[name] ? `${name}-error` : name === 'password' && showRule ? 'password-rule' : undefined,
+  });
   const fieldClass = (name: keyof AuthFields) => (errors[name] ? 'field invalid' : 'field');
+
+  // "This email is already registered — log in instead." links to login with the email filled in.
+  const errorContent = (name: keyof AuthFields): ReactNode => {
+    const msg = errors[name]?.message;
+    const at = msg?.indexOf(LOG_IN_INSTEAD) ?? -1;
+    if (!msg || name !== 'email' || at < 0) return msg;
+    return <>{msg.slice(0, at)}<Link to={authPath('/login', next, getValues('email'))}>{LOG_IN_INSTEAD}</Link>{msg.slice(at + LOG_IN_INSTEAD.length)}</>;
+  };
 
   return (
     <main className="auth-shell">
@@ -115,20 +141,20 @@ function AuthForm({ mode }: { mode: Mode }) {
             {!isLogin && (
               <div className={fieldClass('name')}>
                 <label htmlFor="name">Name or company</label>
-                <input id="name" autoComplete="organization" required {...field('name')} />
-                <div className="error">{errors.name?.message}</div>
+                <input id="name" autoComplete="organization" required {...fieldProps('name')} />
+                <div className="error" id="name-error">{errorContent('name')}</div>
               </div>
             )}
             <div className={fieldClass('email')}>
               <label htmlFor="email">Email</label>
-              <input id="email" type="email" autoComplete="email" required {...field('email')} />
-              <div className="error">{errors.email?.message}</div>
+              <input id="email" type="email" autoComplete="email" required {...fieldProps('email')} />
+              <div className="error" id="email-error">{errorContent('email')}</div>
             </div>
             <div className={fieldClass('password')}>
               <label htmlFor="password">Password</label>
-              <input id="password" type="password" autoComplete={isLogin ? 'current-password' : 'new-password'} minLength={10} required {...field('password')} />
-              <div className="error">{errors.password?.message}</div>
-              {!isLogin && <span className="small muted">At least 10 characters.</span>}
+              <input id="password" type="password" autoComplete={isLogin ? 'current-password' : 'new-password'} minLength={10} required {...fieldProps('password')} />
+              <div className="error" id="password-error">{errorContent('password')}</div>
+              {showRule && <span className="small muted" id="password-rule">{PASSWORD_RULE}</span>}
             </div>
             <button className="btn btn-primary" type="submit" style={{ width: '100%' }} disabled={isSubmitting}>
               {isLogin ? 'Log in' : 'Create account'}
@@ -136,8 +162,8 @@ function AuthForm({ mode }: { mode: Mode }) {
           </form>
           <p className="small muted" style={{ margin: '16px 0 0', textAlign: 'center' }}>
             {isLogin
-              ? <>New to Nutrikit? <Link to="/signup">Create an account</Link></>
-              : <>Already have an account? <Link to="/login">Log in</Link></>}
+              ? <>New to Nutrikit? <Link to={authPath('/signup', next)}>Create an account</Link></>
+              : <>Already have an account? <Link to={authPath('/login', next)}>Log in</Link></>}
           </p>
         </div>
       </div>

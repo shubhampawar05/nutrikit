@@ -23,9 +23,10 @@ const js = (
   </code></pre>
 );
 
-const curl = (
+// The curl sample calls the server the visitor is on.
+const curl = (origin: string) => (
   <pre><code>
-    {'curl '}{S('https://api.your-domain.com/v1/log/text')}{' \\\n'}
+    {'curl '}{S(`${origin}/v1/log/text`)}{' \\\n'}
     {'  -H '}{S('"Authorization: Bearer $NUTRIKIT_KEY"')}{' \\\n'}
     {'  -H '}{S('"Content-Type: application/json"')}{' \\\n'}
     {'  -d '}{S('\'{"text": "a bowl of oatmeal and a coffee"}\'')}
@@ -47,9 +48,10 @@ const res = (
 export function CodeSamples() {
   return (
     <Tabs
+      label="Code samples"
       tabs={[
         { id: 'js', label: 'JavaScript', panel: js },
-        { id: 'curl', label: 'curl', panel: curl },
+        { id: 'curl', label: 'curl', panel: curl(window.location.origin) },
         { id: 'res', label: 'response', panel: res },
       ]}
     />

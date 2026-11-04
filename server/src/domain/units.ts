@@ -78,6 +78,14 @@ export interface PortionFood {
   portions?: Portion[] | null;
 }
 
+
+// Typical servings for foods sold by size whose catalog entry has no size portions (USDA FNDDS fast-food sizes).
+// Sizes the food has no entry for here fall back to its default portion, so small <= medium <= large holds.
+type Size = 'small' | 'medium' | 'large';
+const SIZES: string[] = ['small', 'medium', 'large'];
+const SIZE_SERVINGS: [RegExp, Record<Size, number>][] = [
+  [/\bfrench fries\b/i, { small: 71, medium: 117, large: 154 }],
+];
 export function resolvePortion(food: PortionFood, quantity: number | null | undefined, unitWord: string | null | undefined): ResolvedPortion {
   const q = quantity ?? 1;
   const unit = canonicalUnit(unitWord);
@@ -118,6 +126,10 @@ export function resolvePortion(food: PortionFood, quantity: number | null | unde
       if (match) return { grams: q * perUnit(match), quantity: q, unit: wanted, portion: match.label, method: 'portion' };
     }
   }
+  // A size the food has no portion for ("medium fries"): a typical serving of that size where one is known.
+  const size = unit?.kind === 'count' && SIZES.includes(unit.unit) ? unit.unit as Size : null;
+  const sized = size && SIZE_SERVINGS.find(([pattern]) => pattern.test(food.name));
+  if (sized) return { grams: q * sized[1][size!], quantity: q, unit: size!, portion: `${size} serving`, method: 'size-serving' };
   // Bare count ("2 eggs", "a banana"): a portion named after the food, then medium/piece/serving.
   const head = food.name.toLowerCase().split(/[,(]/)[0].trim();
   const headWords = head.split(/\s+/).map(singular);

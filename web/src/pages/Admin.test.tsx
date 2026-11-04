@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { renderPage } from '../test-utils.tsx';
 import { Admin } from './Admin.tsx';
 
@@ -41,7 +41,10 @@ async function signIn(token = 'right-token') {
 }
 
 beforeEach(() => sessionStorage.clear());
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
 
 describe('Admin console', () => {
   it('refuses a wrong token and shows no data', async () => {
@@ -75,7 +78,7 @@ describe('Admin console', () => {
     renderPage(<Admin />);
     await signIn();
     fireEvent.click(await screen.findByRole('tab', { name: 'Keys' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Revoke' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Revoke Default key' }));
     await waitFor(() => expect(fetchMock.mock.calls.some(([u, i]) => String(u) === '/v1/admin/keys/key_1' && i?.method === 'DELETE')).toBe(true));
   });
 
@@ -100,5 +103,66 @@ describe('Admin console', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }));
     expect(await screen.findByLabelText('Admin token')).toBeTruthy();
     expect(sessionStorage.getItem('nk-admin-token')).toBeNull();
+  });
+
+  it('debounces search into one request and keeps the table while it loads', async () => {
+    const fetchMock = stubAdmin();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderPage(<Admin />);
+    await signIn();
+    fireEvent.click(await screen.findByRole('tab', { name: 'Accounts' }));
+    expect(await screen.findByText('acct_1', { exact: false })).toBeTruthy();
+    const searches = () => fetchMock.mock.calls.filter(([u]) => String(u).startsWith('/v1/admin/accounts?'));
+
+    const box = screen.getByLabelText('Search by email or name');
+    for (const value of ['p', 'pr', 'pri', 'priy', 'priya', 'priya@']) {
+      fireEvent.change(box, { target: { value } });
+      act(() => { vi.advanceTimersByTime(100); });
+    }
+    expect(searches()).toHaveLength(0);
+    expect(screen.getByText('acct_1', { exact: false })).toBeTruthy();
+    expect(screen.getByText('Searching…')).toBeTruthy();
+
+    act(() => { vi.advanceTimersByTime(300); });
+    await waitFor(() => expect(searches()).toHaveLength(1));
+    expect(String(searches()[0]![0])).toBe('/v1/admin/accounts?q=priya%40');
+    expect(screen.getByText('acct_1', { exact: false })).toBeTruthy();
+    await waitFor(() => expect(screen.queryByText('Searching…')).toBeNull());
+  });
+
+  it('returns to sign-in when the stored token is refused', async () => {
+    const fetchMock = stubAdmin();
+    renderPage(<Admin />);
+    await signIn();
+    expect(await screen.findByText('Revenue (all time)')).toBeTruthy();
+
+    // The token is rotated on the server: every admin call now answers 401.
+    fetchMock.mockImplementation(async () => json(401, { error: { code: 'unauthorized', message: 'admin token required' } }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Payments' }));
+    expect(await screen.findByText('That admin token is no longer accepted.')).toBeTruthy();
+    expect(screen.getByLabelText('Admin token')).toBeTruthy();
+    expect(sessionStorage.getItem('nk-admin-token')).toBeNull();
+  });
+
+  it('uses the ARIA tabs pattern and names table headers and row buttons', async () => {
+    stubAdmin();
+    renderPage(<Admin />);
+    await signIn();
+    const list = await screen.findByRole('tablist', { name: 'Admin sections' });
+    const overview = within(list).getByRole('tab', { name: 'Overview' });
+    expect(overview.getAttribute('tabindex')).toBe('0');
+    expect(within(list).getByRole('tab', { name: 'Keys' }).getAttribute('tabindex')).toBe('-1');
+    expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(overview.id);
+
+    fireEvent.keyDown(overview, { key: 'End' });
+    const requestsTab = screen.getByRole('tab', { name: 'Requests' });
+    expect(requestsTab.getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(requestsTab, { key: 'ArrowLeft' });
+    expect(screen.getByRole('tab', { name: 'Keys' }).getAttribute('aria-selected')).toBe('true');
+
+    expect(await screen.findByRole('button', { name: 'Revoke Default key' })).toBeTruthy();
+    const header = screen.getByRole('columnheader', { name: 'Key' });
+    expect(header.getAttribute('scope')).toBe('col');
+    expect(header.closest('thead')).toBeTruthy();
   });
 });

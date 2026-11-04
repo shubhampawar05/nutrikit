@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { Route, Routes, useLocation } from 'react-router';
 import { renderPage } from '../test-utils.tsx';
-import { Login, Signup, safeNext } from './Auth.tsx';
+import { Login, Signup, authPath, safeNext } from './Auth.tsx';
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -58,6 +58,14 @@ describe('safeNext', () => {
   });
 });
 
+describe('authPath', () => {
+  it('keeps next and the email in the query', () => {
+    expect(authPath('/signup', null)).toBe('/signup');
+    expect(authPath('/signup', '/playground')).toBe('/signup?next=%2Fplayground');
+    expect(authPath('/login', '/docs', 'ada@example.com')).toBe('/login?email=ada%40example.com&next=%2Fdocs');
+  });
+});
+
 describe('Signup', () => {
   it('renders the signup copy and fields', () => {
     stubPortal(() => json(500, {}));
@@ -66,7 +74,30 @@ describe('Signup', () => {
     expect(screen.getByLabelText('Name or company')).toBeTruthy();
     expect(screen.getByLabelText('Password').getAttribute('autocomplete')).toBe('new-password');
     expect(screen.getByText('At least 10 characters.')).toBeTruthy();
+    expect(screen.getByLabelText('Password').getAttribute('aria-describedby')).toBe('password-rule');
     expect(screen.getByRole('link', { name: 'Log in' }).getAttribute('href')).toBe('/login');
+  });
+
+  it('links "log in instead" to login with the email filled in, keeping next', async () => {
+    stubPortal(() => json(409, { error: { code: 'email_taken', message: 'an account with this email already exists', fields: { email: 'This email is already registered — log in instead.' } } }));
+    app('/signup?next=/playground');
+    fireEvent.change(screen.getByLabelText('Name or company'), { target: { value: 'Ada' } });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ada@example.com' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'correct horse' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+    const link = await screen.findByRole('link', { name: 'log in instead' });
+    expect(link.closest('.error')?.textContent).toBe('This email is already registered — log in instead.');
+    expect(link.getAttribute('href')).toBe('/login?email=ada%40example.com&next=%2Fplayground');
+    fireEvent.click(link);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Welcome back' })).toBeTruthy();
+    expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe('ada@example.com');
+  });
+
+  it('keeps ?next= on the "Log in" link', () => {
+    stubPortal(() => json(500, {}));
+    app('/signup?next=/playground');
+    expect(screen.getByRole('link', { name: 'Log in' }).getAttribute('href')).toBe('/login?next=%2Fplayground');
   });
 
   it('shows server field errors under the right inputs and clears them on edit', async () => {
@@ -85,6 +116,16 @@ describe('Signup', () => {
     expect(emailField?.classList.contains('invalid')).toBe(true);
     const pwField = screen.getByLabelText('Password').closest('.field');
     expect(pwField?.textContent).toContain('use at least 10 characters');
+    // The rule is shown once: as the error, not also as the hint.
+    expect(screen.queryByText('At least 10 characters.')).toBeNull();
+    // Each invalid input points at its error text.
+    const email = screen.getByLabelText('Email');
+    expect(email.getAttribute('aria-invalid')).toBe('true');
+    expect(document.getElementById(email.getAttribute('aria-describedby')!)?.textContent).toBe('enter a valid email');
+    const password = screen.getByLabelText('Password');
+    expect(password.getAttribute('aria-invalid')).toBe('true');
+    expect(document.getElementById(password.getAttribute('aria-describedby')!)?.textContent).toBe('use at least 10 characters');
+    expect(screen.getByLabelText('Name or company').getAttribute('aria-invalid')).toBeNull();
     expect(screen.getByLabelText('Name or company').closest('.field')?.classList.contains('invalid')).toBe(false);
     expect((document.querySelector('.form-error') as HTMLElement).hidden).toBe(true);
 
@@ -94,6 +135,8 @@ describe('Signup', () => {
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ada@example.com' } });
     await waitFor(() => expect(screen.queryByText('enter a valid email')).toBeNull());
     expect(emailField?.classList.contains('invalid')).toBe(false);
+    expect(screen.getByLabelText('Email').getAttribute('aria-invalid')).toBeNull();
+    expect(screen.getByLabelText('Email').getAttribute('aria-describedby')).toBeNull();
     // Only the edited field clears.
     expect(pwField?.classList.contains('invalid')).toBe(true);
   });
@@ -178,6 +221,23 @@ describe('Login', () => {
     finish(json(401, { error: { code: 'invalid_credentials', message: 'wrong email or password' } }));
     expect(await screen.findByText('Wrong email or password.')).toBeTruthy();
     expect((button as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('keeps ?next= through "Create an account" and lands there after signing up', async () => {
+    stubPortal(() => json(201, { ...me, firstKey: { id: 'key_1', name: 'Default', key: 'nk_live_secret' } }));
+    app('/login?next=/playground');
+    const link = screen.getByRole('link', { name: 'Create an account' });
+    expect(link.getAttribute('href')).toBe('/signup?next=%2Fplayground');
+    fireEvent.click(link);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Create your account' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    expect((await screen.findByTestId('where')).textContent).toBe('/playground');
+  });
+
+  it('prefills the email from ?email=', () => {
+    stubPortal(() => json(500, {}));
+    app('/login?email=ada%40example.com');
+    expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe('ada@example.com');
   });
 
   it('sends an already signed-in visitor straight to the target', async () => {

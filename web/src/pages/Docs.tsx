@@ -49,10 +49,10 @@ function DocsNav() {
     <nav className={`docs-nav${collapsed ? ' collapsed' : ''}`} aria-label="Documentation" onClick={onNavClick}>
       <button className="btn btn-ghost btn-sm docs-toggle" type="button" aria-expanded={!collapsed} onClick={(e) => { e.stopPropagation(); setCollapsed(!collapsed); }}>Contents ▾</button>
       {NAV.map(([group, links]) => [
-        <h4 key={group}>{group}</h4>,
+        <p key={group} className="docs-nav-group">{group}</p>,
         ...links.map(([id, label]) => <a key={id} href={`#${id}`} className={active === id ? 'active' : undefined}>{label}</a>),
       ])}
-      <h4>Reference</h4>
+      <p className="docs-nav-group">Reference</p>
       <Link to="/docs/reference">API reference →</Link>
     </nav>
   );
@@ -63,8 +63,8 @@ function NutrientTable() {
   return (
     <div className="table-scroll">
       <table className="data">
+        <thead><tr><th scope="col">Key</th><th scope="col">Nutrient</th><th scope="col">Unit</th><th scope="col">Daily value</th></tr></thead>
         <tbody>
-          <tr><th>Key</th><th>Nutrient</th><th>Unit</th><th>Daily value</th></tr>
           {data?.map((n) => (
             <tr key={n.key}><td><code>{n.key}</code></td><td>{n.name}</td><td>{n.unit}</td><td>{n.dailyValue == null ? '—' : `${n.dailyValue} ${n.unit}`}</td></tr>
           ))}
@@ -149,7 +149,7 @@ GET /v1/foods/2709224/nutrients?grams=150`}</code></CodeBlock>
           <CodeBlock><code>{`POST /v1/log/text
 { "text": "For lunch I had a cheeseburger and medium fries" }`}</code></CodeBlock>
           <p>The sentence is split into foods, each with a quantity, unit, grams, nutrients, a <code>confidence</code> and up to three <code>alternatives</code> you can offer as corrections. <code>totals</code> sums the meal, and <code>meal</code> is set when the text names one.</p>
-          <p>Set <code>"ai": true</code> to parse with the AI model — better for long or unusual descriptions (adds AI usage to the cost).</p>
+          <p>Set <code>"ai": true</code> to parse with the server's AI provider — better for long or unusual descriptions (adds AI usage to the cost).</p>
           <h3>Voice</h3>
           <CodeBlock><code>{`POST /v1/log/voice
 { "transcript": "um so I had like a bowl of oatmeal and a banana" }`}</code></CodeBlock>
@@ -173,7 +173,8 @@ GET /v1/foods/2709224/nutrients?grams=150`}</code></CodeBlock>
           <h2>Nutrition labels</h2>
           <CodeBlock><code>{`POST /v1/labels/parse
 { "text": "Serving size 2/3 cup (55g)\\nCalories 230\\nTotal Fat 8g ..." }`}</code></CodeBlock>
-          <p>Parses US Nutrition Facts text (current and pre-2016 formats) into <code>perServing</code> and <code>per100g</code> values. Send <code>{'{"image": "..."}'}</code> instead to read a label photo with the AI provider. <code>warnings</code> lists anything that could not be found.</p>
+          <p>Parses US Nutrition Facts text (current and pre-2016 formats) into <code>perServing</code> and <code>per100g</code> values. Send <code>{'{"image": "..."}'}</code> instead to read a label photo with the server's AI provider. <code>warnings</code> lists anything that could not be found.</p>
+          <p>Every call first reserves the photo cost (20 tokens) against your allowance; a text label then settles to 5 tokens.</p>
         </section>
 
         <section id="meal-plans">
@@ -240,9 +241,9 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
 
         <section id="tokens">
           <h2>Tokens &amp; usage</h2>
-          <p>Each successful call is charged tokens from your account's monthly allowance (failed calls are free). See the <Link to="/pricing">cost table</Link>. Every response carries:</p>
-          <div className="table-scroll"><table className="data"><tbody>
-            <tr><th>Header</th><th>Meaning</th></tr>
+          <p>Each successful call is charged tokens from your account's monthly allowance. Failed calls are free, except AI usage the server's AI provider had already consumed before the call failed; that amount is shown in <code>X-Tokens-Charged</code>. See the <Link to="/pricing">cost table</Link>. Every metered response carries:</p>
+          <div className="table-scroll"><table className="data">
+            <thead><tr><th scope="col">Header</th><th scope="col">Meaning</th></tr></thead><tbody>
             <tr><td><code>X-Tokens-Charged</code></td><td>Tokens this call cost</td></tr>
             <tr><td><code>X-Tokens-Remaining</code></td><td>Allowance left this month (metered plans)</td></tr>
           </tbody></table></div>
@@ -258,8 +259,8 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
           <h2>Errors</h2>
           <p>Errors use HTTP status codes and a consistent body:</p>
           <pre><code>{'{ "error": { "code": "invalid_barcode", "message": "not a valid EAN/UPC barcode ..." } }'}</code></pre>
-          <div className="table-scroll"><table className="data"><tbody>
-            <tr><th>Status</th><th>Codes</th><th>What to do</th></tr>
+          <div className="table-scroll"><table className="data">
+            <thead><tr><th scope="col">Status</th><th scope="col">Codes</th><th scope="col">What to do</th></tr></thead><tbody>
             <tr><td>400</td><td><code>invalid_request</code>, <code>invalid_barcode</code></td><td>Fix the request; <code>message</code> says what is wrong</td></tr>
             <tr><td>401</td><td><code>unauthorized</code>, <code>token_expired</code></td><td>Check the key, or get a new access token</td></tr>
             <tr><td>403</td><td><code>forbidden</code></td><td>The credential cannot do this (e.g. a token minting a token)</td></tr>
@@ -269,6 +270,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
             <tr><td>429</td><td><code>rate_limited</code>, <code>quota_exceeded</code></td><td>Wait <code>Retry-After</code>, or upgrade</td></tr>
             <tr><td>501</td><td><code>ai_provider_unavailable</code></td><td>This server has no AI provider configured</td></tr>
             <tr><td>502 / 503</td><td>upstream errors</td><td>Retry with back-off</td></tr>
+            <tr><td>504</td><td><code>ai_timeout</code></td><td>The AI provider did not answer in time; nothing is charged. Retry, ideally with a smaller image or shorter text</td></tr>
           </tbody></table></div>
         </section>
 
@@ -291,6 +293,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
         <section id="changelog">
           <h2>Changelog</h2>
           <ul>
+            <li><b>v1.3</b> — Every response carries a request id (<code>X-Request-Id</code>; send your own to trace a call). <code>GET /v1/health/ready</code> reports readiness. Allowances are reserved atomically, so parallel calls cannot overspend. Failed calls are charged only for AI usage already consumed. Slow AI calls end with <code>504 ai_timeout</code>. Food logging: add-on portions (sugar, milk, butter…) are capped to a realistic amount, bare "tea", "chai" and "salad" get sensible defaults, fries come in small, medium and large, and near-duplicate search results are collapsed.</li>
             <li><b>v1.2</b> — Nutrition advisor (<code>POST /v1/advisor</code>, SDK <code>askAdvisor</code>).</li>
             <li><b>v1.1</b> — Developer portal, self-serve accounts and plans, access tokens (<code>POST /v1/auth/token</code>).</li>
             <li><b>v1.0</b> — Food search and nutrients, text/voice/photo logging, barcodes, labels, meal plans, usage metering.</li>
