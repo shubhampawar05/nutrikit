@@ -47,7 +47,8 @@
 
 ## 8. Integration check
 
-- [ ] 8.1 Run `npm run typecheck`, `npm test` (unit, browser, multi-instance, e2e) and a manual smoke on a production build: sign up, create a key, call search and photo, see `X-Request-Id` and JSON logs, `/v1/health/ready` 200; verify everything passes and record the results in the PR
+- [x] 8.1 Run `npm run typecheck`, `npm test` (unit, browser, multi-instance, e2e) and a manual smoke on a production build: sign up, create a key, call search and photo, see `X-Request-Id` and JSON logs, `/v1/health/ready` 200; verify everything passes and record the results in the PR
+  - Done: typecheck and unit tests pass on Node 22.16, 24 and 26; CI on `main` passed (both `test` jobs and `e2e`: Playwright smoke and multi-instance); a manual smoke on the production image covered signup, keys, search, `X-Request-Id`, JSON logs and `/v1/health/ready`; production then showed readiness, the new headers and the CSP. Not done live: a real AI photo call (covered by tests with a fake provider) and recording results in the PR. Locally, the Playwright smoke test times out in this machine's environment, and also does so on the pre-change `main`.
 
 ## Workflow follow-up
 
