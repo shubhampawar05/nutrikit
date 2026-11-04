@@ -107,6 +107,26 @@ describe('Signup', () => {
     expect((alert as HTMLElement).hidden).toBe(false);
   });
 
+  it('explains a signup throttle with the wait from Retry-After', async () => {
+    stubPortal(() => new Response(JSON.stringify({ error: { code: 'too_many_signups', message: 'too many signups from your network; try again later' } }), {
+      status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '1500' },
+    }));
+    app('/signup');
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    const alert = await screen.findByRole('alert');
+    await waitFor(() => expect(alert.textContent).toBe('Too many accounts were created from your network recently. Please try again in about 25 minutes.'));
+  });
+
+  it('explains a login throttle', async () => {
+    stubPortal(() => new Response(JSON.stringify({ error: { code: 'too_many_attempts', message: 'too many failed logins; try again in 15 minutes' } }), {
+      status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '900' },
+    }));
+    app('/login');
+    fireEvent.click(screen.getByRole('button', { name: 'Log in' }));
+    const alert = await screen.findByRole('alert');
+    await waitFor(() => expect(alert.textContent).toBe('Too many failed logins. Please try again in about 15 minutes.'));
+  });
+
   it('stashes the first key for the dashboard and goes there', async () => {
     stubPortal(() => json(201, { ...me, firstKey: { id: 'key_1', name: 'Default', key: 'nk_live_secret' } }));
     app('/signup');

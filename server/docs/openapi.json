@@ -390,6 +390,38 @@
           }
         }
       },
+      "Readiness": {
+        "title": "Readiness",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "not_ready"
+            ]
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "database": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "fail"
+                ]
+              },
+              "catalog": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "fail"
+                ]
+              }
+            }
+          }
+        }
+      },
       "Error": {
         "title": "Error",
         "type": "object",
@@ -430,6 +462,35 @@
                       "type": "string"
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health/ready": {
+      "get": {
+        "summary": "Readiness: database and food catalog",
+        "description": "For load balancers and uptime monitors. 503 names the failing checks. `/v1/health` is the liveness check and never touches the database.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
                 }
               }
             }
@@ -843,6 +904,16 @@
                 }
               }
             }
+          },
+          "504": {
+            "description": "AI provider did not answer in time (ai_timeout); nothing is charged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -1079,6 +1150,16 @@
                 }
               }
             }
+          },
+          "504": {
+            "description": "AI provider did not answer in time (ai_timeout); nothing is charged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -1278,6 +1359,16 @@
                 }
               }
             }
+          },
+          "504": {
+            "description": "AI provider did not answer in time (ai_timeout); nothing is charged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -1414,6 +1505,16 @@
           },
           "503": {
             "description": "AI provider unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI provider did not answer in time (ai_timeout); nothing is charged",
             "content": {
               "application/json": {
                 "schema": {

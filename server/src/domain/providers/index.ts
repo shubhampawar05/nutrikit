@@ -60,6 +60,12 @@ export interface AIProvider {
 /** The capability methods a provider may implement. */
 export type AICapability = 'recognizeMeal' | 'readLabel' | 'parseMeal' | 'advise';
 
+/** One deadline for a whole provider call, retries included (NUTRIKIT_AI_TIMEOUT_MS, default 60 s). */
+export const aiDeadline = (): AbortSignal => AbortSignal.timeout(Number(process.env.NUTRIKIT_AI_TIMEOUT_MS) || 60_000);
+
+/** The error a provider throws when its deadline passes: 504, and no usage, so nothing is charged. */
+export const aiTimeout = (): Error => Object.assign(new Error('the AI provider did not answer in time; try again'), { status: 504, code: 'ai_timeout' });
+
 let active: AIProvider | undefined;
 
 export async function getProvider(): Promise<AIProvider> {

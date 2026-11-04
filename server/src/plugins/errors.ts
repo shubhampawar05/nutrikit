@@ -7,6 +7,8 @@ interface AppError extends Partial<FastifyError> {
   status?: number;
   retryAfter?: number;
   fields?: Record<string, string>;
+  /** Detail for the server log only (e.g. an upstream provider's error); never sent to the client. */
+  logDetail?: string;
 }
 
 // Route URL pattern ('/v1/foods/:id(^\\d+$)/nutrients') -> regex for a concrete path.
@@ -84,7 +86,8 @@ export function errorHandling(app: FastifyInstance, { fallback }: ErrorHandlingO
       code = 'payload_too_large';
       message = `request body exceeds ${req.routeOptions.bodyLimit} bytes`;
     }
-    if (status >= 500 && status !== 501 && status !== 502 && status !== 503) console.error(err);
+    if (status >= 500 && status !== 501 && status !== 502 && status !== 503 && status !== 504) req.log.error({ err }, 'unhandled error');
+    else if (err.logDetail) req.log.warn({ code, detail: err.logDetail }, err.message);
     if (err.retryAfter) reply.header('Retry-After', String(err.retryAfter));
     const error: { code: string; message: string; fields?: Record<string, string> } = {
       code: code || (status === 500 ? 'internal_error' : status === 400 ? 'invalid_request' : 'error'),

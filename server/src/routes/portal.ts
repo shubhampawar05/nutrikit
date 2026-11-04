@@ -49,7 +49,7 @@ export async function portalRoutes(app: FastifyInstance) {
   // The homepage's live demo: text logging only, no account, short input, rate limited per IP.
   async function demoLimit(req: FastifyRequest) {
     try {
-      await auth.hitRateLimit(sql, `demo:${req.socket.remoteAddress || 'unknown'}`, 20);
+      await auth.hitRateLimit(sql, `demo:${req.ip}`, 20);
     } catch (err) {
       if ((err as { code?: string }).code !== 'rate_limited') throw err;
       throw new HttpError(429, 'rate_limited', 'demo limit reached; create a free key for more', { retryAfter: 60 });
@@ -82,7 +82,7 @@ export async function portalRoutes(app: FastifyInstance) {
   });
 
   app.post('/portal/api/signup', open, async (req, reply) => {
-    const account = await accounts.createAccount(sql, jsonBody(req) as { name: string; email: string; password: string });
+    const account = await accounts.createAccount(sql, jsonBody(req) as { name: string; email: string; password: string }, { ip: req.ip });
     const key = await auth.createKey(sql, { name: 'Default key', accountId: account.id });
     const session = await accounts.createSession(sql, account.id);
     reply.status(201).header('Set-Cookie', sessionCookie(session.token, session.expires));
@@ -90,7 +90,7 @@ export async function portalRoutes(app: FastifyInstance) {
   });
 
   app.post('/portal/api/login', open, async (req, reply) => {
-    const account = await accounts.login(sql, jsonBody(req) as { email: string; password: string });
+    const account = await accounts.login(sql, jsonBody(req) as { email: string; password: string }, { ip: req.ip });
     const session = await accounts.createSession(sql, account.id);
     reply.header('Set-Cookie', sessionCookie(session.token, session.expires));
     return accountView(account);

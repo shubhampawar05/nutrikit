@@ -16,6 +16,7 @@ const SCHEMAS = {
   BarcodeProduct: { type: 'object', properties: { barcode: { type: 'string' }, name: nullable('string'), brand: nullable('string'), servingSize: nullable('string'), servingGrams: nullable('number'), per100g: { type: 'object' }, perServing: { oneOf: [{ $ref: 'NutrientMap#' }, { type: 'null' }] }, source: { type: 'string' }, license: { type: 'string' }, cached: { type: 'boolean' } } },
   LabelResult: { type: 'object', properties: { source: { type: 'string', enum: ['text', 'image'] }, servingSize: nullable('string'), servingGrams: nullable('number'), servingsPerContainer: nullable('number'), perServing: { type: 'object' }, per100g: nullable('object'), warnings: { type: 'array', items: { type: 'string' } } } },
   Usage: { type: 'object', properties: { keyId: { type: 'string' }, periodStart: { type: 'string' }, tokenLimit: nullable('integer'), used: { type: 'integer' }, remaining: nullable('integer'), byEndpoint: { type: 'array' } } },
+  Readiness: { type: 'object', properties: { status: { type: 'string', enum: ['ready', 'not_ready'] }, checks: { type: 'object', properties: { database: { type: 'string', enum: ['ok', 'fail'] }, catalog: { type: 'string', enum: ['ok', 'fail'] } } } } },
   Error: { type: 'object', properties: { error: { type: 'object', properties: { code: { type: 'string' }, message: { type: 'string' } } } } },
 };
 
@@ -27,7 +28,7 @@ const ERRORS: Record<number, string> = {
   400: 'Invalid request', 401: 'Missing, invalid or expired credentials', 403: 'Credential not allowed for this operation',
   404: 'Not found', 413: 'Payload too large', 422: 'Input could not be processed',
   429: 'Rate limit or monthly token allowance exceeded', 501: 'AI provider not configured',
-  502: 'Upstream source failed', 503: 'AI provider unavailable',
+  502: 'Upstream source failed', 503: 'AI provider unavailable', 504: 'AI provider did not answer in time (ai_timeout); nothing is charged',
 };
 
 export const errors = (...codes: number[]) =>

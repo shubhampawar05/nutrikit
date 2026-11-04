@@ -4,7 +4,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { Type, type TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { HttpError, bad, jsonBody, readImage, imageFromJson, IMAGE_BODY_LIMIT, type ImageInput } from '../http.ts';
 import { ok, errors, cost } from '../schemas.ts';
-import { getFood } from '../domain/db.ts';
+import { foods, getFood } from '../domain/db.ts';
 import { searchFoods } from '../domain/search.ts';
 import { NUTRIENTS, scaleNutrients } from '../domain/nutrients.ts';
 import { resolvePortion } from '../domain/units.ts';
@@ -63,7 +63,33 @@ async function labelImage(readInput: () => ImageInput) {
   const provider = await requireProvider('readLabel');
   const img = readInput();
   const out = await provider.readLabel({ image: img.image, mediaType: img.mediaType });
-  return { body: { source: 'image', provider: provider.name, ...labelFromProvider(out) }, usage: out.usage };
+  try {
+    return { body: { source: 'image', provider: provider.name, ...labelFromProvider(out) }, usage: out.usage };
+  } catch (err) {
+    throw Object.assign(err as Error, { usage: out.usage }); // the provider did the work: its tokens are charged
+  }
+}
+
+type Check = 'ok' | 'fail';
+
+async function databaseCheck(sql: FastifyInstance['sql']): Promise<Check> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<Check>((resolve) => { timer = setTimeout(() => resolve('fail'), 2000); });
+  const query = sql`SELECT 1`.then(() => 'ok' as const, () => 'fail' as const);
+  try {
+    return await Promise.race([query, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function catalogCheck(): Check {
+  try {
+    foods().prepare('SELECT 1 FROM foods LIMIT 1').get();
+    return 'ok';
+  } catch {
+    return 'fail';
+  }
 }
 
 export async function v1Routes(fastify: FastifyInstance) {
@@ -74,6 +100,25 @@ export async function v1Routes(fastify: FastifyInstance) {
     config: v1(),
     schema: { summary: 'Service health', security: [], response: { 200: { description: 'OK', type: 'object', properties: { status: { type: 'string' }, provider: { type: 'string' } } } } },
   }, async () => ({ status: 'ok', provider: (await getProvider()).name }));
+
+  // Readiness: the database answers within 2 s and the food catalog is open. /v1/health stays DB-free (liveness).
+  app.get('/v1/health/ready', {
+    config: v1(),
+    schema: {
+      summary: 'Readiness: database and food catalog',
+      description: 'For load balancers and uptime monitors. 503 names the failing checks. `/v1/health` is the liveness check and never touches the database.',
+      security: [],
+      response: {
+        200: { description: 'Ready', $ref: 'Readiness#' },
+        503: { description: 'Not ready', $ref: 'Readiness#' },
+      },
+    },
+  }, async (_req, reply) => {
+    const checks = { database: await databaseCheck(fastify.sql), catalog: catalogCheck() };
+    const ready = checks.database === 'ok' && checks.catalog === 'ok';
+    reply.status(ready ? 200 : 503);
+    return { status: ready ? 'ready' : 'not_ready', checks };
+  });
 
   app.get('/v1/nutrients', {
     config: v1(),
@@ -138,7 +183,7 @@ export async function v1Routes(fastify: FastifyInstance) {
     schema: {
       summary: 'Log a meal from free text', description: `${cost('logText')}. Set \`ai: true\` to parse with the AI provider.`,
       body: Type.Object({ text: nonBlank(2000), ai: Type.Optional(Type.Boolean()) }),
-      response: { ...ok({ $ref: 'LogResult#' }), ...errors(400, 401, 429, 501) },
+      response: { ...ok({ $ref: 'LogResult#' }), ...errors(400, 401, 429, 501, 504) },
     },
   }, async (req) => {
     const { text, ai } = req.body;
@@ -154,7 +199,7 @@ export async function v1Routes(fastify: FastifyInstance) {
     schema: {
       summary: 'Log a meal from a speech transcript', description: `${cost('logVoice')}. Transcription happens on the device; filler words are removed.`,
       body: Type.Object({ transcript: nonBlank(2000), ai: Type.Optional(Type.Boolean()) }),
-      response: { ...ok({ $ref: 'LogResult#' }), ...errors(400, 401, 429, 501) },
+      response: { ...ok({ $ref: 'LogResult#' }), ...errors(400, 401, 429, 501, 504) },
     },
   }, async (req) => {
     // Speech-to-text runs on the device (see the SDK); the API receives the transcript.
@@ -176,7 +221,7 @@ export async function v1Routes(fastify: FastifyInstance) {
     schema: {
       summary: 'Recognize foods in a meal photo', description: `${cost('logPhoto')} + AI usage. Requires an AI provider. Body: JSON or a raw image/* body.`,
       body: imageBody,
-      response: { ...ok({ $ref: 'LogResult#' }), ...errors(400, 401, 413, 422, 429, 501, 502, 503) },
+      response: { ...ok({ $ref: 'LogResult#' }), ...errors(400, 401, 413, 422, 429, 501, 502, 503, 504) },
     },
   }, async (req: FastifyRequest) => {
     const provider = await requireProvider('recognizeMeal');
@@ -210,7 +255,7 @@ export async function v1Routes(fastify: FastifyInstance) {
       summary: 'Read a Nutrition Facts label',
       description: `Text: ${COSTS.labelText} tokens. Image: ${COSTS.labelImage} tokens + AI usage (requires an AI provider).`,
       body: Type.Union([Type.Object({ text: Type.String() }), imageBody]),
-      response: { ...ok({ $ref: 'LabelResult#' }), ...errors(400, 401, 422, 501) },
+      response: { ...ok({ $ref: 'LabelResult#' }), ...errors(400, 401, 422, 501, 504) },
     },
   }, async (req: FastifyRequest) => {
     // Cost depends on the input kind: the handler returns { costKey, body, usage }.
@@ -235,7 +280,7 @@ export async function v1Routes(fastify: FastifyInstance) {
       body: Type.Object({ question: nonBlank(1000), context: Type.Optional(Type.String({ maxLength: 6000 })) }),
       response: {
         ...ok({ type: 'object', required: ['answer', 'declined', 'provider'], properties: { answer: { type: 'string', description: 'Markdown' }, declined: { type: 'boolean' }, provider: { type: 'string' } } }),
-        ...errors(400, 401, 422, 429, 501, 502, 503),
+        ...errors(400, 401, 422, 429, 501, 502, 503, 504),
       },
     },
   }, async (req) => {

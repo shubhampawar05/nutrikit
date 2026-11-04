@@ -17,6 +17,20 @@ export function safeNext(next: string | null): string {
 
 const isField = (name: string): name is keyof AuthFields => (FIELD_ORDER as string[]).includes(name);
 
+/** "in about 15 minutes" from a Retry-After in seconds. */
+export function waitText(seconds: number | undefined): string {
+  if (!seconds || seconds <= 0) return 'later';
+  if (seconds < 90) return 'in a minute';
+  const minutes = Math.ceil(seconds / 60);
+  return minutes < 90 ? `in about ${minutes} minutes` : `in about ${Math.round(minutes / 60)} hours`;
+}
+
+// The server's throttles (per network and per email), worded for the form.
+const THROTTLED: Record<string, string> = {
+  too_many_signups: 'Too many accounts were created from your network recently. Please try again',
+  too_many_attempts: 'Too many failed logins. Please try again',
+};
+
 function AuthForm({ mode }: { mode: Mode }) {
   const isLogin = mode === 'login';
   const [params] = useSearchParams();
@@ -53,7 +67,9 @@ function AuthForm({ mode }: { mode: Mode }) {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       const fields = err instanceof ApiError ? err.fields : undefined;
-      if (fields) {
+      if (err instanceof ApiError && THROTTLED[err.code]) {
+        setFormError(`${THROTTLED[err.code]} ${waitText(err.retryAfter)}.`);
+      } else if (fields) {
         const shown = FIELD_ORDER.filter((name) => fields[name] && (name !== 'name' || !isLogin));
         for (const [name, msg] of Object.entries(fields)) {
           if (isField(name) && shown.includes(name)) setError(name, { type: 'server', message: msg });

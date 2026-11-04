@@ -19,7 +19,7 @@ This is a clean-room build. [CLEAN-ROOM.md](CLEAN-ROOM.md) records what it was a
 
 ## Quick start
 
-Needs **Node 22.13+** and **Docker**. Run everything from the repository root.
+Needs **Node 22.16+** (its built-in SQLite has the full-text search the food catalog uses) and **Docker**. Run everything from the repository root.
 
 ```bash
 npm install

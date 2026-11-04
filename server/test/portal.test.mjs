@@ -1,4 +1,4 @@
-import { sql } from './helpers.mjs';
+import { sql, seedUsage } from './helpers.mjs';
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildApp } from '../src/app.ts';
@@ -127,7 +127,7 @@ test('the plan allowance is shared by all keys and enforced', async () => {
   const { body } = await b.call('POST', '/portal/api/signup', { name: 'Quota Co', email: email(), password: 'correct horse battery' });
   const k2 = (await b.call('POST', '/portal/api/keys', { name: 'second' })).body.key;
   const accountId = body.account.id;
-  await sql`INSERT INTO usage (key_id, account_id, endpoint, tokens) VALUES (${body.firstKey.id}, ${accountId}, 'search', 1999)`;
+  await seedUsage({ keyId: body.firstKey.id, accountId, tokens: 1999 });
   assert.equal((await bearer(k2, '/v1/foods/search?q=egg')).status, 200, 'last token');
   const over = await bearer(body.firstKey.key, '/v1/foods/search?q=egg');
   assert.equal(over.status, 429);

@@ -9,6 +9,17 @@ Everything needs only Node and Docker.
 | `npm run test:e2e` | Builds the image, then a Playwright run: sign up → dashboard → create key → search |
 | `npm run multi-instance -w e2e` | Two app containers on one database: shared rate limits, login throttling, sessions |
 
+## CI
+
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on every pull request and every push to `main`:
+
+- **test** (Node 22.16 and 24): `npm run typecheck` and `npm run test:unit` against a Postgres 16 service.
+- **e2e** (pushes to `main` only): builds the compose stack, then the Playwright smoke test and the
+  multi-instance check.
+
+Render deploys every push to `main`, so protect `main` and require both `test` checks before merging
+(see [Deployment](deployment.md#ci-and-branch-protection)).
+
 ## Good to know
 
 - Server tests create a throwaway database per file on `TEST_DATABASE_URL` and drop it afterwards.

@@ -22,11 +22,31 @@ A copy is checked in at [server/docs/openapi.json](../server/docs/openapi.json) 
 
 AI-assisted calls also cost **1 token per 1,000 model tokens**.
 
+### How a call is charged
+
+1. **Reserve.** Before any work starts, the call's flat cost is reserved against the monthly allowance in one
+   atomic step. If it doesn't fit, the call answers `429 quota_exceeded` and does nothing, so parallel
+   requests can't overspend. `labels/parse` reserves the photo cost (20) and settles down to 5 for text.
+2. **Settle.** A successful call is charged its flat cost plus its AI tokens. The AI tokens can take the balance
+   past the allowance by that one call's AI usage. The next call is then refused.
+3. **Failures.** A failed call releases its reservation. **If the AI provider already did work** (for example it
+   refused the photo, its answer was cut off, or the image wasn't a nutrition label), **the AI tokens it used are
+   charged** and the error response carries `X-Tokens-Charged`. Every other failure (validation, `ai_timeout`,
+   provider unavailable) costs nothing.
+
+> **Changed:** before this version, failed calls were never charged. Callers who repeatedly send photos the AI
+> provider refuses now pay for the model tokens used (usually 1–3 tokens per call).
+
 ## Limits and errors
 
-- Every response has `X-Tokens-Charged`, and `X-Tokens-Remaining` when the key has an allowance.
+- Every successful metered response has `X-Tokens-Charged`, and `X-Tokens-Remaining` when the key has an
+  allowance. Failed calls that were charged AI tokens carry them too.
 - Out of allowance → `429 quota_exceeded`.
 - Too many requests per minute → `429 rate_limited` with `Retry-After`.
+- The AI provider didn't answer in time → `504 ai_timeout` (default 60 s, `NUTRIKIT_AI_TIMEOUT_MS`). Nothing is
+  charged; retry.
+- Every response carries `X-Request-Id`. Send your own (letters, digits, `-`, `_`, `.`, up to 128) to trace a call
+  through the server logs; quote it when reporting a problem.
 - The SDK retries `429`, `502` and `503` (not quota errors) and throws `NutrikitError` with `status`, `code` and `retryAfter`.
 
 ## SDK

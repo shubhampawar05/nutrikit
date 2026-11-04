@@ -240,46 +240,106 @@ export function isAdmin(headers: IncomingHttpHeaders): boolean {
 }
 
 // ---------------------------------------------------------------- metering
+//
+// Allowances are counted in usage_periods (one row per subject and UTC month). A call reserves its flat cost
+// with one conditional upsert before the handler runs, so concurrent calls can't overspend; afterwards it is
+// settled to what it actually cost (or released, on failure), in the same transaction as its `usage` row.
+
+/** The allowance a call counts against: the whole account (all of its keys), or an operator key on its own. */
+const subjectOf = (key: Pick<KeyContext, 'id' | 'accountId'>) => (key.accountId ? `acct:${key.accountId}` : `key:${key.id}`);
+const periodOf = (iso = monthStart()) => iso.slice(0, 10);
+
+/** Tokens reserved for one in-flight call. */
+export interface Reservation {
+  subject: string;
+  period: string; // YYYY-MM-DD, the month the reservation was made in
+  reserved: number;
+  used: number | null; // the counter after reserving; null when nothing was reserved
+}
+
+async function counterValue(sql: Sql, subject: string, period = periodOf()): Promise<number> {
+  const [row] = await sql<{ used: number }[]>`SELECT used FROM usage_periods WHERE subject = ${subject} AND period_start = ${period}`;
+  return row?.used ?? 0;
+}
 
 export async function accountUsedThisMonth(sql: Sql, accountId: string): Promise<number> {
-  const [{ t }] = await sql<{ t: number }[]>`SELECT COALESCE(SUM(tokens), 0) AS t FROM usage WHERE account_id = ${accountId} AND at >= ${monthStart()}`;
-  return t;
+  return counterValue(sql, `acct:${accountId}`);
 }
 
-async function keyUsedThisMonth(sql: Sql, keyId: string): Promise<number> {
-  const [{ t }] = await sql<{ t: number }[]>`SELECT COALESCE(SUM(tokens), 0) AS t FROM usage WHERE key_id = ${keyId} AND at >= ${monthStart()}`;
-  return t;
+/**
+ * Reserves `cost` tokens against the caller's allowance, atomically. Throws 429 quota_exceeded when they don't
+ * fit (the handler then never runs). Unlimited allowances are counted but never refused.
+ */
+export async function reserve(sql: Sql, key: KeyContext, cost: number): Promise<Reservation> {
+  const subject = subjectOf(key);
+  const period = periodOf();
+  const exhausted = () => Object.assign(new Error(`monthly token allowance exhausted (${key.tokenLimit} tokens); upgrade your plan or wait for the next month`), { status: 429, code: 'quota_exceeded' });
+  if (cost <= 0) return { subject, period, reserved: 0, used: null };
+  if (key.tokenLimit != null && cost > key.tokenLimit) throw exhausted();
+  const [row] = await sql<{ used: number }[]>`
+    INSERT INTO usage_periods AS p (subject, period_start, used) VALUES (${subject}, ${period}, ${cost})
+    ON CONFLICT (subject, period_start) DO UPDATE SET used = p.used + EXCLUDED.used
+      WHERE ${key.tokenLimit}::bigint IS NULL OR p.used + EXCLUDED.used <= ${key.tokenLimit}::bigint
+    RETURNING used`;
+  if (!row) throw exhausted();
+  return { subject, period, reserved: cost, used: row.used };
 }
 
-// Allowances apply to the whole account (all of its keys) unless the key has its own limit.
-const usedFor = (sql: Sql, key: Pick<KeyContext, 'id' | 'accountId'>) => (key.accountId ? accountUsedThisMonth(sql, key.accountId) : keyUsedThisMonth(sql, key.id));
-
-/** Throws 429 if the caller cannot afford `cost` more tokens this month. */
-export async function checkAllowance(sql: Sql, key: KeyContext, cost: number): Promise<number | null> {
-  if (key.tokenLimit == null) return null;
-  const remaining = key.tokenLimit - await usedFor(sql, key);
-  if (remaining < cost) {
-    throw Object.assign(new Error(`monthly token allowance exhausted (${key.tokenLimit} tokens); upgrade your plan or wait for the next month`), { status: 429, code: 'quota_exceeded' });
-  }
-  return remaining;
+/**
+ * Settles a reservation to the tokens the call actually cost (0 releases it) and records the charge.
+ * AI tokens may take the balance past the allowance by that one call's AI usage; the next reservation then fails.
+ */
+export async function settle(sql: Sql, key: KeyContext, reservation: Reservation, endpoint: string, tokens: number): Promise<{ tokens: number; remaining: number | null }> {
+  const delta = tokens - reservation.reserved;
+  const used = await sql.begin(async (tx) => {
+    let after = reservation.used;
+    if (delta !== 0) {
+      const [row] = await tx<{ used: number }[]>`
+        INSERT INTO usage_periods AS p (subject, period_start, used) VALUES (${reservation.subject}, ${reservation.period}, ${delta})
+        ON CONFLICT (subject, period_start) DO UPDATE SET used = p.used + EXCLUDED.used
+        RETURNING used`;
+      after = row!.used;
+    }
+    if (tokens > 0) await tx`INSERT INTO usage (key_id, account_id, endpoint, tokens) VALUES (${key.id}, ${key.accountId}, ${endpoint}, ${tokens})`;
+    // last_used_at is informational: write it at most once a minute per key.
+    if (key.id !== 'dev') await tx`UPDATE api_keys SET last_used_at = now() WHERE id = ${key.id} AND (last_used_at IS NULL OR last_used_at < now() - interval '60 seconds')`;
+    return after;
+  });
+  if (key.tokenLimit == null) return { tokens, remaining: null };
+  const current = used ?? await counterValue(sql, reservation.subject, reservation.period);
+  return { tokens, remaining: Math.max(key.tokenLimit - current, 0) };
 }
 
-export async function charge(sql: Sql, key: KeyContext, endpoint: string, baseCost: number, aiUsage?: Partial<AIUsage> | null): Promise<{ tokens: number; remaining: number | null }> {
-  const aiTokens = aiUsage ? Math.ceil(((aiUsage.inputTokens || 0) + (aiUsage.outputTokens || 0)) / 1000) : 0;
-  const tokens = baseCost + aiTokens;
-  if (tokens > 0) {
-    await sql`INSERT INTO usage (key_id, account_id, endpoint, tokens) VALUES (${key.id}, ${key.accountId}, ${endpoint}, ${tokens})`;
-  }
-  if (key.id !== 'dev') await sql`UPDATE api_keys SET last_used_at = now() WHERE id = ${key.id}`;
-  return { tokens, remaining: key.tokenLimit == null ? null : key.tokenLimit - await usedFor(sql, key) };
-}
+/** Tokens charged for AI usage alone: 1 per 1,000 model tokens, rounded up. */
+export const aiTokens = (usage?: Partial<AIUsage> | null) => (usage ? Math.ceil(((usage.inputTokens || 0) + (usage.outputTokens || 0)) / 1000) : 0);
 
 export async function usageSummary(sql: Sql, key: KeyContext): Promise<UsageSummary> {
   const filter = key.accountId ? sql`account_id = ${key.accountId}` : sql`key_id = ${key.id}`;
   const rows = (await sql<EndpointUsage[]>`SELECT endpoint, COUNT(*) AS calls, SUM(tokens) AS tokens FROM usage
     WHERE ${filter} AND at >= ${monthStart()} GROUP BY endpoint ORDER BY endpoint`).map((r) => ({ ...r }));
-  const used = rows.reduce((s, r) => s + r.tokens, 0);
-  return { keyId: key.id, accountId: key.accountId, periodStart: monthStart(), tokenLimit: key.tokenLimit, used, remaining: key.tokenLimit == null ? null : key.tokenLimit - used, byEndpoint: rows };
+  const used = await counterValue(sql, subjectOf(key));
+  return { keyId: key.id, accountId: key.accountId, periodStart: monthStart(), tokenLimit: key.tokenLimit, used, remaining: key.tokenLimit == null ? null : Math.max(key.tokenLimit - used, 0), byEndpoint: rows };
+}
+
+/**
+ * Rebuilds one month's allowance counters from the `usage` history (e.g. after a crash lost a settlement).
+ * Reservations in flight while it runs are dropped from the counter, so run it when traffic is quiet.
+ * Returns the number of subjects with usage that month.
+ */
+export async function reconcileUsage(sql: Sql, month: string): Promise<number> {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('month must be YYYY-MM');
+  const period = `${month}-01`;
+  return sql.begin(async (tx) => {
+    await tx`DELETE FROM usage_periods WHERE period_start = ${period}`;
+    const rows = await tx`
+      INSERT INTO usage_periods (subject, period_start, used)
+      SELECT CASE WHEN account_id IS NOT NULL THEN 'acct:' || account_id ELSE 'key:' || key_id END, ${period}::date, SUM(tokens)
+      FROM usage
+      WHERE at >= ${period}::date AND at < (${period}::date + interval '1 month')
+      GROUP BY 1
+      RETURNING subject`;
+    return rows.length;
+  });
 }
 
 /** Daily token totals for an account over the last `days` days (UTC), zero-filled. */

@@ -240,10 +240,16 @@ test('OpenAPI spec documents every API route', async () => {
   assert.equal(spec.openapi, '3.1.0');
   const documented = new Set(Object.entries(spec.paths).flatMap(([p, ops]) => Object.keys(ops).map((m) => `${m.toUpperCase()} ${p}`)));
   const api = app.routeTable.filter((r) => r.url.startsWith('/v1/') && r.method !== 'HEAD' && !r.hidden);
-  assert.equal(api.length, 22, 'all /v1 routes are registered');
+  assert.equal(api.length, 23, 'all /v1 routes are registered');
   for (const r of api) {
     const p = r.url.replace(/:(\w+)(\([^/]*\))?/g, '{$1}');
     assert.ok(documented.has(`${r.method} ${p}`), `${r.method} ${p} missing from openapi.json`);
   }
   for (const name of ['SearchResult', 'Food', 'LogResult', 'Error']) assert.ok(spec.components.schemas[name], `${name} schema`);
+});
+
+test('an Open Food Facts timeout is a 502, not a hung or 500 response', async () => {
+  const timeout = async () => { throw Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' }); };
+  await sql`DELETE FROM barcode_cache WHERE code = '1234567890128'`;
+  await assert.rejects(lookupBarcode(sql, '1234567890128', { fetch: timeout }), (e) => e.status === 502 && /did not respond/.test(e.message));
 });

@@ -34,7 +34,7 @@
     "dev": "node --env-file-if-exists=../.env --import tsx src/main.ts",
     "start": "node dist/main.js",
     "smoke": "node --import tsx scripts/smoke.ts",
-    "test": "node --import tsx --test test/",
+    "test": "node --import tsx --test 'test/*.test.ts'",
     "typecheck": "tsc -p . --noEmit"
   },
   "engines": {

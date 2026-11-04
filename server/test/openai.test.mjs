@@ -17,7 +17,9 @@ const stub = http.createServer(async (req, res) => {
   let raw = '';
   for await (const chunk of req) raw += chunk;
   requests.push({ path: req.url, auth: req.headers.authorization, body: JSON.parse(raw) });
-  const { status, body, headers } = reply(requests.length);
+  const answer = reply(requests.length);
+  if (answer.hang) return; // never answers: the provider's deadline has to end the call
+  const { status, body, headers } = answer;
   res.writeHead(status, { 'content-type': 'application/json', ...headers });
   res.end(JSON.stringify(body));
 });
@@ -33,7 +35,7 @@ before(async () => {
   const { getProvider } = await import('../src/domain/providers/index.ts');
   provider = await getProvider();
 });
-after(() => stub.close());
+after(() => { stub.closeAllConnections(); stub.close(); });
 
 test('OPENAI_API_KEY alone selects the OpenAI provider', () => {
   assert.equal(provider.name, 'openai');
@@ -106,4 +108,16 @@ test('errors map to API statuses', async () => {
 
   reply = () => ({ status: 200, body: completion({}, { finish_reason: 'length' }) });
   await assert.rejects(provider.parseMeal({ text: 'x' }), { status: 502, message: /truncated/ });
+});
+
+test('a provider that never answers is abandoned at the deadline with 504 ai_timeout and no usage', async () => {
+  process.env.NUTRIKIT_AI_TIMEOUT_MS = '300';
+  try {
+    reply = () => ({ hang: true });
+    const started = Date.now();
+    await assert.rejects(provider.parseMeal({ text: 'x' }), (err) => err.status === 504 && err.code === 'ai_timeout' && err.usage === undefined);
+    assert.ok(Date.now() - started < 2000, 'one deadline covers the retries');
+  } finally {
+    delete process.env.NUTRIKIT_AI_TIMEOUT_MS;
+  }
 });

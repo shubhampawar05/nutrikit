@@ -11,21 +11,24 @@ import type {
   BetaTextBlock,
 } from '@anthropic-ai/sdk/resources/beta/messages';
 import type { AIUsage } from '../types.ts';
-import type { AIProvider } from './index.ts';
+import { aiDeadline, aiTimeout, type AIProvider } from './index.ts';
 import { ADVICE_SCHEMA, ADVICE_SYSTEM, FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, adviceMessage, type AdviceOutput, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
 
 const MODEL = process.env.NUTRIKIT_ANTHROPIC_MODEL || 'claude-opus-5-5';
 const EFFORT = (process.env.NUTRIKIT_ANTHROPIC_EFFORT || 'medium') as BetaOutputConfig['effort'];
 
 export async function createAnthropicProvider(): Promise<AIProvider> {
-  const client = new Anthropic();
+  // One retry, and one deadline for the whole call (aiDeadline), so a hung request can't hold a connection open.
+  const client = new Anthropic({ maxRetries: 1 });
 
   // T is the shape `schema` describes; structured outputs guarantee the JSON matches it.
   async function call<T>(system: string, content: BetaContentBlockParam[], schema: BetaJSONOutputFormat['schema']): Promise<{ data: T; usage: AIUsage }> {
     let response: BetaMessage;
+    const signal = aiDeadline();
     try {
-      response = await request(system, content, schema);
+      response = await request(system, content, schema, signal);
     } catch (err) {
+      if (signal.aborted || err instanceof Anthropic.APIConnectionTimeoutError) throw aiTimeout();
       // Most specific first; the SDK has already retried 429/5xx/connection errors twice.
       if (err instanceof Anthropic.BadRequestError) throw Object.assign(new Error(`AI provider rejected the input: ${err.message}`), { status: 422 });
       if (err instanceof Anthropic.AuthenticationError) throw Object.assign(new Error('AI provider credentials are invalid'), { status: 503 });
@@ -36,7 +39,7 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
     return handle(response);
   }
 
-  function request(system: string, content: BetaContentBlockParam[], schema: BetaJSONOutputFormat['schema']): Promise<BetaMessage> {
+  function request(system: string, content: BetaContentBlockParam[], schema: BetaJSONOutputFormat['schema'], signal: AbortSignal): Promise<BetaMessage> {
     return client.beta.messages.create({
       model: MODEL,
       max_tokens: 16000,
@@ -45,7 +48,7 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
       output_config: { effort: EFFORT, format: { type: 'json_schema', schema } },
       system,
       messages: [{ role: 'user', content }],
-    });
+    }, { signal, timeout: Number(process.env.NUTRIKIT_AI_TIMEOUT_MS) || 60_000 });
   }
 
   function handle(response: BetaMessage) {

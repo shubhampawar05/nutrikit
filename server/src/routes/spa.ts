@@ -16,10 +16,26 @@ const SDK: Record<string, [string, string]> = {
   '/sdk/nutrikit.d.ts': ['sdk/js/nutrikit.d.ts', 'text/plain; charset=utf-8'],
 };
 
+// Website pages: scripts only from this site and Razorpay Checkout (loaded when a payment starts), whose
+// window is a frame; styles allow inline (React style attributes, the Checkout overlay); product images come
+// from Open Food Facts. nosniff and Referrer-Policy are set on every response in app.ts.
+export const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' https://checkout.razorpay.com",
+  'frame-src https://api.razorpay.com https://checkout.razorpay.com',
+  "connect-src 'self' https://lumberjack.razorpay.com",
+  "img-src 'self' data: https://images.openfoodfacts.org https://*.razorpay.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  'font-src https://fonts.gstatic.com',
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+].join('; ');
+
 function pageHeaders(reply: FastifyReply) {
   reply.header('X-Frame-Options', 'DENY');
-  reply.header('X-Content-Type-Options', 'nosniff');
-  reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  reply.header('Content-Security-Policy', CONTENT_SECURITY_POLICY);
 }
 
 /** True for a browser navigation that the SPA should answer with index.html. */
