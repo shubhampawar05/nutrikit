@@ -53,20 +53,34 @@ export function billingInfo(): BillingInfo {
   return { enabled: true, mode: id.startsWith('rzp_live_') ? 'live' : 'test', currency: CURRENCY, keyId: id };
 }
 
+// A hung or unreachable Razorpay answers like a rejected request (502 billing_error), within 15 s.
+const TIMEOUT_MS = () => Number(process.env.RAZORPAY_TIMEOUT_MS) || 15_000;
+const unavailable = (logDetail: string) => Object.assign(fail(502, 'billing_error', 'the payment provider did not respond; try again later'), { logDetail });
+
 async function razorpay(method: 'GET' | 'POST', path: string, body?: object): Promise<RazorpayEntity> {
-  const res = await fetch(`${API()}/v1${path}`, {
-    method,
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${keyId()}:${keySecret()}`).toString('base64')}`,
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = (await res.json().catch(() => ({}))) as RazorpayEntity;
+  const signal = AbortSignal.timeout(TIMEOUT_MS());
+  let res: Response;
+  try {
+    res = await fetch(`${API()}/v1${path}`, {
+      method,
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${keyId()}:${keySecret()}`).toString('base64')}`,
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal,
+    });
+  } catch (err) {
+    throw unavailable(`razorpay ${method} ${path} ${signal.aborted ? `timed out after ${TIMEOUT_MS()} ms` : `failed: ${(err as Error).message}`}`);
+  }
+  const data = (await res.json().catch(() => {
+    if (signal.aborted) throw unavailable(`razorpay ${method} ${path} timed out reading the response`);
+    return {};
+  })) as RazorpayEntity;
   if (!res.ok) {
     const detail = typeof data.error === 'string' ? data.error : [data.error?.code, data.error?.description].filter(Boolean).join(': ');
-    console.error(`razorpay ${method} ${path} failed: ${res.status} ${detail || ''}${res.status === 401 ? ' (check that RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET belong to the same key)' : ''}`);
-    throw fail(502, 'billing_error', 'the payment provider rejected the request; try again later');
+    const logDetail = `razorpay ${method} ${path} failed: ${res.status} ${detail || ''}${res.status === 401 ? ' (check that RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET belong to the same key)' : ''}`;
+    throw Object.assign(fail(502, 'billing_error', 'the payment provider rejected the request; try again later'), { logDetail });
   }
   return data;
 }

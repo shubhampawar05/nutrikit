@@ -58,8 +58,22 @@ overwritten by later deploys. Change them later in the service's **Environment**
 - `https://<service>.onrender.com/v1/health` returns `"status":"ok"`.
 - Sign up on the site, create an API key, try a search in the playground.
 - Sign in at `/admin` with your admin token.
+- `https://<service>.onrender.com/v1/health/ready` returns `"status":"ready"` (database and food catalog).
+
+**Liveness vs readiness.** `/v1/health` (liveness) answers 200 whenever the process serves HTTP and never
+touches the database. `/v1/health/ready` (readiness) answers 503 when the database doesn't respond within 2
+seconds or the catalog can't be read. Render's `healthCheckPath` stays on `/v1/health`: Render restarts a
+service that fails its check, and restarting the app doesn't fix a database outage, so it would only cause a
+restart loop. Point uptime monitors and load balancers that route between instances at `/v1/health/ready`.
 
 Every push to `main` deploys automatically. Each start applies pending migrations first.
+
+### CI and branch protection
+
+Because `main` deploys on push, only merge changes that passed CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
+In GitHub → Settings → Branches, add a rule for `main`: require a pull request, and require the status checks
+**test (node 22.13)** and **test (node 24)**. The **e2e** job runs after each push to `main`; if it fails, fix
+or roll back (below).
 
 ### 5. Payments (optional)
 

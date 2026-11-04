@@ -1,4 +1,4 @@
-import { sql } from './helpers.mjs';
+import { sql, seedUsage } from './helpers.mjs';
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -17,6 +17,7 @@ let fakeRazorpay;
 const calls = [];
 const orders = new Map();
 let nextId = 1;
+let hang = false;
 
 before(async () => {
   // A stand-in for api.razorpay.com: create and fetch orders.
@@ -25,6 +26,7 @@ before(async () => {
     for await (const c of req) raw += c;
     const body = raw ? JSON.parse(raw) : null;
     calls.push({ method: req.method, path: req.url, auth: req.headers.authorization, body });
+    if (hang) return; // never answers
     const send = (status, data) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)); };
     if (req.method === 'POST' && req.url === '/v1/orders') {
       const order = { id: `order_${nextId++}`, entity: 'order', status: 'created', amount: body.amount, currency: body.currency, receipt: body.receipt, notes: body.notes };
@@ -44,7 +46,7 @@ before(async () => {
   base = `http://127.0.0.1:${app.server.address().port}`;
   setProvider({ name: 'none' });
 });
-after(() => { app.close(); fakeRazorpay.close(); });
+after(() => { app.close(); fakeRazorpay.closeAllConnections(); fakeRazorpay.close(); });
 
 async function signup() {
   let cookie = '';
@@ -159,7 +161,7 @@ test('an ended period reads as Free everywhere, and the plan can be bought again
   assert.equal(me.plan.id, 'free');
   assert.equal(me.plan.expiresAt, null);
   // API keys get Free limits too: the Free allowance (2,000 tokens) is enforced again.
-  await sql`INSERT INTO usage (key_id, account_id, endpoint, tokens) VALUES (${signupKey.id}, ${user.accountId}, 'search', 2000)`;
+  await seedUsage({ keyId: signupKey.id, accountId: user.accountId, tokens: 2000 });
   const res = await fetch(`${base}/v1/foods/search?q=egg`, { headers: { Authorization: `Bearer ${signupKey.key}` } });
   assert.equal(res.status, 429);
   // Buying after expiry starts a new 30 days (not counted from the old end date).
@@ -233,5 +235,21 @@ test('without Razorpay credentials billing is off and upgrade requests remain', 
   } finally {
     process.env.RAZORPAY_KEY_ID = saved.id;
     process.env.RAZORPAY_WEBHOOK_SECRET = saved.hook;
+  }
+});
+
+test('a Razorpay that never answers ends in 502 billing_error, not a hung request', async () => {
+  const { call } = await signup();
+  process.env.RAZORPAY_TIMEOUT_MS = '300';
+  hang = true;
+  try {
+    const started = Date.now();
+    const res = await call('POST', '/portal/api/billing/order', { plan: 'starter' });
+    assert.equal(res.status, 502);
+    assert.equal(res.body.error.code, 'billing_error');
+    assert.ok(Date.now() - started < 2000);
+  } finally {
+    hang = false;
+    delete process.env.RAZORPAY_TIMEOUT_MS;
   }
 });

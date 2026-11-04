@@ -32,7 +32,8 @@ RUN node -e "const fs = require('fs'); const p = JSON.parse(fs.readFileSync('pac
 
 # ---- runtime: Alpine keeps the image small; the server has no native modules (node:sqlite is built in)
 FROM node:${NODE_VERSION}-alpine
-ENV NODE_ENV=production PORT=8787
+# Password hashing (async scrypt) runs on libuv's threadpool; 8 threads keep it from starving file and DNS work.
+ENV NODE_ENV=production PORT=8787 UV_THREADPOOL_SIZE=8
 WORKDIR /app
 COPY --from=deps /app/node_modules node_modules
 COPY --from=deps /app/server/package.json server/package.json

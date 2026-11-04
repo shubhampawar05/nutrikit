@@ -1,5 +1,6 @@
 // Developer accounts, browser sessions and plans for the self-serve portal.
 import crypto from 'node:crypto';
+import { promisify } from 'node:util';
 import type { Sql, TransactionSql } from 'postgres';
 import { lookup } from './lookup.ts';
 
@@ -57,16 +58,33 @@ const SESSION_DAYS = 14;
 const SCRYPT = { N: 16384, r: 8, p: 1, keylen: 32 };
 const hashId = (s: string) => crypto.createHash('sha256').update(s).digest('hex');
 
-function hashPassword(password: string) {
+// scrypt runs on libuv's threadpool, so hashing never blocks other requests. Same parameters and stored format
+// as before (scrypt$<salt hex>$<hash hex>), so existing passwords keep verifying.
+const scrypt = promisify(crypto.scrypt) as (password: string, salt: Buffer, keylen: number, options: crypto.ScryptOptions) => Promise<Buffer>;
+const derive = (password: string, salt: Buffer) => scrypt(password, salt, SCRYPT.keylen, { N: SCRYPT.N, r: SCRYPT.r, p: SCRYPT.p });
+
+async function hashPassword(password: string) {
   const salt = crypto.randomBytes(16);
-  const hash = crypto.scryptSync(password, salt, SCRYPT.keylen, { N: SCRYPT.N, r: SCRYPT.r, p: SCRYPT.p });
-  return `scrypt$${salt.toString('hex')}$${hash.toString('hex')}`;
+  return `scrypt$${salt.toString('hex')}$${(await derive(password, salt)).toString('hex')}`;
 }
 
-function verifyPassword(password: string, stored: string) {
+async function verifyPassword(password: string, stored: string) {
   const [, saltHex, hashHex] = stored.split('$');
-  const hash = crypto.scryptSync(password, Buffer.from(saltHex, 'hex'), SCRYPT.keylen, { N: SCRYPT.N, r: SCRYPT.r, p: SCRYPT.p });
-  return crypto.timingSafeEqual(hash, Buffer.from(hashHex, 'hex'));
+  const hash = await derive(password, Buffer.from(saltHex!, 'hex'));
+  return crypto.timingSafeEqual(hash, Buffer.from(hashHex!, 'hex'));
+}
+
+// Unknown emails are checked against this, so a login takes as long whether or not the account exists.
+let dummyHash: Promise<string> | undefined;
+const unknownAccountHash = () => (dummyHash ??= hashPassword(crypto.randomBytes(16).toString('hex')));
+
+// Per client address: signups per hour, and failed logins per 15 minutes (alongside 5 per email).
+const SIGNUP_LIMIT = () => Number(process.env.NUTRIKIT_SIGNUP_LIMIT) || 5;
+const LOGIN_IP_LIMIT = () => Number(process.env.NUTRIKIT_LOGIN_IP_LIMIT) || 20;
+
+/** Where a portal request came from (req.ip); absent when called outside HTTP (scripts, tests). */
+export interface Origin {
+  ip?: string;
 }
 
 const fail = (status: number, code: string, message: string): DomainError => Object.assign(new Error(message), { status, code });
@@ -80,13 +98,26 @@ export function validateSignup({ name, email, password }: Credentials): Record<s
   return errors;
 }
 
-export async function createAccount(sql: Sql, { name, email, password }: Credentials): Promise<Account> {
+// Every attempt counts, invalid ones included, so a script can't probe without spending its allowance.
+async function throttleSignup(sql: Sql, ip: string) {
+  await sql`DELETE FROM signup_attempts WHERE at < now() - interval '1 hour'`;
+  const [{ recent, oldest }] = await sql<{ recent: number; oldest: Date | null }[]>`
+    SELECT COUNT(*) AS recent, MIN(at) AS oldest FROM signup_attempts WHERE ip = ${ip} AND at > now() - interval '1 hour'`;
+  if (recent >= SIGNUP_LIMIT()) {
+    const retryAfter = oldest ? Math.max(1, Math.ceil((oldest.getTime() + 3600e3 - Date.now()) / 1000)) : 3600;
+    throw Object.assign(fail(429, 'too_many_signups', 'too many signups from your network; try again later'), { retryAfter });
+  }
+  await sql`INSERT INTO signup_attempts (ip) VALUES (${ip})`;
+}
+
+export async function createAccount(sql: Sql, { name, email, password }: Credentials, { ip }: Origin = {}): Promise<Account> {
+  if (ip) await throttleSignup(sql, ip);
   const errors = validateSignup({ name, email, password });
   if (Object.keys(errors).length) throw Object.assign(fail(400, 'invalid_request', 'check the highlighted fields'), { fields: errors });
   const id = `acct_${crypto.randomBytes(8).toString('hex')}`;
   const [row] = await sql<{ id: string }[]>`
     INSERT INTO accounts (id, email, name, password_hash, plan)
-    VALUES (${id}, ${(email as string).trim()}, ${(name as string).trim()}, ${hashPassword(password as string)}, 'free')
+    VALUES (${id}, ${(email as string).trim()}, ${(name as string).trim()}, ${await hashPassword(password as string)}, 'free')
     ON CONFLICT (email) DO NOTHING
     RETURNING id`;
   if (!row) {
@@ -95,17 +126,21 @@ export async function createAccount(sql: Sql, { name, email, password }: Credent
   return getAccount(sql, id) as Promise<Account>; // the row was just inserted
 }
 
-// Failed logins are throttled per email (shared by all instances): 5 per 15 minutes.
-export async function login(sql: Sql, { email, password }: Credentials): Promise<Account> {
+// Failed logins are throttled (shared by all instances): 5 per 15 minutes per email, and NUTRIKIT_LOGIN_IP_LIMIT
+// per 15 minutes per client address, so one address can't try many emails. Over either, even a correct password waits.
+export async function login(sql: Sql, { email, password }: Credentials, { ip }: Origin = {}): Promise<Account> {
   const key = String(email || '').trim();
-  const [{ recent }] = await sql<{ recent: number }[]>`SELECT COUNT(*) AS recent FROM login_failures WHERE email = ${key} AND at > now() - interval '15 minutes'`;
-  if (recent >= 5) throw Object.assign(fail(429, 'too_many_attempts', 'too many failed logins; try again in 15 minutes'), { retryAfter: 900 });
+  const [{ byEmail, byIp }] = await sql<{ byEmail: number; byIp: number }[]>`
+    SELECT COUNT(*) FILTER (WHERE email = ${key}) AS "byEmail",
+           COUNT(*) FILTER (WHERE ${ip ?? null}::inet IS NOT NULL AND ip = ${ip ?? null}::inet) AS "byIp"
+    FROM login_failures WHERE at > now() - interval '15 minutes'`;
+  if (byEmail >= 5 || byIp >= LOGIN_IP_LIMIT()) throw Object.assign(fail(429, 'too_many_attempts', 'too many failed logins; try again in 15 minutes'), { retryAfter: 900 });
   const [row] = await sql<{ id: string; password_hash: string }[]>`SELECT id, password_hash FROM accounts WHERE email = ${key}`;
   // Hash even for unknown emails so response time does not reveal which emails exist.
-  const ok = row ? verifyPassword(String(password || ''), row.password_hash) : (verifyPassword('x', hashPassword('y')), false);
+  const ok = row ? await verifyPassword(String(password || ''), row.password_hash) : (await verifyPassword(String(password || ''), await unknownAccountHash()), false);
   if (!ok) {
     await sql`DELETE FROM login_failures WHERE at < now() - interval '15 minutes'`;
-    await sql`INSERT INTO login_failures (email) VALUES (${key})`;
+    await sql`INSERT INTO login_failures (email, ip) VALUES (${key}, ${ip ?? null})`;
     throw fail(401, 'invalid_credentials', 'email or password is incorrect');
   }
   await sql`DELETE FROM login_failures WHERE email = ${key}`;

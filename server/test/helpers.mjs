@@ -19,6 +19,11 @@ fs.copyFileSync(new URL('../../web/src/seo.json', import.meta.url), path.join(we
 process.env.NUTRIKIT_WEB_DIST = webDist;
 
 process.env.NUTRIKIT_OFFLINE = '0';
+process.env.NUTRIKIT_LOG_LEVEL = 'silent';
+// Test files sign up many accounts from 127.0.0.1; auth.test.mjs sets real limits where it checks them.
+process.env.NUTRIKIT_SIGNUP_LIMIT = '100000';
+process.env.NUTRIKIT_LOGIN_IP_LIMIT = '100000';
+delete process.env.NUTRIKIT_TRUST_PROXY;
 process.env.NUTRIKIT_ADMIN_TOKEN = 'test-admin-token';
 delete process.env.NUTRIKIT_AUTH;
 delete process.env.ANTHROPIC_API_KEY;
@@ -41,6 +46,14 @@ after(async () => {
   await admin.unsafe(`DROP DATABASE IF EXISTS ${dbName} WITH (FORCE)`);
   await admin.end();
 });
+
+/** Records past usage as the metering would: a `usage` row plus this month's allowance counter. */
+export async function seedUsage({ keyId, accountId = null, endpoint = 'search', tokens }) {
+  await sql`INSERT INTO usage (key_id, account_id, endpoint, tokens) VALUES (${keyId}, ${accountId}, ${endpoint}, ${tokens})`;
+  const subject = accountId ? `acct:${accountId}` : `key:${keyId}`;
+  await sql`INSERT INTO usage_periods AS p (subject, period_start, used) VALUES (${subject}, date_trunc('month', now() AT TIME ZONE 'UTC')::date, ${tokens})
+    ON CONFLICT (subject, period_start) DO UPDATE SET used = p.used + EXCLUDED.used`;
+}
 
 /** A fake AI provider that records calls and returns canned results. */
 export function fakeProvider() {

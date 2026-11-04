@@ -32,6 +32,21 @@ A plan sets the monthly token allowance, requests per minute, and how many keys 
 an account share one allowance. The plans are placeholders: edit `PLANS` in
 [server/src/domain/accounts.ts](../server/src/domain/accounts.ts) and the pricing page together.
 
+## Usage metering
+
+Allowances are counted in `usage_periods`, one row per account (or operator key) per UTC month. Each call
+reserves its cost there before running and settles afterwards (see [API: how a call is charged](api.md#how-a-call-is-charged)).
+`usage` keeps every charge as history, which feeds the dashboard charts, per-endpoint breakdowns and the admin
+console. The two agree. If a crash ever loses a settlement, the counter is slightly high, in your favour, and
+you can rebuild a month from the history:
+
+```bash
+npm run usage:reconcile -- 2026-11        # Docker image: node dist/cli/reconcile-usage.js 2026-11
+```
+
+It reads `DATABASE_URL` like `npm run migrate`. Run it when traffic is quiet, because reservations in flight
+while it runs are dropped from the counter.
+
 ## How developers authenticate
 
 ```
@@ -66,11 +81,18 @@ curl -X POST https://<host>/v1/admin/accounts/acct_…/plan \
 
 ## Security in place
 
-- Passwords hashed with scrypt; sessions and API keys stored only as SHA-256 hashes.
+- Passwords hashed with scrypt (asynchronously, so logins never stall the API); sessions and API keys stored
+  only as SHA-256 hashes.
 - Session cookies are `HttpOnly` and `SameSite=Lax`.
 - Portal writes require the `X-Nutrikit-Portal` header (CSRF), and no cross-origin requests are accepted.
-- Failed logins limited to 5 per 15 minutes per email, across all instances.
-- Pages sent with `X-Frame-Options: DENY`.
+- Failed logins limited to 5 per 15 minutes per email and 20 per client address, across all instances.
+- Signups limited to 5 per hour per client address (`NUTRIKIT_SIGNUP_LIMIT`).
+- Client addresses come from `X-Forwarded-For` only through trusted proxies (`NUTRIKIT_TRUST_PROXY`).
+- Allowances are reserved atomically, so parallel requests can't overspend.
+- Every response: `nosniff`, `Referrer-Policy`, `X-Request-Id`, and HSTS with secure cookies. Pages: a Content
+  Security Policy and `X-Frame-Options: DENY`.
+- Calls to AI providers (60 s), Razorpay (15 s) and Open Food Facts (8 s) have deadlines.
+- JSON request logs never contain bodies, keys, tokens, cookies or passwords.
 
 ## Before a public launch
 

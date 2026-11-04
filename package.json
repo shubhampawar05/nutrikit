@@ -20,6 +20,7 @@
     "build": "npm run build -w web && npm run build -w server",
     "start": "npm start -w server",
     "create-key": "npm run create-key -w server --",
+    "usage:reconcile": "npm run usage:reconcile -w server --",
     "openapi": "npm run openapi -w server",
     "test": "docker compose up -d --wait postgres && npm run test:unit && npm run test:e2e",
     "test:unit": "npm test -w server && npm test -w web && npm test -w mcp",

@@ -49,7 +49,7 @@ export interface ResolvedPortion {
   method: string;
 }
 
-/** Model token usage reported by an AI provider, metered by charge(). */
+/** Model token usage reported by an AI provider, metered by auth.settle(). */
 export interface AIUsage {
   inputTokens: number;
   outputTokens: number;

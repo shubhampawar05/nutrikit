@@ -92,6 +92,10 @@ try {
 
 Quota exhaustion (`quota_exceeded`) is not retried.
 
+A failed call is free unless the AI provider already did work on it (a refused photo, a truncated answer, an image
+that isn't a label). Then only the AI tokens are charged, and the error response's `X-Tokens-Charged` header says
+how many. `504 ai_timeout` (the AI provider didn't answer in time) is never charged.
+
 ## Options
 
 | Option | Default | |

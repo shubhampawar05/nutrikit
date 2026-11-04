@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.NUTRIKIT_TOKEN_SECRET)
 }
 const app = await buildApp();
 await app.listen({ port: PORT, host: process.env.HOST || '0.0.0.0' });
-console.log(`nutrikit API on http://localhost:${PORT}  (AI provider: ${(await getProvider()).name}, auth: ${process.env.NUTRIKIT_AUTH === 'off' ? 'off' : 'on'}, billing: ${billingInfo().mode || 'off'})`);
+app.log.info(`nutrikit API on http://localhost:${PORT}  (AI provider: ${(await getProvider()).name}, auth: ${process.env.NUTRIKIT_AUTH === 'off' ? 'off' : 'on'}, billing: ${billingInfo().mode || 'off'})`);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.once(signal, () => { void app.close().then(() => process.exit(0)); });

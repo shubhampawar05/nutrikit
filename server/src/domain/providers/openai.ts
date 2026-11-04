@@ -2,7 +2,7 @@
 // Completions API with strict JSON-schema outputs. Uses fetch, so it needs no SDK; OPENAI_BASE_URL
 // points it at any OpenAI-compatible endpoint (Azure OpenAI, OpenRouter, a local Ollama, …).
 import type { AIUsage } from '../types.ts';
-import type { AIProvider } from './index.ts';
+import { aiDeadline, aiTimeout, type AIProvider } from './index.ts';
 import { ADVICE_SCHEMA, ADVICE_SYSTEM, FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, adviceMessage, type AdviceOutput, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
 
 const MODEL = process.env.NUTRIKIT_OPENAI_MODEL || 'gpt-5-mini';
@@ -39,8 +39,10 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
     return { data: JSON.parse(choice.message.content), usage };
   }
 
-  // Retries rate limits, 5xx and connection errors, like the Anthropic SDK does for the Claude provider.
+  // Retries rate limits, 5xx and connection errors, like the Anthropic SDK does for the Claude provider,
+  // all within one deadline.
   async function request(body: object): Promise<ChatCompletion> {
+    const signal = aiDeadline();
     for (let attempt = 0; ; attempt++) {
       let res: Response;
       try {
@@ -48,13 +50,21 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
           method: 'POST',
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(120_000),
+          signal,
         });
       } catch {
+        if (signal.aborted) throw aiTimeout();
         if (attempt < MAX_RETRIES) { await sleep(500 * 2 ** attempt); continue; }
         throw fail('AI provider error (connection)', 502);
       }
-      if (res.ok) return res.json() as Promise<ChatCompletion>;
+      if (res.ok) {
+        try {
+          return await (res.json() as Promise<ChatCompletion>);
+        } catch (err) {
+          if (signal.aborted) throw aiTimeout();
+          throw err;
+        }
+      }
       const detail = ((await res.json().catch(() => null)) as { error?: { message?: string } } | null)?.error?.message ?? res.statusText;
       if ((res.status === 429 || res.status >= 500) && attempt < MAX_RETRIES) {
         const retryAfter = Number(res.headers.get('retry-after'));

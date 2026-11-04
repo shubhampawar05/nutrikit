@@ -113,10 +113,17 @@ export async function lookupBarcode(sql: Sql, code: string, { fetch: doFetch = g
   if (offline) return { found: false, cached: false, offline: true };
 
   const fields = 'code,product_name,generic_name,brands,quantity,serving_size,serving_quantity,nutriments,image_front_small_url';
-  const res = await doFetch(`${OFF_URL}/api/v2/product/${code}.json?fields=${fields}`, {
-    headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
-    signal: AbortSignal.timeout(8000),
-  });
+  // A timeout or network failure is the same 502 as a bad response from the source.
+  const unavailable = (detail: string) => Object.assign(new Error('barcode source did not respond; try again later'), { status: 502, logDetail: `open food facts ${code}: ${detail}` });
+  let res: Response;
+  try {
+    res = await doFetch(`${OFF_URL}/api/v2/product/${code}.json?fields=${fields}`, {
+      headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch (err) {
+    throw unavailable((err as Error).name === 'TimeoutError' ? 'timed out after 8000 ms' : (err as Error).message);
+  }
   if (res.status === 404) {
     await cache(sql, code, null);
     return { found: false, cached: false };

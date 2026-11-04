@@ -27,6 +27,9 @@ services:
         sync: false
       - key: NUTRIKIT_SECURE_COOKIES
         value: "1"
+      # Every request reaches the app through Render's proxy: trust that one hop for client addresses.
+      - key: NUTRIKIT_TRUST_PROXY
+        value: "1"
       - key: OPENAI_API_KEY
         sync: false
       - key: RAZORPAY_KEY_ID
