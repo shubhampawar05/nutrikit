@@ -153,7 +153,7 @@ container in a loop. Readiness is for load balancers and uptime monitors.
 
 ### 10. CI
 
-`.github/workflows/ci.yml`: on `pull_request` and on push to `main`, using Node 22.13 and Node 24 with a
+`.github/workflows/ci.yml`: on `pull_request` and on push to `main`, using Node 22.16 (the first 22.x whose built-in SQLite has FTS5, which food search needs) and Node 24 with a
 `postgres:16` service. Steps: `npm ci`, `npm run typecheck`, `npm run test:unit` with
 `TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres`. The Playwright end-to-end test runs in a
 separate job, only on push to `main`, because it needs Docker Compose and browser installs. `foods.db` is in git,

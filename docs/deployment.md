@@ -72,7 +72,7 @@ Every push to `main` deploys automatically. Each start applies pending migration
 
 Because `main` deploys on push, only merge changes that passed CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
 In GitHub → Settings → Branches, add a rule for `main`: require a pull request, and require the status checks
-**test (node 22.13)** and **test (node 24)**. The **e2e** job runs after each push to `main`; if it fails, fix
+**test (node 22.16)** and **test (node 24)**. The **e2e** job runs after each push to `main`; if it fails, fix
 or roll back (below).
 
 ### 5. Payments (optional)

@@ -2,7 +2,7 @@
 
 ## 1. CI
 
-- [x] 1.1 Add `.github/workflows/ci.yml` (Node 22.13 and 24 matrix, `postgres:16` service, `npm ci`, `npm run typecheck`, `npm run test:unit` with `TEST_DATABASE_URL`) plus a push-to-`main` Playwright job; verify the workflow passes on a pull request
+- [x] 1.1 Add `.github/workflows/ci.yml` (Node 22.16 and 24 matrix, `postgres:16` service, `npm ci`, `npm run typecheck`, `npm run test:unit` with `TEST_DATABASE_URL`) plus a push-to-`main` Playwright job; verify the workflow passes on a pull request
 - [x] 1.2 Document CI and recommended branch protection for `main` in `docs/testing.md` and `docs/deployment.md`; verify the docs name the workflow file and the required check
 
 ## 2. Client address, request ids and logging

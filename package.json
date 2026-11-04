@@ -29,7 +29,7 @@
     "dev:mcp": "npm run dev -w mcp"
   },
   "engines": {
-    "node": ">=22.13"
+    "node": ">=22.16"
   },
   "devDependencies": {
     "@fission-ai/openspec": "^1.15.0"

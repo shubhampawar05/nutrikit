@@ -13,7 +13,7 @@ Everything needs only Node and Docker.
 
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on every pull request and every push to `main`:
 
-- **test** (Node 22.13 and 24): `npm run typecheck` and `npm run test:unit` against a Postgres 16 service.
+- **test** (Node 22.16 and 24): `npm run typecheck` and `npm run test:unit` against a Postgres 16 service.
 - **e2e** (pushes to `main` only): builds the compose stack, then the Playwright smoke test and the
   multi-instance check.
 

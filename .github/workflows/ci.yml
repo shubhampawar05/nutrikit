@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['22.13', '24']
+        node: ['22.16', '24']
     services:
       postgres:
         image: postgres:16-alpine
