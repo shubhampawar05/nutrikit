@@ -44,7 +44,12 @@ export interface Plan {
   price: number | null; // per 30-day period, in `currency`; null = arranged directly
   currency: string;
   maxKeys: number;
+  /** 0 = Free, increasing with value: the server never sells a plan ranked below the current one. */
+  rank: number;
 }
+
+/** sessionStorage key of a key pasted into the playground (cleared on logout). */
+export const PLAYGROUND_KEY_STORE = 'nk-playground-key';
 
 export interface AccountView {
   account: { id: string; name: string; email: string; createdAt: string };
@@ -98,6 +103,8 @@ export interface RazorpayPaymentResponse {
 
 export const api = {
   me: () => portal<Me>('GET', '/me'),
+  /** Public: the plans the server sells, ordered by rank (no session needed). */
+  plans: () => portal<{ plans: Record<string, Plan>; currency: string }>('GET', '/plans'),
   signup: (body: { name: string; email: string; password: string }) => portal<AccountView & { firstKey: NewKey }>('POST', '/signup', body),
   login: (body: { email: string; password: string }) => portal<AccountView>('POST', '/login', body),
   logout: () => portal<{ ok: true }>('POST', '/logout'),
@@ -116,6 +123,22 @@ export const api = {
 export const fmtPrice = (amount: number, currency = 'INR') =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: amount % 1 ? 2 : 0 }).format(amount);
 
-export const fmt = (n: number | null | undefined) => (n == null ? '—' : Number(n).toLocaleString());
+/** Token and call counts, grouped the same way on every page ("1,000,000"); prices use fmtPrice. */
+export const fmt = (n: number | null | undefined) => (n == null ? '—' : Number(n).toLocaleString('en-US'));
 export const fmtDate = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+/** Usage and billing period boundaries are UTC on the server, so show them in UTC ("1 Dec 2026" everywhere). */
+export const fmtPeriodDate = (iso: string | null | undefined) =>
+  iso ? new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : '—';
+
+/** A server message as a sentence: "too many requests" -> "Too many requests." */
+export function sentence(message: string | null | undefined, fallback = 'Something went wrong.'): string {
+  const text = String(message ?? '').trim();
+  if (!text) return fallback;
+  const capital = text.charAt(0).toUpperCase() + text.slice(1);
+  return /[.!?…]$/.test(capital) ? capital : `${capital}.`;
+}
+
+/** The message to show for any thrown value, as a sentence. */
+export const errorText = (err: unknown, fallback = 'Something went wrong.') =>
+  sentence(err instanceof Error ? err.message : null, fallback);

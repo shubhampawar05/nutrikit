@@ -45,3 +45,23 @@ describe('portal client', () => {
     await expect(portal('GET', '/me')).rejects.toMatchObject({ status: 502, code: 'error', message: 'Something went wrong' });
   });
 });
+
+describe('formatting helpers', () => {
+  it('turns server messages into sentences', async () => {
+    const { sentence, errorText } = await import('./client.ts');
+    expect(sentence('your Free plan allows 2 active keys; revoke one first')).toBe('Your Free plan allows 2 active keys; revoke one first.');
+    expect(sentence('Already done.')).toBe('Already done.');
+    expect(sentence('')).toBe('Something went wrong.');
+    expect(errorText(new Error('rate limit exceeded'))).toBe('Rate limit exceeded.');
+    expect(errorText('nope')).toBe('Something went wrong.');
+  });
+
+  it('formats counts the same way everywhere and period dates in UTC', async () => {
+    const { fmt, fmtPeriodDate } = await import('./client.ts');
+    expect(fmt(1000000)).toBe('1,000,000');
+    expect(fmt(null)).toBe('—');
+    // Midnight UTC on 1 Dec is still 30 Nov in UTC-5; a period date must read as 1 Dec anyway.
+    expect(fmtPeriodDate('2026-12-01T00:00:00.000Z')).toMatch(/Dec\D*1\D|1 Dec/);
+    expect(fmtPeriodDate('2026-12-01T00:00:00.000Z')).not.toMatch(/30/);
+  });
+});

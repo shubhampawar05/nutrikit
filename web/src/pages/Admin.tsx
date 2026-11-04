@@ -1,9 +1,10 @@
 // Operator console: sign in with the admin token, then see accounts, payments and keys, revoke keys, change plans
 // and review upgrade requests. Not linked from the site navigation; open /admin directly.
-import { useState, type FormEvent, type ReactNode } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError, fmt, fmtDate, fmtPrice } from '../api/client.ts';
-import { adminApi, adminToken, type AdminAccount, type AdminKey } from '../api/admin.ts';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ApiError, fmt, fmtDate, fmtPrice, sentence } from '../api/client.ts';
+import { ADMIN_UNAUTHORIZED, adminApi, adminToken, type AdminAccount, type AdminKey } from '../api/admin.ts';
+import { TabList, tabIds } from '../components/Tabs.tsx';
 import { useToast } from '../components/Toast.tsx';
 import '../styles/admin.css';
 
@@ -12,14 +13,25 @@ const planName = (id: string) => PLAN_OPTIONS.find(([v]) => v === id)?.[1] ?? id
 const TABS = ['Overview', 'Payments', 'Accounts', 'Keys', 'Requests'] as const;
 type Tab = (typeof TABS)[number];
 
-const message = (err: unknown) => {
-  const text = err instanceof ApiError ? err.message : 'Could not reach the server';
-  return text.charAt(0).toUpperCase() + text.slice(1) + (/[.!?]$/.test(text) ? '' : '.');
-};
+const TABS_PREFIX = 'admin';
+const SEARCH_DELAY_MS = 300;
+const TOKEN_REFUSED = 'That admin token is no longer accepted.';
 
-function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
+const message = (err: unknown) => (err instanceof ApiError ? sentence(err.message) : 'Could not reach the server.');
+
+/** The value, updated only once it has stopped changing for `delay` ms. */
+function useDebouncedValue<T>(value: T, delay = SEARCH_DELAY_MS): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
+function SignIn({ onSignedIn, notice = '' }: { onSignedIn: () => void; notice?: string }) {
   const [token, setToken] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(notice);
   const [busy, setBusy] = useState(false);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -82,24 +94,38 @@ function OverviewTab() {
   );
 }
 
-function Search({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
-  return <input className="input" type="search" placeholder={placeholder} aria-label={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />;
+function Search({ value, onChange, placeholder, busy }: { value: string; onChange: (v: string) => void; placeholder: string; busy: boolean }) {
+  return (
+    <div className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
+      <span className="muted small" role="status">{busy ? 'Searching…' : ''}</span>
+      <input className="input" type="search" placeholder={placeholder} aria-label={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+/** A search box's text, the debounced query sent to the server, and whether results are still catching up. */
+function useSearch() {
+  const [text, setText] = useState('');
+  const q = useDebouncedValue(text.trim());
+  return { text, setText, q, pending: q !== text.trim() };
 }
 
 function PaymentsTab() {
-  const [q, setQ] = useState('');
-  const list = useQuery({ queryKey: ['admin', 'payments', q], queryFn: () => adminApi.payments(q) });
+  const { text, setText, q, pending } = useSearch();
+  const list = useQuery({ queryKey: ['admin', 'payments', q], queryFn: () => adminApi.payments(q), placeholderData: keepPreviousData });
   return (
     <section className="card">
       <div className="admin-toolbar">
         <h2 style={{ margin: 0 }}>Payments</h2>
-        <Search value={q} onChange={setQ} placeholder="Search by email or name" />
+        <Search value={text} onChange={setText} busy={pending || list.isFetching} placeholder="Search by email or name" />
       </div>
       {list.error ? <p className="form-error">{message(list.error)}</p> : null}
       <div className="table-scroll">
-        <table className="data">
+        <table className="data" aria-busy={list.isFetching}>
+          <thead>
+            <tr><th scope="col">Paid</th><th scope="col">Account</th><th scope="col">Plan</th><th scope="col">Amount</th><th scope="col">Paid until</th><th scope="col">Razorpay</th></tr>
+          </thead>
           <tbody>
-            <tr><th>Paid</th><th>Account</th><th>Plan</th><th>Amount</th><th>Paid until</th><th>Razorpay</th></tr>
             {list.data?.payments.map((p) => (
               <tr key={p.paymentId}>
                 <td>{fmtDate(p.paidAt)}</td>
@@ -145,19 +171,21 @@ function PlanChanger({ account }: { account: AdminAccount }) {
 }
 
 function AccountsTab() {
-  const [q, setQ] = useState('');
-  const list = useQuery({ queryKey: ['admin', 'accounts', q], queryFn: () => adminApi.accounts(q) });
+  const { text, setText, q, pending } = useSearch();
+  const list = useQuery({ queryKey: ['admin', 'accounts', q], queryFn: () => adminApi.accounts(q), placeholderData: keepPreviousData });
   return (
     <section className="card">
       <div className="admin-toolbar">
         <h2 style={{ margin: 0 }}>Accounts</h2>
-        <Search value={q} onChange={setQ} placeholder="Search by email or name" />
+        <Search value={text} onChange={setText} busy={pending || list.isFetching} placeholder="Search by email or name" />
       </div>
       {list.error ? <p className="form-error">{message(list.error)}</p> : null}
       <div className="table-scroll">
-        <table className="data">
+        <table className="data" aria-busy={list.isFetching}>
+          <thead>
+            <tr><th scope="col">Account</th><th scope="col">Plan</th><th scope="col">Paid until</th><th scope="col">Keys</th><th scope="col">Tokens this month</th><th scope="col">Total paid</th><th scope="col">Joined</th><th scope="col">Change plan</th></tr>
+          </thead>
           <tbody>
-            <tr><th>Account</th><th>Plan</th><th>Paid until</th><th>Keys</th><th>Tokens this month</th><th>Total paid</th><th>Joined</th><th>Change plan</th></tr>
             {list.data?.accounts.map((a) => (
               <tr key={a.id}>
                 <td>{a.email}<span className="muted small admin-sub">{a.name} · {a.id}</span></td>
@@ -179,10 +207,10 @@ function AccountsTab() {
 }
 
 function KeysTab() {
-  const [q, setQ] = useState('');
+  const { text, setText, q, pending } = useSearch();
   const queryClient = useQueryClient();
   const toast = useToast();
-  const list = useQuery({ queryKey: ['admin', 'keys', q], queryFn: () => adminApi.keys(q) });
+  const list = useQuery({ queryKey: ['admin', 'keys', q], queryFn: () => adminApi.keys(q), placeholderData: keepPreviousData });
   const revoke = useMutation({
     mutationFn: (key: AdminKey) => adminApi.revokeKey(key.id),
     onSuccess: (_r, key) => {
@@ -199,13 +227,15 @@ function KeysTab() {
     <section className="card">
       <div className="admin-toolbar">
         <h2 style={{ margin: 0 }}>API keys</h2>
-        <Search value={q} onChange={setQ} placeholder="Search by email, name or key name" />
+        <Search value={text} onChange={setText} busy={pending || list.isFetching} placeholder="Search by email, name or key name" />
       </div>
       {list.error ? <p className="form-error">{message(list.error)}</p> : null}
       <div className="table-scroll">
-        <table className="data">
+        <table className="data" aria-busy={list.isFetching}>
+          <thead>
+            <tr><th scope="col">Key</th><th scope="col">Owner</th><th scope="col">Created</th><th scope="col">Last used</th><th scope="col">Tokens this month</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
+          </thead>
           <tbody>
-            <tr><th>Key</th><th>Owner</th><th>Created</th><th>Last used</th><th>Tokens this month</th><th></th></tr>
             {list.data?.keys.map((k) => (
               <tr key={k.id}>
                 <td>{k.name}<span className="muted small admin-sub">{k.id}</span></td>
@@ -216,7 +246,7 @@ function KeysTab() {
                 <td>
                   {k.revokedAt
                     ? <span className="badge">revoked {fmtDate(k.revokedAt)}</span>
-                    : <button className="btn btn-danger btn-sm" type="button" disabled={revoke.isPending} onClick={() => onRevoke(k)}>Revoke</button>}
+                    : <button className="btn btn-danger btn-sm" type="button" disabled={revoke.isPending} aria-label={`Revoke ${k.name}`} onClick={() => onRevoke(k)}>Revoke</button>}
                 </td>
               </tr>
             ))}
@@ -236,9 +266,11 @@ function RequestsTab() {
       <p className="muted small" style={{ marginTop: 0 }}>Enterprise, or any plan while online payment is off. Change the plan from the Accounts tab.</p>
       {list.error ? <p className="form-error">{message(list.error)}</p> : null}
       <div className="table-scroll">
-        <table className="data">
+        <table className="data" aria-busy={list.isFetching}>
+          <thead>
+            <tr><th scope="col">Received</th><th scope="col">Account</th><th scope="col">Current plan</th><th scope="col">Wants</th><th scope="col">Message</th></tr>
+          </thead>
           <tbody>
-            <tr><th>Received</th><th>Account</th><th>Current plan</th><th>Wants</th><th>Message</th></tr>
             {list.data?.requests.map((r) => (
               <tr key={r.id}>
                 <td>{fmtDate(r.createdAt)}</td>
@@ -260,14 +292,25 @@ export function Admin() {
   const queryClient = useQueryClient();
   const [signedIn, setSignedIn] = useState(() => adminToken.get() !== null);
   const [tab, setTab] = useState<Tab>('Overview');
+  const [notice, setNotice] = useState('');
 
-  const signOut = () => {
+  const signOut = (why = '') => {
     adminToken.clear();
     queryClient.removeQueries({ queryKey: ['admin'] });
+    setNotice(why);
     setSignedIn(false);
   };
 
-  if (!signedIn) return <SignIn onSignedIn={() => setSignedIn(true)} />;
+  // The stored token was refused by any admin call (rotated on the server, say): back to sign-in.
+  useEffect(() => {
+    const onRefused = () => signOut(TOKEN_REFUSED);
+    window.addEventListener(ADMIN_UNAUTHORIZED, onRefused);
+    return () => window.removeEventListener(ADMIN_UNAUTHORIZED, onRefused);
+  });
+
+  if (!signedIn) return <SignIn notice={notice} onSignedIn={() => { setNotice(''); setTab('Overview'); setSignedIn(true); }} />;
+
+  const ids = tabIds(TABS_PREFIX, tab);
 
   return (
     <main className="wrap dash">
@@ -276,18 +319,24 @@ export function Admin() {
           <span className="kicker">Admin</span>
           <h1>Operator console</h1>
         </div>
-        <button className="btn btn-ghost btn-sm" type="button" onClick={signOut}>Sign out</button>
+        <button className="btn btn-ghost btn-sm" type="button" onClick={() => signOut()}>Sign out</button>
       </div>
-      <div className="pg-tabs" role="tablist" aria-label="Admin sections">
-        {TABS.map((t) => (
-          <button key={t} className="pg-tab" type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>{t}</button>
-        ))}
+      <TabList
+        tabs={TABS.map((t) => ({ id: t, label: t }))}
+        current={tab}
+        onChange={(id) => setTab(id as Tab)}
+        label="Admin sections"
+        prefix={TABS_PREFIX}
+        className="pg-tabs"
+        tabClassName="pg-tab"
+      />
+      <div id={ids.panel} role="tabpanel" aria-labelledby={ids.tab} tabIndex={0}>
+        {tab === 'Overview' && <OverviewTab />}
+        {tab === 'Payments' && <PaymentsTab />}
+        {tab === 'Accounts' && <AccountsTab />}
+        {tab === 'Keys' && <KeysTab />}
+        {tab === 'Requests' && <RequestsTab />}
       </div>
-      {tab === 'Overview' && <OverviewTab />}
-      {tab === 'Payments' && <PaymentsTab />}
-      {tab === 'Accounts' && <AccountsTab />}
-      {tab === 'Keys' && <KeysTab />}
-      {tab === 'Requests' && <RequestsTab />}
     </main>
   );
 }

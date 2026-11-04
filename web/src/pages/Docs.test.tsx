@@ -37,4 +37,35 @@ describe('Docs', () => {
     expect(screen.getByRole('navigation', { name: 'Documentation' }).className).toBe('docs-nav');
     expect(await screen.findByText('Could not load the nutrient list.')).toBeTruthy();
   });
+
+  it('describes charging, errors and the changelog as the API behaves', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
+    renderPage(<Docs />, { path: '/docs' });
+    const section = (id: string) => document.getElementById(id)!.textContent ?? '';
+
+    expect(section('tokens')).toContain('Failed calls are free, except AI usage the server\'s AI provider had already consumed');
+    expect(section('tokens')).toContain('Every metered response carries');
+    expect(section('labels')).toContain('reserves the photo cost (20 tokens)');
+    expect(section('labels')).toContain('settles to 5 tokens');
+
+    const timeout = screen.getByText('ai_timeout').closest('tr')!;
+    expect(timeout.textContent).toMatch(/^504ai_timeout/);
+    expect(timeout.textContent).toContain('Retry');
+
+    const v13 = screen.getByText('v1.3').closest('li')!.textContent ?? '';
+    for (const text of ['X-Request-Id', '/v1/health/ready', 'atomically', 'AI usage already consumed', '504 ai_timeout', 'add-on portions', 'chai', 'fries', 'near-duplicate search results']) {
+      expect(v13).toContain(text);
+    }
+    expect(document.body.textContent).not.toMatch(/Claude|Anthropic/);
+  });
+
+  it('makes the h1 the first heading (nav group titles are not headings)', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
+    renderPage(<Docs />, { path: '/docs' });
+    const first = document.querySelector('h1, h2, h3, h4, h5, h6');
+    expect(first?.tagName).toBe('H1');
+    const nav = screen.getByRole('navigation', { name: 'Documentation' });
+    expect(nav.querySelector('h1, h2, h3, h4, h5, h6')).toBeNull();
+    expect([...nav.querySelectorAll('p')].map((p) => p.textContent)).toEqual(['Getting started', 'Guides', 'SDK', 'Platform', 'Reference']);
+  });
 });

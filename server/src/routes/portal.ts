@@ -41,7 +41,7 @@ export async function portalRoutes(app: FastifyInstance) {
     const used = await auth.accountUsedThisMonth(sql, account.id);
     return {
       account: { id: account.id, name: account.name, email: account.email, createdAt: account.createdAt },
-      plan: { id: account.plan, ...plan, expiresAt: account.planExpiresAt },
+      plan: { id: account.plan, ...(accounts.publicPlans()[account.plan] ?? { ...plan, rank: 0 }), expiresAt: account.planExpiresAt },
       usage: { periodStart: auth.monthStart(), used, remaining: plan.monthlyTokens == null ? null : Math.max(plan.monthlyTokens - used, 0) },
     };
   }
@@ -60,7 +60,7 @@ export async function portalRoutes(app: FastifyInstance) {
   app.addHook('onRequest', async (req) => {
     if (req.method !== 'GET' && req.method !== 'HEAD' && req.headers['x-nutrikit-portal'] !== '1') throw new HttpError(403, 'csrf', 'missing X-Nutrikit-Portal header');
   });
-  app.addHook('onSend', async (_req, reply) => { reply.header('Cache-Control', 'no-store'); });
+  app.addHook('onSend', async (_req, reply) => { if (!reply.hasHeader('Cache-Control')) reply.header('Cache-Control', 'no-store'); });
 
   // Routes that need a signed-in developer.
   const signedIn = {
@@ -72,6 +72,12 @@ export async function portalRoutes(app: FastifyInstance) {
     schema: { hide: true },
   };
   const open = { schema: { hide: true } };
+
+  // Public: the pricing page reads the plans the server actually sells.
+  app.get('/portal/api/plans', open, async (_req, reply) => {
+    reply.header('Cache-Control', 'public, max-age=300');
+    return { plans: accounts.publicPlans(), currency: accounts.CURRENCY };
+  });
 
   app.post('/portal/api/demo', open, async (req) => {
     await demoLimit(req);
@@ -102,7 +108,7 @@ export async function portalRoutes(app: FastifyInstance) {
     return { ok: true };
   });
 
-  app.get('/portal/api/me', signedIn, async (req) => ({ ...(await accountView(req.account)), plans: accounts.PLANS, billing: billing.billingInfo() }));
+  app.get('/portal/api/me', signedIn, async (req) => ({ ...(await accountView(req.account)), plans: accounts.publicPlans(), billing: billing.billingInfo() }));
 
   app.get('/portal/api/keys', signedIn, async (req) => ({ keys: (await auth.listKeys(sql, req.account.id) as KeyRow[]).map(publicKey) }));
 

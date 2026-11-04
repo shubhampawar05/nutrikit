@@ -6,6 +6,21 @@ import { fmtN, type Result } from './endpoints.ts';
 
 type Amounts = Partial<Record<string, { amount: number; unit: string }>>;
 
+const UNCOUNTED = new Set(['g', 'kg', 'mg', 'mcg', 'oz', 'lb', 'ml', 'l', 'fl oz', 'tbsp', 'tsp', 'small', 'medium', 'large', 'whole']);
+
+/** "egg" -> "eggs" for any quantity but 1. Measures and size words ("g", "medium") stay as they are. */
+export function pluralise(unit: string, quantity: number): string {
+  if (quantity === 1 || !unit || UNCOUNTED.has(unit.toLowerCase())) return unit;
+  if (/(ss|x|ch|sh)$/i.test(unit)) return `${unit}es`;
+  if (/s$/i.test(unit)) return unit; // already plural
+  if (/[^aeiou]y$/i.test(unit)) return `${unit.slice(0, -1)}ies`;
+  return `${unit}s`;
+}
+
+/** What the user said, then the weight: "2 eggs · 100 g". */
+export const amountText = (quantity: number, unit: string, grams: number) =>
+  unit === 'g' ? `${fmtN(grams, 1)} g` : `${fmtN(quantity, 2)} ${pluralise(unit, quantity)} · ${fmtN(grams, 1)} g`;
+
 const MACROS: [NutrientKey, string][] = [['calories', 'kcal'], ['protein', 'protein'], ['carbs', 'carbs'], ['fat', 'fat'], ['fiber', 'fiber']];
 
 function MacroRow({ n }: { n: Amounts | null | undefined }) {
@@ -30,7 +45,7 @@ function LogPreview({ r }: { r: Extract<Result, { preview: 'log' }>['data'] }) {
           <div>
             <span className="said">“{i.input}”</span><b>{i.food.name}</b>
             <span className="muted small">
-              {i.portionBasis || `${i.quantity} ${i.unit}`} · {i.grams} g · <span className={`conf ${i.confidence}`}>{i.confidence} match</span>
+              {amountText(i.quantity, i.unit, i.grams)}{i.portionBasis ? ` · from ${i.portionBasis}` : ''} · <span className={`conf ${i.confidence}`}>{i.confidence} match</span>
               {i.recognition ? ` · seen as “${i.recognition.label}”` : ''}
             </span>
             {i.alternatives?.length ? <span className="alts">Also: {i.alternatives.map((a) => a.name).join(' · ')}</span> : null}
@@ -106,6 +121,9 @@ function BarcodePreview({ p }: { p: Extract<Result, { preview: 'barcode' }>['dat
   );
 }
 
+/** A per-100 g label value with the same unit as its per-serving value ("8 g", "160 mg"). */
+const per100Text = (amount: number | undefined, unit: string) => (amount == null ? '—' : `${fmtN(amount, 2)} ${unit}`);
+
 function LabelPreview({ r }: { r: Extract<Result, { preview: 'label' }>['data'] }) {
   return (
     <>
@@ -115,7 +133,7 @@ function LabelPreview({ r }: { r: Extract<Result, { preview: 'label' }>['data'] 
           <tbody>
             <tr><th>Nutrient</th><th>Per serving</th><th>Per 100 g</th></tr>
             {Object.entries(r.perServing).map(([k, v]) => v && (
-              <tr key={k}><td>{k}</td><td>{fmtN(v.amount, 2)} {v.unit}</td><td>{r.per100g?.[k as NutrientKey] ?? '—'}</td></tr>
+              <tr key={k}><td>{k}</td><td>{fmtN(v.amount, 2)} {v.unit}</td><td>{per100Text(r.per100g?.[k as NutrientKey], v.unit)}</td></tr>
             ))}
           </tbody>
         </table>

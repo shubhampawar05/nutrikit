@@ -298,3 +298,20 @@ test('playground token: signed-in users get a working 1-hour token for their new
   assert.equal(none.status, 409);
   assert.equal(none.body.error.code, 'no_active_key');
 });
+
+test('the plans are public, cacheable, and only the display fields', async () => {
+  const res = await fetch(`${base}/portal/api/plans`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('cache-control'), /public, max-age=300/);
+  const { plans, currency } = await res.json();
+  assert.equal(currency, 'INR');
+  assert.deepEqual(Object.keys(plans), ['free', 'starter', 'growth', 'enterprise'], 'ordered by rank');
+  assert.deepEqual(Object.values(plans).map((p) => p.rank), [0, 1, 2, 3]);
+  for (const p of Object.values(plans)) {
+    assert.deepEqual(Object.keys(p).sort(), ['currency', 'maxKeys', 'monthlyTokens', 'name', 'price', 'rank', 'ratePerMinute']);
+  }
+  assert.equal(plans.starter.price, 1499);
+  assert.equal(plans.enterprise.price, null);
+  // Other portal responses stay uncacheable.
+  assert.equal((await fetch(`${base}/portal/api/me`)).headers.get('cache-control'), 'no-store');
+});

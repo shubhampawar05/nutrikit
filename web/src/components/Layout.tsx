@@ -1,5 +1,5 @@
 // Shared chrome for every page: header (with a dashboard shortcut once signed in) and footer.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, ScrollRestoration, useLocation, type Location } from 'react-router';
 import { Icon, Logo } from './Icon.tsx';
 import { useMe } from '../hooks.ts';
@@ -17,9 +17,21 @@ function Header() {
   const here = pathname.replace(/\/+$/, '') || '/';
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const me = useMe();
 
   useEffect(() => setOpen(false), [pathname]);
+  // Escape closes the mobile menu and returns focus to its button.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setOpen(false);
+      menuButton.current?.focus();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -31,7 +43,7 @@ function Header() {
     <header className={`site-header${open ? ' open' : ''}${scrolled ? ' scrolled' : ''}`}>
       <div className="wrap">
         <Link className="logo" to="/"><Logo />nutrikit</Link>
-        <nav className="nav" aria-label="Main">
+        <nav className="nav" id="site-nav" aria-label="Main">
           {NAV.map(([href, label]) => (
             <Link key={href} to={href} aria-current={here === href ? 'page' : undefined}>{label}</Link>
           ))}
@@ -46,7 +58,7 @@ function Header() {
             </>
           )}
         </div>
-        <button className="menu-btn" type="button" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>
+        <button ref={menuButton} className="menu-btn" type="button" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="site-nav" onClick={() => setOpen(!open)}>
           <Icon name="menu" />
         </button>
       </div>
@@ -116,8 +128,11 @@ export function Layout() {
   usePageMeta();
   return (
     <>
+      <a className="skip-link" href="#content">Skip to content</a>
       <Header />
-      <Outlet />
+      <div id="content" tabIndex={-1}>
+        <Outlet />
+      </div>
       <Footer />
       <ScrollRestoration getKey={scrollKey} />
       <HashScroll />

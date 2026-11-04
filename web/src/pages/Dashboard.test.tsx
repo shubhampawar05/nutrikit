@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { Route, Routes, useLocation } from 'react-router';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderPage } from '../test-utils.tsx';
+import { ToastProvider } from '../components/Toast.tsx';
 import { Dashboard } from './Dashboard.tsx';
 import type { KeySummary, Me } from '../api/client.ts';
 
@@ -10,11 +12,13 @@ const json = (status: number, body: unknown) =>
 
 const me: Me = {
   account: { id: 'acc_1', name: 'Ada Labs', email: 'ada@example.com', createdAt: '2026-10-01T00:00:00Z' },
-  plan: { id: 'free', name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, expiresAt: null },
+  plan: { id: 'free', name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, rank: 0, expiresAt: null },
   usage: { periodStart: '2026-10-01T00:00:00Z', used: 1700, remaining: 300 },
   plans: {
-    free: { name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2 },
-    starter: { name: 'Starter', monthlyTokens: 100000, ratePerMinute: 120, price: 1499, currency: 'INR', maxKeys: 5 },
+    free: { name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, rank: 0 },
+    starter: { name: 'Starter', monthlyTokens: 100000, ratePerMinute: 120, price: 1499, currency: 'INR', maxKeys: 5, rank: 1 },
+    growth: { name: 'Growth', monthlyTokens: 1000000, ratePerMinute: 600, price: 4999, currency: 'INR', maxKeys: 10, rank: 2 },
+    enterprise: { name: 'Enterprise', monthlyTokens: null, ratePerMinute: 3000, price: null, currency: 'INR', maxKeys: 50, rank: 3 },
   },
   billing: { enabled: false, mode: null, currency: 'INR', keyId: null },
 };
@@ -42,16 +46,24 @@ function app(path = '/dashboard') {
   );
 }
 
-/** A small in-memory portal: /me, /keys (list, create, revoke), /usage. */
-function stubPortal({ signedIn = true, maxKeys = 2, account = me }: { signedIn?: boolean; maxKeys?: number; account?: Me } = {}) {
-  let keys: KeySummary[] = [
-    { id: 'key_a', name: 'Default', createdAt: '2026-10-01T00:00:00Z', lastUsedAt: null, revokedAt: null, usedThisMonth: 40 },
-  ];
+const defaultKey: KeySummary = { id: 'key_a', name: 'Default', createdAt: '2026-10-01T00:00:00Z', lastUsedAt: null, revokedAt: null, usedThisMonth: 40 };
+
+type Override = (path: string, method: string) => Response | Promise<Response> | undefined;
+
+/** A small in-memory portal: /me, /keys (list, create, revoke), /usage. `override` answers a request first when it returns a response. */
+function stubPortal({ signedIn = true, maxKeys = 2, account = me, initialKeys = [defaultKey], override }: {
+  signedIn?: boolean; maxKeys?: number; account?: Me; initialKeys?: KeySummary[]; override?: Override;
+} = {}) {
+  let keys: KeySummary[] = initialKeys;
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const path = String(input).replace('/portal/api', '');
     const method = init?.method ?? 'GET';
+    const answer = override?.(path, method);
+    if (answer) return answer;
     if (!signedIn) return json(401, { error: { code: 'unauthorized', message: 'not signed in' } });
     if (path === '/me') return json(200, account);
+    if (path === '/logout' && method === 'POST') return json(200, { ok: true });
+    if (path === '/upgrade' && method === 'POST') return json(200, { requested: 'enterprise' });
     if (path === '/billing/order' && method === 'POST') {
       return json(201, { orderId: 'order_test_1', keyId: 'rzp_test_key', plan: 'starter', amount: 149900, currency: 'INR' });
     }
@@ -77,8 +89,27 @@ function stubPortal({ signedIn = true, maxKeys = 2, account = me }: { signedIn?:
   return fetchMock;
 }
 
+const calls = (fetchMock: ReturnType<typeof stubPortal>, path: string, method = 'GET') =>
+  fetchMock.mock.calls.filter(([u, i]) => String(u) === `/portal/api${path}` && (i?.method ?? 'GET') === method).length;
+
+const razorpayPays = () => vi.stubGlobal('Razorpay', class {
+  constructor(private options: Record<string, unknown> & { handler: (r: unknown) => void }) {}
+  on() {}
+  open() { this.options.handler({ razorpay_payment_id: 'pay_1', razorpay_order_id: 'order_test_1', razorpay_signature: 'sig' }); }
+});
+
+const billed: Me = { ...me, billing: { enabled: true, mode: 'test', currency: 'INR', keyId: 'rzp_test_key' } };
+
+function stubClipboard(writeText: (text: string) => Promise<void>) {
+  Object.defineProperty(navigator, 'clipboard', { value: { writeText: vi.fn(writeText) }, configurable: true });
+}
+
 beforeEach(() => sessionStorage.clear());
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+  Reflect.deleteProperty(navigator, 'clipboard');
+});
 
 describe('Dashboard', () => {
   it('redirects to login when signed out', async () => {
@@ -102,44 +133,158 @@ describe('Dashboard', () => {
     expect(screen.getByRole('option', { name: 'Starter — 100k tokens' })).toBeTruthy();
   });
 
-  it('reveals the signup key once, then forgets it', async () => {
+  // ---------------------------------------------------------------- 5.1 new-key safety
+
+  it('keeps the signup key on screen across a refresh until it is dismissed', async () => {
     sessionStorage.setItem('nutrikit-new-key', JSON.stringify({ id: 'key_a', name: 'Default', key: 'nk_live_first' }));
     stubPortal();
-    app();
-    expect(await screen.findByText('Welcome! Here is your first API key')).toBeTruthy();
-    expect(screen.getByText('nk_live_first')).toBeTruthy();
-    expect(sessionStorage.getItem('nutrikit-new-key')).toBeNull();
+    const first = app();
+    expect(await screen.findByRole('heading', { name: 'Welcome! Here is your first API key' })).toBeTruthy();
+    expect(screen.getByDisplayValue('nk_live_first')).toBeTruthy();
+    first.unmount();
+
+    app(); // a refresh in the same tab
+    expect(await screen.findByDisplayValue('nk_live_first')).toBeTruthy();
+    expect(sessionStorage.getItem('nutrikit-new-key')).not.toBeNull();
+    vi.stubGlobal('confirm', vi.fn(() => true));
     fireEvent.click(screen.getByRole('button', { name: "I've saved it" }));
-    expect(screen.queryByText('nk_live_first')).toBeNull();
+    expect(screen.queryByDisplayValue('nk_live_first')).toBeNull();
+    expect(sessionStorage.getItem('nutrikit-new-key')).toBeNull();
   });
 
-  it('creates a key and reveals it once', async () => {
+  it('asks before dismissing a key that was never copied, and keeps it on cancel', async () => {
+    sessionStorage.setItem('nutrikit-new-key', JSON.stringify({ key: 'nk_live_first' }));
+    stubPortal();
+    const confirm = vi.fn(() => false);
+    vi.stubGlobal('confirm', confirm);
+    app();
+    fireEvent.click(await screen.findByRole('button', { name: "I've saved it" }));
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(screen.getByDisplayValue('nk_live_first')).toBeTruthy();
+    expect(sessionStorage.getItem('nutrikit-new-key')).not.toBeNull();
+  });
+
+  it('dismisses a copied key without asking', async () => {
+    sessionStorage.setItem('nutrikit-new-key', JSON.stringify({ key: 'nk_live_first' }));
+    stubPortal();
+    stubClipboard(async () => {});
+    const confirm = vi.fn(() => false);
+    vi.stubGlobal('confirm', confirm);
+    app();
+    fireEvent.click(await screen.findByRole('button', { name: 'Copy key' }));
+    await screen.findByRole('button', { name: 'Copied ✓' });
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('nk_live_first');
+    fireEvent.click(screen.getByRole('button', { name: "I've saved it" }));
+    expect(confirm).not.toHaveBeenCalled();
+    expect(screen.queryByDisplayValue('nk_live_first')).toBeNull();
+  });
+
+  it('selects the key and says to copy it manually when the clipboard is blocked', async () => {
+    sessionStorage.setItem('nutrikit-new-key', JSON.stringify({ key: 'nk_live_first' }));
+    stubPortal();
+    stubClipboard(async () => { throw new Error('denied'); });
+    app();
+    fireEvent.click(await screen.findByRole('button', { name: 'Copy key' }));
+    expect(await screen.findByText(/copy it manually/)).toBeTruthy();
+    const input = screen.getByDisplayValue('nk_live_first') as HTMLInputElement;
+    expect(document.activeElement).toBe(input);
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, 'nk_live_first'.length]);
+  });
+
+  it('creates a key, moves focus to the reveal, announces it without reading the key, and uses it in the snippet', async () => {
     const fetchMock = stubPortal();
     app();
     await screen.findByText('Default');
+    expect(screen.getByText(/export NUTRIKIT_KEY=nk_your_key/)).toBeTruthy();
     fireEvent.change(screen.getByLabelText('New key name'), { target: { value: 'iOS app' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create key' }));
 
-    expect(await screen.findByText('New key “iOS app” created')).toBeTruthy();
-    expect(screen.getByText('nk_live_brand_new_secret')).toBeTruthy();
+    const heading = await screen.findByRole('heading', { name: 'New key “iOS app” created' });
+    await waitFor(() => expect(document.activeElement).toBe(heading));
+    expect(heading.closest('[role="status"]')).toBeNull();
+    expect(screen.getByDisplayValue('nk_live_brand_new_secret').closest('[role="status"]')).toBeNull();
+    expect(await screen.findByText('New key created')).toBeTruthy();
+    expect(within(screen.getByText('New key created').closest('[role="status"]') as HTMLElement).queryByText(/nk_live/)).toBeNull();
+    expect(sessionStorage.getItem('nutrikit-new-key')).toContain('nk_live_brand_new_secret');
+    expect(screen.getByText(/export NUTRIKIT_KEY=nk_live_brand_new_secret/)).toBeTruthy();
+
     expect(await screen.findByText('iOS app')).toBeTruthy();
     expect((screen.getByLabelText('New key name') as HTMLInputElement).value).toBe('');
     const post = fetchMock.mock.calls.find(([u, i]) => String(u).endsWith('/portal/api/keys') && i?.method === 'POST');
     expect(JSON.parse(String(post?.[1]?.body))).toEqual({ name: 'iOS app' });
-    // The secret appears only in the reveal box, never in the keys table.
+    // The secret appears only in the reveal box (and the snippet), never in the keys table.
     expect(within(screen.getByText('iOS app').closest('table') as HTMLElement).queryByText(/nk_live/)).toBeNull();
 
+    vi.stubGlobal('confirm', vi.fn(() => true));
     fireEvent.click(screen.getByRole('button', { name: "I've saved it" }));
-    expect(screen.queryByText('nk_live_brand_new_secret')).toBeNull();
+    expect(screen.queryByDisplayValue('nk_live_brand_new_secret')).toBeNull();
+    expect(screen.getByText(/export NUTRIKIT_KEY=nk_your_key/)).toBeTruthy();
   });
 
-  it('reports the plan key limit from the server', async () => {
+  // ---------------------------------------------------------------- 5.2 loading, error and empty states
+
+  it('shows a loading indicator while the account loads', async () => {
+    stubPortal({ override: (path) => (path === '/me' ? new Promise<Response>(() => {}) : undefined) });
+    app();
+    expect(screen.getByText('Loading your dashboard…')).toBeTruthy();
+  });
+
+  it('shows an account error as a sentence with Retry', async () => {
+    let failed = false;
+    const fetchMock = stubPortal({
+      override: (path) => {
+        if (path !== '/me' || failed) return undefined;
+        failed = true;
+        return json(500, { error: { code: 'internal', message: 'database is busy' } });
+      },
+    });
+    app();
+    expect(await screen.findByText('Database is busy.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hi, Ada Labs' })).toBeTruthy();
+    expect(calls(fetchMock, '/me')).toBe(2);
+  });
+
+  it('shows a keys error with Retry instead of an empty table', async () => {
+    let failed = false;
+    stubPortal({
+      override: (path, method) => {
+        if (path !== '/keys' || method !== 'GET' || failed) return undefined;
+        failed = true;
+        return json(500, { error: { code: 'internal', message: 'could not load keys' } });
+      },
+    });
+    app();
+    expect(await screen.findByText('Could not load keys.')).toBeTruthy();
+    expect(screen.queryByRole('columnheader', { name: 'Last used' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(await screen.findByText('Default')).toBeTruthy();
+  });
+
+  it('says so when there are no keys yet', async () => {
+    stubPortal({ initialKeys: [] });
+    app();
+    expect(await screen.findByText(/No keys yet/)).toBeTruthy();
+    expect(screen.queryByRole('columnheader', { name: 'Last used' })).toBeNull();
+  });
+
+  it('disables Create key at the plan limit and explains why', async () => {
+    stubPortal({ initialKeys: [defaultKey, { ...defaultKey, id: 'key_b', name: 'Second' }] });
+    app();
+    await screen.findByText('Second');
+    expect((screen.getByRole('button', { name: 'Create key' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText('Your Free plan allows 2 active keys. Revoke one or upgrade your plan to create another.')).toBeTruthy();
+  });
+
+  it('reports the plan key limit from the server as a sentence', async () => {
     stubPortal({ maxKeys: 1 });
     app();
     await screen.findByText('Default');
     fireEvent.click(screen.getByRole('button', { name: 'Create key' }));
-    expect(await screen.findByText('your Free plan allows 1 active keys; revoke one first')).toBeTruthy();
+    expect(await screen.findByText('Your Free plan allows 1 active keys; revoke one first.')).toBeTruthy();
   });
+
+  // ---------------------------------------------------------------- 5.3 pending-safe actions, a11y, freshness
 
   it('revokes a key after confirmation with DELETE /portal/api/keys/:id', async () => {
     const fetchMock = stubPortal();
@@ -147,11 +292,25 @@ describe('Dashboard', () => {
     vi.stubGlobal('confirm', confirm);
     app();
     await screen.findByText('Default');
-    fireEvent.click(screen.getByRole('button', { name: 'Revoke' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Revoke Default' }));
     expect(confirm).toHaveBeenCalledWith('Revoke “Default”? Apps using it (and its access tokens) stop working immediately.');
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/portal/api/keys/key_a', expect.objectContaining({ method: 'DELETE' })));
     expect(await screen.findByText('revoked')).toBeTruthy();
     expect(await screen.findByText('Key revoked')).toBeTruthy();
+  });
+
+  it('a double-clicked Revoke sends one request and shows one message', async () => {
+    const fetchMock = stubPortal();
+    vi.stubGlobal('confirm', vi.fn(() => true));
+    app();
+    await screen.findByText('Default');
+    const button = screen.getByRole('button', { name: 'Revoke Default' });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(await screen.findByText('revoked')).toBeTruthy();
+    await screen.findByText('Key revoked');
+    expect(calls(fetchMock, '/keys/key_a', 'DELETE')).toBe(1);
+    expect(screen.getAllByText('Key revoked')).toHaveLength(1);
   });
 
   it('does not revoke when the confirmation is declined', async () => {
@@ -159,12 +318,72 @@ describe('Dashboard', () => {
     vi.stubGlobal('confirm', vi.fn(() => false));
     app();
     await screen.findByText('Default');
-    fireEvent.click(screen.getByRole('button', { name: 'Revoke' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Revoke Default' }));
     expect(fetchMock.mock.calls.some(([, i]) => i?.method === 'DELETE')).toBe(false);
   });
 
+  it('tables have column headers and the usage chart has a text alternative', async () => {
+    stubPortal();
+    app();
+    await screen.findByText('Default');
+    await screen.findByText('/v1/log/text');
+    for (const name of ['Name', 'Created', 'Last used', 'Tokens this month', 'Endpoint', 'Calls']) {
+      const header = screen.getByRole('columnheader', { name });
+      expect(header.getAttribute('scope')).toBe('col');
+      expect(header.closest('thead')).not.toBeNull();
+    }
+    const chart = screen.getByRole('table', { name: 'Tokens used per day, last 30 days' });
+    const rows = within(chart).getAllByRole('row').map((r) => r.textContent);
+    expect(rows).toEqual(['DayTokens', 'Oct 290', 'Oct 3040']);
+  });
+
+  it('refreshes a cached account on open so the headline matches the chart', async () => {
+    stubPortal();
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['me'], { ...me, usage: { ...me.usage, used: 10, remaining: 1990 } });
+    render(
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          <MemoryRouter initialEntries={['/dashboard']}><Dashboard /></MemoryRouter>
+        </ToastProvider>
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText('of 2,000 tokens · 300 left')).toBeTruthy();
+    expect(screen.getByText('1,700')).toBeTruthy();
+  });
+
+  it('logging out clears the playground key saved in the tab', async () => {
+    sessionStorage.setItem('nk-playground-key', 'nk_live_pasted');
+    stubPortal();
+    app();
+    fireEvent.click(await screen.findByRole('button', { name: 'Log out' }));
+    expect((await screen.findByTestId('where')).textContent).toBe('/');
+    expect(sessionStorage.getItem('nk-playground-key')).toBeNull();
+  });
+
+  it('an upgrade request is replaced by "Request sent" for that plan', async () => {
+    const fetchMock = stubPortal();
+    app();
+    fireEvent.change(await screen.findByLabelText('Need more?'), { target: { value: 'enterprise' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Request upgrade' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Request upgrade' }));
+    expect(await screen.findByText('Request sent')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Request upgrade' })).toBeNull();
+    expect(calls(fetchMock, '/upgrade', 'POST')).toBe(1);
+    const sent = fetchMock.mock.calls.find(([u]) => String(u).endsWith('/upgrade'));
+    expect(JSON.parse(String(sent?.[1]?.body))).toMatchObject({ plan: 'enterprise' });
+  });
+
+  it('without online billing a paid plan is an upgrade request', async () => {
+    const fetchMock = stubPortal();
+    app();
+    fireEvent.click(await screen.findByRole('button', { name: 'Request upgrade' }));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([u]) => String(u).endsWith('/upgrade'))).toBe(true));
+  });
+
+  // ---------------------------------------------------------------- 2.3 billing: rank and failed confirmation
+
   it('pays for 30 days of Starter through Razorpay Checkout and activates it after verification', async () => {
-    const billed: Me = { ...me, billing: { enabled: true, mode: 'test', currency: 'INR', keyId: 'rzp_test_key' } };
     const fetchMock = stubPortal({ account: billed });
     const opened: Record<string, unknown>[] = [];
     vi.stubGlobal('Razorpay', class {
@@ -173,16 +392,40 @@ describe('Dashboard', () => {
       open() { this.options.handler({ razorpay_payment_id: 'pay_1', razorpay_order_id: 'order_test_1', razorpay_signature: 'sig' }); }
     });
     app();
-    fireEvent.click(await screen.findByRole('button', { name: 'Pay — ₹1,499' }));
-    expect(await screen.findByText(/You're on the Starter plan until/)).toBeTruthy();
+    const pay = await screen.findByRole('button', { name: 'Pay — ₹1,499' });
+    fireEvent.click(pay);
+    fireEvent.click(pay);
+    expect(await screen.findByText(/You're on the Starter plan until Nov 29, 2026/)).toBeTruthy();
+    expect(calls(fetchMock, '/billing/order', 'POST')).toBe(1);
     expect(opened[0]).toMatchObject({ key: 'rzp_test_key', order_id: 'order_test_1', amount: 149900, currency: 'INR', name: 'Nutrikit', prefill: { name: 'Ada Labs', email: 'ada@example.com' } });
     const verify = fetchMock.mock.calls.find(([u]) => String(u).endsWith('/billing/verify'));
     expect(JSON.parse(String(verify?.[1]?.body))).toEqual({ razorpay_payment_id: 'pay_1', razorpay_order_id: 'order_test_1', razorpay_signature: 'sig' });
     expect(await screen.findByText(/Paid until/)).toBeTruthy();
   });
 
+  it('a failed confirmation shows the payment id and reloads the account after 5 s and 30 s', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const fetchMock = stubPortal({
+      account: billed,
+      override: (path) => (path === '/billing/verify' ? json(502, { error: { code: 'upstream', message: 'razorpay unavailable' } }) : undefined),
+    });
+    razorpayPays();
+    app();
+    fireEvent.click(await screen.findByRole('button', { name: 'Pay — ₹1,499' }));
+    const notice = await screen.findByText(/We couldn't confirm the payment yet\. If you were charged, your plan will switch on within a few minutes\./);
+    expect(within(notice).getByText('pay_1')).toBeTruthy();
+    expect(screen.queryByText('Payment received — activating your plan…')).toBeNull();
+
+    const before = calls(fetchMock, '/me');
+    await vi.advanceTimersByTimeAsync(5_000);
+    await waitFor(() => expect(calls(fetchMock, '/me')).toBe(before + 1));
+    await vi.advanceTimersByTimeAsync(25_000);
+    await waitFor(() => expect(calls(fetchMock, '/me')).toBe(before + 2));
+    expect(screen.getByText(/We couldn't confirm the payment yet/)).toBeTruthy();
+  });
+
   it('closing Razorpay Checkout charges nothing', async () => {
-    const fetchMock = stubPortal({ account: { ...me, billing: { enabled: true, mode: 'test', currency: 'INR', keyId: 'rzp_test_key' } } });
+    const fetchMock = stubPortal({ account: billed });
     vi.stubGlobal('Razorpay', class {
       constructor(private options: { modal: { ondismiss: () => void } }) {}
       on() {}
@@ -195,20 +438,24 @@ describe('Dashboard', () => {
   });
 
   it('a paid period shows its end date and can be extended', async () => {
-    const paid: Me = { ...me, plan: { id: 'starter', ...me.plans.starter!, expiresAt: '2026-11-20T00:00:00Z' }, billing: { enabled: true, mode: 'test', currency: 'INR', keyId: 'rzp_test_key' } };
+    const paid: Me = { ...billed, plan: { id: 'starter', ...me.plans.starter!, expiresAt: '2026-11-20T00:00:00Z' } };
     stubPortal({ account: paid });
     app();
     expect(await screen.findByText('Starter — ₹1,499 / 30 days')).toBeTruthy();
-    expect(screen.getByText(/Paid until/)).toBeTruthy();
+    expect(screen.getByText(/Paid until Nov 20, 2026/)).toBeTruthy();
     const select = screen.getByLabelText('Extend or move up') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'starter' } });
     expect(await screen.findByRole('button', { name: 'Extend 30 days — ₹1,499' })).toBeTruthy();
   });
 
-  it('without online billing a paid plan is an upgrade request', async () => {
-    const fetchMock = stubPortal();
+  it('an operator-set plan with no end date never offers a cheaper plan', async () => {
+    const operatorSet: Me = { ...billed, plan: { id: 'growth', ...me.plans.growth!, expiresAt: null } };
+    stubPortal({ account: operatorSet });
     app();
-    fireEvent.click(await screen.findByRole('button', { name: 'Request upgrade' }));
-    await waitFor(() => expect(fetchMock.mock.calls.some(([u]) => String(u).endsWith('/upgrade'))).toBe(true));
+    const starter = (await screen.findByRole('option', { name: 'Starter — 100k tokens' })) as HTMLOptionElement;
+    expect(starter.disabled).toBe(true);
+    expect((screen.getByRole('option', { name: 'Growth — 1M tokens' }) as HTMLOptionElement).disabled).toBe(false);
+    expect((screen.getByRole('option', { name: 'Enterprise — custom' }) as HTMLOptionElement).disabled).toBe(false);
+    expect((screen.getByLabelText('Need more?') as HTMLSelectElement).value).toBe('enterprise');
   });
 });

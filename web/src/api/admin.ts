@@ -10,12 +10,20 @@ export const adminToken = {
   clear: () => { try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* storage unavailable */ } },
 };
 
-async function admin<T>(method: 'GET' | 'POST' | 'DELETE', path: string, body?: unknown, token = adminToken.get()): Promise<T> {
+/** Fired on window when the stored admin token is refused (401); the console returns to sign-in. */
+export const ADMIN_UNAUTHORIZED = 'nk-admin-unauthorized';
+
+/** Calls /v1/admin. With no explicit token it uses the stored one, and a 401 then clears it and fires ADMIN_UNAUTHORIZED. */
+async function admin<T>(method: 'GET' | 'POST' | 'DELETE', path: string, body?: unknown, token?: string): Promise<T> {
   const res = await fetch(`/v1/admin${path}`, {
     method,
-    headers: { Authorization: `Bearer ${token ?? ''}`, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
+    headers: { Authorization: `Bearer ${token ?? adminToken.get() ?? ''}`, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+  if (res.status === 401 && token === undefined) {
+    adminToken.clear();
+    window.dispatchEvent(new Event(ADMIN_UNAUTHORIZED));
+  }
   if (!res.ok) throw await toApiError(res);
   return (await res.json()) as T;
 }

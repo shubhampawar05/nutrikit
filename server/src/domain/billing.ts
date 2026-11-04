@@ -7,7 +7,7 @@
 // Use test-mode keys (rzp_test_...) while developing; Razorpay's test cards and UPI ids complete payments.
 import crypto from 'node:crypto';
 import type { Sql } from 'postgres';
-import { PLANS, CURRENCY, effectivePlan } from './accounts.ts';
+import { PLANS, CURRENCY, effectivePlan, planRank } from './accounts.ts';
 import type { Account, DomainError } from './accounts.ts';
 
 const API = () => process.env.RAZORPAY_API_BASE || 'https://api.razorpay.com';
@@ -87,8 +87,6 @@ async function razorpay(method: 'GET' | 'POST', path: string, body?: object): Pr
 
 const paise = (rupees: number) => Math.round(rupees * 100);
 
-/** Paid plans in price order; buying a cheaper plan while a dearer period runs would waste paid time. */
-const rank = (plan: string) => PLANS[plan]?.price ?? 0;
 
 export interface NewOrder { orderId: string; keyId: string; plan: string; amount: number; currency: string }
 
@@ -98,8 +96,11 @@ export async function createOrder(account: Account, plan: string): Promise<NewOr
   const details = PLANS[plan];
   if (!details || plan === 'free') throw fail(400, 'invalid_plan', 'choose starter or growth');
   if (details.price == null) throw fail(400, 'contact_sales', `the ${details.name} plan is arranged with us directly; send an upgrade request`);
-  if (account.planExpiresAt && plan !== account.plan && rank(plan) < rank(account.plan)) {
-    throw fail(409, 'plan_active', `your ${account.planDetails.name} plan runs until ${account.planExpiresAt.toISOString().slice(0, 10)}; you can extend it or choose a plan after it ends`);
+  // A payment never moves an account down: not while a paid period runs, and not from a plan an operator set.
+  if (plan !== account.plan && planRank(plan) < planRank(account.plan)) {
+    throw fail(409, 'plan_active', account.planExpiresAt
+      ? `your ${account.planDetails.name} plan runs until ${account.planExpiresAt.toISOString().slice(0, 10)}; you can extend it or choose a plan after it ends`
+      : `you're on the ${account.planDetails.name} plan, which includes everything in ${details.name}; contact us to change plans`);
   }
   const amount = paise(details.price);
   const order = await razorpay('POST', '/orders', {

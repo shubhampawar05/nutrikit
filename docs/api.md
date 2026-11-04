@@ -72,5 +72,13 @@ setup is in [mcp/README.md](../mcp/README.md).
 - Nutrients are USDA averages; branded products come from crowd-sourced Open Food Facts. Not medical advice.
 - Portions fall back in order: stated unit → household portion → volume conversion → water density → 100 g.
   Each item's `portionMethod` says which was used.
+- An add-on without an amount ("with sugar", "with milk") is a spoonful or a splash: at most 15 g for sugars,
+  fats and sauces, 60 g for anything else (`portionMethod` `add-on-smallest-portion`, or `add-on-cap` when the
+  food has no portion that small).
+- Size words use real servings where the catalog has none, e.g. small, medium and large fries are 71, 117 and
+  154 g (`size-serving`). Hot drinks without a size are one cup.
+- A bare everyday word means the everyday food: "tea" and "chai" are hot black tea and "salad" is a green salad,
+  while "iced tea" or "chicken salad" get what they say. Search lists that food first and keeps the other matches.
+- The same food from two data sources appears once in search results.
 - Diet filters work from food names, so treat them as best effort.
 - Photo and label recognition are only as good as the AI provider.

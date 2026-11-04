@@ -201,13 +201,13 @@ export function curlFor(req: Req, origin: string): string {
 export const HINTS: Record<string, string> = {
   unauthorized: 'Check the key, or log in so the playground can use your account automatically.',
   token_expired: 'Your access token expired. Paste a fresh one, or log in.',
-  quota_exceeded: 'Your plan’s monthly tokens are used up. Request an upgrade from the dashboard.',
+  quota_exceeded: 'Your plan’s monthly tokens are used up. Upgrade from your dashboard.',
   rate_limited: 'Too many requests in a minute. Wait a moment and try again.',
-  ai_provider_unavailable: 'This server has no AI provider configured (set ANTHROPIC_API_KEY or OPENAI_API_KEY). Text logging and label text work without it.',
+  ai_provider_unavailable: 'AI features aren’t enabled on this server yet. Text logging, voice transcripts and label text still work.',
   invalid_barcode: 'Barcodes are 8, 12, 13 or 14 digits with a valid check digit.',
   no_key: '',
 };
 
 /** Legacy fmt(n, d): grouped number, up to d decimals, '—' for null. */
 export const fmtN = (x: number | string | null | undefined, d = 0) =>
-  x == null ? '—' : Number(x).toLocaleString(undefined, { maximumFractionDigits: d });
+  x == null ? '—' : Number(x).toLocaleString('en-US', { maximumFractionDigits: d });

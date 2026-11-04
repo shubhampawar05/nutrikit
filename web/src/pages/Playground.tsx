@@ -3,10 +3,11 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 import { flushSync } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { Nutrikit, NutrikitError } from '../sdk.ts';
-import { api, ApiError } from '../api/client.ts';
+import { api, ApiError, PLAYGROUND_KEY_STORE, errorText, sentence } from '../api/client.ts';
 import { useMe } from '../hooks.ts';
 import { CodeBlock } from '../components/CodeBlock.tsx';
 import { Icon } from '../components/Icon.tsx';
+import { TabList, tabIds } from '../components/Tabs.tsx';
 import { useToast } from '../components/Toast.tsx';
 import {
   ENDPOINTS, HINTS, buildRequest, convert, curlFor, defaultHints, defaults, findEndpoint, fmtN,
@@ -14,7 +15,7 @@ import {
 } from './playground/endpoints.ts';
 import { JsonText, Preview, PreviewBoundary } from './playground/previews.tsx';
 
-const KEY_STORE = 'nk-playground-key';
+const KEY_STORE = PLAYGROUND_KEY_STORE;
 const store = {
   get: (k: string) => { try { return sessionStorage.getItem(k); } catch { return null; } },
   set: (k: string, v: string | null) => { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch { /* storage blocked */ } },
@@ -24,7 +25,16 @@ type AuthView = 'checking' | 'session' | 'no-key' | 'anonymous' | 'manual';
 type View = 'preview' | 'json' | 'curl';
 interface ErrorBody { error?: { code?: string; message?: string } }
 interface Meta { status: number; statusText: string; ok: boolean; ms: number; charged: string | null; remaining: string | null }
-type Out = { kind: 'empty' } | { kind: 'error'; status: number; body: ErrorBody } | { kind: 'result'; result: Result; offset: number };
+type Out =
+  | { kind: 'empty' }
+  | { kind: 'error'; status: number; body: ErrorBody }
+  | { kind: 'result'; result: Result; offset: number }
+  /** A 2xx whose body can't be previewed: the JSON tab still has it. */
+  | { kind: 'unpreviewable'; status: number };
+/** The credential requests are sent with: the session token, or a pasted key (null when nothing is pasted). */
+interface Credential { mode: 'session' | 'manual'; value: string | null }
+const VIEWS: { id: View; label: string }[] = [{ id: 'preview', label: 'Preview' }, { id: 'json', label: 'JSON' }, { id: 'curl', label: 'cURL' }];
+const VIEW_PREFIX = 'pg-view';
 interface Captured { status: number; statusText: string; ok: boolean; charged: string | null; remaining: string | null; body: unknown }
 
 const errorBody = (body: unknown): ErrorBody => {
@@ -38,17 +48,33 @@ const errorBody = (body: unknown): ErrorBody => {
 
 const NETWORK: ErrorBody = { error: { code: 'network', message: 'Could not reach the API.' } };
 
-function ErrorBox({ status, body }: { status: number; body: ErrorBody }) {
+function ErrorBox({ status, body, authView }: { status: number; body: ErrorBody; authView: AuthView }) {
   const e = body.error || {};
   const hint = e.code ? HINTS[e.code] : undefined;
+  let actions: ReactNode = null;
+  if (e.code === 'no_key') {
+    // Signed in without a key: the dashboard is the way forward. A pasted-key user just needs the field above.
+    if (authView === 'no-key') actions = <Link className="btn btn-primary btn-sm" to="/dashboard">Create a key in your dashboard <span className="arrow">→</span></Link>;
+    else if (authView === 'anonymous') actions = <><Link className="btn btn-primary btn-sm" to="/login?next=/playground">Log in</Link><Link className="btn btn-ghost btn-sm" to="/signup">Get a free key</Link></>;
+  } else if (e.code === 'quota_exceeded') {
+    actions = <Link className="btn btn-primary btn-sm" to="/dashboard">Open dashboard <span className="arrow">→</span></Link>;
+  }
   return (
     <div className="pg-error">
       <b>{status ? `${status} · ` : ''}{e.code || 'error'}</b>
-      <p>{e.message || 'Something went wrong.'}</p>
+      <p>{sentence(e.message)}</p>
       {hint ? <p className="muted small">{hint}</p> : null}
-      {e.code === 'no_key' ? (
-        <div className="row"><Link className="btn btn-primary btn-sm" to="/login?next=/playground">Log in</Link><Link className="btn btn-ghost btn-sm" to="/signup">Get a free key</Link></div>
-      ) : null}
+      {actions ? <div className="row">{actions}</div> : null}
+    </div>
+  );
+}
+
+function Unpreviewable({ status, onShowJson }: { status: number; onShowJson: () => void }) {
+  return (
+    <div className="pg-error">
+      <b>{status} · preview unavailable</b>
+      <p>Couldn’t display this response — see the JSON tab.</p>
+      <div className="row"><button className="btn btn-ghost btn-sm" type="button" onClick={onShowJson}>Show JSON</button></div>
     </div>
   );
 }
@@ -79,10 +105,15 @@ export function Playground() {
   const [curl, setCurl] = useState(() => curlFor(buildRequest(initial, convert(initial, defaults(initial), {})), window.location.origin));
   const [view, setView] = useState<View>('preview');
   const inflight = useRef(0);
+  // Set synchronously when a send starts, so repeated shortcuts in one tick can't slip past `busy`.
+  const busyRef = useRef(false);
 
   // ------------------------------------------------------------ credentials
-  const auth = useRef<{ value: string | null; mode: 'session' | 'manual' | null }>({ value: null, mode: null });
+  const auth = useRef<Credential>({ mode: 'session', value: null });
   const [authView, setAuthView] = useState<AuthView>('checking');
+  const authViewRef = useRef<AuthView>('checking');
+  useEffect(() => { authViewRef.current = authView; }, [authView]);
+  const [switching, setSwitching] = useState(false);
   const [authLabel, setAuthLabel] = useState('');
   const [savedKey, setSavedKey] = useState('');
   const keyInput = useRef<HTMLInputElement>(null);
@@ -94,13 +125,27 @@ export function Playground() {
     return data;
   }, []);
 
-  /** The key form (anonymous / manual): a key saved earlier in this tab is used right away. */
+  /** The key form (anonymous / manual): a key saved earlier in this tab is used right away. The session token is
+   * dropped, so nothing is ever sent with it while the form is shown. */
   const showKeyForm = useCallback((state: 'anonymous' | 'manual') => {
     const saved = store.get(KEY_STORE);
-    if (saved) auth.current = { value: saved, mode: 'manual' };
+    auth.current = { mode: 'manual', value: saved || null };
     setSavedKey(saved || '');
+    authViewRef.current = state;
     setAuthView(state);
   }, []);
+
+  /** "Use my account": back from a pasted key to a fresh session token, without a reload. */
+  const backToAccount = () => {
+    setSwitching(true);
+    mintSessionToken().then(
+      () => setAuthView('session'),
+      (err: unknown) => {
+        if (err instanceof ApiError && err.code === 'no_active_key') setAuthView('no-key');
+        else toast(errorText(err));
+      },
+    ).finally(() => setSwitching(false));
+  };
 
   const authStarted = useRef(false);
   useEffect(() => {
@@ -119,7 +164,7 @@ export function Playground() {
   const onKeySubmit = (e: FormEvent) => {
     e.preventDefault();
     const v = (keyInput.current?.value ?? '').trim();
-    auth.current = v ? { value: v, mode: 'manual' } : { value: null, mode: null };
+    auth.current = { mode: 'manual', value: v || null };
     store.set(KEY_STORE, v || null);
     toast(v ? 'Key saved for this tab' : 'Key cleared');
   };
@@ -157,14 +202,20 @@ export function Playground() {
   }, []);
 
   const send = useCallback(async (ep: Endpoint, raw: RawValues, imgs: Record<string, string>) => {
+    if (busyRef.current) return; // one request at a time
     const v = convert(ep, raw, imgs);
     const req = buildRequest(ep, v);
     setCurl(curlFor(req, window.location.origin));
     if (!auth.current.value) {
-      showError(0, { error: { code: 'no_key', message: 'Add an API key above (or log in) to send requests.' } });
+      const view = authViewRef.current;
+      const message = view === 'no-key' ? 'Your account has no active API key yet.'
+        : view === 'manual' || (view === 'anonymous' && me.data) ? 'Paste an API key above to send requests.'
+          : 'Add an API key above (or log in) to send requests.';
+      showError(0, { error: { code: 'no_key', message } });
       return;
     }
     const mine = ++inflight.current;
+    busyRef.current = true;
     setBusy(true);
     setMeta('sending');
 
@@ -192,6 +243,10 @@ export function Playground() {
     };
 
     const t0 = performance.now();
+    const record = (c: Captured) => {
+      setMeta({ status: c.status, statusText: c.statusText, ok: c.ok, ms: Math.round(performance.now() - t0), charged: c.charged, remaining: c.remaining });
+      setJson(JSON.stringify(c.body, null, 2));
+    };
     try {
       let result = await attempt();
       // Session tokens last an hour; renew transparently once.
@@ -202,18 +257,21 @@ export function Playground() {
       if (mine !== inflight.current) return;
       const c = cap.last;
       if (!c) throw new Error('no response');
-      setMeta({ status: c.status, statusText: c.statusText, ok: c.ok, ms: Math.round(performance.now() - t0), charged: c.charged, remaining: c.remaining });
-      setJson(JSON.stringify(c.body, null, 2));
+      record(c);
       if (!c.ok || !result) { showError(c.status, errorBody(c.body)); return; }
       const offset = Number(new URLSearchParams(req.path.split('?')[1] ?? '').get('offset') || 0);
       setOut({ kind: 'result', result, offset });
       setView('preview');
     } catch {
-      if (mine === inflight.current) showError(0, NETWORK);
+      if (mine !== inflight.current) return;
+      // A 2xx arrived but the SDK couldn't read it: that's a display problem, not a network one.
+      const c = cap.last;
+      if (c?.ok) { record(c); setOut({ kind: 'unpreviewable', status: c.status }); setView('preview'); }
+      else showError(0, NETWORK);
     } finally {
-      if (mine === inflight.current) setBusy(false);
+      if (mine === inflight.current) { busyRef.current = false; setBusy(false); }
     }
-  }, [mintSessionToken, showError]);
+  }, [me.data, mintSessionToken, showError]);
 
   // Latest state for handlers that outlive a render (Ctrl+Enter, speech, camera).
   const latest = useRef({ current, vals, images });
@@ -235,6 +293,7 @@ export function Playground() {
   const setValue = (name: string, value: string | boolean) => setVals((v) => ({ ...v, [name]: value }));
 
   const pickExample = (name: string, value: string) => {
+    if (busyRef.current) return;
     const next = { ...vals, [name]: value };
     setVals(next);
     latest.current = { current, vals: next, images };
@@ -270,7 +329,7 @@ export function Playground() {
       latest.current = { ...l, vals: next };
       void send(l.current, next, l.images);
     } catch (err) {
-      toast(err instanceof Error ? err.message : String(err));
+      toast(errorText(err));
     } finally {
       setListening(false);
     }
@@ -292,7 +351,7 @@ export function Playground() {
       latest.current = { ...l, vals: next };
       void send(l.current, next, l.images);
     } catch (err) {
-      toast((err instanceof Error && err.message) || 'Camera unavailable');
+      toast(errorText(err, 'Camera unavailable'));
     } finally {
       stream?.getTracks().forEach((t) => t.stop());
       setScanning(false);
@@ -347,7 +406,8 @@ export function Playground() {
               onDrop={(e) => { e.preventDefault(); setDragOver(null); loadImage(f.name, e.dataTransfer.files[0]); }}
             >
               <input
-                type="file" accept="image/jpeg,image/png,image/webp,image/gif" id={id} name={f.name} hidden
+                // Visually hidden, not `hidden`: keyboard users tab to it and open the picker with Enter or Space.
+                type="file" accept="image/jpeg,image/png,image/webp,image/gif" id={id} name={f.name} className="sr-only"
                 onChange={(e) => loadImage(f.name, e.target.files?.[0])}
                 // Clearing the photo also clears the chosen file, so the same file can be picked again.
                 ref={(el) => { if (el && !src) el.value = ''; }}
@@ -387,6 +447,13 @@ export function Playground() {
   }
 
   // ------------------------------------------------------------ render
+  const panel = (id: View) => {
+    const ids = tabIds(VIEW_PREFIX, id);
+    return { id: ids.panel, role: 'tabpanel', 'aria-labelledby': ids.tab, tabIndex: 0, hidden: view !== id };
+  };
+  const statusLine = meta === 'sending' ? 'Sending…' : meta
+    ? `${meta.status} ${meta.statusText || (meta.ok ? 'OK' : 'Error')}${meta.charged != null ? ` · ${meta.charged} token${meta.charged === '1' ? '' : 's'}` : ''}`
+    : '';
   let group = '';
   const rail: ReactNode[] = [];
   for (const e of ENDPOINTS) {
@@ -424,7 +491,9 @@ export function Playground() {
                   <input ref={keyInput} className="input" id="pg-key" type="password" autoComplete="off" placeholder="Paste nk_… or nkat_…" defaultValue={savedKey} />
                   <button className="btn btn-primary btn-sm" type="submit">Use key</button>
                 </form>
-                {authView === 'manual' ? null : (
+                {me.data ? (
+                  <button className="btn btn-ghost btn-sm" type="button" disabled={switching} onClick={backToAccount}>{switching ? 'Switching…' : 'Use my account'}</button>
+                ) : authView === 'manual' ? null : (
                   <span className="small muted"><Link to="/login?next=/playground">Log in</Link> to skip this, or <Link to="/signup">get a free key</Link>.</span>
                 )}
               </>
@@ -454,7 +523,7 @@ export function Playground() {
           </form>
         </section>
 
-        <section className="pg-panel pg-response" aria-labelledby="res-title" aria-live="polite">
+        <section className="pg-panel pg-response" aria-labelledby="res-title">
           <div className="pg-panel-head">
             <h2 id="res-title">Response</h2>
             <div className="pg-meta">
@@ -468,29 +537,26 @@ export function Playground() {
               ) : null}
             </div>
           </div>
-          <div className="pg-tabs" role="tablist">
-            {(['preview', 'json', 'curl'] as const).map((t) => (
-              <button key={t} className="pg-tab" role="tab" aria-selected={view === t} onClick={() => setView(t)}>
-                {t === 'preview' ? 'Preview' : t === 'json' ? 'JSON' : 'cURL'}
-              </button>
-            ))}
-          </div>
-          <div className="pg-out" hidden={view !== 'preview'}>
+          {/* The only live region in the panel: a short status, not the whole response. */}
+          <p className="sr-only" role="status" aria-live="polite">{statusLine}</p>
+          <TabList tabs={VIEWS} current={view} onChange={(id) => setView(id as View)} label="Response view" prefix={VIEW_PREFIX} className="pg-tabs" tabClassName="pg-tab" />
+          <div className="pg-out" {...panel('preview')}>
             {out.kind === 'empty' ? (
               <div className="pg-empty">
                 <Icon name={current.icon} />
                 <p>Send the request to see the result.<br /><span className="muted small">Tip: <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd> sends from anywhere.</span></p>
               </div>
-            ) : out.kind === 'error' ? <ErrorBox status={out.status} body={out.body} /> : (
-              <PreviewBoundary key={json ?? ''} fallback={<ErrorBox status={0} body={NETWORK} />}>
+            ) : out.kind === 'error' ? <ErrorBox status={out.status} body={out.body} authView={authView} />
+              : out.kind === 'unpreviewable' ? <Unpreviewable status={out.status} onShowJson={() => setView('json')} /> : (
+              <PreviewBoundary key={json ?? ''} fallback={<Unpreviewable status={meta && meta !== 'sending' ? meta.status : 200} onShowJson={() => setView('json')} />}>
                 <Preview result={out.result} offset={out.offset} onUseFood={pickFood} />
               </PreviewBoundary>
             )}
           </div>
-          <div className="pg-out" hidden={view !== 'json'}>
+          <div className="pg-out" {...panel('json')}>
             <CodeBlock><code>{json == null ? '// No response yet' : <JsonText text={json} />}</code></CodeBlock>
           </div>
-          <div className="pg-out" hidden={view !== 'curl'}>
+          <div className="pg-out" {...panel('curl')}>
             <CodeBlock><code>{curl}</code></CodeBlock>
             <p className="small muted">Uses <code>$NUTRIKIT_KEY</code> — export your API key first. Your real key or token is never shown here.</p>
           </div>

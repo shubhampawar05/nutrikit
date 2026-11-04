@@ -1,7 +1,8 @@
 // Homepage live demo: a meal description becomes matched foods and a Nutrition Facts label.
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { api, ApiError } from '../../api/client.ts';
-import { CALORIES, ROWS, labelTexts, valueText, type DemoResult, type LabelRow, type Totals } from './demo.ts';
+import { Link } from 'react-router';
+import { api, ApiError, sentence } from '../../api/client.ts';
+import { CALORIES, ROWS, amountText, labelTexts, valueText, type DemoResult, type LabelRow, type Totals } from './demo.ts';
 
 const DEFAULT_TEXT = '2 eggs, toast with butter and an orange juice';
 const EXAMPLES = [
@@ -10,7 +11,23 @@ const EXAMPLES = [
   '200g chicken breast with 1 cup brown rice',
 ];
 
-type ItemsView = { kind: 'message'; text: string } | { kind: 'result'; result: DemoResult };
+// Typing waits this long after the last keystroke, so a sentence costs one request of the visitor's demo limit.
+const DEBOUNCE_MS = 1500;
+const SIGNUP_PHRASE = 'create a free key';
+
+type ItemsView = { kind: 'message'; text: string } | { kind: 'limit'; text: string } | { kind: 'result'; result: DemoResult };
+
+/** The demo's 429 as a sentence, with "create a free key" linking to signup. */
+function LimitMessage({ text }: { text: string }) {
+  const msg = sentence(text);
+  const at = msg.toLowerCase().indexOf(SIGNUP_PHRASE);
+  if (at < 0) return <p className="demo-empty">{msg} <Link to="/signup">Create a free key</Link> for more.</p>;
+  return (
+    <p className="demo-empty">
+      {msg.slice(0, at)}<Link to="/signup">{msg.slice(at, at + SIGNUP_PHRASE.length)}</Link>{msg.slice(at + SIGNUP_PHRASE.length)}
+    </p>
+  );
+}
 
 function NfRow({ row, totals, changed }: { row: LabelRow; totals: Totals; changed: boolean }) {
   const { sub = false, thick = false, bold = true } = row;
@@ -25,7 +42,7 @@ function NfRow({ row, totals, changed }: { row: LabelRow; totals: Totals; change
 
 function NutritionLabel({ totals, count, changed }: { totals: Totals; count: number; changed: Set<string> }) {
   return (
-    <div className="nf" aria-label="Nutrition facts for this meal">
+    <div className="nf" role="group" aria-label="Nutrition facts for this meal">
       <p className="nf-title">Nutrition Facts</p>
       <div className="nf-sub">{count} food{count === 1 ? '' : 's'} · this meal</div>
       <div className="nf-cal"><b>Calories</b><span className={`tick${changed.has('calories') ? ' changed' : ''}`}>{valueText(totals, CALORIES)}</span></div>
@@ -38,6 +55,7 @@ function NutritionLabel({ totals, count, changed }: { totals: Totals; count: num
 
 function Items({ view }: { view: ItemsView }) {
   if (view.kind === 'message') return <p className="demo-empty">{view.text}</p>;
+  if (view.kind === 'limit') return <LimitMessage text={view.text} />;
   const { items, unmatched } = view.result;
   if (!items.length) return <p className="demo-empty">No foods recognised — try “a banana and a coffee”.</p>;
   return (
@@ -46,7 +64,7 @@ function Items({ view }: { view: ItemsView }) {
         <div key={n} className="demo-item" style={{ animationDelay: `${n * 60}ms` }}>
           <span className="said">“{i.input}”</span><span></span>
           <span className="food">{i.food.name}</span><span className="kcal">{Math.round(i.nutrients.calories?.amount ?? 0)} kcal</span>
-          <span className="said">{i.portionBasis || `${i.quantity} ${i.unit}`}</span><span className="grams">{i.grams} g</span>
+          <span className="said">{amountText(i)}</span><span className="grams">{i.portionBasis ? `from ${i.portionBasis}` : ''}</span>
         </div>
       ))}
       {unmatched.length > 0 && <p className="demo-empty">Skipped: {unmatched.map((u) => u.text).join(', ')}</p>}
@@ -61,6 +79,7 @@ export function Demo() {
   const [count, setCount] = useState(0);
   const [changed, setChanged] = useState<Set<string>>(() => new Set());
   const [meta, setMeta] = useState('POST /v1/log/text');
+  const [pending, setPending] = useState(false);
 
   const previous = useRef(labelTexts({}));
   const seq = useRef(0);
@@ -73,6 +92,7 @@ export function Demo() {
     if (!t) return;
     const mine = ++seq.current;
     const t0 = performance.now();
+    setPending(true);
     try {
       const data = await api.demo<DemoResult>(t);
       if (mine !== seq.current) return; // a newer request superseded this one
@@ -87,8 +107,17 @@ export function Demo() {
       setMeta(`POST /v1/log/text · ${data.items.length} item${data.items.length === 1 ? '' : 's'} · ${Math.round(performance.now() - t0)} ms`);
     } catch (err) {
       if (mine !== seq.current) return;
-      // API errors (including the demo's 429 rate limit) show the server's message.
-      setView({ kind: 'message', text: err instanceof ApiError ? err.message || 'Something went wrong.' : 'Could not reach the API.' });
+      // No stale numbers next to an error: the label and the list go back to empty.
+      previous.current = labelTexts({});
+      setChanged(new Set());
+      setTotals({});
+      setCount(0);
+      setMeta('POST /v1/log/text');
+      // API errors show the server's message; the demo's own 429 links to signup.
+      if (err instanceof ApiError && err.status === 429) setView({ kind: 'limit', text: err.message });
+      else setView({ kind: 'message', text: err instanceof ApiError ? sentence(err.message) : 'Could not reach the API.' });
+    } finally {
+      if (mine === seq.current) setPending(false);
     }
   }, []);
 
@@ -106,7 +135,7 @@ export function Demo() {
   const onInput = (value: string) => {
     setText(value);
     clearTimeout(debounce.current);
-    debounce.current = setTimeout(() => void run(value), 650);
+    debounce.current = setTimeout(() => void run(value), DEBOUNCE_MS);
   };
 
   const onSubmit = (e: FormEvent) => {
@@ -122,12 +151,12 @@ export function Demo() {
   };
 
   return (
-    <div className="demo" aria-labelledby="demo-title">
+    <div className="demo" role="region" aria-labelledby="demo-title">
       <form className="demo-input" onSubmit={onSubmit}>
         <label htmlFor="demo-text" id="demo-title">Try it — what did you eat?</label>
         <div className="demo-row">
           <input id="demo-text" name="text" maxLength={200} autoComplete="off" value={text} onChange={(e) => onInput(e.target.value)} />
-          <button className="btn btn-primary btn-sm" type="submit">Log it</button>
+          <button className="btn btn-primary btn-sm" type="submit" disabled={pending} aria-busy={pending}>{pending ? 'Logging…' : 'Log it'}</button>
         </div>
         <div className="demo-chips" role="group" aria-label="Examples">
           {EXAMPLES.map((ex) => <button key={ex} className="chip" type="button" onClick={() => pick(ex)}>{ex}</button>)}

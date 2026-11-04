@@ -5,7 +5,7 @@ import { getFood } from './db.ts';
 import { searchFoods } from './search.ts';
 import { canonicalUnit, parseQuantity, resolvePortion } from './units.ts';
 import { scaleNutrients, sumNutrients } from './nutrients.ts';
-import type { NutrientMap, ResolvedPortion } from './types.ts';
+import type { Food, NutrientMap, ResolvedPortion } from './types.ts';
 import { lookup } from './lookup.ts';
 
 /** A phrase split from meal text by splitMealText(). */
@@ -97,6 +97,21 @@ export function splitMealText(text: string): { meal: string | null; items: Parse
   return { meal: meal ? MEALS[meal] : null, items };
 }
 
+// Unquantified add-ons ("with sugar", "with milk") are a spoonful or a splash, never a cup: rich add-ons
+// (sugars, fats, sauces) are capped at 15 g, anything else at 60 g. Within the cap the food's largest household
+// portion of at least 3 g is used (1 tsp sugar, 1 fl oz milk); without one, the cap itself in grams.
+const RICH_ADD_ON = /\b(sugar|syrup|honey|jam|jelly|marmalade|butter|ghee|margarine|oil|mayonnaise|cream|dressing|sauce|ketchup|catsup|chutney)\b/i;
+
+export function addOnPortion(food: Pick<Food, 'name' | 'portions'>): ResolvedPortion {
+  const cap = RICH_ADD_ON.test(food.name) ? 15 : 60;
+  const fits = food.portions
+    .map((p) => ({ p, each: p.grams / p.amount }))
+    .filter(({ each }) => each >= 3 && each <= cap)
+    .sort((a, b) => b.each - a.each)[0];
+  if (fits) return { grams: fits.each, quantity: 1, unit: fits.p.unit || 'serving', portion: fits.p.label, method: 'add-on-smallest-portion' };
+  return { grams: cap, quantity: cap, unit: 'g', portion: null, method: 'add-on-cap' };
+}
+
 /**
  * Turn parsed phrases into logged items. Each phrase: { food, quantity?, unit?, grams?, text? }.
  * A phrase may carry `grams` directly (e.g. AI portion estimates), which overrides unit parsing.
@@ -114,12 +129,8 @@ export function resolveItems(phrases: Phrase[], { alternatives = 3 }: { alternat
     let portion: ResolvedPortion;
     if (ph.grams) {
       portion = { grams: ph.grams, quantity: ph.quantity ?? 1, unit: ph.unit || 'serving', portion: null, method: 'provided-grams' };
-    } else if (ph.addOn && ph.quantity == null && !ph.unit && best.portions.length) {
-      // An unquantified add-on ("with milk") gets the food's smallest listed portion of at least
-      // 10 g, so "with blueberries" is not a single berry.
-      const bySize = [...best.portions].sort((a, b) => a.grams / a.amount - b.grams / b.amount);
-      const p = bySize.find((x) => x.grams / x.amount >= 10) || bySize.at(-1)!;
-      portion = { grams: p.grams / p.amount, quantity: 1, unit: p.unit || 'serving', portion: p.label, method: 'add-on-smallest-portion' };
+    } else if (ph.addOn && ph.quantity == null && !ph.unit) {
+      portion = addOnPortion(best);
     } else {
       portion = resolvePortion(best, ph.quantity, ph.unit);
     }

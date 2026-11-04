@@ -54,6 +54,23 @@ export const PLANS: Record<string, Plan> = lookup({
   enterprise: { name: 'Enterprise', monthlyTokens: null, ratePerMinute: 3000, price: null, currency: CURRENCY, maxKeys: 100 },
 });
 
+/** Plans ordered by value: Free first, paid plans by price, Enterprise (priced directly) above them all. */
+export const planRank = (plan: string): number => (plan === 'enterprise' ? Infinity : PLANS[plan]?.price ?? 0);
+
+export interface PublicPlan extends Plan {
+  /** 0 = Free, increasing with value; the same order the server uses to refuse cheaper plans. */
+  rank: number;
+}
+
+/** The plans as shown to visitors and the dashboard (display fields only), with their order. */
+export function publicPlans(): Record<string, PublicPlan> {
+  const order = Object.keys(PLANS).sort((a, b) => planRank(a) - planRank(b));
+  return Object.fromEntries(order.map((id, rank) => {
+    const { name, monthlyTokens, ratePerMinute, price, currency, maxKeys } = PLANS[id]!;
+    return [id, { name, monthlyTokens, ratePerMinute, price, currency, maxKeys, rank }];
+  }));
+}
+
 const SESSION_DAYS = 14;
 const SCRYPT = { N: 16384, r: 8, p: 1, keylen: 32 };
 const hashId = (s: string) => crypto.createHash('sha256').update(s).digest('hex');

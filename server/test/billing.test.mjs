@@ -253,3 +253,29 @@ test('a Razorpay that never answers ends in 502 billing_error, not a hung reques
     delete process.env.RAZORPAY_TIMEOUT_MS;
   }
 });
+
+test('a payment never moves an account to a cheaper plan, even one an operator set', async () => {
+  const setPlan = (user, plan) => fetch(`${base}/v1/admin/accounts/${user.accountId}/plan`, {
+    method: 'POST', headers: { Authorization: 'Bearer test-admin-token', 'Content-Type': 'application/json' }, body: JSON.stringify({ plan }),
+  });
+  const order = (user, plan) => user.call('POST', '/portal/api/billing/order', { plan });
+
+  const growth = await signup();
+  await setPlan(growth, 'growth');
+  const down = await order(growth, 'starter');
+  assert.equal(down.status, 409);
+  assert.equal(down.body.error.code, 'plan_active');
+
+  const enterprise = await signup();
+  await setPlan(enterprise, 'enterprise');
+  for (const plan of ['starter', 'growth']) {
+    const res = await order(enterprise, plan);
+    assert.equal(res.status, 409, `enterprise -> ${plan}`);
+    assert.equal(res.body.error.code, 'plan_active');
+  }
+
+  const starter = await signup();
+  await setPlan(starter, 'starter');
+  assert.equal((await order(starter, 'starter')).status, 201, 'extending the same plan');
+  assert.equal((await order(starter, 'growth')).status, 201, 'moving up');
+});

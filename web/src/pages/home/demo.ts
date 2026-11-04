@@ -57,6 +57,23 @@ export const ROWS: LabelRow[] = [
   { key: 'potassium', label: 'Potassium', unit: 'mg', round: r.mg, bold: false },
 ];
 
+// Units that read the same for any amount ("2 tbsp", "150 g", "2 large").
+const INVARIANT = new Set(['g', 'kg', 'mg', 'mcg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'fl oz', 'small', 'medium', 'large', 'extra large']);
+
+/** A unit for a quantity, with simple English plurals: "egg" -> "eggs", "slice" -> "slices", "dish" -> "dishes". */
+export function pluralise(unit: string, quantity: number): string {
+  if (quantity === 1 || !unit || INVARIANT.has(unit.toLowerCase())) return unit;
+  if (/(s|x|z|ch|sh)$/i.test(unit)) return `${unit}es`;
+  if (/[^aeiou]y$/i.test(unit)) return `${unit.slice(0, -1)}ies`;
+  return `${unit}s`;
+}
+
+/** The amount the user said and its weight: "2 eggs · 100 g" (or just "150 g" when they said grams). */
+export function amountText(item: Pick<DemoItem, 'quantity' | 'unit' | 'grams'>): string {
+  if (item.unit === 'g') return `${item.grams} g`;
+  return `${item.quantity} ${pluralise(item.unit, item.quantity)} · ${item.grams} g`;
+}
+
 /** The label text for one nutrient, e.g. "8g". */
 export function valueText(totals: Totals, row: LabelRow): string {
   const n = totals[row.key];

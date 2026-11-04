@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { renderPage } from '../test-utils.tsx';
 import { Home } from './Home.tsx';
 
@@ -14,7 +14,12 @@ const demoResponse = {
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
+
+const demoCalls = (fetchMock: ReturnType<typeof vi.fn>) => fetchMock.mock.calls.filter(([u]) => u === '/portal/api/demo').length;
 
 describe('Home', () => {
   it('renders the hero and runs the live demo on load', async () => {
@@ -32,12 +37,16 @@ describe('Home', () => {
     expect(screen.getByText('2 foods · this meal')).toBeTruthy();
     expect(document.querySelector('.nf-cal .tick')?.textContent).toBe('240'); // calories rounded FDA-style
     expect(screen.getByText(/POST \/v1\/log\/text · 2 items/)).toBeTruthy();
+    // The amount the visitor said, not the portion it was worked out from.
+    expect(screen.getByText('2 large · 100 g')).toBeTruthy();
+    expect(screen.getByText('from 2 large')).toBeTruthy();
+    expect(screen.getByText('1 slice · 30 g')).toBeTruthy();
 
     const [, init] = fetchMock.mock.calls.find(([u]) => u === '/portal/api/demo') as unknown as [string, RequestInit];
     expect(JSON.parse(String(init.body))).toEqual({ text: '2 eggs, toast with butter and an orange juice' });
   });
 
-  it('runs an example chip and shows the rate-limit message', async () => {
+  it('runs an example chip and shows the rate limit as a sentence with a signup link, clearing the label', async () => {
     let calls = 0;
     vi.stubGlobal('fetch', vi.fn(() => {
       calls++;
@@ -45,9 +54,86 @@ describe('Home', () => {
     }));
     renderPage(<Home />);
     await screen.findByText('Egg, whole, cooked');
+    expect(document.querySelector('.nf-cal .tick')?.textContent).toBe('240');
     fireEvent.click(screen.getByRole('button', { name: '2 slices of pizza and a diet coke' }));
-    expect(await screen.findByText('demo limit reached; create a free key for more')).toBeTruthy();
+    const link = await screen.findByRole('link', { name: 'create a free key' });
+    expect(link.getAttribute('href')).toBe('/signup');
+    expect(link.parentElement?.textContent).toBe('Demo limit reached; create a free key for more.');
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('2 slices of pizza and a diet coke');
+    // No numbers from the previous meal next to the error.
+    expect(screen.queryByText('Egg, whole, cooked')).toBeNull();
+    expect(document.querySelector('.nf-cal .tick')?.textContent).toBe('0');
+    expect(screen.getByText('0 foods · this meal')).toBeTruthy();
+  });
+
+  it('clears the previous totals on any API error and shows the message as a sentence', async () => {
+    let calls = 0;
+    vi.stubGlobal('fetch', vi.fn(() => {
+      calls++;
+      return Promise.resolve(calls === 1 ? json(demoResponse) : json({ error: { code: 'invalid_request', message: 'the demo accepts up to 200 characters' } }, 400));
+    }));
+    renderPage(<Home />);
+    await screen.findByText('Egg, whole, cooked');
+    fireEvent.click(screen.getByRole('button', { name: 'Log it' }));
+    expect(await screen.findByText('The demo accepts up to 200 characters.')).toBeTruthy();
+    expect(document.querySelector('.nf-cal .tick')?.textContent).toBe('0');
+    expect(screen.getByText('0 foods · this meal')).toBeTruthy();
+  });
+
+  it('sends one request after the visitor stops typing for 1.5 s', async () => {
+    const fetchMock = vi.fn((url: string) => Promise.resolve(url === '/portal/api/demo' ? json(demoResponse) : json({}, 401)));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage(<Home />);
+    await screen.findByText('Egg, whole, cooked');
+    expect(demoCalls(fetchMock)).toBe(1);
+
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const input = screen.getByRole('textbox');
+    const words = 'a bowl of oatmeal with milk and two boiled eggs today'.split(' ');
+    for (let n = 1; n <= words.length; n++) {
+      fireEvent.change(input, { target: { value: words.slice(0, n).join(' ') } });
+      act(() => vi.advanceTimersByTime(400)); // a normal typing pace
+    }
+    act(() => vi.advanceTimersByTime(1099));
+    expect(demoCalls(fetchMock)).toBe(1);
+    act(() => vi.advanceTimersByTime(1));
+    expect(demoCalls(fetchMock)).toBe(2);
+    vi.useRealTimers();
+
+    const [, init] = fetchMock.mock.calls.filter(([u]) => u === '/portal/api/demo')[1] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toEqual({ text: words.join(' ') });
+  });
+
+  it('submits immediately and shows a busy, disabled button while a request runs', async () => {
+    let finish: (r: Response) => void = () => {};
+    let calls = 0;
+    const fetchMock = vi.fn((url: string) => {
+      if (url !== '/portal/api/demo') return Promise.resolve(json({}, 401));
+      calls++;
+      return calls === 1 ? Promise.resolve(json(demoResponse)) : new Promise<Response>((r) => { finish = r; });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage(<Home />);
+    await screen.findByText('Egg, whole, cooked');
+    const button = screen.getByRole('button', { name: 'Log it' }) as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'a banana' } });
+    fireEvent.click(button);
+    expect(demoCalls(fetchMock)).toBe(2); // no debounce wait
+    await waitFor(() => expect(button.disabled).toBe(true));
+    expect(button.textContent).toBe('Logging…');
+
+    await act(async () => finish(json(demoResponse)));
+    await waitFor(() => expect(button.disabled).toBe(false));
+    expect(button.textContent).toBe('Log it');
+  });
+
+  it('labels the demo and its nutrition facts with roles that take a label', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
+    renderPage(<Home />);
+    expect(screen.getByRole('region', { name: 'Try it — what did you eat?' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Nutrition facts for this meal' })).toBeTruthy();
   });
 
   it('shows a network error', async () => {
@@ -61,6 +147,7 @@ describe('Home', () => {
     renderPage(<Home />);
     fireEvent.click(screen.getByRole('tab', { name: 'curl' }));
     expect(screen.getByRole('tab', { name: 'curl' }).getAttribute('aria-selected')).toBe('true');
-    expect(screen.getByText('https://api.your-domain.com/v1/log/text')).toBeTruthy();
+    expect(screen.getByText(`${window.location.origin}/v1/log/text`)).toBeTruthy();
+    expect(document.body.textContent).not.toContain('your-domain.com');
   });
 });
