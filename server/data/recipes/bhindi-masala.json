@@ -1,0 +1,73 @@
+{
+  "id": 900000017,
+  "name": "Bhindi masala (spiced okra)",
+  "category": "Indian dishes",
+  "basis": "Okra sauteed with onion, tomato and spices, about 2 tsp oil per cup.",
+  "ingredients": [
+    {
+      "fdcId": 169261,
+      "food": "Okra, cooked, boiled, drained, without salt",
+      "grams": 400
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 120
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 80
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 30
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 2
+    },
+    {
+      "fdcId": 170922,
+      "food": "Spices, coriander seed",
+      "grams": 3
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 1
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 5
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 560,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 160
+    }
+  ]
+}

@@ -30,9 +30,9 @@
 
 ## 6. Recipes
 
-- [ ] 6.0 `CLEAN-ROOM.md` and docs: recipes are original, INDB only as a local benchmark; `source: "recipe"` documented; website changelog v1.4
-- [ ] 6.1 Recipe loader and composer in `build-db.mjs` (validation, reserved ids, aliases in FTS, `source: 'recipe'`), and the `recipe` search bonus; verify the build fails on an unknown fdcId
-- [ ] 6.2 Write the first batch in `server/data/recipes/`: rajma, chole, khichdi, poha, gulab jamun, sweet lassi, salted lassi, butter chicken, chicken tikka masala, egg curry, aloo paratha, aloo gobi, pav bhaji, raita, jeera rice, kadhi, bhindi masala, masala dosa, kheer, matar paneer; verify each passes the audit checks and lands in a plausible calorie band
+- [x] 6.0 `CLEAN-ROOM.md` and docs: recipes are original, INDB only as a local benchmark; `source: "recipe"` documented; website changelog v1.4
+- [x] 6.1 Recipe loader and composer in `build-db.mjs` (validation, reserved ids, aliases in FTS, `source: 'recipe'`), and the `recipe` search bonus; verify with `test/recipes.test.mjs` (unknown or renamed ingredient, impossible yield, bad id, Atwater mismatch, nutrient left out when a major ingredient lacks it)
+- [x] 6.2 Write the first batch in `server/data/recipes/`: rajma, chole, khichdi, poha, gulab jamun, sweet lassi, salted lassi, butter chicken, chicken tikka masala, egg curry, aloo paratha, aloo gobi, pav bhaji, raita, jeera rice, kadhi, bhindi masala, masala dosa, kheer, matar paneer; use unsalted cooked USDA bases; verify each lands in its calorie band (`test/catalog.test.mjs`) and logs from everyday phrasings (`test/logging.test.mjs`)
 
 ## 7. Accuracy suite and verification
 

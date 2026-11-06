@@ -14,7 +14,8 @@ export interface NutrientAmount {
   missingFrom?: number;
 }
 export type NutrientMap = Partial<Record<NutrientKey, NutrientAmount>>;
-export type FoodSource = 'survey' | 'foundation' | 'sr_legacy';
+/** USDA dataset, or `recipe`: a dish composed from USDA foods (see the docs' Data sources). */
+export type FoodSource = 'survey' | 'foundation' | 'sr_legacy' | 'recipe';
 
 export interface SearchResult {
   query: string;

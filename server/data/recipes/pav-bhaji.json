@@ -1,0 +1,98 @@
+{
+  "id": 900000013,
+  "name": "Pav bhaji (vegetable mash with buttered rolls)",
+  "category": "Indian dishes",
+  "basis": "Mashed spiced vegetables (potato, cauliflower, peas, tomato, onion, capsicum) cooked in butter, served with two buttered soft rolls; one plate is 250 g bhaji and 2 rolls.",
+  "ingredients": [
+    {
+      "fdcId": 170440,
+      "food": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "grams": 300
+    },
+    {
+      "fdcId": 2709777,
+      "food": "Cauliflower, raw",
+      "grams": 150
+    },
+    {
+      "fdcId": 170017,
+      "food": "Peas, green, frozen, cooked, boiled, drained, without salt",
+      "grams": 100
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 250
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 150
+    },
+    {
+      "fdcId": 2709800,
+      "food": "Peppers, sweet, green, raw",
+      "grams": 80
+    },
+    {
+      "fdcId": 2710154,
+      "food": "Butter, NFS",
+      "grams": 90
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 10
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 10
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 6
+    },
+    {
+      "fdcId": 170922,
+      "food": "Spices, coriander seed",
+      "grams": 4
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 3
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 8
+    },
+    {
+      "fdcId": 2709181,
+      "food": "Lemon juice, 100%, freshly squeezed",
+      "grams": 10
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 10
+    },
+    {
+      "fdcId": 2707654,
+      "food": "Roll, white, soft",
+      "grams": 280
+    }
+  ],
+  "water": 150,
+  "cookedGrams": 1320,
+  "portions": [
+    {
+      "label": "1 plate",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 330
+    }
+  ]
+}

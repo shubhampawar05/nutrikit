@@ -1,0 +1,38 @@
+{
+  "id": 900000015,
+  "name": "Jeera rice (cumin rice)",
+  "category": "Indian dishes",
+  "basis": "Cooked white rice tossed with ghee and toasted cumin.",
+  "ingredients": [
+    {
+      "fdcId": 168878,
+      "food": "Rice, white, long-grain, regular, enriched, cooked",
+      "grams": 600
+    },
+    {
+      "fdcId": 2710168,
+      "food": "Ghee, clarified butter",
+      "grams": 20
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 4
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 3
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 620,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 165
+    }
+  ]
+}

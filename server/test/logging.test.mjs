@@ -37,9 +37,11 @@ test('bare everyday words match the everyday food', () => {
 });
 
 test('search matches whole words before prefixes', () => {
-  assert.equal(searchFoods('chole').match, 'prefix', 'no food has the whole word "chole"');
-  assert.equal(logText('1 cup chole').items.length, 0, 'never logged as a cholesterol-free food');
-  assert.ok(searchFoods('chick').results.some((r) => /^chick/i.test(r.name)), 'partial typing still works');
+  assert.doesNotMatch(item('1 cup chole').food.name, /cholesterol/i, 'whole word "chole", never "cholesterol-free"');
+  assert.ok(searchFoods('chole').results.every((r) => !/cholesterol/i.test(r.name)), 'prefix matches only when no whole word matches');
+  const partial = searchFoods('chicke');
+  assert.equal(partial.match, 'prefix', 'partial typing still works');
+  assert.match(partial.results[0].name, /^Chicken/);
   assert.equal(searchFoods('egg').match, 'all-words');
 });
 
@@ -62,7 +64,7 @@ test('plain foods are preferred over prepared forms', () => {
 });
 
 test('a weak partial match is unmatched with suggestions, not logged', () => {
-  const r = logText('1 cup butter chicken');
+  const r = logText('1 cup butter paneer');
   assert.equal(r.items.length, 0, 'not logged as a cup of butter');
   assert.equal(r.unmatched[0].reason, 'no confident match');
   assert.ok(r.unmatched[0].suggestions.length > 0);
@@ -108,4 +110,26 @@ test('nonsense is unmatched, not guessed', () => {
   assert.equal(r.items.length, 0);
   assert.equal(r.unmatched.length, 1);
   assert.equal(r.totals.calories?.amount ?? 0, 0);
+});
+
+test('Indian dishes the USDA lacks are logged from their recipes', () => {
+  for (const [phrase, name] of [
+    ['1 cup rajma', /^Rajma/], ['1 cup chole', /^Chole/], ['chana masala', /^Chole/], ['1 cup khichdi', /^Khichdi/],
+    ['1 plate poha', /^Poha \(flattened rice/], ['2 gulab jamun', /^Gulab jamun/], ['1 glass lassi', /^Lassi, sweet/],
+    ['salted lassi', /^Lassi, salted/], ['1 cup butter chicken', /^Butter chicken/], ['2 aloo parathas', /^Aloo paratha/],
+    ['a plate of pav bhaji', /^Pav bhaji/], ['1 masala dosa', /^Masala dosa/], ['matar paneer', /^Matar paneer/],
+  ]) {
+    const it = item(phrase);
+    assert.ok(it, `${phrase} is logged`);
+    assert.match(it.food.name, name, phrase);
+    assert.equal(it.food.source, 'recipe', phrase);
+  }
+  between(item('2 gulab jamun').grams, 70, 90, 'two gulab jamun');
+  between(item('a plate of pav bhaji').grams, 300, 360, 'a plate of pav bhaji');
+});
+
+test('common phrasings reach the USDA food that exists', () => {
+  assert.equal(item('dal tadka').food.name, 'Dal');
+  assert.equal(item('1 cup dal fry').food.name, 'Dal');
+  assert.equal(item('masala chai').food.name, 'Tea, hot, with milk');
 });

@@ -48,7 +48,11 @@ const SYNONYMS: Record<string, string> = lookup({
   curd: 'yogurt', dahi: 'yogurt',
 });
 // Multi-word phrases rewritten before the word synonyms run.
-const PHRASES: [RegExp, string][] = [[/\bbean curd\b/g, 'tofu']];
+const PHRASES: [RegExp, string][] = [
+  [/\bbean curd\b/g, 'tofu'],
+  [/\bdal (tadka|fry)\b|\btadka dal\b/g, 'dal'], // USDA "Dal" is tempered lentil dal
+  [/\bmasala chai\b/g, 'chai'],
+];
 
 // A bare everyday word (the whole query, nothing else) means one particular food: "tea" is a cup of hot black
 // tea, not iced tea; "salad" is a green salad, not beef salad. "iced tea" or "chicken salad" are untouched.
@@ -58,6 +62,7 @@ const BARE_DEFAULTS: Record<string, string> = lookup({
   // Chai as drunk in India: brewed with milk and sugar (this FNDDS entry is sweetened, about 51 kcal per 100 g).
   chai: 'Tea, hot, with milk',
   salad: 'Lettuce, salad with assorted vegetables including tomatoes and/or carrots, no dressing',
+  lassi: 'Lassi, sweet',
 });
 
 const GENERIC = /\b(raw|nfs|plain|cooked|regular|fresh|boiled|baked|brewed|without salt|ns as to)\b/i;
@@ -144,7 +149,7 @@ function score(row: SearchRow, tokens: string[], rawQuery: string) {
   const second = (name.split(',')[1] || '').trim();
   if (/^(regular|original|nfs|plain)$/.test(second) || STAPLE_DEFAULTS[head] === second) s += 1; // the default variety
   s -= name.split(/[\s,]+/).length * 0.35; // shorter, more generic names first
-  if (row.source === 'survey') s += 1; // dishes as eaten suit meal logging
+  if (row.source === 'survey' || row.source === 'recipe') s += 1; // dishes as eaten suit meal logging
   if (row.source === 'foundation') s += 0.5;
   return s;
 }
@@ -170,6 +175,9 @@ export function searchFoods(query: string | null | undefined, { limit = 10, offs
   let match: SearchMatch | undefined;
   for (const [kind, op, prefix] of passes) {
     rows = stmt.all(...(source ? [ftsQuery(tokens, op, prefix), source] : [ftsQuery(tokens, op, prefix)])) as unknown as SearchRow[];
+    // The tokenizer stems the query too, so a half-typed "chicke" matches "chick" as a whole word; unless some
+    // result really contains a word as typed, treat the query as partial and try prefixes.
+    if (kind === 'all-words' && !rows.some((r) => wordCoverage(String(query), r.name) > 0)) continue;
     if (rows.length) { match = kind; break; }
   }
   const relaxed = match === 'any-word';

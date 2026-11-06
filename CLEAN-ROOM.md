@@ -13,6 +13,13 @@ designed and written independently. This file records what informed it.
 - **Open data and public standards:** USDA FoodData Central, Open Food Facts, the FDA
   Nutrition Facts format and its daily values, and GS1 GTIN check digits.
 - **Public platform APIs:** the Web Speech API, the BarcodeDetector API, the Anthropic Messages API and the OpenAI Chat Completions API.
+- **Recipes** (`server/data/recipes/`): written for this project from general culinary knowledge. Each lists USDA
+  foods and gram weights, and the catalog build composes its nutrients from USDA values. No recipe, value or name
+  was copied from a cookbook, website or third-party database.
+- **Indian Nutrient Databank (INDB)** (github.com/lindsayjaacks/Indian-Nutrient-Databank-INDB-): consulted only to
+  check the method (composing dishes from ingredients) and, locally, as a sanity benchmark for composed values.
+  Nothing from it is in this repository: it has no licence, and it is built on the © ICMR-NIN Indian Food
+  Composition Tables 2017 and two copyrighted cookbooks. IFCT 2017 itself was not used.
 
 ## Inputs deliberately not used
 

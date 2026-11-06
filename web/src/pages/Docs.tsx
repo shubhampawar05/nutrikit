@@ -134,7 +134,7 @@ export function Docs() {
           <h2>Food search &amp; nutrients</h2>
           <h3>Search</h3>
           <CodeBlock><code>GET /v1/foods/search?q=greek%20yogurt&amp;limit=5</code></CodeBlock>
-          <p>Results are ranked for logging: the generic, as-eaten food comes first. Optional <code>source</code> filters to <code>survey</code> (dishes as eaten), <code>foundation</code> or <code>sr_legacy</code>. Page with <code>offset</code>.</p>
+          <p>Results are ranked for logging: the generic, as-eaten food comes first. Optional <code>source</code> filters to <code>survey</code> (dishes as eaten), <code>foundation</code>, <code>sr_legacy</code> or <code>recipe</code> (dishes composed from USDA foods). Page with <code>offset</code>.</p>
           <h3>Food detail</h3>
           <CodeBlock><code>GET /v1/foods/2709224</code></CodeBlock>
           <p>Returns <code>per100g</code> nutrient values and the food's household <code>portions</code> (e.g. <code>{'{"label": "1 banana", "grams": 126}'}</code>).</p>
@@ -286,6 +286,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
           <ul>
             <li><b>USDA FoodData Central</b> — SR Legacy, FNDDS survey foods and Foundation Foods. Public domain.</li>
             <li><b>Open Food Facts</b> — packaged products by barcode, © Open Food Facts contributors, ODbL. Responses include this attribution; keep it visible in your app.</li>
+            <li><b>Recipes</b> — 20 common dishes USDA lacks (rajma, chole, khichdi, poha, gulab jamun, lassi, butter chicken…), written for Nutrikit and composed from USDA foods by weight. They have <code>source: "recipe"</code>; values are for a typical home-style version.</li>
             <li><b>FDA</b> — daily values for <code>dailyValuePercent</code> (21 CFR 101.9).</li>
           </ul>
           <p className="muted">Nutrition values are estimates and not medical advice.</p>
@@ -294,6 +295,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
         <section id="changelog">
           <h2>Changelog</h2>
           <ul>
+            <li><b>v1.4</b> — Data accuracy. Search matches whole words before prefixes and reports how in <code>match</code>; a weak partial match is listed in <code>unmatched</code> with <code>suggestions</code> instead of being logged as a different food. Totals carry <code>missingFrom</code> when some foods lack a nutrient. Category-led names ("Fish, salmon", "Cheese, paneer") match their food, "curd" and "dahi" mean yogurt, "chai" is tea with milk, and bare counts use the regular size. 20 dishes added as <code>recipe</code> foods. Open Food Facts nulls stay missing instead of 0.</li>
             <li><b>v1.3</b> — Every response carries a request id (<code>X-Request-Id</code>; send your own to trace a call). <code>GET /v1/health/ready</code> reports readiness. Allowances are reserved atomically, so parallel calls cannot overspend. Failed calls are charged only for AI usage already consumed. Slow AI calls end with <code>504 ai_timeout</code>. Food logging: add-on portions (sugar, milk, butter…) are capped to a realistic amount, bare "tea", "chai" and "salad" get sensible defaults, fries come in small, medium and large, and near-duplicate search results are collapsed.</li>
             <li><b>v1.2</b> — Nutrition advisor (<code>POST /v1/advisor</code>, SDK <code>askAdvisor</code>).</li>
             <li><b>v1.1</b> — Developer portal, self-serve accounts and plans, access tokens (<code>POST /v1/auth/token</code>).</li>

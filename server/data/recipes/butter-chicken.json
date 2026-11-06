@@ -1,0 +1,93 @@
+{
+  "id": 900000008,
+  "name": "Butter chicken (murgh makhani)",
+  "category": "Indian dishes",
+  "basis": "Roasted boneless chicken thigh in a tomato, butter and cream gravy with cashews; restaurant-style richness.",
+  "ingredients": [
+    {
+      "fdcId": 172388,
+      "food": "Chicken, broilers or fryers, thigh, meat only, cooked, roasted",
+      "grams": 400
+    },
+    {
+      "fdcId": 2710154,
+      "food": "Butter, NFS",
+      "grams": 30
+    },
+    {
+      "fdcId": 2705597,
+      "food": "Cream, heavy",
+      "grams": 60
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 300
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 60
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 10
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 10
+    },
+    {
+      "fdcId": 2707494,
+      "food": "Cashews, unroasted",
+      "grams": 20
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 10
+    },
+    {
+      "fdcId": 2710258,
+      "food": "Sugar, white, granulated or lump",
+      "grams": 5
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 6
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 4
+    },
+    {
+      "fdcId": 170922,
+      "food": "Spices, coriander seed",
+      "grams": 2
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 2
+    },
+    {
+      "fdcId": 170919,
+      "food": "Spices, cardamom",
+      "grams": 1
+    }
+  ],
+  "water": 100,
+  "cookedGrams": 900,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 240
+    }
+  ]
+}

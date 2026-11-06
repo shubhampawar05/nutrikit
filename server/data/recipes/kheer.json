@@ -1,0 +1,54 @@
+{
+  "id": 900000019,
+  "name": "Kheer (rice pudding)",
+  "category": "Indian dishes",
+  "basis": "Rice simmered in whole milk until reduced by about 40%, sweetened, with almonds, raisins and cardamom.",
+  "ingredients": [
+    {
+      "fdcId": 2705385,
+      "food": "Milk, whole",
+      "grams": 1000
+    },
+    {
+      "fdcId": 168877,
+      "food": "Rice, white, long-grain, regular, raw, enriched",
+      "grams": 50
+    },
+    {
+      "fdcId": 2710258,
+      "food": "Sugar, white, granulated or lump",
+      "grams": 80
+    },
+    {
+      "fdcId": 2707486,
+      "food": "Almonds, unroasted",
+      "grams": 15
+    },
+    {
+      "fdcId": 2709212,
+      "food": "Raisins",
+      "grams": 15
+    },
+    {
+      "fdcId": 170919,
+      "food": "Spices, cardamom",
+      "grams": 1
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 700,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 240
+    },
+    {
+      "label": "1 small bowl",
+      "amount": 1,
+      "unit": "bowl",
+      "grams": 150
+    }
+  ]
+}

@@ -4,15 +4,18 @@
 //
 // Datasets: SR Legacy (generic foods), FNDDS survey foods (dishes "as eaten"),
 // Foundation Foods (recent analytical data). Nutrient values are stored per 100 g.
+// Dishes USDA lacks are added from data/recipes/ (see scripts/recipes.mjs).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { NUTRIENTS } from '../src/domain/nutrients.ts';
+import { loadRecipes, composeRecipe } from './recipes.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const RAW = path.join(ROOT, 'data/raw');
 const OUT = path.join(ROOT, 'data/foods.db');
+const RECIPES = path.join(ROOT, 'data/recipes');
 
 const DATASETS = [
   { dir: 'FoodData_Central_survey_food_csv_2024-10-31', source: 'survey', types: ['survey_fndds_food'] },
@@ -64,7 +67,7 @@ db.exec(`
   CREATE TABLE foods (
     id INTEGER PRIMARY KEY,          -- USDA fdc_id
     name TEXT NOT NULL,
-    source TEXT NOT NULL,            -- survey | foundation | sr_legacy
+    source TEXT NOT NULL,            -- survey | foundation | sr_legacy | recipe
     category TEXT,
     nutrients TEXT NOT NULL          -- JSON {key: amount per 100 g}
   );
@@ -174,6 +177,16 @@ for (const f of kept.values()) {
   insertFood.run(f.id, f.name, f.source, f.category, JSON.stringify(f.n));
   for (const p of f.portions) insertPortion.run(f.id, p.seq, p.label, p.amount, p.unit, p.grams);
   counts[f.source] = (counts[f.source] ?? 0) + 1;
+}
+const byId = new Map([...kept.values()].map((f) => [f.id, f]));
+for (const recipe of loadRecipes(RECIPES)) {
+  const r = composeRecipe(recipe, (id) => byId.get(id), NUTRIENTS.map((n) => n.key));
+  if (byId.has(r.id) || kept.has(r.name.toLowerCase())) throw new Error(`recipe ${recipe.file}: id or name already in the catalog`);
+  byId.set(r.id, { ...r, n: r.nutrients });
+  kept.set(r.name.toLowerCase(), r);
+  insertFood.run(r.id, r.name, 'recipe', r.category, JSON.stringify(r.nutrients));
+  for (const p of r.portions) insertPortion.run(r.id, p.seq, p.label, p.amount, p.unit, p.grams);
+  counts.recipe = (counts.recipe ?? 0) + 1;
 }
 db.exec("INSERT INTO foods_fts(foods_fts) VALUES ('rebuild')");
 const insertMeta = db.prepare('INSERT INTO meta VALUES (?, ?)');
