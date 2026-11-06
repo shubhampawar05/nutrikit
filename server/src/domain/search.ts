@@ -62,7 +62,6 @@ const BARE_DEFAULTS: Record<string, string> = lookup({
   // Chai as drunk in India: brewed with milk and sugar (this FNDDS entry is sweetened, about 51 kcal per 100 g).
   chai: 'Tea, hot, with milk',
   salad: 'Lettuce, salad with assorted vegetables including tomatoes and/or carrots, no dressing',
-  lassi: 'Lassi, sweet',
 });
 
 const GENERIC = /\b(raw|nfs|plain|cooked|regular|fresh|boiled|baked|brewed|without salt|ns as to)\b/i;

@@ -9,7 +9,7 @@ are handled, and how dishes the sources lack are added as recipes.
 
 ### Requirement: Values come only from open sources or are absent
 Every nutrient value the API returns SHALL come from USDA FoodData Central, Open Food Facts, a nutrition label the
-caller supplied, or a recipe composed of USDA foods. A value no source provides SHALL be absent, never zero or
+caller supplied, or a recipe of USDA foods from a licensed source. A value no source provides SHALL be absent, never zero or
 estimated.
 
 #### Scenario: Open Food Facts null
@@ -50,15 +50,23 @@ the caller gave into grams.
 - **WHEN** a caller logs "1 cup barley"
 - **THEN** the grams are those of a cup of the food, not the 740 g yield of a cup of dry barley
 
-### Requirement: Missing dishes are added as recipes of USDA foods
-A dish the sources lack MAY be added as a recipe: USDA catalog foods with gram weights, a cooked weight and household
-portions, written for this project. Its nutrients SHALL be the ingredient sum scaled to the cooked weight, and it SHALL
-be identified with source `recipe`. The build SHALL fail if a recipe refers to a food the catalog does not have, or if
-its composed values fail the catalog sanity checks.
+### Requirement: Recipe dishes come only from licensed sources
+A dish the sources lack MAY be added as a recipe of USDA catalog foods only when the recipe names its verifiable source,
+licence and URL. The build SHALL fail on a recipe that does not. Until such a recipe exists, a dish the sources lack
+SHALL be unmatched.
 
-#### Scenario: Logging a recipe dish
-- **WHEN** a caller logs "1 cup rajma"
-- **THEN** the item is the rajma recipe food with source "recipe" and its nutrients scaled from its per-100 g values
+#### Scenario: A recipe without a source
+- **WHEN** a recipe file has no source name, licence and URL
+- **THEN** the catalog build fails and names the recipe
+
+#### Scenario: A dish no source has
+- **WHEN** a caller logs "1 cup rajma" and no USDA food or sourced recipe is rajma
+- **THEN** the phrase is listed as unmatched
+
+### Requirement: Recipes are composed from their ingredients
+A recipe's nutrients SHALL be the sum of its USDA ingredients scaled to its cooked weight, and it SHALL be identified
+with source `recipe`. The build SHALL fail if a recipe refers to a food the catalog does not have, or if its composed
+values fail the catalog sanity checks.
 
 #### Scenario: A recipe refers to a missing food
 - **WHEN** a recipe lists an ingredient id that is not in the catalog

@@ -39,6 +39,11 @@
 - [x] 7.1 `npm run audit:data` runs `scripts/audit-catalog.ts` (exits 1 on a negative value); the US and Indian cases above are pinned in `test/logging.test.mjs`, `test/core.test.mjs`, `test/catalog.test.mjs` and `test/recipes.test.mjs`, and the existing golden test is unchanged
 - [x] 7.2 `npm run typecheck`, `npm run test:unit` (server 148, web 101, MCP 5), `npm run build:db`, `npm run audit:data`, `npm run test:e2e` against the rebuilt image, and `curl` of `/v1/log/text` and `/v1/foods/search` on it
 
+## 8. Remove unsourced recipes
+
+- [x] 8.1 Delete the 20 hand-written recipe files and rebuild `data/foods.db` (USDA foods only); drop the `lassi` default, the `recipe` source filter from the API and SDK, and recipe text from the docs; dishes USDA lacks are unmatched again (tested)
+- [x] 8.2 `scripts/recipes.mjs` requires `source.name`, `source.license` and `source.url`, so only licensed recipes can be built (tested); `CLEAN-ROOM.md` updated
+
 ## Follow-up
 
-- The MCP server builds against the published `@nutrikit/sdk@^0.1.0`, whose `FoodSource` has no `recipe`, so its `search_foods` tool cannot filter by `source: "recipe"` yet (recipe foods are still returned). Add `recipe` to the MCP enum after the next SDK release.
+- A licensed Indian dataset (INDB, if its authors and ICMR-NIN grant written permission): map its ingredients to USDA foods, add cooking yields, and compose with `scripts/recipes.mjs`; then add `recipe` back to the API, SDK and MCP source filters.

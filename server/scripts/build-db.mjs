@@ -4,7 +4,7 @@
 //
 // Datasets: SR Legacy (generic foods), FNDDS survey foods (dishes "as eaten"),
 // Foundation Foods (recent analytical data). Nutrient values are stored per 100 g.
-// Dishes USDA lacks are added from data/recipes/ (see scripts/recipes.mjs).
+// Dishes USDA lacks can be added from licensed sources in data/recipes/ (see scripts/recipes.mjs); none are shipped.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

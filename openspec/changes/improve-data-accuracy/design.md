@@ -19,7 +19,7 @@ See proposal.md for the motivation and specs/ for the required behavior. Current
 ## Goals / Non-Goals
 
 **Goals:**
-- Every number is traceable to an open source (USDA, OFF, a printed label, or a recipe of USDA ingredients), or it
+- Every number is traceable to an open source (USDA, OFF, a printed label, or a licensed recipe of USDA foods), or it
   is absent and flagged. Nothing is silently guessed or understated.
 - Today's golden results (`server/test/logging-golden.test.mjs`) stay unchanged.
 - API changes are additive.
@@ -80,38 +80,21 @@ and the kJ fallback follows the same rule.
 totals, adding their `missingFrom` counts. The OpenAPI `NutrientMap` gains an optional `missingFrom` integer.
 
 ### 7. Recipes
-- **Format** (`server/data/recipes/<slug>.json`, one dish per file):
-  `{ id, name, category, basis, ingredients: [{ fdcId, food, grams }], water, cookedGrams, portions: [{ label,
-  amount, unit, grams }] }`. `basis` says in one sentence what version the recipe represents. Each ingredient
-  repeats the catalog `food` name, and the build checks it, so an id that changes meaning in a future USDA release
-  fails loudly. Other names go in the dish name's parentheses ("Chole (chana masala, chickpea curry)"), which
-  search already indexes, so no alias column is needed.
-- **Composition:** nutrients per 100 g = Σ(ingredient per-100 g × grams / 100) × 100 / cookedGrams. Water (which
-  adds no nutrients) is listed separately, and `cookedGrams` accounts for water absorbed or cooked off. Ingredients
-  are taken in the form the dish uses them, so USDA's cooked values already carry cooking losses, and a separate
-  retention-factor table is unnecessary this round. Cooked bases are USDA's **unsalted** SR Legacy forms ("…,
-  cooked, boiled, without salt"): FNDDS cooked foods assume salted cooking water (cooked rice 245 mg sodium per
-  100 g), which would double-count the recipe's own salt.
-- **Missing nutrients:** a nutrient is composed only when every ingredient that is at least 2% of the dish has a
-  value; otherwise it is left out rather than understated. Spices and salt therefore never remove a nutrient.
-- **Ids:** recipe ids start at 900,000,000, far above any USDA FDC id. They are stable because they are set in the
-  file.
-- **Validation:** the build fails if a recipe's fdcId is missing from the catalog, its id is duplicated, or its
-  composed food fails the audit checks (calories within 25% of Atwater, no negatives).
-- **Authorship:** recipes are written for this project from general culinary knowledge. Nothing is copied from INDB,
-  cookbooks or websites. After the build, the INDB per-100 g values for the same dishes may be compared locally
-  (never committed) as a sanity check.
-- **Search:** `source: 'recipe'` gets the same ranking bonus as `survey`. `plate` becomes a count unit ("a plate of
-  pav bhaji"); bare "lassi" defaults to sweet lassi; "dal tadka", "dal fry" and "masala chai" are rewritten to the
-  USDA "Dal" and to "chai".
-- **Composer module:** `scripts/recipes.mjs` (`loadRecipes`, `composeRecipe`) is separate from `build-db.mjs` so its
-  checks are unit-tested without a full build.
+- `scripts/recipes.mjs` composes a dish from USDA foods: nutrients per 100 g = Σ(ingredient per-100 g × grams / 100)
+  × 100 / cookedGrams, with added water listed separately. A nutrient is composed only when every ingredient over 2%
+  of the dish has a value. The build fails on a missing or renamed ingredient, an implausible cooked weight, calories
+  that disagree with macros, or a recipe that does not name its source, licence and URL.
+- **No recipe data ships.** Twenty hand-written recipes were added in the first PR and removed in the follow-up,
+  because their quantities were estimates with no verifiable source. Dishes USDA lacks are unmatched until a licensed
+  dataset is imported. INDB was analysed locally as a candidate: its ingredient lists and dish names would be
+  valuable, but its per-100 g values often omit cooking water (no yield factors), so a licensed import should map
+  its ingredients to USDA and recompute, not copy its values.
 
 ### 8. Accuracy suite
 - `scripts/audit-catalog.ts` → `npm run audit:data`: Atwater check, negatives, sugar/fiber > carbs, coverage by
   source, portion density outliers, and the spot-check phrase table.
 - `test/logging-golden.test.mjs` gains cases for every fix above (US and Indian). A new `test/catalog.test.mjs`
-  checks the built catalog: no negative values, recipe foods present with expected calories bands, and
+  checks the built catalog: no negative values, only USDA sources, and
   `meta.collisions`/`meta.clamped` present.
 
 ## Risks / Trade-offs
@@ -119,8 +102,7 @@ totals, adding their `missingFrom` counts. The OpenAPI `NutrientMap` gains an op
 - **Weak-match change:** some phrases that used to log a low-confidence item will now be unmatched. Mitigation: the
   half-the-words rule keeps reasonable partial matches, suggestions are returned, and the golden test pins existing
   good results.
-- **Recipe values are estimates of a typical home version.** Real dishes vary. Mitigation: each recipe's `basis` is
-  documented, `source: "recipe"` is visible to clients, and the docs explain it.
+
 - **Rebuilt catalog:** a name-collision winner can change id (Foundation vs survey). Mitigation: only 38 foods are
   affected, and the old id disappears only for those; `/v1/foods/{id}` returns 404 for a removed id as it does today
   for unknown ids.
