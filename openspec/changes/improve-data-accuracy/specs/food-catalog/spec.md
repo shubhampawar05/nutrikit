@@ -30,16 +30,17 @@ SHALL record how many values it corrected.
 
 ### Requirement: Same-name foods keep the most complete record
 When two source datasets contain a food with the same name, the catalog SHALL keep the record with values for more
-nutrients, preferring Foundation, then survey, then SR Legacy on a tie. It SHALL NOT combine values from the two
-records into one food.
+Nutrition Facts label nutrients (calories, protein, fat, carbohydrate, fiber, sugars, saturated fat, cholesterol,
+sodium, potassium, calcium, iron, vitamin D), preferring Foundation, then survey, then SR Legacy on a tie. It SHALL
+NOT combine values from the two records into one food.
 
-#### Scenario: Collision with equal coverage
-- **WHEN** Foundation and survey both list "Broccoli, raw" with the same number of nutrients
+#### Scenario: Collision with equal label coverage
+- **WHEN** Foundation and SR Legacy both list "Pears, raw, bartlett (…)" with the same label nutrients
 - **THEN** the Foundation record is kept
 
-#### Scenario: Collision with unequal coverage
-- **WHEN** the survey record has more nutrients than the Foundation record of the same name
-- **THEN** the survey record is kept, with only its own values
+#### Scenario: Collision with unequal label coverage
+- **WHEN** the Foundation record of "Kiwifruit, green, raw" lacks label nutrients that the SR Legacy record has
+- **THEN** the SR Legacy record is kept, with only its own values
 
 ### Requirement: Dry-yield portions are not used as volumes
 A portion describing the cooked yield of a dry measure ("1 cup, dry, yields") SHALL NOT be used to convert a volume

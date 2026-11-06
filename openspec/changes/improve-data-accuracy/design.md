@@ -29,9 +29,10 @@ See proposal.md for the motivation and specs/ for the required behavior. Current
 
 ## Decisions
 
-### 1. Pair AI recognition by phrase index
-`resolveItems` records which input phrase produced each item (`phraseIndex`, internal, removed before the response).
-`aiItems` uses it to read `out.items[phraseIndex]`. This needs no extra search and keeps one code path.
+### 1. Resolve AI items one at a time
+`textlog.ts` exposes `resolvePhrase` (one phrase → an item or an unmatched entry); `resolveItems` is a loop over it.
+`aiItems` calls `resolvePhrase` per AI item and attaches that item's recognition directly, so there is no index
+bookkeeping and no internal field to strip from the response.
 
 ### 2. OFF values must be finite numbers
 `fromOpenFoodFacts` accepts a field only when `n[field] != null && n[field] !== '' && Number.isFinite(Number(...))`,
@@ -40,10 +41,12 @@ and the kJ fallback follows the same rule.
 ### 3. Build: clamp negatives, keep the better record on a name collision
 - A negative amount becomes 0. USDA computes carbohydrate "by difference", and rounding can push it below zero.
   The number of clamped values is stored in `meta.clamped`.
-- On a name collision, keep the record with more nutrient keys. On a tie, the order is Foundation > survey >
-  SR Legacy (newest analytical data first). The losing record is not merged in, because two USDA records of the
-  same name are different samples, and mixing their values would produce a food nobody measured. Counts are stored
-  in `meta.collisions`.
+- On a name collision, keep the record with values for more Nutrition Facts label nutrients (13 keys). On a tie,
+  the order is Foundation > survey > SR Legacy (newest data first). Counting all 33 keys was tried and rejected:
+  it replaced 57 FNDDS 2024 records with SR Legacy 2018 ones just because FNDDS has no trans fat. The losing
+  record is not merged in, because two USDA records of the same name are different samples, and mixing their
+  values would produce a food nobody measured. Counts are stored in `meta.collisions`. Measured effect: 69
+  Foundation records lacking label values give way to the complete SR Legacy record; survey is unchanged.
 - *Alternative considered:* fill a Foundation record's gaps from the same-name survey record. Rejected for that
   reason; per-nutrient provenance would be needed to do it honestly.
 

@@ -2,14 +2,14 @@
 
 ## 1. Correctness fixes
 
-- [x] 1.1 Pair AI recognition by phrase index: `resolveItems` records `phraseIndex` (internal), `aiItems` in `routes/v1.ts` reads `out.items[phraseIndex]` and strips the field; verify with an API test whose fake provider returns an unmatched item first
+- [x] 1.1 Resolve AI items one at a time: add `resolvePhrase` in `textlog.ts` (`resolveItems` loops over it), and `aiItems` in `routes/v1.ts` attaches each item's own recognition; verify with an API test whose fake provider returns an unmatched item first
 - [x] 1.2 `fromOpenFoodFacts` accepts only finite numbers (incl. the kJ fallback); verify with tests for a `null` nutrient and a `null` kJ value
 - [x] 1.3 The AI label path returns the same ml-as-grams warning as the text path; verify with a label-image test whose serving is in ml
 
 ## 2. Catalog build
 
-- [ ] 2.1 Clamp negative amounts to 0 and store `meta.clamped`; keep the record with more nutrients on a name collision (tie: foundation > survey > sr_legacy) and store `meta.collisions`; verify by rebuilding and checking counts and that `Broccoli, raw` is the Foundation record
-- [ ] 2.2 Add `test/catalog.test.mjs`: no negative values, `meta.clamped` and `meta.collisions` present
+- [x] 2.1 Clamp negative amounts to 0 and store `meta.clamped`; keep the record with more label nutrients on a name collision (tie: foundation > survey > sr_legacy) and store `meta.collisions`; verify by rebuilding and comparing every swapped record with the previous build
+- [x] 2.2 Add `test/catalog.test.mjs`: no negative values, `meta.clamped` and `meta.collisions` present, and the pear, kiwifruit and broccoli collision outcomes pinned
 
 ## 3. Portions
 

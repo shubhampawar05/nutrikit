@@ -94,9 +94,21 @@ const normUnit = (u) => {
   return UNIT_ALIASES[s] || s || null;
 };
 
+// Same-name foods across datasets: keep the record with values for more Nutrition Facts label nutrients; on a
+// tie, the newest data (Foundation, then survey, then SR Legacy). Two records are different samples, so their
+// values are never mixed into one food.
+const LABEL_KEYS = ['calories', 'protein', 'fat', 'carbs', 'fiber', 'sugar', 'saturatedFat', 'cholesterol', 'sodium', 'potassium', 'calcium', 'iron', 'vitaminD'];
+const SOURCE_RANK = { foundation: 0, survey: 1, sr_legacy: 2 };
+const labelCoverage = (f) => LABEL_KEYS.filter((k) => f.n[k] != null).length;
+const better = (a, b) => {
+  const ka = labelCoverage(a), kb = labelCoverage(b);
+  return ka !== kb ? ka > kb : SOURCE_RANK[a.source] < SOURCE_RANK[b.source];
+};
+
 const counts = {};
-const seenNames = new Set();
-db.exec('BEGIN');
+const kept = new Map(); // lowercase name -> food
+let collisions = 0;
+let clamped = 0;
 for (const ds of DATASETS) {
   const dir = ds.dir;
   const nutrientRows = csv(dir, 'nutrient');
@@ -112,7 +124,7 @@ for (const ds of DATASETS) {
   const foods = new Map();
   for (const f of csv(dir, 'food')) {
     if (!ds.types.includes(f.data_type)) continue;
-    foods.set(f.fdc_id, { id: Number(f.fdc_id), name: f.description.trim(), category: categories.get(f.food_category_id) || null, n: {}, p: {} });
+    foods.set(f.fdc_id, { id: Number(f.fdc_id), name: f.description.trim(), source: ds.source, category: categories.get(f.food_category_id) || null, n: {}, p: {} });
   }
 
   for (const fn of csv(dir, 'food_nutrient')) {
@@ -123,7 +135,10 @@ for (const ds of DATASETS) {
     const slot = NUTRIENT_SLOTS.get(id);
     if (!slot) continue;
     if (food.p[slot.key] === undefined || slot.priority < food.p[slot.key]) {
-      food.n[slot.key] = Number(fn.amount);
+      // Carbohydrate "by difference" can round below zero; no nutrient amount is negative.
+      const amount = Number(fn.amount);
+      if (amount < 0) clamped++;
+      food.n[slot.key] = Math.max(0, amount);
       food.p[slot.key] = slot.priority;
     }
   }
@@ -144,23 +159,28 @@ for (const ds of DATASETS) {
     portions.set(p.fdc_id, list);
   }
 
-  let n = 0;
   for (const [fdcId, f] of foods) {
     if (f.n.calories == null) continue; // unusable for logging
+    f.portions = (portions.get(fdcId) || []).sort((a, b) => a.seq - b.seq);
     const key = f.name.toLowerCase();
-    if (seenNames.has(key)) continue; // earlier datasets win on identical names
-    seenNames.add(key);
-    insertFood.run(f.id, f.name, ds.source, f.category, JSON.stringify(f.n));
-    for (const p of (portions.get(fdcId) || []).sort((a, b) => a.seq - b.seq)) {
-      insertPortion.run(f.id, p.seq, p.label, p.amount, p.unit, p.grams);
-    }
-    n++;
+    const prev = kept.get(key);
+    if (prev) collisions++;
+    if (!prev || better(f, prev)) kept.set(key, f);
   }
-  counts[ds.source] = n;
+}
+
+db.exec('BEGIN');
+for (const f of kept.values()) {
+  insertFood.run(f.id, f.name, f.source, f.category, JSON.stringify(f.n));
+  for (const p of f.portions) insertPortion.run(f.id, p.seq, p.label, p.amount, p.unit, p.grams);
+  counts[f.source] = (counts[f.source] ?? 0) + 1;
 }
 db.exec("INSERT INTO foods_fts(foods_fts) VALUES ('rebuild')");
-db.prepare('INSERT INTO meta VALUES (?, ?)').run('built_at', new Date().toISOString());
-db.prepare('INSERT INTO meta VALUES (?, ?)').run('sources', JSON.stringify(DATASETS.map((d) => d.dir)));
+const insertMeta = db.prepare('INSERT INTO meta VALUES (?, ?)');
+insertMeta.run('built_at', new Date().toISOString());
+insertMeta.run('sources', JSON.stringify(DATASETS.map((d) => d.dir)));
+insertMeta.run('clamped', String(clamped));
+insertMeta.run('collisions', String(collisions));
 db.exec('COMMIT');
 db.exec('VACUUM');
 
