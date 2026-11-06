@@ -13,8 +13,8 @@
 
 ## 3. Portions
 
-- [ ] 3.1 `resolvePortion` ignores "yields" portions for volume lookup and conversion; verify "1 cup barley" uses the cooked cup
-- [ ] 3.2 Bare counts prefer regular/medium over small/mini/thin, including head-word portions; verify "1 samosa" (regular) and "1 bagel" (90–120 g), with the golden test unchanged
+- [x] 3.1 `resolvePortion` ignores "yields" portions for volume lookup and conversion; verify "1 cup barley" uses the cooked cup
+- [x] 3.2 Bare counts prefer regular/medium over small/mini/thin, including head-word portions; verify "1 samosa" (regular) and "1 bagel" (90–120 g), with the golden test unchanged; "1 naan" uses the whole naan via the shared `names.ts` head segments
 
 ## 4. Matching
 

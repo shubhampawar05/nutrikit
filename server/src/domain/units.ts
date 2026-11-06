@@ -2,6 +2,7 @@
 // for a specific food, using the food's household portions when the unit is not a mass.
 import type { Portion, ResolvedPortion } from './types.ts';
 import { lookup } from './lookup.ts';
+import { headSegments } from './names.ts';
 
 const WORD_NUMBERS: Record<string, number> = lookup({
   a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
@@ -62,6 +63,9 @@ export function parseQuantity(text: string): { value: number | null; rest: strin
 
 const VOLUME_PORTIONS: Record<string, number> = lookup({ cup: 1, tbsp: 1 / 16, tsp: 1 / 48, 'fl oz': 1 / 8 });
 const SNACK = /nuts and seeds|chips|candy|crackers|pretzels|popcorn|cereal bars/i;
+const YIELDS = /\byields\b/i;
+const TYPICAL_SIZE = /\b(medium|regular)\b/i;
+const SIZE_DOWN = /\b(small|mini|miniature|thin|snack[- ]size|bite[- ]size|fun size)\b/i;
 const LIQUID = /\b(juice|milk|coffee|tea|soda|soft drink|beverage|water|beer|wine|smoothie|shake|drink|lemonade|kombucha)\b/i;
 const singular = (w: string) => (w.endsWith('es') && w.length > 4 ? w.slice(0, -2) : w.endsWith('s') && w.length > 3 ? w.slice(0, -1) : w);
 
@@ -104,10 +108,12 @@ export function resolvePortion(food: PortionFood, quantity: number | null | unde
     return { grams: q * (oz ? perUnit(oz) : 28.35), quantity: q, unit: 'handful', portion: oz?.label || null, method: 'estimate-1oz' };
   }
   if (unit?.kind === 'volume') {
-    // Prefer a portion in the same unit, else convert through any volume portion of this food.
-    const same = portions.find((p) => p.unit === unit.unit || (unit.unit === 'cups' && p.unit === 'cup'));
+    // Prefer a portion in the same unit, else convert through any volume portion of this food. "1 cup, dry,
+    // yields" weighs the cooked result of a dry cup (740 g for barley), so it is never a volume of this food.
+    const volumes = portions.filter((p) => !YIELDS.test(p.label));
+    const same = volumes.find((p) => p.unit === unit.unit || (unit.unit === 'cups' && p.unit === 'cup'));
     if (same) return { grams: q * perUnit(same), quantity: q, unit: unit.unit, portion: same.label, method: 'portion' };
-    const vol = portions.find((p) => VOLUME_PORTIONS[p.unit as string]);
+    const vol = volumes.find((p) => VOLUME_PORTIONS[p.unit as string]);
     if (vol) {
       const gramsPerCup = perUnit(vol) / VOLUME_PORTIONS[vol.unit as string];
       return { grams: q * unit.cups * gramsPerCup, quantity: q, unit: unit.unit, portion: vol.label, method: 'volume-conversion' };
@@ -130,21 +136,22 @@ export function resolvePortion(food: PortionFood, quantity: number | null | unde
   const size = unit?.kind === 'count' && SIZES.includes(unit.unit) ? unit.unit as Size : null;
   const sized = size && SIZE_SERVINGS.find(([pattern]) => pattern.test(food.name));
   if (sized) return { grams: q * sized[1][size!], quantity: q, unit: size!, portion: `${size} serving`, method: 'size-serving' };
-  // Bare count ("2 eggs", "a banana"): a portion named after the food, then medium/piece/serving.
-  const head = food.name.toLowerCase().split(/[,(]/)[0].trim();
-  const headWords = head.split(/\s+/).map(singular);
+  // Bare count ("2 eggs", "a banana"): a portion named after the food, then medium/regular/piece/serving.
+  // A size-down portion ("1 Bagel Thin", "1 small/individual") is only used when nothing typical is listed.
+  const headWords = headSegments(food.name).join(' ').split(/\s+/).map(singular);
   const preference: ((p: Portion) => unknown)[] = [
-    (p) => p.unit && headWords.includes(singular(p.unit)),
+    (p) => p.unit && headWords.includes(singular(p.unit)) && !SIZE_DOWN.test(p.label),
     (p) => ['fruit', 'whole', 'each', 'item', 'unit', 'nut'].includes(p.unit as string),
     // Drinks: a can of soda, a cup of coffee — not a café "medium" (16 fl oz).
     (p) => p.unit === 'can' && LIQUID.test(food.name),
     (p) => p.unit === 'cup' && LIQUID.test(food.name),
     (p) => p.unit === 'medium',
-    (p) => /\bmedium\b/i.test(p.label),
+    (p) => TYPICAL_SIZE.test(p.label),
     (p) => ['piece', 'serving', 'sandwich'].includes(p.unit as string),
     (p) => p.unit === 'oz' && SNACK.test(food.category || ''),
     (p) => p.unit === 'cup',
     (p) => p.unit === 'slice',
+    (p) => !SIZE_DOWN.test(p.label),
     () => true,
   ];
   // With no quantity at all ("some almonds"), skip tiny units like "1 nut".
