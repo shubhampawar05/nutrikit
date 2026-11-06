@@ -8,7 +8,7 @@ A copy is checked in at [server/docs/openapi.json](../server/docs/openapi.json) 
 | Feature | Endpoint | Tokens | How it works |
 |---|---|---|---|
 | Food search | `GET /v1/foods/search?q=` | 1 | Full-text search over 13,359 foods, ranked to prefer the plain form ("banana" → *Banana, raw*) |
-| Food detail | `GET /v1/foods/{id}` | 1 | 33 nutrients per 100 g, plus household portions |
+| Food detail | `GET /v1/foods/{id}` | 1 | Up to 33 nutrients per 100 g (see [Missing data](#missing-data)), plus household portions |
 | Portion nutrients | `GET /v1/foods/{id}/nutrients?quantity=&unit=` | 1 | Converts "2 medium", "1.5 cups", "12 fl oz" to grams; adds % daily value |
 | Text logging | `POST /v1/log/text` | 5 | Rule-based parser; `ai: true` uses the AI provider for free-form text |
 | Voice logging | `POST /v1/log/voice` | 5 | The device transcribes; the server cleans filler words and logs it |
@@ -77,8 +77,43 @@ setup is in [mcp/README.md](../mcp/README.md).
   food has no portion that small).
 - Size words use real servings where the catalog has none, e.g. small, medium and large fries are 71, 117 and
   154 g (`size-serving`). Hot drinks without a size are one cup.
-- A bare everyday word means the everyday food: "tea" and "chai" are hot black tea and "salad" is a green salad,
-  while "iced tea" or "chicken salad" get what they say. Search lists that food first and keeps the other matches.
-- The same food from two data sources appears once in search results.
+- A bare everyday word means the everyday food: "tea" is hot black tea, "chai" is hot tea with milk (as drunk in
+  India) and "salad" is a green salad, while "iced tea" or "chicken salad" get what they say. Search lists that food
+  first and keeps the other matches.
+- Indian English words mean what they mean in India: "curd" and "dahi" are plain yogurt ("bean curd" is still tofu).
+- Search matches whole words first, then word prefixes ("chick"), then any one word, and says which in `match`
+  (`all-words`, `prefix`, `any-word`). When logging, a `prefix` or `any-word` match is used only if the food shares
+  more than half of the phrase's words; otherwise the phrase is listed in `unmatched` with `reason`
+  `no confident match` and `suggestions`, rather than logged as a different food ("butter chicken" is never a cup
+  of butter).
+- The same food from two data sources appears once in search results. When two USDA datasets list the same name,
+  the catalog keeps the record with more Nutrition Facts label nutrients (newest data on a tie) and never mixes
+  values from the two.
+
+## Missing data
+
+Nutrikit never fills a gap with a guess or a zero.
+
+- **A nutrient a food has no value for is left out** of `per100g` and of its `nutrients`. It is not `0`.
+- **Totals flag gaps.** When some foods in a meal (or a meal-plan day) have no value for a nutrient, that total
+  carries `missingFrom`: how many foods lacked it. The amount is then a lower bound. A nutrient no food has is left
+  out of the totals.
+- **A food the catalog doesn't have** is listed in `unmatched`, never swapped for a different food. With no
+  items, `totals` is `{}`.
+- **Open Food Facts** values that are blank, `null` or not numbers are left out.
+
+Coverage by source (share of foods with a value):
+
+| Nutrients | USDA survey (FNDDS, 5,431 foods) | USDA SR Legacy (7,688) | USDA Foundation (240) |
+|---|---|---|---|
+| Calories, protein, fat, carbohydrate | 100% | 100% | 100% |
+| Sodium, potassium, calcium, iron | 100% | 96–99% | 99% |
+| Fiber, saturated fat, cholesterol | 100% | 93–96% | 22–52% |
+| Sugars | 100% | 77% | 31% |
+| Vitamins A, C, D, E, K, B12, folate | 100% | 64–94% | 8–32% |
+| Trans fat | – | 54% | 13% |
+| Added sugars | – | – | – |
+
+Added sugars come only from Open Food Facts and nutrition labels; USDA's food tables don't report them.
 - Diet filters work from food names, so treat them as best effort.
 - Photo and label recognition are only as good as the AI provider.

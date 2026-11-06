@@ -152,3 +152,15 @@ test('meal plans are deterministic, near target and respect diets', () => {
   const noNuts = generateMealPlan({ exclude: ['nut', 'almond'], seed: 3, days: 3 });
   for (const i of noNuts.days.flatMap((d) => d.meals.flatMap((m) => m.items))) assert.doesNotMatch(i.food.name, /nut|almond/i);
 });
+
+test('meal totals flag nutrients some foods lack, and leave out nutrients none have', () => {
+  const a = scaleNutrients({ calories: 100, vitaminD: 2 }, 100);
+  const b = scaleNutrients({ calories: 50 }, 100);
+  const totals = sumNutrients([a, b]);
+  assert.equal(totals.calories.amount, 150);
+  assert.equal(totals.calories.missingFrom, undefined, 'every food had calories');
+  assert.equal(totals.vitaminD.amount, 2);
+  assert.equal(totals.vitaminD.missingFrom, 1, 'one of the two foods had no vitamin D value');
+  assert.equal(totals.vitaminC, undefined, 'no food had vitamin C');
+  assert.deepEqual(sumNutrients([]), {});
+});

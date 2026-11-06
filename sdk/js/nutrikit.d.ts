@@ -6,7 +6,13 @@ export type NutrientKey =
   | 'magnesium' | 'phosphorus' | 'zinc' | 'vitaminA' | 'vitaminC' | 'vitaminD' | 'vitaminE' | 'vitaminK'
   | 'thiamin' | 'riboflavin' | 'niacin' | 'vitaminB6' | 'folate' | 'vitaminB12' | 'caffeine' | 'alcohol' | 'water';
 
-export interface NutrientAmount { amount: number; unit: string; dailyValuePercent: number | null }
+export interface NutrientAmount {
+  amount: number;
+  unit: string;
+  dailyValuePercent: number | null;
+  /** Totals only: how many of the summed foods had no value for this nutrient (the amount is a lower bound). */
+  missingFrom?: number;
+}
 export type NutrientMap = Partial<Record<NutrientKey, NutrientAmount>>;
 export type FoodSource = 'survey' | 'foundation' | 'sr_legacy';
 

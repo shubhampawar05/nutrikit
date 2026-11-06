@@ -66,21 +66,27 @@ export function scaleNutrients(per100g: Per100g, grams: number): NutrientMap {
   return out;
 }
 
-// Sum already-scaled nutrient maps (as returned by scaleNutrients).
+// Sum the nutrient maps of individual foods (as returned by scaleNutrients). A total that some foods have no value
+// for is a lower bound: `missingFrom` says how many of them lacked it. A nutrient no food has stays absent.
 export function sumNutrients(list: NutrientMap[]): NutrientMap {
   const totals: Record<string, number> = {};
+  const present: Record<string, number> = {};
   for (const map of list) {
     for (const [key, v] of Object.entries(map)) {
-      totals[key] = (totals[key] ?? 0) + (v.amount ?? 0);
+      if (v.amount == null) continue;
+      totals[key] = (totals[key] ?? 0) + v.amount;
+      present[key] = (present[key] ?? 0) + 1;
     }
   }
   const out: NutrientMap = {};
   for (const n of NUTRIENTS) {
     if (totals[n.key] == null) continue;
+    const missing = list.length - present[n.key];
     out[n.key] = {
       amount: round(totals[n.key], n.unit),
       unit: n.unit,
       dailyValuePercent: n.dv ? Math.round((totals[n.key] / n.dv) * 100) : null,
+      ...(missing ? { missingFrom: missing } : {}),
     };
   }
   return out;

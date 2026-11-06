@@ -149,6 +149,7 @@ GET /v1/foods/2709224/nutrients?grams=150`}</code></CodeBlock>
           <CodeBlock><code>{`POST /v1/log/text
 { "text": "For lunch I had a cheeseburger and medium fries" }`}</code></CodeBlock>
           <p>The sentence is split into foods, each with a quantity, unit, grams, nutrients, a <code>confidence</code> and up to three <code>alternatives</code> you can offer as corrections. <code>totals</code> sums the meal, and <code>meal</code> is set when the text names one.</p>
+          <p>A phrase the catalog has no food for is listed in <code>unmatched</code> instead of being logged as something else. When only a partial match exists (no food has all of its words, and the best one shares no more than half of them), its <code>reason</code> is <code>no confident match</code> and <code>suggestions</code> lists foods you can offer instead.</p>
           <p>Set <code>"ai": true</code> to parse with the server's AI provider — better for long or unusual descriptions (adds AI usage to the cost).</p>
           <h3>Voice</h3>
           <CodeBlock><code>{`POST /v1/log/voice
@@ -276,7 +277,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
 
         <section id="nutrients">
           <h2>Nutrient keys</h2>
-          <p>Nutrient maps use these keys. Each value is <code>{'{ "amount", "unit", "dailyValuePercent" }'}</code>; keys a food has no data for are omitted. <code>GET /v1/nutrients</code> returns the same list with daily values.</p>
+          <p>Nutrient maps use these keys. Each value is <code>{'{ "amount", "unit", "dailyValuePercent" }'}</code>; keys a food has no data for are omitted, never sent as 0. In <code>totals</code>, a nutrient that some of the foods lack carries <code>missingFrom</code> (how many lacked it), so you can show the amount as a lower bound. Coverage depends on the source: USDA survey foods have every key except trans fat and added sugars, while SR Legacy and Foundation foods often lack vitamins. <code>GET /v1/nutrients</code> returns the same list with daily values.</p>
           <NutrientTable />
         </section>
 

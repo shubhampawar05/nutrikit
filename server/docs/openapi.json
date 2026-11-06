@@ -73,6 +73,11 @@
                 "integer",
                 "null"
               ]
+            },
+            "missingFrom": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Totals only: how many of the summed foods had no value for this nutrient, so the amount is a lower bound. Absent when every food had one."
             }
           }
         }
@@ -86,6 +91,15 @@
           },
           "relaxed": {
             "type": "boolean"
+          },
+          "match": {
+            "type": "string",
+            "enum": [
+              "all-words",
+              "prefix",
+              "any-word"
+            ],
+            "description": "How the results matched; absent when nothing matched"
           },
           "total": {
             "type": "integer"
@@ -243,7 +257,36 @@
             }
           },
           "unmatched": {
-            "type": "array"
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "no matching food",
+                    "no confident match"
+                  ]
+                },
+                "suggestions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "totals": {
             "$ref": "#/components/schemas/NutrientMap"
@@ -1001,6 +1044,16 @@
           },
           "501": {
             "description": "AI provider not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI provider did not answer in time (ai_timeout); nothing is charged",
             "content": {
               "application/json": {
                 "schema": {

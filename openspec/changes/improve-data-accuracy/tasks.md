@@ -25,11 +25,12 @@
 
 ## 5. Missing nutrients and docs
 
-- [ ] 5.1 `sumNutrients` sets `missingFrom`; meal plan day totals add it up; `NutrientMap` schema documents it; verify with unit tests for a partial and a complete total
-- [ ] 5.2 `docs/api.md`: per-source coverage table, absent keys, `missingFrom`, `unmatched[].suggestions`, `source: "recipe"`; update the "33 nutrients" claim; `CLEAN-ROOM.md`: recipes are original, INDB only as a local benchmark
+- [x] 5.1 `sumNutrients` sets `missingFrom`; meal plan day totals add it up; `NutrientMap` schema documents it; verify with unit tests for a partial and a complete total
+- [x] 5.2 `docs/api.md` (Missing data section with per-source coverage, absent keys, `missingFrom`, `match`, `unmatched[].suggestions`), the website docs, and "up to 33 nutrients" in the home page, SEO description and README; regenerate `server/docs/openapi.json`
 
 ## 6. Recipes
 
+- [ ] 6.0 `CLEAN-ROOM.md` and docs: recipes are original, INDB only as a local benchmark; `source: "recipe"` documented; website changelog v1.4
 - [ ] 6.1 Recipe loader and composer in `build-db.mjs` (validation, reserved ids, aliases in FTS, `source: 'recipe'`), and the `recipe` search bonus; verify the build fails on an unknown fdcId
 - [ ] 6.2 Write the first batch in `server/data/recipes/`: rajma, chole, khichdi, poha, gulab jamun, sweet lassi, salted lassi, butter chicken, chicken tikka masala, egg curry, aloo paratha, aloo gobi, pav bhaji, raita, jeera rice, kadhi, bhindi masala, masala dosa, kheer, matar paneer; verify each passes the audit checks and lands in a plausible calorie band
 

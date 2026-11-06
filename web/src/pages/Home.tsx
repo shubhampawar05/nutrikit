@@ -14,7 +14,7 @@ export function Home() {
           <div>
             <span className="kicker">Nutrition API</span>
             <h1>Describe a meal.<br />Get the <em>nutrition label</em>.</h1>
-            <p className="lead">Nutrikit turns what people type, say, snap or scan into matched foods, real portions and 33 nutrients — through one API key and a tiny SDK.</p>
+            <p className="lead">Nutrikit turns what people type, say, snap or scan into matched foods, real portions and up to 33 nutrients — through one API key and a tiny SDK.</p>
             <div className="cta-row">
               <Link className="btn btn-primary" to="/signup">Get a free API key <span className="arrow">→</span></Link>
               <Link className="btn btn-ghost" to="/docs">Read the docs</Link>
