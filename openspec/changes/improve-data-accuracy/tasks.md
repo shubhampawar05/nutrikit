@@ -36,5 +36,9 @@
 
 ## 7. Accuracy suite and verification
 
-- [ ] 7.1 `npm run audit:data` runs `scripts/audit-catalog.ts`; extend `test/logging-golden.test.mjs` with the US and Indian cases above
-- [ ] 7.2 `npm run typecheck`, `npm test`, `npm run build:db`, `npm run audit:data`; `curl /v1/log/text` against `npm run dev`; e2e smoke
+- [x] 7.1 `npm run audit:data` runs `scripts/audit-catalog.ts` (exits 1 on a negative value); the US and Indian cases above are pinned in `test/logging.test.mjs`, `test/core.test.mjs`, `test/catalog.test.mjs` and `test/recipes.test.mjs`, and the existing golden test is unchanged
+- [x] 7.2 `npm run typecheck`, `npm run test:unit` (server 148, web 101, MCP 5), `npm run build:db`, `npm run audit:data`, `npm run test:e2e` against the rebuilt image, and `curl` of `/v1/log/text` and `/v1/foods/search` on it
+
+## Follow-up
+
+- The MCP server builds against the published `@nutrikit/sdk@^0.1.0`, whose `FoodSource` has no `recipe`, so its `search_foods` tool cannot filter by `source: "recipe"` yet (recipe foods are still returned). Add `recipe` to the MCP enum after the next SDK release.

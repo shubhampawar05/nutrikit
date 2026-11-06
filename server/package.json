@@ -6,6 +6,7 @@
   "description": "Nutrikit REST API server: food search, nutrient breakdowns, text/voice/photo meal logging, barcode and label scanning, meal plans.",
   "scripts": {
     "build:db": "node --import tsx scripts/build-db.mjs",
+    "audit:data": "node --import tsx scripts/audit-catalog.ts",
     "migrate": "node --env-file-if-exists=../.env --import tsx src/cli/migrate.ts",
     "migrate:sqlite": "node --env-file-if-exists=../.env --import tsx scripts/migrate-sqlite-to-postgres.mjs",
     "dev": "node --env-file-if-exists=../.env --import tsx --watch src/main.ts",
