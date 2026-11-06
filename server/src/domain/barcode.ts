@@ -74,13 +74,22 @@ const OFF_MAP: Record<string, [string, number]> = {
   vitaminD: ['vitamin-d_100g', 1e6], caffeine: ['caffeine_100g', 1000], alcohol: ['alcohol_100g', 1],
 };
 
+// An OFF nutriment as a finite number, or null when it is absent, null, blank or not numeric (never 0 by accident).
+const offNumber = (v: unknown): number | null => {
+  if (v == null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
 export function fromOpenFoodFacts(product: OffProduct): BarcodeProduct {
   const n = product.nutriments || {};
   const per100g: Per100g = {};
   for (const [key, [field, mult]] of Object.entries(OFF_MAP)) {
-    if (n[field] !== undefined && n[field] !== '' && !Number.isNaN(Number(n[field]))) per100g[key] = Number(n[field]) * mult;
+    const v = offNumber(n[field]);
+    if (v != null) per100g[key] = v * mult;
   }
-  if (per100g.calories == null && n['energy_100g'] != null) per100g.calories = Number(n['energy_100g']) / 4.184; // kJ
+  const kj = offNumber(n['energy_100g']);
+  if (per100g.calories == null && kj != null) per100g.calories = kj / 4.184;
   for (const k of Object.keys(per100g)) per100g[k] = Math.round(per100g[k] * 1000) / 1000; // drop float noise from unit conversion
   const servingGrams = Number(product.serving_quantity) || null;
   return {

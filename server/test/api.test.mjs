@@ -5,6 +5,7 @@ import { buildApp } from '../src/app.ts';
 import { setProvider } from '../src/domain/providers/index.ts';
 import { createKey } from '../src/domain/auth.ts';
 import { isValidGtin, fromOpenFoodFacts, lookupBarcode } from '../src/domain/barcode.ts';
+import { LABEL_WARNINGS } from '../src/domain/label.ts';
 
 const app = await buildApp();
 
@@ -167,6 +168,52 @@ test('Open Food Facts mapping converts grams to mg/mcg', () => {
   assert.deepEqual(p.per100g, { calories: 400, protein: 20, sodium: 500, iron: 2, vitaminD: 5 });
   assert.equal(p.perServing.calories.amount, 160);
   assert.equal(fromOpenFoodFacts({ code: '2', nutriments: { energy_100g: 418.4 } }).per100g.calories, 100);
+});
+
+test('Open Food Facts null or non-numeric values stay missing, never 0', () => {
+  const p = fromOpenFoodFacts({ code: '3', nutriments: { 'energy-kcal_100g': null, energy_100g: null, proteins_100g: 5, fat_100g: null, sugars_100g: 'n/a', 'saturated-fat_100g': '' } });
+  assert.deepEqual(p.per100g, { protein: 5 });
+  assert.equal(fromOpenFoodFacts({ code: '4', nutriments: { 'energy-kcal_100g': null, energy_100g: 418.4 } }).per100g.calories, 100);
+});
+
+test('photo logging keeps each AI recognition with its own item when an earlier one is unmatched', async () => {
+  setProvider({
+    name: 'fake',
+    async recognizeMeal() {
+      return {
+        meal: null, notes: '',
+        items: [
+          { food: 'zzqxunknownfood', quantity: 1, unit: 'piece', grams: 50, confidence: 'low' },
+          { food: 'banana', quantity: 1, unit: 'piece', grams: 118, confidence: 'high' },
+        ],
+        usage: { inputTokens: 100, outputTokens: 50 },
+      };
+    },
+  });
+  const body = await (await call('/v1/log/photo', { method: 'POST', body: { image: 'aGVsbG8=', mediaType: 'image/png' } })).json();
+  assert.equal(body.unmatched.length, 1);
+  assert.equal(body.items.length, 1);
+  assert.match(body.items[0].food.name, /^Banana/);
+  assert.deepEqual(body.items[0].recognition, { label: 'banana', confidence: 'high' });
+});
+
+test('label from an image reports the same warnings as the text parser', async () => {
+  setProvider({
+    name: 'fake',
+    async readLabel() {
+      return { isNutritionLabel: true, servingSize: '1 bottle (500 ml)', servingGrams: 500, servingsPerContainer: 1, perServing: { calories: 210, sugar: 52 }, usage: { inputTokens: 100, outputTokens: 50 } };
+    },
+  });
+  const ml = await (await call('/v1/labels/parse', { method: 'POST', body: { image: 'aGVsbG8=', mediaType: 'image/png' } })).json();
+  assert.deepEqual(ml.warnings, [LABEL_WARNINGS.mlServing]);
+  setProvider({
+    name: 'fake',
+    async readLabel() {
+      return { isNutritionLabel: true, servingSize: null, servingGrams: null, servingsPerContainer: null, perServing: { protein: 3 }, usage: { inputTokens: 100, outputTokens: 50 } };
+    },
+  });
+  const none = await (await call('/v1/labels/parse', { method: 'POST', body: { image: 'aGVsbG8=', mediaType: 'image/png' } })).json();
+  assert.deepEqual(none.warnings, [LABEL_WARNINGS.noServing, LABEL_WARNINGS.noCalories]);
 });
 
 test('barcode lookup caches hits and misses', async () => {

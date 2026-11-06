@@ -113,29 +113,24 @@ export function addOnPortion(food: Pick<Food, 'name' | 'portions'>): ResolvedPor
 }
 
 /**
- * Turn parsed phrases into logged items. Each phrase: { food, quantity?, unit?, grams?, text? }.
+ * Turn one phrase into a logged item, or an unmatched entry. Phrase: { food, quantity?, unit?, grams?, text? }.
  * A phrase may carry `grams` directly (e.g. AI portion estimates), which overrides unit parsing.
  */
-export function resolveItems(phrases: Phrase[], { alternatives = 3 }: { alternatives?: number } = {}): ResolvedItems {
-  const items: LoggedItem[] = [];
-  const unmatched: Unmatched[] = [];
-  for (const ph of phrases) {
-    const found = searchFoods(ph.food, { limit: alternatives + 1 });
-    if (!found.results.length) {
-      unmatched.push({ text: ph.text || ph.food, reason: 'no matching food' });
-      continue;
-    }
-    const best = getFood(found.results[0].id)!;
-    let portion: ResolvedPortion;
-    if (ph.grams) {
-      portion = { grams: ph.grams, quantity: ph.quantity ?? 1, unit: ph.unit || 'serving', portion: null, method: 'provided-grams' };
-    } else if (ph.addOn && ph.quantity == null && !ph.unit) {
-      portion = addOnPortion(best);
-    } else {
-      portion = resolvePortion(best, ph.quantity, ph.unit);
-    }
-    const grams = Math.round(portion.grams * 10) / 10;
-    items.push({
+export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?: number } = {}): { item: LoggedItem } | { unmatched: Unmatched } {
+  const found = searchFoods(ph.food, { limit: alternatives + 1 });
+  if (!found.results.length) return { unmatched: { text: ph.text || ph.food, reason: 'no matching food' } };
+  const best = getFood(found.results[0].id)!;
+  let portion: ResolvedPortion;
+  if (ph.grams) {
+    portion = { grams: ph.grams, quantity: ph.quantity ?? 1, unit: ph.unit || 'serving', portion: null, method: 'provided-grams' };
+  } else if (ph.addOn && ph.quantity == null && !ph.unit) {
+    portion = addOnPortion(best);
+  } else {
+    portion = resolvePortion(best, ph.quantity, ph.unit);
+  }
+  const grams = Math.round(portion.grams * 10) / 10;
+  return {
+    item: {
       input: ph.text || ph.food,
       food: { id: best.id, name: best.name, source: best.source },
       quantity: portion.quantity,
@@ -146,7 +141,18 @@ export function resolveItems(phrases: Phrase[], { alternatives = 3 }: { alternat
       confidence: found.relaxed ? 'low' : found.results[0].score > 15 ? 'high' : 'medium',
       nutrients: scaleNutrients(best.per100g, grams),
       alternatives: found.results.slice(1).map((r) => ({ id: r.id, name: r.name })),
-    });
+    },
+  };
+}
+
+/** Turn parsed phrases into logged items, unmatched phrases and meal totals. */
+export function resolveItems(phrases: Phrase[], opts: { alternatives?: number } = {}): ResolvedItems {
+  const items: LoggedItem[] = [];
+  const unmatched: Unmatched[] = [];
+  for (const ph of phrases) {
+    const r = resolvePhrase(ph, opts);
+    if ('item' in r) items.push(r.item);
+    else unmatched.push(r.unmatched);
   }
   return { items, unmatched, totals: sumNutrients(items.map((i) => i.nutrients)) };
 }
