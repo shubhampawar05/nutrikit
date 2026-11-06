@@ -31,9 +31,43 @@ test('a stated amount beats the add-on cap', () => {
 
 test('bare everyday words match the everyday food', () => {
   assert.equal(item('tea').food.name, 'Tea, hot, leaf, black');
-  assert.equal(item('a cup of chai').food.name, 'Tea, hot, leaf, black');
+  assert.equal(item('a cup of chai').food.name, 'Tea, hot, with milk', 'chai is milk tea, as drunk in India');
   assert.match(item('a salad').food.name, /^Lettuce/);
   assert.match(item('green tea').food.name, /^Tea, hot, leaf, green/);
+});
+
+test('search matches whole words before prefixes', () => {
+  assert.equal(searchFoods('chole').match, 'prefix', 'no food has the whole word "chole"');
+  assert.equal(logText('1 cup chole').items.length, 0, 'never logged as a cholesterol-free food');
+  assert.ok(searchFoods('chick').results.some((r) => /^chick/i.test(r.name)), 'partial typing still works');
+  assert.equal(searchFoods('egg').match, 'all-words');
+});
+
+test('category-led names match their food', () => {
+  assert.match(item('100 g salmon').food.name, /^Fish, salmon, (raw|NFS|baked)/);
+  assert.equal(item('100 g paneer').food.name, 'Cheese, paneer');
+  assert.equal(item('1 naan').grams, 177, 'a whole naan, not a quarter piece');
+});
+
+test('regional and spelling variants match the right food', () => {
+  assert.match(item('1 cup curd').food.name, /^Yogurt/);
+  assert.match(item('1 cup dahi').food.name, /^Yogurt/);
+  assert.match(item('100 g bean curd').food.name, /^Tofu/);
+  assert.match(item('1 donut').food.name, /^Doughnut/);
+});
+
+test('plain foods are preferred over prepared forms', () => {
+  assert.doesNotMatch(item('1 chicken breast').food.name, /coated|breaded|battered/i);
+  assert.match(item('1 cup brown rice').food.name, /no added fat/);
+});
+
+test('a weak partial match is unmatched with suggestions, not logged', () => {
+  const r = logText('1 cup butter chicken');
+  assert.equal(r.items.length, 0, 'not logged as a cup of butter');
+  assert.equal(r.unmatched[0].reason, 'no confident match');
+  assert.ok(r.unmatched[0].suggestions.length > 0);
+  assert.deepEqual(r.totals, {});
+  assert.match(item('homemade veggie burger').food.name, /^Veggie burger/, 'a word counts in its typed form too');
 });
 
 test('words that ask for a variant still get it', () => {

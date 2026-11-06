@@ -6,8 +6,8 @@
 Logging text SHALL split a meal description into one item per food. Each item SHALL carry the phrase it came from,
 the matched food, the quantity and unit the user gave (or a default when none), its grams, nutrients, a confidence
 and up to three alternatives. Phrases that match no food SHALL be listed as unmatched rather than guessed. A phrase
-whose only match shares fewer than half of its words with the matched food's name SHALL also be listed as unmatched,
-with up to three suggested foods, and SHALL NOT count toward the totals.
+that no food matches on all of its words, and whose best partial match shares no more than half of its words, SHALL
+also be listed as unmatched, with suggested foods that share some of its words, and SHALL NOT count toward the totals.
 
 #### Scenario: Several foods with counts
 - **WHEN** a caller logs "2 eggs, toast with butter and an orange juice"
@@ -18,8 +18,8 @@ with up to three suggested foods, and SHALL NOT count toward the totals.
 - **THEN** no items are returned, the phrase is listed as unmatched, and the totals are empty
 
 #### Scenario: A dish the catalog lacks
-- **WHEN** a caller logs a dish whose name matches no food on all of its words, and the best partial match covers
-  fewer than half of them
+- **WHEN** a caller logs "1 cup butter chicken" and no food has both words
+- **AND** the best partial match (butter) covers only half of them
 - **THEN** the phrase is listed as unmatched with suggestions, and no item for it is counted in the totals
 
 ### Requirement: Bare everyday words match the everyday food

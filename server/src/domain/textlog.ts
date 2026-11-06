@@ -2,7 +2,7 @@
 // -> matched foods with portions and nutrients. Rule-based; the AI provider can supply the
 // item split instead (see providers/), and both paths share resolveItems().
 import { getFood } from './db.ts';
-import { searchFoods } from './search.ts';
+import { searchFoods, wordCoverage } from './search.ts';
 import { canonicalUnit, parseQuantity, resolvePortion } from './units.ts';
 import { scaleNutrients, sumNutrients } from './nutrients.ts';
 import type { Food, NutrientMap, ResolvedPortion } from './types.ts';
@@ -43,6 +43,8 @@ export interface LoggedItem {
 export interface Unmatched {
   text: string;
   reason: string;
+  /** Foods sharing some of the phrase's words, when the best of them was too weak to log. */
+  suggestions?: { id: number; name: string }[];
 }
 
 export interface ResolvedItems {
@@ -118,7 +120,14 @@ export function addOnPortion(food: Pick<Food, 'name' | 'portions'>): ResolvedPor
  */
 export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?: number } = {}): { item: LoggedItem } | { unmatched: Unmatched } {
   const found = searchFoods(ph.food, { limit: alternatives + 1 });
-  if (!found.results.length) return { unmatched: { text: ph.text || ph.food, reason: 'no matching food' } };
+  const text = ph.text || ph.food;
+  if (!found.results.length) return { unmatched: { text, reason: 'no matching food' } };
+  // A fallback match (prefix or any one word) is logged only when the food shares more than half of the phrase's
+  // words; otherwise "butter chicken" would be logged as butter. Weaker hits are offered as suggestions instead.
+  if (found.match !== 'all-words' && wordCoverage(ph.food, found.results[0].name) <= 0.5) {
+    const suggestions = found.results.filter((r) => wordCoverage(ph.food, r.name) > 0).map((r) => ({ id: r.id, name: r.name }));
+    return { unmatched: { text, reason: 'no confident match', ...(suggestions.length ? { suggestions } : {}) } };
+  }
   const best = getFood(found.results[0].id)!;
   let portion: ResolvedPortion;
   if (ph.grams) {
@@ -131,7 +140,7 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
   const grams = Math.round(portion.grams * 10) / 10;
   return {
     item: {
-      input: ph.text || ph.food,
+      input: text,
       food: { id: best.id, name: best.name, source: best.source },
       quantity: portion.quantity,
       unit: portion.unit,

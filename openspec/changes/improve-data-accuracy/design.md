@@ -68,9 +68,11 @@ and the kJ fallback follows the same rule.
 - **Regional words:** `curd`, `dahi` → `yogurt` (whole-token synonym, so "bean curd" is untouched); `chai` → bare
   default "Tea, hot, with milk". That USDA FNDDS entry is sweetened (51 kcal/100 g), which matches Indian chai.
   This replaces the earlier "chai = black tea" rule.
-- **Weak matches:** a relaxed (any-word) hit is logged only when the hit's name contains at least half of the query's
-  words. Otherwise the phrase goes to `unmatched` with `suggestions` (up to 3 relaxed hits, `{id, name}`).
-  "butter chicken" without a butter-chicken food becomes unmatched with suggestions, not a cup of butter.
+- **Weak matches:** search reports how it matched (`match`: `all-words`, `prefix`, `any-word`; additive). A
+  `prefix` or `any-word` hit is logged only when its name contains **more than half** of the phrase's words as whole
+  words, counting a word in its typed or synonym form (so "veggie burger" still matches "Veggie burger" although
+  "burger" is rewritten to "hamburger"). Otherwise the phrase goes to `unmatched` (`reason: 'no confident match'`) with
+  `suggestions`: the hits that share at least one word. "Half" was tried first; it let "butter chicken" log as butter.
 
 ### 6. Missing nutrients
 `sumNutrients(list)` counts, for each key present in any item, how many items lack it, and sets

@@ -13,6 +13,8 @@ export type FoodSource = 'survey' | 'foundation' | 'sr_legacy';
 export interface SearchResult {
   query: string;
   relaxed: boolean;
+  /** How the results matched: every word whole, every word as a prefix, or any one word. Absent when nothing matched. */
+  match?: 'all-words' | 'prefix' | 'any-word';
   total: number;
   results: { id: number; name: string; source: FoodSource; category: string | null; score: number }[];
 }
@@ -55,7 +57,8 @@ export interface LoggedItem {
 export interface LogResult {
   meal: 'breakfast' | 'lunch' | 'dinner' | 'snack' | null;
   items: LoggedItem[];
-  unmatched: { text: string; reason: string }[];
+  /** Phrases not logged. A weak partial match is listed here with suggestions instead of being counted. */
+  unmatched: { text: string; reason: 'no matching food' | 'no confident match'; suggestions?: { id: number; name: string }[] }[];
   totals: NutrientMap;
   provider: string;
   notes?: string;

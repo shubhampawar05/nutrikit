@@ -5,7 +5,7 @@
 // Leading segments that are a category, not the food. Compound names whose first word is the food itself
 // ("Soup, tomato", "Pie, apple", "Cookies, chocolate chip") are deliberately not listed.
 const CATEGORY_HEADS = new Set([
-  'fish', 'cheese', 'bread', 'beverages', 'nuts', 'seeds', 'spices', 'candies', 'snacks', 'cereals',
+  'fish', 'cheese', 'bread', 'nuts', 'seeds', 'spices', 'candies', 'snacks', 'cereals',
   'cereals ready-to-eat', 'game meat', 'alcoholic beverage',
 ]);
 

@@ -18,10 +18,10 @@
 
 ## 4. Matching
 
-- [ ] 4.1 Two-pass recall (whole tokens, then prefixes); verify "chole" no longer reaches cholesterol foods and "chick" still finds chicken
-- [ ] 4.2 Inverted category names score their second segment as a head; verify "salmon" and "paneer"
-- [ ] 4.3 `coated|breaded|battered` join `SPECIALTY`; `curd`/`dahi` → yogurt; `chai` → "Tea, hot, with milk"; verify "1 chicken breast", "1 cup curd", "bean curd", "a cup of chai"
-- [ ] 4.4 Weak matches (fewer than half the query words in the hit's name) go to `unmatched` with `suggestions`; verify "1 cup butter chicken" before recipes exist, and the golden test unchanged
+- [x] 4.1 Two-pass recall (whole tokens, then prefixes); verify "chole" no longer reaches cholesterol foods and "chick" still finds chicken
+- [x] 4.2 Inverted category names score their second segment as a head; verify "salmon" and "paneer"
+- [x] 4.3 `coated|breaded|battered` join `SPECIALTY`; `curd`/`dahi` → yogurt; `chai` → "Tea, hot, with milk"; verify "1 chicken breast", "1 cup curd", "bean curd", "a cup of chai"
+- [x] 4.4 Weak matches (prefix or any-word hits sharing no more than half the phrase's words) go to `unmatched` with `suggestions`; verify "1 cup butter chicken" before recipes exist, the golden test unchanged, and a before/after diff of ~90 US and Indian phrases against `main`; search results report `match`; OpenAPI and SDK types updated
 
 ## 5. Missing nutrients and docs
 
