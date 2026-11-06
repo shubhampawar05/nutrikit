@@ -18,6 +18,8 @@ export type NutrientAmount = {
   amount: number | null;
   unit: string;
   dailyValuePercent: number | null;
+  /** On totals only: how many of the summed foods had no value for this nutrient (absent when none). */
+  missingFrom?: number;
 };
 
 export type NutrientMap = Record<string, NutrientAmount>;

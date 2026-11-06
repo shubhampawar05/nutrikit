@@ -6,13 +6,13 @@ import { HttpError, bad, jsonBody, readImage, imageFromJson, IMAGE_BODY_LIMIT, t
 import { ok, errors, cost } from '../schemas.ts';
 import { foods, getFood } from '../domain/db.ts';
 import { searchFoods } from '../domain/search.ts';
-import { NUTRIENTS, scaleNutrients } from '../domain/nutrients.ts';
+import { NUTRIENTS, scaleNutrients, sumNutrients } from '../domain/nutrients.ts';
 import { resolvePortion } from '../domain/units.ts';
-import { logText, resolveItems } from '../domain/textlog.ts';
+import { logText, resolvePhrase, type LoggedItem, type Unmatched } from '../domain/textlog.ts';
 import { isValidGtin, lookupBarcode } from '../domain/barcode.ts';
-import { parseLabelText } from '../domain/label.ts';
+import { parseLabelText, LABEL_WARNINGS } from '../domain/label.ts';
 import { generateMealPlan, DIETS } from '../domain/mealplan.ts';
-import { getProvider, type AIProvider, type AICapability, type MealRecognition, type LabelReading } from '../domain/providers/index.ts';
+import { getProvider, type AIProvider, type AICapability, type MealRecognition, type LabelReading, type AIFoodItem } from '../domain/providers/index.ts';
 import { COSTS, usageSummary, issueAccessToken } from '../domain/auth.ts';
 
 const DISFLUENCIES = /\b(um+|uh+|erm|hmm+|like|you know|i mean|basically|actually)\b[,]?\s*/gi;
@@ -40,9 +40,16 @@ async function requireProvider<C extends AICapability>(capability: C): Promise<A
 
 async function aiItems(provider: AIProvider, run: () => Promise<MealRecognition>) {
   const out = await run();
-  const resolved = resolveItems(out.items.map((i) => ({ food: i.food, quantity: i.quantity, unit: i.unit, grams: i.grams, text: `${i.quantity} ${i.unit} ${i.food}` })));
-  const items = resolved.items.map((item, idx) => ({ ...item, recognition: { label: out.items[idx]?.food, confidence: out.items[idx]?.confidence } }));
-  return { meal: out.meal ?? null, ...resolved, items, notes: out.notes, provider: provider.name, usage: out.usage };
+  // Resolve each AI item on its own so its recognition stays with it when an earlier item is unmatched.
+  const items: (LoggedItem & { recognition: { label: string; confidence: AIFoodItem['confidence'] } })[] = [];
+  const unmatched: Unmatched[] = [];
+  for (const i of out.items) {
+    const r = resolvePhrase({ food: i.food, quantity: i.quantity, unit: i.unit, grams: i.grams, text: `${i.quantity} ${i.unit} ${i.food}` });
+    if ('item' in r) items.push({ ...r.item, recognition: { label: i.food, confidence: i.confidence } });
+    else unmatched.push(r.unmatched);
+  }
+  const totals = sumNutrients(items.map((i) => i.nutrients));
+  return { meal: out.meal ?? null, items, unmatched, totals, notes: out.notes, provider: provider.name, usage: out.usage };
 }
 
 function labelFromProvider(out: LabelReading) {
@@ -55,7 +62,11 @@ function labelFromProvider(out: LabelReading) {
   const per100g = out.servingGrams
     ? Object.fromEntries(Object.entries(perServing).map(([k, v]) => [k, Math.round((v.amount / out.servingGrams!) * 10000) / 100]))
     : null;
-  return { servingSize: out.servingSize, servingGrams: out.servingGrams, servingsPerContainer: out.servingsPerContainer, perServing, per100g, warnings: [] };
+  const warnings: string[] = [];
+  if (!out.servingGrams) warnings.push(LABEL_WARNINGS.noServing);
+  else if (/\d\s*ml\b/i.test(out.servingSize || '')) warnings.push(LABEL_WARNINGS.mlServing);
+  if (!perServing.calories) warnings.push(LABEL_WARNINGS.noCalories);
+  return { servingSize: out.servingSize, servingGrams: out.servingGrams, servingsPerContainer: out.servingsPerContainer, perServing, per100g, warnings };
 }
 
 // The provider is checked before the image, so a server without one answers 501 whatever was sent.
@@ -136,7 +147,7 @@ export async function v1Routes(fastify: FastifyInstance) {
         q: nonBlank(),
         limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 10 })),
         offset: Type.Optional(Type.Integer({ minimum: 0, maximum: 1000, default: 0 })),
-        source: Type.Optional(Type.String({ enum: ['survey', 'foundation', 'sr_legacy'] })),
+        source: Type.Optional(Type.String({ enum: ['survey', 'foundation', 'sr_legacy', 'recipe'] })),
       }),
       response: { ...ok({ $ref: 'SearchResult#' }), ...errors(400, 401, 429) },
     },

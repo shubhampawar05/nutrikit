@@ -31,9 +31,45 @@ test('a stated amount beats the add-on cap', () => {
 
 test('bare everyday words match the everyday food', () => {
   assert.equal(item('tea').food.name, 'Tea, hot, leaf, black');
-  assert.equal(item('a cup of chai').food.name, 'Tea, hot, leaf, black');
+  assert.equal(item('a cup of chai').food.name, 'Tea, hot, with milk', 'chai is milk tea, as drunk in India');
   assert.match(item('a salad').food.name, /^Lettuce/);
   assert.match(item('green tea').food.name, /^Tea, hot, leaf, green/);
+});
+
+test('search matches whole words before prefixes', () => {
+  assert.doesNotMatch(item('1 cup chole').food.name, /cholesterol/i, 'whole word "chole", never "cholesterol-free"');
+  assert.ok(searchFoods('chole').results.every((r) => !/cholesterol/i.test(r.name)), 'prefix matches only when no whole word matches');
+  const partial = searchFoods('chicke');
+  assert.equal(partial.match, 'prefix', 'partial typing still works');
+  assert.match(partial.results[0].name, /^Chicken/);
+  assert.equal(searchFoods('egg').match, 'all-words');
+});
+
+test('category-led names match their food', () => {
+  assert.match(item('100 g salmon').food.name, /^Fish, salmon, (raw|NFS|baked)/);
+  assert.equal(item('100 g paneer').food.name, 'Cheese, paneer');
+  assert.equal(item('1 naan').grams, 177, 'a whole naan, not a quarter piece');
+});
+
+test('regional and spelling variants match the right food', () => {
+  assert.match(item('1 cup curd').food.name, /^Yogurt/);
+  assert.match(item('1 cup dahi').food.name, /^Yogurt/);
+  assert.match(item('100 g bean curd').food.name, /^Tofu/);
+  assert.match(item('1 donut').food.name, /^Doughnut/);
+});
+
+test('plain foods are preferred over prepared forms', () => {
+  assert.doesNotMatch(item('1 chicken breast').food.name, /coated|breaded|battered/i);
+  assert.match(item('1 cup brown rice').food.name, /no added fat/);
+});
+
+test('a weak partial match is unmatched with suggestions, not logged', () => {
+  const r = logText('1 cup butter paneer');
+  assert.equal(r.items.length, 0, 'not logged as a cup of butter');
+  assert.equal(r.unmatched[0].reason, 'no confident match');
+  assert.ok(r.unmatched[0].suggestions.length > 0);
+  assert.deepEqual(r.totals, {});
+  assert.match(item('homemade veggie burger').food.name, /^Veggie burger/, 'a word counts in its typed form too');
 });
 
 test('words that ask for a variant still get it', () => {
@@ -74,4 +110,26 @@ test('nonsense is unmatched, not guessed', () => {
   assert.equal(r.items.length, 0);
   assert.equal(r.unmatched.length, 1);
   assert.equal(r.totals.calories?.amount ?? 0, 0);
+});
+
+test('Indian dishes the USDA lacks are logged from their recipes', () => {
+  for (const [phrase, name] of [
+    ['1 cup rajma', /^Rajma/], ['1 cup chole', /^Chole/], ['chana masala', /^Chole/], ['1 cup khichdi', /^Khichdi/],
+    ['1 plate poha', /^Poha \(flattened rice/], ['2 gulab jamun', /^Gulab jamun/], ['1 glass lassi', /^Lassi, sweet/],
+    ['salted lassi', /^Lassi, salted/], ['1 cup butter chicken', /^Butter chicken/], ['2 aloo parathas', /^Aloo paratha/],
+    ['a plate of pav bhaji', /^Pav bhaji/], ['1 masala dosa', /^Masala dosa/], ['matar paneer', /^Matar paneer/],
+  ]) {
+    const it = item(phrase);
+    assert.ok(it, `${phrase} is logged`);
+    assert.match(it.food.name, name, phrase);
+    assert.equal(it.food.source, 'recipe', phrase);
+  }
+  between(item('2 gulab jamun').grams, 70, 90, 'two gulab jamun');
+  between(item('a plate of pav bhaji').grams, 300, 360, 'a plate of pav bhaji');
+});
+
+test('common phrasings reach the USDA food that exists', () => {
+  assert.equal(item('dal tadka').food.name, 'Dal');
+  assert.equal(item('1 cup dal fry').food.name, 'Dal');
+  assert.equal(item('masala chai').food.name, 'Tea, hot, with milk');
 });

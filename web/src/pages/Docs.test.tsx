@@ -56,6 +56,10 @@ describe('Docs', () => {
     for (const text of ['X-Request-Id', '/v1/health/ready', 'atomically', 'AI usage already consumed', '504 ai_timeout', 'add-on portions', 'chai', 'fries', 'near-duplicate search results']) {
       expect(v13).toContain(text);
     }
+    const v14 = screen.getByText('v1.4').closest('li')!.textContent ?? '';
+    for (const text of ['match', 'unmatched', 'suggestions', 'missingFrom', 'recipe']) {
+      expect(v14).toContain(text);
+    }
     expect(document.body.textContent).not.toMatch(/Claude|Anthropic/);
   });
 

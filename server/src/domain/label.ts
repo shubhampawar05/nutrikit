@@ -30,6 +30,13 @@ const PATTERNS: [string, string[]][] = [
 
 const toNumber = (s: string) => Number(String(s).replace(',', '.'));
 
+/** Warnings shared by the text parser and the AI label reader, so both paths report the same caveats. */
+export const LABEL_WARNINGS = {
+  mlServing: 'serving given in ml; assumed 1 ml = 1 g for per-100 g values',
+  noServing: 'serving size not found',
+  noCalories: 'calories not found',
+} as const;
+
 export interface LabelAmount {
   amount: number;
   unit: string;
@@ -64,15 +71,15 @@ export function parseLabelText(text: string): ParsedLabel {
       servingSize = `${servingMatch[1]}${servingMatch[2]}`;
       servingGrams = toNumber(servingMatch[1]);
     }
-    if (/ml/i.test(servingMatch.at(-1)!)) warnings.push('serving given in ml; assumed 1 ml = 1 g for per-100 g values');
-  } else warnings.push('serving size not found');
+    if (/ml/i.test(servingMatch.at(-1)!)) warnings.push(LABEL_WARNINGS.mlServing);
+  } else warnings.push(LABEL_WARNINGS.noServing);
   const spc = t.match(/(?:about\s+)?(\d+(?:[.,]\d+)?)\s+servings?\s+per\s+container/i) || t.match(/servings?\s+per\s+container\s*:?\s*(?:about\s+)?(\d+(?:[.,]\d+)?)/i);
 
   const perServing: Record<string, LabelAmount> = {};
   // "Calories 230" (not "Calories from Fat 70"); \b stops backtracking to a shorter number.
   const cal = t.match(/calories(?!\s+from)\s*:?\s*(\d+)\b/i);
   if (cal) perServing.calories = { amount: Number(cal[1]), unit: 'kcal' };
-  else warnings.push('calories not found');
+  else warnings.push(LABEL_WARNINGS.noCalories);
   for (const [key, patterns] of PATTERNS) {
     for (const p of patterns) {
       const m = t.match(new RegExp(p, 'i'));

@@ -9,7 +9,7 @@
   "pages": {
     "/": {
       "title": "Nutrikit — Nutrition API for food search, meal logging and barcodes",
-      "description": "Turn text, voice, photos, barcodes and nutrition labels into matched foods, real portions and 33 nutrients. One API key, a tiny SDK, 2,000 free tokens a month.",
+      "description": "Turn text, voice, photos, barcodes and nutrition labels into matched foods, real portions and up to 33 nutrients. One API key, a tiny SDK, 2,000 free tokens a month.",
       "index": true,
       "priority": 1.0
     },

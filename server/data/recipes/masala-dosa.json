@@ -1,0 +1,68 @@
+{
+  "id": 900000018,
+  "name": "Masala dosa (dosa with potato filling)",
+  "category": "Indian dishes",
+  "basis": "A medium plain dosa folded around a spiced potato and onion filling; two dosas per batch.",
+  "ingredients": [
+    {
+      "fdcId": 2708347,
+      "food": "Dosa, plain",
+      "grams": 160
+    },
+    {
+      "fdcId": 170440,
+      "food": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "grams": 200
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 60
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 12
+    },
+    {
+      "fdcId": 170929,
+      "food": "Spices, mustard seed, ground",
+      "grams": 1
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 1
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 3
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 3
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 3
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 430,
+  "portions": [
+    {
+      "label": "1 dosa",
+      "amount": 1,
+      "unit": "dosa",
+      "grams": 215
+    }
+  ]
+}

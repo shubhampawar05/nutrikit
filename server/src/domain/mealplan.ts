@@ -234,7 +234,8 @@ export function generateMealPlan(req: MealPlanRequest = {}): MealPlan {
       delete (x as Partial<MealDraft>).parts;
       delete (x as Partial<MealDraft>).mult;
     }
-    const totals = sumNutrients(dayMeals.map((x) => x.totals!));
+    // Summed over the day's foods (not meal totals), so `missingFrom` counts foods.
+    const totals = sumNutrients(dayMeals.flatMap((x) => x.items!.map((i) => i.nutrients)));
     plan.push({ day: d + 1, meals: dayMeals as PlannedMeal[], totals });
   }
   return {

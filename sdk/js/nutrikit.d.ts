@@ -6,13 +6,22 @@ export type NutrientKey =
   | 'magnesium' | 'phosphorus' | 'zinc' | 'vitaminA' | 'vitaminC' | 'vitaminD' | 'vitaminE' | 'vitaminK'
   | 'thiamin' | 'riboflavin' | 'niacin' | 'vitaminB6' | 'folate' | 'vitaminB12' | 'caffeine' | 'alcohol' | 'water';
 
-export interface NutrientAmount { amount: number; unit: string; dailyValuePercent: number | null }
+export interface NutrientAmount {
+  amount: number;
+  unit: string;
+  dailyValuePercent: number | null;
+  /** Totals only: how many of the summed foods had no value for this nutrient (the amount is a lower bound). */
+  missingFrom?: number;
+}
 export type NutrientMap = Partial<Record<NutrientKey, NutrientAmount>>;
-export type FoodSource = 'survey' | 'foundation' | 'sr_legacy';
+/** USDA dataset, or `recipe`: a dish composed from USDA foods (see the docs' Data sources). */
+export type FoodSource = 'survey' | 'foundation' | 'sr_legacy' | 'recipe';
 
 export interface SearchResult {
   query: string;
   relaxed: boolean;
+  /** How the results matched: every word whole, every word as a prefix, or any one word. Absent when nothing matched. */
+  match?: 'all-words' | 'prefix' | 'any-word';
   total: number;
   results: { id: number; name: string; source: FoodSource; category: string | null; score: number }[];
 }
@@ -55,7 +64,8 @@ export interface LoggedItem {
 export interface LogResult {
   meal: 'breakfast' | 'lunch' | 'dinner' | 'snack' | null;
   items: LoggedItem[];
-  unmatched: { text: string; reason: string }[];
+  /** Phrases not logged. A weak partial match is listed here with suggestions instead of being counted. */
+  unmatched: { text: string; reason: 'no matching food' | 'no confident match'; suggestions?: { id: number; name: string }[] }[];
   totals: NutrientMap;
   provider: string;
   notes?: string;

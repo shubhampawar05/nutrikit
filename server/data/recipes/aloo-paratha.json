@@ -1,0 +1,63 @@
+{
+  "id": 900000011,
+  "name": "Aloo paratha (potato-stuffed flatbread)",
+  "category": "Indian dishes",
+  "basis": "Whole-wheat flatbread stuffed with spiced mashed potato and cooked on a griddle with ghee; four parathas per batch.",
+  "ingredients": [
+    {
+      "fdcId": 168893,
+      "food": "Wheat flour, whole-grain (Includes foods for USDA's Food Distribution Program)",
+      "grams": 150
+    },
+    {
+      "fdcId": 170440,
+      "food": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "grams": 150
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 30
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 1
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 4
+    },
+    {
+      "fdcId": 2710168,
+      "food": "Ghee, clarified butter",
+      "grams": 20
+    }
+  ],
+  "water": 90,
+  "cookedGrams": 416,
+  "portions": [
+    {
+      "label": "1 paratha",
+      "amount": 1,
+      "unit": "paratha",
+      "grams": 104
+    }
+  ]
+}

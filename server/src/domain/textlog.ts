@@ -2,7 +2,7 @@
 // -> matched foods with portions and nutrients. Rule-based; the AI provider can supply the
 // item split instead (see providers/), and both paths share resolveItems().
 import { getFood } from './db.ts';
-import { searchFoods } from './search.ts';
+import { searchFoods, wordCoverage } from './search.ts';
 import { canonicalUnit, parseQuantity, resolvePortion } from './units.ts';
 import { scaleNutrients, sumNutrients } from './nutrients.ts';
 import type { Food, NutrientMap, ResolvedPortion } from './types.ts';
@@ -43,6 +43,8 @@ export interface LoggedItem {
 export interface Unmatched {
   text: string;
   reason: string;
+  /** Foods sharing some of the phrase's words, when the best of them was too weak to log. */
+  suggestions?: { id: number; name: string }[];
 }
 
 export interface ResolvedItems {
@@ -113,30 +115,32 @@ export function addOnPortion(food: Pick<Food, 'name' | 'portions'>): ResolvedPor
 }
 
 /**
- * Turn parsed phrases into logged items. Each phrase: { food, quantity?, unit?, grams?, text? }.
+ * Turn one phrase into a logged item, or an unmatched entry. Phrase: { food, quantity?, unit?, grams?, text? }.
  * A phrase may carry `grams` directly (e.g. AI portion estimates), which overrides unit parsing.
  */
-export function resolveItems(phrases: Phrase[], { alternatives = 3 }: { alternatives?: number } = {}): ResolvedItems {
-  const items: LoggedItem[] = [];
-  const unmatched: Unmatched[] = [];
-  for (const ph of phrases) {
-    const found = searchFoods(ph.food, { limit: alternatives + 1 });
-    if (!found.results.length) {
-      unmatched.push({ text: ph.text || ph.food, reason: 'no matching food' });
-      continue;
-    }
-    const best = getFood(found.results[0].id)!;
-    let portion: ResolvedPortion;
-    if (ph.grams) {
-      portion = { grams: ph.grams, quantity: ph.quantity ?? 1, unit: ph.unit || 'serving', portion: null, method: 'provided-grams' };
-    } else if (ph.addOn && ph.quantity == null && !ph.unit) {
-      portion = addOnPortion(best);
-    } else {
-      portion = resolvePortion(best, ph.quantity, ph.unit);
-    }
-    const grams = Math.round(portion.grams * 10) / 10;
-    items.push({
-      input: ph.text || ph.food,
+export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?: number } = {}): { item: LoggedItem } | { unmatched: Unmatched } {
+  const found = searchFoods(ph.food, { limit: alternatives + 1 });
+  const text = ph.text || ph.food;
+  if (!found.results.length) return { unmatched: { text, reason: 'no matching food' } };
+  // A fallback match (prefix or any one word) is logged only when the food shares more than half of the phrase's
+  // words; otherwise "butter chicken" would be logged as butter. Weaker hits are offered as suggestions instead.
+  if (found.match !== 'all-words' && wordCoverage(ph.food, found.results[0].name) <= 0.5) {
+    const suggestions = found.results.filter((r) => wordCoverage(ph.food, r.name) > 0).map((r) => ({ id: r.id, name: r.name }));
+    return { unmatched: { text, reason: 'no confident match', ...(suggestions.length ? { suggestions } : {}) } };
+  }
+  const best = getFood(found.results[0].id)!;
+  let portion: ResolvedPortion;
+  if (ph.grams) {
+    portion = { grams: ph.grams, quantity: ph.quantity ?? 1, unit: ph.unit || 'serving', portion: null, method: 'provided-grams' };
+  } else if (ph.addOn && ph.quantity == null && !ph.unit) {
+    portion = addOnPortion(best);
+  } else {
+    portion = resolvePortion(best, ph.quantity, ph.unit);
+  }
+  const grams = Math.round(portion.grams * 10) / 10;
+  return {
+    item: {
+      input: text,
       food: { id: best.id, name: best.name, source: best.source },
       quantity: portion.quantity,
       unit: portion.unit,
@@ -146,7 +150,18 @@ export function resolveItems(phrases: Phrase[], { alternatives = 3 }: { alternat
       confidence: found.relaxed ? 'low' : found.results[0].score > 15 ? 'high' : 'medium',
       nutrients: scaleNutrients(best.per100g, grams),
       alternatives: found.results.slice(1).map((r) => ({ id: r.id, name: r.name })),
-    });
+    },
+  };
+}
+
+/** Turn parsed phrases into logged items, unmatched phrases and meal totals. */
+export function resolveItems(phrases: Phrase[], opts: { alternatives?: number } = {}): ResolvedItems {
+  const items: LoggedItem[] = [];
+  const unmatched: Unmatched[] = [];
+  for (const ph of phrases) {
+    const r = resolvePhrase(ph, opts);
+    if ('item' in r) items.push(r.item);
+    else unmatched.push(r.unmatched);
   }
   return { items, unmatched, totals: sumNutrients(items.map((i) => i.nutrients)) };
 }

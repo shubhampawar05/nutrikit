@@ -1,0 +1,83 @@
+{
+  "id": 900000001,
+  "name": "Rajma (red kidney bean curry)",
+  "category": "Indian dishes",
+  "basis": "Home-style North Indian rajma: boiled red kidney beans simmered in an onion-tomato gravy, about 2 tsp oil per cup.",
+  "ingredients": [
+    {
+      "fdcId": 175194,
+      "food": "Beans, kidney, red, mature seeds, cooked, boiled, without salt",
+      "grams": 400
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 120
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 200
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 20
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 10
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 10
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 2
+    },
+    {
+      "fdcId": 170922,
+      "food": "Spices, coriander seed",
+      "grams": 3
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 1
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 2
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 6
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 5
+    }
+  ],
+  "water": 250,
+  "cookedGrams": 900,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 240
+    }
+  ]
+}

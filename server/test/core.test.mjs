@@ -62,6 +62,28 @@ test('resolvePortion converts mass, volume, counts and drinks', () => {
   assert.equal(Math.round(resolvePortion(almonds, 1, 'handful').grams), 28);
 });
 
+test('resolvePortion never uses a dry-yield portion as a volume', () => {
+  const grits = {
+    name: 'Grits, NFS',
+    portions: [
+      { label: '1 cup, dry, yields', amount: 1, unit: 'cup', grams: 965 },
+      { label: '1 cup, cooked', amount: 1, unit: 'cup', grams: 240 },
+    ],
+  };
+  assert.equal(resolvePortion(grits, 1, 'cup').grams, 240);
+  assert.equal(resolvePortion(grits, 2, 'tbsp').grams, 30, 'converted through the cooked cup');
+});
+
+test('a bare count prefers the regular size over small, mini or thin', () => {
+  const portions = (...labels) => labels.map(([label, unit, grams]) => ({ label, amount: 1, unit, grams }));
+  const samosa = { name: 'Samosa', portions: portions(['1 small/individual', 'small', 25], ['1 regular/large', 'regular', 100]) };
+  assert.equal(resolvePortion(samosa, 1, null).grams, 100);
+  const bagel = { name: 'Bagel', portions: portions(['1 miniature', 'miniature', 26], ['1 regular', 'regular', 105], ['1 Bagel Thin', 'bagel', 46]) };
+  assert.equal(resolvePortion(bagel, 1, null).grams, 105);
+  const onlySmall = { name: 'Samosa', portions: portions(['1 small/individual', 'small', 25]) };
+  assert.equal(resolvePortion(onlySmall, 1, null).grams, 25, 'a size-down portion is still used when it is the only one');
+});
+
 test('meal text splits into items with quantities, units and add-ons', () => {
   const { meal, items } = splitMealText('For lunch I had 200g chicken breast, 1 1/2 cups brown rice and coffee with milk');
   assert.equal(meal, 'lunch');
@@ -129,4 +151,16 @@ test('meal plans are deterministic, near target and respect diets', () => {
   }
   const noNuts = generateMealPlan({ exclude: ['nut', 'almond'], seed: 3, days: 3 });
   for (const i of noNuts.days.flatMap((d) => d.meals.flatMap((m) => m.items))) assert.doesNotMatch(i.food.name, /nut|almond/i);
+});
+
+test('meal totals flag nutrients some foods lack, and leave out nutrients none have', () => {
+  const a = scaleNutrients({ calories: 100, vitaminD: 2 }, 100);
+  const b = scaleNutrients({ calories: 50 }, 100);
+  const totals = sumNutrients([a, b]);
+  assert.equal(totals.calories.amount, 150);
+  assert.equal(totals.calories.missingFrom, undefined, 'every food had calories');
+  assert.equal(totals.vitaminD.amount, 2);
+  assert.equal(totals.vitaminD.missingFrom, 1, 'one of the two foods had no vitamin D value');
+  assert.equal(totals.vitaminC, undefined, 'no food had vitamin C');
+  assert.deepEqual(sumNutrients([]), {});
 });
