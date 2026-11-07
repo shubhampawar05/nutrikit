@@ -1,7 +1,9 @@
 // Builds data/foods.db from USDA FoodData Central CSV releases (public domain, CC0) and the dishes of UK CoFID 2021
 // (Crown copyright, Open Government Licence v3.0).
 //
-//   node scripts/build-db.mjs            (expects the extracted releases and the CoFID workbook under data/raw/)
+//   node scripts/build-db.mjs              data/foods.db (committed): USDA + CoFID
+//   node scripts/build-db.mjs --personal   data/foods.personal.db (gitignored): also the unlicensed local packs
+//                                          (INDB, see scripts/indb.mjs); never written into data/foods.db
 //
 // Datasets: SR Legacy (generic foods), FNDDS survey foods (dishes "as eaten"),
 // Foundation Foods (recent analytical data), CoFID dishes (see scripts/cofid.mjs). Values are stored per 100 g.
@@ -14,10 +16,15 @@ import { NUTRIENTS } from '../src/domain/nutrients.ts';
 import { loadRecipes, composeRecipe } from './recipes.mjs';
 import { readXlsx } from './xlsx.mjs';
 import { COFID_SOURCE, DISH_GROUPS, cofidFoods, convertCofid, cofidId, verifyCofidFile, cofidAliases } from './cofid.mjs';
+import { INDB_SOURCE, readIndb, mappingIndex, composeIndbDish, indbAliases } from './indb.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const RAW = path.join(ROOT, 'data/raw');
-const OUT = path.join(ROOT, 'data/foods.db');
+const PERSONAL = process.argv.includes('--personal');
+const OUT = path.join(ROOT, PERSONAL ? 'data/foods.personal.db' : 'data/foods.db');
+const INDB_DIR = path.join(RAW, 'indb');
+const INDB_MAPPING = path.join(ROOT, 'data/indb/ingredients.json');
+const INDB_ALIASES = path.join(ROOT, 'data/aliases/indb.json');
 const RECIPES = path.join(ROOT, 'data/recipes');
 const COFID_FILE = path.join(RAW, 'cofid', COFID_SOURCE.file);
 const COFID_ALIASES = path.join(ROOT, 'data/aliases/cofid.json');
@@ -72,7 +79,7 @@ db.exec(`
   CREATE TABLE foods (
     id INTEGER PRIMARY KEY,          -- USDA fdc_id, or 800,000,000 + CoFID code (see cofid.mjs)
     name TEXT NOT NULL,
-    source TEXT NOT NULL,            -- survey | foundation | sr_legacy | cofid | recipe
+    source TEXT NOT NULL,            -- survey | foundation | sr_legacy | cofid | recipe | indb (personal only)
     category TEXT,
     nutrients TEXT NOT NULL,         -- JSON {key: amount per 100 g}
     aliases TEXT                     -- other names, "|"-separated (data/aliases/), or NULL
@@ -107,7 +114,7 @@ const normUnit = (u) => {
 // tie, the newest data (Foundation, then survey, then SR Legacy). Two records are different samples, so their
 // values are never mixed into one food.
 const LABEL_KEYS = ['calories', 'protein', 'fat', 'carbs', 'fiber', 'sugar', 'saturatedFat', 'cholesterol', 'sodium', 'potassium', 'calcium', 'iron', 'vitaminD'];
-const SOURCE_RANK = { foundation: 0, survey: 1, sr_legacy: 2, cofid: 3 };
+const SOURCE_RANK = { foundation: 0, survey: 1, sr_legacy: 2, cofid: 3, indb: 4 };
 const labelCoverage = (f) => LABEL_KEYS.filter((k) => f.n[k] != null).length;
 const better = (a, b) => {
   const ka = labelCoverage(a), kb = labelCoverage(b);
@@ -180,9 +187,11 @@ for (const ds of DATASETS) {
 
 // CoFID dishes: only from the pinned gov.uk workbook. Without it the catalog is USDA-only (with a warning).
 let cofidMeta = null;
+let cofidAll = [];
 if (fs.existsSync(COFID_FILE)) {
   verifyCofidFile(COFID_FILE);
-  const dishes = cofidFoods(readXlsx(COFID_FILE)).filter((f) => f.group in DISH_GROUPS);
+  cofidAll = cofidFoods(readXlsx(COFID_FILE));
+  const dishes = cofidAll.filter((f) => f.group in DISH_GROUPS);
   const aliases = cofidAliases(JSON.parse(fs.readFileSync(COFID_ALIASES, 'utf8')), dishes);
   const carbs = { exact: 0, documented: 0, absent: 0 };
   for (const d of dishes) {
@@ -198,6 +207,41 @@ if (fs.existsSync(COFID_FILE)) {
   cofidMeta = { ...COFID_SOURCE, dishes: dishes.length, carbs, aliases: [...aliases.values()].flat().length };
 } else {
   console.warn(`CoFID workbook not found at ${COFID_FILE}; building without CoFID dishes (download: ${COFID_SOURCE.url})`);
+}
+
+// Personal packs: INDB dishes recomputed from their ingredients. Unlicensed, so only in the personal catalog.
+let indbMeta = null;
+if (PERSONAL) {
+  if (path.basename(OUT) === 'foods.db') throw new Error('refusing to write unlicensed packs into the committed catalog');
+  if (!fs.existsSync(path.join(INDB_DIR, 'recipes.xlsx'))) throw new Error(`--personal needs INDB's recipes.xlsx and recipes_servingsize.xlsx in ${INDB_DIR} (from ${INDB_SOURCE.url})`);
+  const foodsById = new Map([...kept.values()].map((f) => [f.id, f]));
+  // Ingredients mapped to a CoFID food outside its dish groups (curry leaves, methi leaves...) are converted the
+  // same way and used for composing only; they don't become catalog foods.
+  const cofidByCode = new Map(cofidAll.map((f) => [f.code, f]));
+  const entries = JSON.parse(fs.readFileSync(INDB_MAPPING, 'utf8'));
+  for (const e of entries.filter((x) => x.cofidCode)) {
+    const c = cofidByCode.get(e.cofidCode);
+    if (!c) continue; // without the CoFID workbook, dishes using these ingredients are skipped
+    if (c.name !== e.food) throw new Error(`INDB mapping: CoFID ${e.cofidCode} is "${c.name}", not "${e.food}"`);
+    e.fdcId = cofidId(e.cofidCode);
+    if (!foodsById.has(e.fdcId)) foodsById.set(e.fdcId, { name: c.name, category: null, n: convertCofid(c).nutrients, portions: [] });
+  }
+  const mapping = mappingIndex(entries);
+  const dishes = readIndb(INDB_DIR);
+  const aliases = indbAliases(JSON.parse(fs.readFileSync(INDB_ALIASES, 'utf8')), dishes);
+  const keys = NUTRIENTS.map((n) => n.key);
+  const skipped = [];
+  let built = 0;
+  for (const dish of dishes) {
+    const r = composeIndbDish(dish, mapping, (id) => foodsById.get(id), keys);
+    if (r.skipped) { skipped.push({ code: dish.code, name: dish.name, reason: r.skipped }); continue; }
+    const f = { id: r.food.id, name: r.food.name, source: 'indb', category: r.food.category, n: r.food.nutrients, portions: r.food.portions, aliases: aliases.get(dish.code) ?? null };
+    const key = f.name.toLowerCase();
+    const prev = kept.get(key);
+    if (prev) collisions++;
+    if (!prev || better(f, prev)) { kept.set(key, f); built++; }
+  }
+  indbMeta = { ...INDB_SOURCE, built, skipped };
 }
 
 db.exec('BEGIN');
@@ -223,8 +267,10 @@ insertMeta.run('sources', JSON.stringify(DATASETS.map((d) => d.dir)));
 insertMeta.run('clamped', String(clamped));
 insertMeta.run('collisions', String(collisions));
 if (cofidMeta) insertMeta.run('cofid_source', JSON.stringify(cofidMeta));
+if (indbMeta) insertMeta.run('indb_source', JSON.stringify(indbMeta));
 db.exec('COMMIT');
 db.exec('VACUUM');
 
 const totals = db.prepare('SELECT (SELECT count(*) FROM foods) foods, (SELECT count(*) FROM portions) portions').get();
-console.log('foods by source', counts, '| totals', { ...totals }, '|', (fs.statSync(OUT).size / 1e6).toFixed(1), 'MB');
+console.log(path.relative(ROOT, OUT), '| foods by source', counts, '| totals', { ...totals }, '|', (fs.statSync(OUT).size / 1e6).toFixed(1), 'MB');
+if (indbMeta) console.log(`INDB: ${indbMeta.built} dishes built, ${indbMeta.skipped.length} skipped (reasons in meta.indb_source)`);
