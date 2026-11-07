@@ -12,6 +12,7 @@ const CATALOG = new Map([
 const find = (id) => CATALOG.get(id);
 const recipe = (over = {}) => ({
   file: 'test.json', id: 900_000_001, name: 'Bean stew',
+  source: { name: 'Test dataset', license: 'CC BY 4.0', url: 'https://example.org/dataset' },
   ingredients: [{ fdcId: 1, food: 'Beans, boiled', grams: 400 }, { fdcId: 3, food: 'Salt', grams: 4 }],
   water: 200, cookedGrams: 500, portions: [{ label: '1 cup', amount: 1, unit: 'cup', grams: 240 }],
   ...over,
@@ -34,6 +35,12 @@ test('a nutrient a major ingredient lacks is left out rather than understated', 
 test('the build fails on an unknown ingredient or a renamed one', () => {
   assert.throws(() => composeRecipe(recipe({ ingredients: [{ fdcId: 99, food: 'Ghost', grams: 10 }] }), find, KEYS), /test\.json: ingredient 99 \(Ghost\) is not in the catalog/);
   assert.throws(() => composeRecipe(recipe({ ingredients: [{ fdcId: 1, food: 'Beans, canned', grams: 400 }] }), find, KEYS), /is "Beans, boiled" in the catalog, not "Beans, canned"/);
+});
+
+test('the build refuses a recipe that does not name a licensed source', () => {
+  assert.throws(() => composeRecipe(recipe({ source: undefined }), find, KEYS), /source\.name, source\.license and source\.url are required/);
+  assert.throws(() => composeRecipe(recipe({ source: { name: 'Test dataset', url: 'https://example.org' } }), find, KEYS), /source\.license/);
+  assert.equal(composeRecipe(recipe(), find, KEYS).source.license, 'CC BY 4.0');
 });
 
 test('the build fails on an impossible yield, a bad id or missing parts', () => {

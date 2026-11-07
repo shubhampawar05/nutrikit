@@ -37,8 +37,8 @@ test('bare everyday words match the everyday food', () => {
 });
 
 test('search matches whole words before prefixes', () => {
-  assert.doesNotMatch(item('1 cup chole').food.name, /cholesterol/i, 'whole word "chole", never "cholesterol-free"');
-  assert.ok(searchFoods('chole').results.every((r) => !/cholesterol/i.test(r.name)), 'prefix matches only when no whole word matches');
+  assert.equal(searchFoods('chole').match, 'prefix', 'no food has the whole word "chole"');
+  assert.equal(logText('1 cup chole').items.length, 0, 'never logged as a "cholesterol-free" food');
   const partial = searchFoods('chicke');
   assert.equal(partial.match, 'prefix', 'partial typing still works');
   assert.match(partial.results[0].name, /^Chicken/);
@@ -112,20 +112,12 @@ test('nonsense is unmatched, not guessed', () => {
   assert.equal(r.totals.calories?.amount ?? 0, 0);
 });
 
-test('Indian dishes the USDA lacks are logged from their recipes', () => {
-  for (const [phrase, name] of [
-    ['1 cup rajma', /^Rajma/], ['1 cup chole', /^Chole/], ['chana masala', /^Chole/], ['1 cup khichdi', /^Khichdi/],
-    ['1 plate poha', /^Poha \(flattened rice/], ['2 gulab jamun', /^Gulab jamun/], ['1 glass lassi', /^Lassi, sweet/],
-    ['salted lassi', /^Lassi, salted/], ['1 cup butter chicken', /^Butter chicken/], ['2 aloo parathas', /^Aloo paratha/],
-    ['a plate of pav bhaji', /^Pav bhaji/], ['1 masala dosa', /^Masala dosa/], ['matar paneer', /^Matar paneer/],
-  ]) {
-    const it = item(phrase);
-    assert.ok(it, `${phrase} is logged`);
-    assert.match(it.food.name, name, phrase);
-    assert.equal(it.food.source, 'recipe', phrase);
+test('dishes the catalog lacks are unmatched, never logged as another food', () => {
+  for (const phrase of ['1 cup rajma', '1 cup khichdi', '2 gulab jamun', '1 glass lassi', '1 cup butter chicken']) {
+    const r = logText(phrase);
+    assert.equal(r.items.length, 0, `${phrase} is not logged`);
+    assert.equal(r.unmatched.length, 1, `${phrase} is listed as unmatched`);
   }
-  between(item('2 gulab jamun').grams, 70, 90, 'two gulab jamun');
-  between(item('a plate of pav bhaji').grams, 300, 360, 'a plate of pav bhaji');
 });
 
 test('common phrasings reach the USDA food that exists', () => {

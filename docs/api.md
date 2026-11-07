@@ -115,17 +115,5 @@ Coverage by source (share of foods with a value):
 | Added sugars | – | – | – |
 
 Added sugars come only from Open Food Facts and nutrition labels; USDA's food tables don't report them.
-
-### Recipes
-
-Common dishes USDA doesn't have (rajma, chole, khichdi, poha, gulab jamun, lassi, butter chicken, pav bhaji and
-others, 20 in all) are foods with `source: "recipe"`. Each is a typical home-style version written for this project
-in [server/data/recipes/](../server/data/recipes/): USDA foods with their weights, the water added, the cooked
-weight and household portions, plus a `basis` sentence saying what version it is. The catalog build sums the
-ingredients and scales them to the cooked weight; cooked ingredients are USDA's unsalted cooked forms, so the
-recipe's own salt is the only salt. A nutrient is reported only when every ingredient over 2% of the dish has a
-value for it. The build fails if an ingredient is missing or renamed, if the cooked weight is implausible, or if
-calories disagree with protein, carbohydrate and fat. Real dishes vary, so treat recipe values as typical, not exact.
-To add one, write a recipe file and run `npm run build:db`.
 - Diet filters work from food names, so treat them as best effort.
 - Photo and label recognition are only as good as the AI provider.

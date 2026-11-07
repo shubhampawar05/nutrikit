@@ -37,8 +37,10 @@ wrong or silently incomplete answers:
   any-word match is no longer logged as the meal. It is listed as unmatched with suggestions.
 - **Missing nutrients are flagged:** every total says how many items lacked a value (`missingFrom`), and the docs
   state the real per-source coverage.
-- **More foods:** about 20 dishes added as open recipes, built from USDA ingredients with gram weights, a cooked
-  yield and household portions. Each is marked `source: "recipe"`.
+- **Recipe support, no recipe data:** the build can compose dishes from USDA foods, but only from recipe files that
+  name a licensed source. Twenty hand-written recipes were added and then removed (`fix/remove-handwritten-recipes`)
+  because their quantities had no verifiable source; Indian dishes USDA lacks stay unmatched until licensed data
+  (e.g. INDB, with permission) is imported.
 - **Accuracy suite:** a catalog audit script (`npm run audit:data`) and extended golden tests covering every case
   above.
 
@@ -61,12 +63,10 @@ only as a private sanity benchmark, and nothing from it enters the repository.
 
 ## Impact
 
-- **Server**: `scripts/build-db.mjs`, new `data/recipes/*.json`, `src/domain/{search,units,textlog,nutrients,
+- **Server**: `scripts/build-db.mjs`, new `scripts/recipes.mjs`, `src/domain/{search,units,textlog,nutrients,
   barcode,label,mealplan,types}.ts`, `src/routes/v1.ts`, `src/schemas.ts`, new `scripts/audit-catalog.ts` and a
   `package.json` script, tests in `test/`.
-- **Data**: `data/foods.db` is rebuilt. Food ids are unchanged for every USDA food that is kept; recipe foods get
-  ids from a reserved range.
-- **API**: additive only (`missingFrom`, `unmatched[].suggestions`, `source: "recipe"`). A weak match that used to
+- **Data**: `data/foods.db` is rebuilt. Food ids are unchanged for every USDA food that is kept.
+- **API**: additive only (`match`, `missingFrom`, `unmatched[].suggestions`). A weak match that used to
   be logged now appears in `unmatched`.
-- **Docs**: `docs/api.md` (coverage, missing data, recipe source), `CLEAN-ROOM.md` (recipes are original; INDB
-  benchmark use).
+- **Docs**: `docs/api.md` (coverage, missing data), `CLEAN-ROOM.md` (recipe support; INDB analysed, not used).

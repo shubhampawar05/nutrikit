@@ -1,4 +1,7 @@
-// Dishes the USDA datasets lack, composed from USDA catalog foods (see data/recipes/*.json).
+// Dishes the USDA datasets lack, composed from USDA catalog foods (data/recipes/*.json; none are shipped yet).
+//
+// Every recipe must come from a verifiable, licensed source that it names (`source.name`, `source.license`,
+// `source.url`); the build refuses one that doesn't, so no unsourced or hand-estimated dish enters the catalog.
 //
 // A recipe lists catalog foods by FDC id and name with their weights in grams, the water added, and the cooked
 // weight of the dish. Its nutrients per 100 g are the sum over its ingredients scaled to that cooked weight, so
@@ -31,6 +34,8 @@ export function composeRecipe(recipe, findFood, keys) {
   const fail = (msg) => { throw new Error(`recipe ${recipe.file || recipe.name}: ${msg}`); };
   if (!Number.isInteger(recipe.id) || recipe.id < RECIPE_ID_MIN) fail(`id must be an integer >= ${RECIPE_ID_MIN}`);
   if (!recipe.name?.trim()) fail('name is required');
+  const { source } = recipe;
+  if (!source?.name?.trim() || !source?.license?.trim() || !source?.url?.trim()) fail('source.name, source.license and source.url are required');
   if (!Array.isArray(recipe.ingredients) || !recipe.ingredients.length) fail('ingredients are required');
   if (!Array.isArray(recipe.portions) || !recipe.portions.length) fail('portions are required');
 
@@ -68,5 +73,5 @@ export function composeRecipe(recipe, findFood, keys) {
     if (!p.label || !(p.grams > 0)) fail(`portion ${i + 1} needs a label and grams > 0`);
     return { seq: i + 1, label: p.label, amount: p.amount ?? 1, unit: p.unit ?? null, grams: p.grams };
   });
-  return { id: recipe.id, name: recipe.name.trim(), category: recipe.category ?? null, nutrients, portions };
+  return { id: recipe.id, name: recipe.name.trim(), category: recipe.category ?? null, source, nutrients, portions };
 }

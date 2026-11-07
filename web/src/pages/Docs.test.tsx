@@ -57,7 +57,7 @@ describe('Docs', () => {
       expect(v13).toContain(text);
     }
     const v14 = screen.getByText('v1.4').closest('li')!.textContent ?? '';
-    for (const text of ['match', 'unmatched', 'suggestions', 'missingFrom', 'recipe']) {
+    for (const text of ['match', 'unmatched', 'suggestions', 'missingFrom']) {
       expect(v14).toContain(text);
     }
     expect(document.body.textContent).not.toMatch(/Claude|Anthropic/);

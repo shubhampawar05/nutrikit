@@ -632,8 +632,7 @@
               "enum": [
                 "survey",
                 "foundation",
-                "sr_legacy",
-                "recipe"
+                "sr_legacy"
               ]
             },
             "in": "query",
