@@ -14,7 +14,7 @@ A self-hostable nutrition API, with a website, a developer portal, a JavaScript 
 - **Generate meal plans** for 6 diets
 - **Sell access** with API keys, usage metering and Razorpay payments
 
-Built on open data (USDA, Open Food Facts). AI features (photos, labels) use Claude or OpenAI and are optional.
+Built on open data (USDA, UK CoFID, Open Food Facts). AI features (photos, labels) use Claude or OpenAI and are optional.
 This is a clean-room build. [CLEAN-ROOM.md](CLEAN-ROOM.md) records what it was and wasn't derived from.
 
 ## Quick start
@@ -94,6 +94,8 @@ The full API reference is served at `/docs/reference`.
 ## Data and attribution
 
 - **USDA FoodData Central**: public domain (CC0).
+- **UK CoFID 2021** (McCance and Widdowson's, Public Health England): dishes USDA lacks. Contains public sector
+  information licensed under the Open Government Licence v3.0.
 - **Open Food Facts**: © Open Food Facts contributors, [ODbL](https://opendatacommons.org/licenses/odbl/1-0/).
 - Daily values: FDA, 21 CFR 101.9.
 

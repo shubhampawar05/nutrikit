@@ -99,7 +99,7 @@ docker run -d -p 8787:8787 -e DATABASE_URL=… -e NUTRIKIT_TOKEN_SECRET=… nutr
 
 **About the image:** about 75 MB compressed, runs as the unprivileged `node` user, with a health check on
 `/v1/health`. The food catalog `server/data/foods.db` is in git; rebuild it with `npm run build:db` only when the
-USDA data changes.
+USDA or CoFID data changes.
 
 ## Rollback
 

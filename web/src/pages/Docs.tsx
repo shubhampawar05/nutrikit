@@ -134,7 +134,7 @@ export function Docs() {
           <h2>Food search &amp; nutrients</h2>
           <h3>Search</h3>
           <CodeBlock><code>GET /v1/foods/search?q=greek%20yogurt&amp;limit=5</code></CodeBlock>
-          <p>Results are ranked for logging: the generic, as-eaten food comes first. Optional <code>source</code> filters to <code>survey</code> (dishes as eaten), <code>foundation</code> or <code>sr_legacy</code>. Page with <code>offset</code>.</p>
+          <p>Results are ranked for logging: the generic, as-eaten food comes first. Optional <code>source</code> filters to <code>survey</code> (dishes as eaten), <code>foundation</code>, <code>sr_legacy</code> or <code>cofid</code> (UK CoFID dishes). Page with <code>offset</code>.</p>
           <h3>Food detail</h3>
           <CodeBlock><code>GET /v1/foods/2709224</code></CodeBlock>
           <p>Returns <code>per100g</code> nutrient values and the food's household <code>portions</code> (e.g. <code>{'{"label": "1 banana", "grams": 126}'}</code>).</p>
@@ -285,6 +285,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
           <h2>Data sources</h2>
           <ul>
             <li><b>USDA FoodData Central</b> — SR Legacy, FNDDS survey foods and Foundation Foods. Public domain.</li>
+            <li><b>UK CoFID 2021</b> — McCance and Widdowson's Composition of Foods Integrated Dataset (Public Health England): 511 dishes USDA lacks, many South Asian (rajma, chole, dals, khichdi…), with <code>source: "cofid"</code>. Contains public sector information licensed under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">Open Government Licence v3.0</a>. Values are converted to the same definitions as USDA's; CoFID has no household portions, so give grams for an exact amount.</li>
             <li><b>Open Food Facts</b> — packaged products by barcode, © Open Food Facts contributors, ODbL. Responses include this attribution; keep it visible in your app.</li>
             <li><b>FDA</b> — daily values for <code>dailyValuePercent</code> (21 CFR 101.9).</li>
           </ul>
@@ -294,6 +295,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
         <section id="changelog">
           <h2>Changelog</h2>
           <ul>
+            <li><b>v1.5</b> — 511 dishes from UK CoFID 2021, many of them South Asian (rajma, chole, masoor and toor dal, khichdi, aloo gobi, korma…), with <code>source: "cofid"</code> and common Indian names as aliases. A USDA food named exactly what you searched still comes first.</li>
             <li><b>v1.4</b> — Data accuracy. Search matches whole words before prefixes and reports how in <code>match</code>; a weak partial match is listed in <code>unmatched</code> with <code>suggestions</code> instead of being logged as a different food. Totals carry <code>missingFrom</code> when some foods lack a nutrient. Category-led names ("Fish, salmon", "Cheese, paneer") match their food, "curd" and "dahi" mean yogurt, "chai" is tea with milk, and bare counts use the regular size. Open Food Facts nulls stay missing instead of 0.</li>
             <li><b>v1.3</b> — Every response carries a request id (<code>X-Request-Id</code>; send your own to trace a call). <code>GET /v1/health/ready</code> reports readiness. Allowances are reserved atomically, so parallel calls cannot overspend. Failed calls are charged only for AI usage already consumed. Slow AI calls end with <code>504 ai_timeout</code>. Food logging: add-on portions (sugar, milk, butter…) are capped to a realistic amount, bare "tea", "chai" and "salad" get sensible defaults, fries come in small, medium and large, and near-duplicate search results are collapsed.</li>
             <li><b>v1.2</b> — Nutrition advisor (<code>POST /v1/advisor</code>, SDK <code>askAdvisor</code>).</li>

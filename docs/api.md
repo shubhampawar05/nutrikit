@@ -7,7 +7,7 @@ A copy is checked in at [server/docs/openapi.json](../server/docs/openapi.json) 
 
 | Feature | Endpoint | Tokens | How it works |
 |---|---|---|---|
-| Food search | `GET /v1/foods/search?q=` | 1 | Full-text search over 13,359 foods, ranked to prefer the plain form ("banana" → *Banana, raw*) |
+| Food search | `GET /v1/foods/search?q=` | 1 | Full-text search over 13,870 foods (USDA plus UK CoFID dishes), ranked to prefer the plain form ("banana" → *Banana, raw*) |
 | Food detail | `GET /v1/foods/{id}` | 1 | Up to 33 nutrients per 100 g (see [Missing data](#missing-data)), plus household portions |
 | Portion nutrients | `GET /v1/foods/{id}/nutrients?quantity=&unit=` | 1 | Converts "2 medium", "1.5 cups", "12 fl oz" to grams; adds % daily value |
 | Text logging | `POST /v1/log/text` | 5 | Rule-based parser; `ai: true` uses the AI provider for free-form text |
@@ -69,7 +69,8 @@ setup is in [mcp/README.md](../mcp/README.md).
 
 ## Accuracy
 
-- Nutrients are USDA averages; branded products come from crowd-sourced Open Food Facts. Not medical advice.
+- Nutrients are USDA averages, or UK CoFID values for dishes USDA lacks; branded products come from crowd-sourced
+  Open Food Facts. Not medical advice.
 - Portions fall back in order: stated unit → household portion → volume conversion → water density → 100 g.
   Each item's `portionMethod` says which was used.
 - An add-on without an amount ("with sugar", "with milk") is a spoonful or a splash: at most 15 g for sugars,
@@ -89,6 +90,8 @@ setup is in [mcp/README.md](../mcp/README.md).
 - The same food from two data sources appears once in search results. When two USDA datasets list the same name,
   the catalog keeps the record with more Nutrition Facts label nutrients (newest data on a tie) and never mixes
   values from the two.
+- Diet filters work from food names, so treat them as best effort.
+- Photo and label recognition are only as good as the AI provider.
 
 ## Missing data
 
@@ -104,16 +107,40 @@ Nutrikit never fills a gap with a guess or a zero.
 
 Coverage by source (share of foods with a value):
 
-| Nutrients | USDA survey (FNDDS, 5,431 foods) | USDA SR Legacy (7,688) | USDA Foundation (240) |
-|---|---|---|---|
-| Calories, protein, fat, carbohydrate | 100% | 100% | 100% |
-| Sodium, potassium, calcium, iron | 100% | 96–99% | 99% |
-| Fiber, saturated fat, cholesterol | 100% | 93–96% | 22–52% |
-| Sugars | 100% | 77% | 31% |
-| Vitamins A, C, D, E, K, B12, folate | 100% | 64–94% | 8–32% |
-| Trans fat | – | 54% | 13% |
-| Added sugars | – | – | – |
+| Nutrients | USDA survey (FNDDS, 5,431 foods) | USDA SR Legacy (7,688) | USDA Foundation (240) | UK CoFID dishes (511) |
+|---|---|---|---|---|
+| Calories, protein, fat, carbohydrate | 100% | 100% | 100% | 100% (carbohydrate 91%) |
+| Sodium, potassium, calcium, iron | 100% | 96–99% | 99% | 97–99% |
+| Fiber, saturated fat, cholesterol | 100% | 93–96% | 22–52% | 49–95% |
+| Sugars | 100% | 77% | 31% | 98% |
+| Vitamins A, C, D, E, K, B12, folate | 100% | 64–94% | 8–32% | 0–97% (no folate; vitamin E, K under 10%) |
+| Trans fat | – | 54% | 13% | 85% |
+| Added sugars | – | – | – | – |
 
 Added sugars come only from Open Food Facts and nutrition labels; USDA's food tables don't report them.
-- Diet filters work from food names, so treat them as best effort.
-- Photo and label recognition are only as good as the AI provider.
+
+### UK CoFID dishes
+
+Dishes USDA lacks, many of them South Asian home-cooked dishes (rajma, chole, dals, khichdi, aloo gobi, korma…), come
+from the UK's *McCance and Widdowson's Composition of Foods Integrated Dataset 2021* (Public Health England) and have
+`source: "cofid"`. Contains public sector information licensed under the
+[Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
+
+- **Which foods:** the groups CoFID names as dishes (vegetable, meat, fish and egg dishes), 511 foods. A USDA food
+  named exactly what was searched still comes first; CoFID fills the gaps.
+- **Values** are CoFID's, converted to the same definitions as USDA's:
+  - published as is where they match (energy, protein, fat, fatty acids, minerals, most vitamins);
+  - vitamin A as RAE (retinol + carotene ÷ 12), vitamin D as cholecalciferol and vitamin E as α-tocopherol, only
+    where CoFID gives those components;
+  - carbohydrate as total carbohydrate including fibre: exact from its components where all were measured,
+    otherwise starch ÷ 1.1 + total sugars ÷ 1.05 + fibre (median 0.5%, at most 4.3% from the exact value);
+  - fibre only from the AOAC method; folate is never given (CoFID's total folate can't be converted to DFE);
+  - values CoFID marks "N" (not determined) are absent; "Tr" (trace) is 0.
+- **Names:** CoFID names dishes in English ("Curry, red kidney bean, Punjabi, homemade"). Common Indian names
+  (rajma, chole, masoor dal, toor dal, khichdi, aloo gobi…) are aliases from a reviewed list
+  ([server/data/aliases/cofid.json](../server/data/aliases/cofid.json)), each with a public reference.
+- **No household portions:** CoFID doesn't give cup or bowl weights, so "1 cup rajma" uses water density
+  (`portionMethod: "density-estimate"`) and "rajma" alone is 100 g (`default-100g`). Give grams for an exact amount.
+- **Rebuilding the catalog** needs the CoFID workbook from
+  [gov.uk](https://www.gov.uk/government/publications/composition-of-foods-integrated-dataset-cofid) in
+  `server/data/raw/cofid/`; the build checks its SHA-256 and builds without CoFID (with a warning) if it's missing.

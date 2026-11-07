@@ -17,9 +17,9 @@
 
 ## 4. API, SDK, docs
 
-- [ ] 4.1 `source` filter, SDK `FoodSource`, OpenAPI add `cofid`
-- [ ] 4.2 `docs/api.md`, website docs (data sources, changelog), `README.md` data setup, `CLEAN-ROOM.md`: OGL attribution, conversions and measured error, no portions
+- [x] 4.1 `source` filter, SDK `FoodSource`, OpenAPI add `cofid`
+- [x] 4.2 `docs/api.md`, website docs (data sources, changelog), `README.md` data setup, `CLEAN-ROOM.md`: OGL attribution, conversions and measured error, no portions
 
 ## 5. Verification
 
-- [ ] 5.1 `npm run typecheck`, `npm run test:unit`, `npm run build:db`, `npm run audit:data`, `npm run test:e2e`, live `curl /v1/log/text`
+- [x] 5.1 `npm run typecheck`, `npm run test:unit`, `npm run build:db`, `npm run audit:data`, `npm run test:e2e`, live `curl /v1/log/text` (server 160, web 101, MCP 5; audit unchanged apart from one high-fibre CoFID dish; the audit's carbohydrate checks now skip foods without a carbohydrate value)
