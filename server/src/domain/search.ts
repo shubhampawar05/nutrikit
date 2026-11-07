@@ -9,6 +9,7 @@ interface SearchRow {
   name: string;
   source: string;
   category: string | null;
+  aliases: string | null; // "|"-separated other names (data/aliases/)
   rank: number;
 }
 
@@ -115,17 +116,26 @@ export function wordCoverage(query: string, name: string): number {
   return covered.length / typed.length;
 }
 
+// Category-led names ("Fish, salmon", "Cheese, paneer") also count the food segment as the head.
+const headsOf = (row: SearchRow) => headSegments(row.name).map((h) => h.split(/\s+/).map(singular));
+
+/** The food is named exactly what was searched: its head ("banana" == "Banana, raw") or a cited alias ("rajma"). */
+function namesQuery(row: SearchRow, tokens: string[]) {
+  const qWords = tokens.map(singular).join(' ');
+  return headsOf(row).some((h) => h.join(' ') === qWords)
+    || (!!row.aliases && row.aliases.split('|').some((a) => normalizeQuery(a) === tokens.join(' ')));
+}
+
 function score(row: SearchRow, tokens: string[], rawQuery: string) {
   const name = row.name.toLowerCase();
   const head = name.split(',')[0].trim();
-  // Category-led names ("Fish, salmon", "Cheese, paneer") also count the food segment as the head.
-  const heads = headSegments(row.name).map((h) => h.split(/\s+/).map(singular));
+  const heads = headsOf(row);
   const headWords = heads.flat();
   const qWords = tokens.map(singular);
   let s = -row.rank; // bm25: lower is better -> flip
   const inHead = qWords.filter((t) => headWords.some((w) => w.startsWith(t))).length;
   s += inHead * 4;
-  if (heads.some((h) => h.join(' ') === qWords.join(' '))) s += 12; // "banana" == "Banana, raw"
+  if (namesQuery(row, tokens)) s += 12;
   else if (heads.some((h) => h[0] === qWords[0])) s += 5;
   // USDA names invert modifiers ("Rice, white"): match the query against the first two segments.
   const core = name.split(',').slice(0, 2).join(' ').split(/\s+/).filter(Boolean).map(singular);
@@ -162,7 +172,7 @@ export function searchFoods(query: string | null | undefined, { limit = 10, offs
   if (!q) return { query: q, total: 0, results: [] };
   const tokens = q.split(' ');
   const stmt = foods().prepare(`
-    SELECT f.id, f.name, f.source, f.category, bm25(foods_fts, 10.0, 1.0) AS rank
+    SELECT f.id, f.name, f.source, f.category, f.aliases, bm25(foods_fts, 10.0, 1.0, 10.0) AS rank
     FROM foods_fts JOIN foods f ON f.id = foods_fts.rowid
     WHERE foods_fts MATCH ? ${source ? 'AND f.source = ?' : ''}
     ORDER BY rank LIMIT 400`);
@@ -176,19 +186,24 @@ export function searchFoods(query: string | null | undefined, { limit = 10, offs
     rows = stmt.all(...(source ? [ftsQuery(tokens, op, prefix), source] : [ftsQuery(tokens, op, prefix)])) as unknown as SearchRow[];
     // The tokenizer stems the query too, so a half-typed "chicke" matches "chick" as a whole word; unless some
     // result really contains a word as typed, treat the query as partial and try prefixes.
-    if (kind === 'all-words' && !rows.some((r) => wordCoverage(String(query), r.name) > 0)) continue;
+    if (kind === 'all-words' && !rows.some((r) => wordCoverage(String(query), `${r.name} ${r.aliases?.replaceAll('|', ' ') ?? ''}`) > 0)) continue;
     if (rows.length) { match = kind; break; }
   }
   const relaxed = match === 'any-word';
   const ranked = rows
     .map((r) => ({ ...r, score: score(r, tokens, q) }))
     .sort((a, b) => b.score - a.score);
+  // CoFID fills gaps in USDA's dishes: a USDA food named exactly what was searched comes before every CoFID food
+  // (it also has household portions). "sambar" is USDA's sambar; "rajma", which USDA lacks, is CoFID's.
+  const usdaNamed = ranked.findIndex((r) => r.source !== 'cofid' && namesQuery(r, tokens));
+  const firstCofid = ranked.findIndex((r) => r.source === 'cofid');
+  if (usdaNamed > 0 && firstCofid >= 0 && firstCofid < usdaNamed) ranked.splice(firstCofid, 0, ...ranked.splice(usdaNamed, 1));
   const preferred = BARE_DEFAULTS[tokens.map(singular).join(' ')];
   if (preferred) {
     const i = ranked.findIndex((r) => r.name === preferred);
     if (i >= 0) ranked.unshift(...ranked.splice(i, 1));
     else {
-      const row = foods().prepare(`SELECT id, name, source, category, 0 AS rank FROM foods WHERE name = ? ${source ? 'AND source = ?' : ''}`)
+      const row = foods().prepare(`SELECT id, name, source, category, aliases, 0 AS rank FROM foods WHERE name = ? ${source ? 'AND source = ?' : ''}`)
         .get(...(source ? [preferred, source] : [preferred])) as unknown as SearchRow | undefined;
       if (row) {
         ranked.unshift({ ...row, score: ranked[0] ? ranked[0].score + 1 : 0 });

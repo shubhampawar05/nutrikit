@@ -21,11 +21,13 @@ const SAMPLE = 6;
 // 1. Nutrient sanity
 const checks: [string, (n: Per100g) => string | null][] = [
   ['negative value', (n) => Object.entries(n).filter(([, v]) => v < 0).map(([k, v]) => `${k}=${v}`).join(' ') || null],
+  // The carbohydrate checks skip foods without a carbohydrate value: missing is reported, not wrong.
   ['calories disagree with 4P + 4C + 9F + 7A by over 25%', (n) => {
+    if (n.carbs == null) return null;
     const atwater = 4 * (n.protein ?? 0) + 4 * (n.carbs ?? 0) + 9 * (n.fat ?? 0) + 7 * (n.alcohol ?? 0);
     return Math.abs(atwater - n.calories) > Math.max(30, 0.25 * n.calories) ? `kcal ${n.calories} vs ${atwater.toFixed(0)}` : null;
   }],
-  ['sugars exceed carbohydrate', (n) => ((n.sugar ?? 0) > (n.carbs ?? 0) + 1 ? `sugar ${n.sugar} carbs ${n.carbs}` : null)],
+  ['sugars exceed carbohydrate', (n) => (n.carbs != null && (n.sugar ?? 0) > n.carbs + 1 ? `sugar ${n.sugar} carbs ${n.carbs}` : null)],
   ['fiber exceeds carbohydrate', (n) => ((n.fiber ?? 0) > (n.carbs ?? 0) + 1 ? `fiber ${n.fiber} carbs ${n.carbs}` : null)],
   ['saturated fat exceeds fat', (n) => ((n.saturatedFat ?? 0) > (n.fat ?? 0) + 0.5 ? `sat ${n.saturatedFat} fat ${n.fat}` : null)],
 ];

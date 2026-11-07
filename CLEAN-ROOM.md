@@ -13,6 +13,13 @@ designed and written independently. This file records what informed it.
 - **Open data and public standards:** USDA FoodData Central, Open Food Facts, the FDA
   Nutrition Facts format and its daily values, and GS1 GTIN check digits.
 - **Public platform APIs:** the Web Speech API, the BarcodeDetector API, the Anthropic Messages API and the OpenAI Chat Completions API.
+- **UK CoFID 2021** (McCance and Widdowson's Composition of Foods Integrated Dataset, Public Health England, from
+  gov.uk): the dishes in its vegetable, meat, fish and egg dish groups, converted to the catalog's nutrient
+  definitions (`server/scripts/cofid.mjs`). Crown copyright, Open Government Licence v3.0; the workbook's SHA-256 is
+  pinned. Its user guide was read for definitions. Quadram Institute's CoFID API (a separate, non-commercial
+  product) was not used.
+- **Dish-name aliases** (`server/data/aliases/cofid.json`): each maps a common Indian name to a CoFID dish and cites a
+  public reference page that uses the name.
 - **Recipes:** the catalog build can compose dishes from USDA foods (`server/scripts/recipes.mjs`), but only from a
   recipe file that names its licensed source; none are shipped. Twenty hand-written recipes were briefly added and
   then removed, so that every value has a verifiable source.

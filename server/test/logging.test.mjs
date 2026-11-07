@@ -37,8 +37,7 @@ test('bare everyday words match the everyday food', () => {
 });
 
 test('search matches whole words before prefixes', () => {
-  assert.equal(searchFoods('chole').match, 'prefix', 'no food has the whole word "chole"');
-  assert.equal(logText('1 cup chole').items.length, 0, 'never logged as a "cholesterol-free" food');
+  assert.ok(searchFoods('chole').results.every((r) => !/cholesterol/i.test(r.name)), 'never a "cholesterol-free" food');
   const partial = searchFoods('chicke');
   assert.equal(partial.match, 'prefix', 'partial typing still works');
   assert.match(partial.results[0].name, /^Chicken/);
@@ -113,7 +112,7 @@ test('nonsense is unmatched, not guessed', () => {
 });
 
 test('dishes the catalog lacks are unmatched, never logged as another food', () => {
-  for (const phrase of ['1 cup rajma', '1 cup khichdi', '2 gulab jamun', '1 glass lassi', '1 cup butter chicken']) {
+  for (const phrase of ['2 gulab jamun', '1 glass lassi', '1 cup butter chicken', '1 cup kheer']) {
     const r = logText(phrase);
     assert.equal(r.items.length, 0, `${phrase} is not logged`);
     assert.equal(r.unmatched.length, 1, `${phrase} is listed as unmatched`);
@@ -124,4 +123,24 @@ test('common phrasings reach the USDA food that exists', () => {
   assert.equal(item('dal tadka').food.name, 'Dal');
   assert.equal(item('1 cup dal fry').food.name, 'Dal');
   assert.equal(item('masala chai').food.name, 'Tea, hot, with milk');
+});
+
+test('CoFID dishes are logged by English name or cited alias, without invented portions', () => {
+  const rajma = item('1 cup rajma');
+  assert.equal(rajma.food.name, 'Curry, red kidney bean, Punjabi, homemade');
+  assert.equal(rajma.food.source, 'cofid');
+  assert.equal(rajma.portionMethod, 'density-estimate', 'CoFID has no household portions; the estimate is labelled');
+  for (const [phrase, name] of [
+    ['chana masala', /^Curry, chick pea, whole and tomato, Punjabi/], ['1 cup masoor dal', /red\/masoor dahl/],
+    ['toor dal', /pigeon pea dahl/], ['khichdi', /^Khichadi/], ['aloo gobi', /^Curry, cauliflower and potato/],
+    ['red kidney bean curry', /^Curry, red kidney bean/], ['chicken korma', /^Curry, chicken korma/],
+  ]) assert.match(item(phrase).food.name, name, phrase);
+  assert.equal(item('100 g rajma').grams, 100);
+});
+
+test('a USDA food named exactly what was searched comes before CoFID dishes', () => {
+  assert.equal(item('1 cup sambar').food.source, 'survey');
+  assert.equal(item('1 samosa').food.name, 'Samosa');
+  assert.equal(item('1 cup dal').food.name, 'Dal');
+  assert.equal(searchFoods('sambar').results[0].source, 'survey');
 });
