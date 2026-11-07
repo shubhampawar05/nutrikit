@@ -28,7 +28,25 @@ test('same-name collisions keep the record with more label nutrients, newest dat
 });
 
 
-test('the catalog holds only USDA foods', () => {
+test('the catalog holds USDA foods and CoFID dishes only', () => {
   const sources = foods().prepare('SELECT DISTINCT source FROM foods ORDER BY 1').all().map((r) => r.source);
-  assert.deepEqual(sources, ['foundation', 'sr_legacy', 'survey']);
+  assert.deepEqual(sources, ['cofid', 'foundation', 'sr_legacy', 'survey']);
+});
+
+test('CoFID dishes come from the pinned workbook, with ids in their own range and values as converted', () => {
+  const source = JSON.parse(meta('cofid_source'));
+  assert.equal(source.sha256, '436e9445ef2adb2a75f3d7edd51302de3adad25385f9795fc94ba58bd030e97d');
+  assert.equal(source.licence, 'Open Government Licence v3.0');
+  const rows = foods().prepare("SELECT id, name, category, nutrients FROM foods WHERE source = 'cofid'").all();
+  assert.ok(rows.length >= 500, `${rows.length} CoFID dishes`);
+  assert.ok(rows.every((r) => r.id >= 800_000_000 && r.id < 900_000_000), 'ids in the CoFID range');
+  // Spot values from the workbook: 15-146 "Curry, red kidney bean, Punjabi, homemade".
+  const rajma = rows.find((r) => r.id === 800_150_146);
+  assert.equal(rajma.name, 'Curry, red kidney bean, Punjabi, homemade');
+  assert.equal(rajma.category, 'Vegetable dishes');
+  const n = JSON.parse(rajma.nutrients);
+  assert.deepEqual([n.calories, n.protein, n.fat, n.water], [106, 4.7, 5.6, 74.8]);
+  assert.equal(n.sodium, undefined, 'CoFID marks it N (not determined)');
+  assert.equal(n.folate, undefined, 'folate is never converted');
+  assert.ok(rows.every((r) => JSON.parse(r.nutrients).folate === undefined));
 });

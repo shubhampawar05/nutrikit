@@ -1,0 +1,18 @@
+[
+  { "alias": "rajma", "cofidCode": "15-146", "cofidName": "Curry, red kidney bean, Punjabi, homemade", "reference": "https://en.wikipedia.org/wiki/Rajma", "note": "Punjabi version; CoFID also has a Gujerati one (15-785)." },
+  { "alias": "rajmah", "cofidCode": "15-146", "cofidName": "Curry, red kidney bean, Punjabi, homemade", "reference": "https://en.wikipedia.org/wiki/Rajma", "note": "Alternative spelling." },
+  { "alias": "chole", "cofidCode": "15-108", "cofidName": "Curry, chick pea, whole and tomato, Punjabi, with vegetable oil, homemade", "reference": "https://en.wikipedia.org/wiki/Chana_masala", "note": "Punjabi version cooked in vegetable oil; butter (15-107) and Gujerati (15-746, 15-747) versions exist." },
+  { "alias": "chana masala", "cofidCode": "15-108", "cofidName": "Curry, chick pea, whole and tomato, Punjabi, with vegetable oil, homemade", "reference": "https://en.wikipedia.org/wiki/Chana_masala", "note": "Same dish as chole." },
+  { "alias": "chana dal", "cofidCode": "15-641", "cofidName": "Curry, chick pea dhal, homemade", "reference": "https://en.wikipedia.org/wiki/Chickpea", "note": "Split chickpea (chana) dal." },
+  { "alias": "masoor dal", "cofidCode": "15-764", "cofidName": "Curry, lentil, red/masoor dahl, with vegetable oil, homemade", "reference": "https://en.wikipedia.org/wiki/Lentil", "note": "Cooked in vegetable oil; butter (15-763) and Punjabi (15-762) versions exist." },
+  { "alias": "moong dal", "cofidCode": "15-132", "cofidName": "Curry, mung bean dahl and tomato, homemade", "reference": "https://en.wikipedia.org/wiki/Mung_bean", "note": "With tomato; a Bengali version (15-768) exists." },
+  { "alias": "toor dal", "cofidCode": "15-780", "cofidName": "Curry, pigeon pea dahl, with vegetable oil, homemade", "reference": "https://en.wikipedia.org/wiki/Pigeon_pea", "note": "Pigeon pea is toor/arhar; cooked in vegetable oil (butter version 15-779)." },
+  { "alias": "arhar dal", "cofidCode": "15-780", "cofidName": "Curry, pigeon pea dahl, with vegetable oil, homemade", "reference": "https://en.wikipedia.org/wiki/Pigeon_pea", "note": "Same dal as toor dal." },
+  { "alias": "urad dal", "cofidCode": "12-468", "cofidName": "Urad dahl, homemade", "reference": "https://en.wikipedia.org/wiki/Vigna_mungo", "note": "Split black gram (urad) dal." },
+  { "alias": "khichdi", "cofidCode": "15-528", "cofidName": "Khichadi, with butter ghee", "reference": "https://en.wikipedia.org/wiki/Khichdi", "note": "With ghee, as traditionally made; a vegetable oil version (15-529) exists." },
+  { "alias": "aloo gobi", "cofidCode": "15-741", "cofidName": "Curry, cauliflower and potato, homemade", "reference": "https://en.wikipedia.org/wiki/Aloo_gobhi", "note": "Potato (aloo) and cauliflower (gobi)." },
+  { "alias": "aloo matar", "cofidCode": "15-781", "cofidName": "Curry, potato and pea, homemade", "reference": "https://en.wikipedia.org/wiki/Aloo_mutter", "note": "Potato (aloo) and pea (matar)." },
+  { "alias": "aloo mutter", "cofidCode": "15-781", "cofidName": "Curry, potato and pea, homemade", "reference": "https://en.wikipedia.org/wiki/Aloo_mutter", "note": "Alternative spelling." },
+  { "alias": "onion bhaji", "cofidCode": "15-828", "cofidName": "Pakora/bhajia, onion, fried in vegetable oil, homemade", "reference": "https://en.wikipedia.org/wiki/Bhaji", "note": "Fried onion fritters." },
+  { "alias": "veg pulao", "cofidCode": "12-472", "cofidName": "Pilau, vegetable, homemade", "reference": "https://en.wikipedia.org/wiki/Pilaf", "note": "Vegetable pulao (pilau)." }
+]

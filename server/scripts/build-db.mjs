@@ -1,9 +1,10 @@
-// Builds data/foods.db from USDA FoodData Central CSV releases (public domain, CC0).
+// Builds data/foods.db from USDA FoodData Central CSV releases (public domain, CC0) and the dishes of UK CoFID 2021
+// (Crown copyright, Open Government Licence v3.0).
 //
-//   node scripts/build-db.mjs            (expects the extracted releases under data/raw/)
+//   node scripts/build-db.mjs            (expects the extracted releases and the CoFID workbook under data/raw/)
 //
 // Datasets: SR Legacy (generic foods), FNDDS survey foods (dishes "as eaten"),
-// Foundation Foods (recent analytical data). Nutrient values are stored per 100 g.
+// Foundation Foods (recent analytical data), CoFID dishes (see scripts/cofid.mjs). Values are stored per 100 g.
 // Dishes USDA lacks can be added from licensed sources in data/recipes/ (see scripts/recipes.mjs); none are shipped.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,11 +12,15 @@ import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { NUTRIENTS } from '../src/domain/nutrients.ts';
 import { loadRecipes, composeRecipe } from './recipes.mjs';
+import { readXlsx } from './xlsx.mjs';
+import { COFID_SOURCE, DISH_GROUPS, cofidFoods, convertCofid, cofidId, verifyCofidFile, cofidAliases } from './cofid.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const RAW = path.join(ROOT, 'data/raw');
 const OUT = path.join(ROOT, 'data/foods.db');
 const RECIPES = path.join(ROOT, 'data/recipes');
+const COFID_FILE = path.join(RAW, 'cofid', COFID_SOURCE.file);
+const COFID_ALIASES = path.join(ROOT, 'data/aliases/cofid.json');
 
 const DATASETS = [
   { dir: 'FoodData_Central_survey_food_csv_2024-10-31', source: 'survey', types: ['survey_fndds_food'] },
@@ -65,11 +70,12 @@ db.exec(`
   PRAGMA journal_mode = OFF;
   PRAGMA synchronous = OFF;
   CREATE TABLE foods (
-    id INTEGER PRIMARY KEY,          -- USDA fdc_id
+    id INTEGER PRIMARY KEY,          -- USDA fdc_id, or 800,000,000 + CoFID code (see cofid.mjs)
     name TEXT NOT NULL,
-    source TEXT NOT NULL,            -- survey | foundation | sr_legacy | recipe
+    source TEXT NOT NULL,            -- survey | foundation | sr_legacy | cofid | recipe
     category TEXT,
-    nutrients TEXT NOT NULL          -- JSON {key: amount per 100 g}
+    nutrients TEXT NOT NULL,         -- JSON {key: amount per 100 g}
+    aliases TEXT                     -- other names, "|"-separated (data/aliases/), or NULL
   );
   CREATE TABLE portions (
     food_id INTEGER NOT NULL REFERENCES foods(id),
@@ -80,12 +86,12 @@ db.exec(`
     grams REAL NOT NULL
   );
   CREATE INDEX portions_food ON portions(food_id, seq);
-  CREATE VIRTUAL TABLE foods_fts USING fts5(name, category, content='foods', content_rowid='id',
+  CREATE VIRTUAL TABLE foods_fts USING fts5(name, category, aliases, content='foods', content_rowid='id',
     tokenize = 'porter unicode61 remove_diacritics 2');
   CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
 `);
 
-const insertFood = db.prepare('INSERT INTO foods (id, name, source, category, nutrients) VALUES (?, ?, ?, ?, ?)');
+const insertFood = db.prepare('INSERT INTO foods (id, name, source, category, nutrients, aliases) VALUES (?, ?, ?, ?, ?, ?)');
 const insertPortion = db.prepare('INSERT INTO portions (food_id, seq, label, amount, unit, grams) VALUES (?, ?, ?, ?, ?, ?)');
 
 const UNIT_ALIASES = {
@@ -101,7 +107,7 @@ const normUnit = (u) => {
 // tie, the newest data (Foundation, then survey, then SR Legacy). Two records are different samples, so their
 // values are never mixed into one food.
 const LABEL_KEYS = ['calories', 'protein', 'fat', 'carbs', 'fiber', 'sugar', 'saturatedFat', 'cholesterol', 'sodium', 'potassium', 'calcium', 'iron', 'vitaminD'];
-const SOURCE_RANK = { foundation: 0, survey: 1, sr_legacy: 2 };
+const SOURCE_RANK = { foundation: 0, survey: 1, sr_legacy: 2, cofid: 3 };
 const labelCoverage = (f) => LABEL_KEYS.filter((k) => f.n[k] != null).length;
 const better = (a, b) => {
   const ka = labelCoverage(a), kb = labelCoverage(b);
@@ -172,9 +178,31 @@ for (const ds of DATASETS) {
   }
 }
 
+// CoFID dishes: only from the pinned gov.uk workbook. Without it the catalog is USDA-only (with a warning).
+let cofidMeta = null;
+if (fs.existsSync(COFID_FILE)) {
+  verifyCofidFile(COFID_FILE);
+  const dishes = cofidFoods(readXlsx(COFID_FILE)).filter((f) => f.group in DISH_GROUPS);
+  const aliases = cofidAliases(JSON.parse(fs.readFileSync(COFID_ALIASES, 'utf8')), dishes);
+  const carbs = { exact: 0, documented: 0, absent: 0 };
+  for (const d of dishes) {
+    const { nutrients, carbsMethod } = convertCofid(d);
+    carbs[carbsMethod ?? 'absent']++;
+    if (nutrients.calories == null) continue; // unusable for logging, as for USDA foods
+    const f = { id: cofidId(d.code), name: d.name, source: 'cofid', category: DISH_GROUPS[d.group], n: nutrients, portions: [], aliases: aliases.get(d.code) ?? null };
+    const key = f.name.toLowerCase();
+    const prev = kept.get(key);
+    if (prev) collisions++;
+    if (!prev || better(f, prev)) kept.set(key, f);
+  }
+  cofidMeta = { ...COFID_SOURCE, dishes: dishes.length, carbs, aliases: [...aliases.values()].flat().length };
+} else {
+  console.warn(`CoFID workbook not found at ${COFID_FILE}; building without CoFID dishes (download: ${COFID_SOURCE.url})`);
+}
+
 db.exec('BEGIN');
 for (const f of kept.values()) {
-  insertFood.run(f.id, f.name, f.source, f.category, JSON.stringify(f.n));
+  insertFood.run(f.id, f.name, f.source, f.category, JSON.stringify(f.n), f.aliases?.join('|') ?? null);
   for (const p of f.portions) insertPortion.run(f.id, p.seq, p.label, p.amount, p.unit, p.grams);
   counts[f.source] = (counts[f.source] ?? 0) + 1;
 }
@@ -184,7 +212,7 @@ for (const recipe of loadRecipes(RECIPES)) {
   if (byId.has(r.id) || kept.has(r.name.toLowerCase())) throw new Error(`recipe ${recipe.file}: id or name already in the catalog`);
   byId.set(r.id, { ...r, n: r.nutrients });
   kept.set(r.name.toLowerCase(), r);
-  insertFood.run(r.id, r.name, 'recipe', r.category, JSON.stringify(r.nutrients));
+  insertFood.run(r.id, r.name, 'recipe', r.category, JSON.stringify(r.nutrients), null);
   for (const p of r.portions) insertPortion.run(r.id, p.seq, p.label, p.amount, p.unit, p.grams);
   counts.recipe = (counts.recipe ?? 0) + 1;
 }
@@ -194,6 +222,7 @@ insertMeta.run('built_at', new Date().toISOString());
 insertMeta.run('sources', JSON.stringify(DATASETS.map((d) => d.dir)));
 insertMeta.run('clamped', String(clamped));
 insertMeta.run('collisions', String(collisions));
+if (cofidMeta) insertMeta.run('cofid_source', JSON.stringify(cofidMeta));
 db.exec('COMMIT');
 db.exec('VACUUM');
 
