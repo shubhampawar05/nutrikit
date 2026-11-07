@@ -90,6 +90,7 @@ The full API reference is served at `/docs/reference`.
 | [Developer platform](docs/platform.md) | Understand accounts, plans, the admin console and security |
 | [Payments](docs/payments.md) | Set up Razorpay, in test mode or live |
 | [Testing](docs/testing.md) | Run and understand the test suites |
+| [Personal data pack](docs/personal-data-pack.md) | Build a local-only catalog with unlicensed Indian dish data (never committed or deployed) |
 
 ## Data and attribution
 

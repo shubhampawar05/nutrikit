@@ -21,8 +21,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 let foodsDb: DatabaseSync | undefined;
 export function foods(): DatabaseSync {
   if (!foodsDb) {
-    const file = path.join(ROOT, 'data/foods.db');
-    if (!fs.existsSync(file)) throw new Error('data/foods.db missing - run `npm run build:db` first');
+    // NUTRIKIT_CATALOG points a local run at another catalog, such as the personal pack (data/foods.personal.db).
+    const file = path.resolve(ROOT, process.env.NUTRIKIT_CATALOG || 'data/foods.db');
+    if (!fs.existsSync(file)) throw new Error(`${path.relative(ROOT, file)} missing - run \`npm run build:db\` first`);
     foodsDb = new DatabaseSync(file, { readOnly: true });
   }
   return foodsDb;

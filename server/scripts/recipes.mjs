@@ -37,7 +37,7 @@ export function composeRecipe(recipe, findFood, keys) {
   const { source } = recipe;
   if (!source?.name?.trim() || !source?.license?.trim() || !source?.url?.trim()) fail('source.name, source.license and source.url are required');
   if (!Array.isArray(recipe.ingredients) || !recipe.ingredients.length) fail('ingredients are required');
-  if (!Array.isArray(recipe.portions) || !recipe.portions.length) fail('portions are required');
+  if (!Array.isArray(recipe.portions)) fail('portions must be a list (it may be empty: amounts are then logged by weight)');
 
   const ingredients = recipe.ingredients.map((ing) => {
     const food = findFood(ing.fdcId);
@@ -56,7 +56,8 @@ export function composeRecipe(recipe, findFood, keys) {
 
   // A nutrient is reported only when every ingredient that matters to the dish has a value for it; otherwise the
   // sum would silently understate it, so it is left out and reads as missing.
-  const major = ingredients.filter((i) => i.grams / rawGrams >= MINOR_SHARE);
+  // An ingredient marked minor (herb sprigs, whose weight is only an upper-bound estimate) never decides it either.
+  const major = ingredients.filter((i) => i.grams / rawGrams >= MINOR_SHARE && !i.minor);
   const nutrients = {};
   for (const key of keys) {
     if (!major.every((i) => i.n[key] != null)) continue;

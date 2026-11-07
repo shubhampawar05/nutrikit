@@ -1,0 +1,4 @@
+[
+  { "alias": "kheer", "indbCode": "ASC282", "indbName": "Rice kheer (Chawal ki kheer)", "reference": "https://en.wikipedia.org/wiki/Kheer", "note": "Plain kheer is rice kheer; INDB also has makhana, vermicelli, semolina and other kheers." },
+  { "alias": "poha", "indbCode": "BFP044", "indbName": "Poha", "reference": "https://en.wikipedia.org/wiki/Flattened_rice", "note": "The flattened-rice dish, not the Hawaiian poha berry (groundcherry)." }
+]

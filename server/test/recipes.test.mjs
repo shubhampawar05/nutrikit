@@ -47,7 +47,8 @@ test('the build fails on an impossible yield, a bad id or missing parts', () => 
   assert.throws(() => composeRecipe(recipe({ cookedGrams: 700 }), find, KEYS), /cookedGrams 700/, 'cooking cannot add weight');
   assert.throws(() => composeRecipe(recipe({ cookedGrams: 200 }), find, KEYS), /cookedGrams 200/, 'losing over half is a typo');
   assert.throws(() => composeRecipe(recipe({ id: 12345 }), find, KEYS), /id must be/);
-  assert.throws(() => composeRecipe(recipe({ portions: [] }), find, KEYS), /portions are required/);
+  assert.throws(() => composeRecipe(recipe({ portions: undefined }), find, KEYS), /portions must be a list/);
+  assert.deepEqual(composeRecipe(recipe({ portions: [] }), find, KEYS).portions, [], 'a dish may have no household portions');
   assert.throws(() => composeRecipe(recipe({ ingredients: [] }), find, KEYS), /ingredients are required/);
 });
 

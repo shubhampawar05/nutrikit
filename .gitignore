@@ -1,5 +1,7 @@
 node_modules/
 server/data/raw/
+# Personal catalog built with unlicensed local data packs (npm run build:db -- --personal); never committed.
+server/data/foods.personal.db
 server/data/app.db*
 server/dist/
 mcp/dist/

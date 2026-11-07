@@ -116,6 +116,9 @@ export function wordCoverage(query: string, name: string): number {
   return covered.length / typed.length;
 }
 
+// Sources that fill gaps in USDA's dishes: UK CoFID, and INDB in the personal catalog.
+const GAP_SOURCES = new Set(['cofid', 'indb']);
+
 // Category-led names ("Fish, salmon", "Cheese, paneer") also count the food segment as the head.
 const headsOf = (row: SearchRow) => headSegments(row.name).map((h) => h.split(/\s+/).map(singular));
 
@@ -193,11 +196,19 @@ export function searchFoods(query: string | null | undefined, { limit = 10, offs
   const ranked = rows
     .map((r) => ({ ...r, score: score(r, tokens, q) }))
     .sort((a, b) => b.score - a.score);
-  // CoFID fills gaps in USDA's dishes: a USDA food named exactly what was searched comes before every CoFID food
+  // CoFID and INDB fill gaps in USDA's dishes: a USDA food named exactly what was searched comes before them
   // (it also has household portions). "sambar" is USDA's sambar; "rajma", which USDA lacks, is CoFID's.
-  const usdaNamed = ranked.findIndex((r) => r.source !== 'cofid' && namesQuery(r, tokens));
-  const firstCofid = ranked.findIndex((r) => r.source === 'cofid');
+  const usdaNamed = ranked.findIndex((r) => !GAP_SOURCES.has(r.source) && namesQuery(r, tokens));
+  const firstCofid = ranked.findIndex((r) => GAP_SOURCES.has(r.source));
   if (usdaNamed > 0 && firstCofid >= 0 && firstCofid < usdaNamed) ranked.splice(firstCofid, 0, ...ranked.splice(usdaNamed, 1));
+  // A gap source leads only when it is named exactly what was searched: "roti" stays USDA's chapati rather than a
+  // speciality roti, while "rajma" (a cited alias) or "butter chicken" (no USDA match) is the gap source's.
+  // Otherwise a food named exactly what was searched leads ("khichdi" is the cited khichdi, not a vegetable khichdi).
+  else if (ranked.findIndex((r) => namesQuery(r, tokens)) > 0) ranked.unshift(...ranked.splice(ranked.findIndex((r) => namesQuery(r, tokens)), 1));
+  else if (ranked[0] && GAP_SOURCES.has(ranked[0].source) && !namesQuery(ranked[0], tokens)) {
+    const usda = ranked.findIndex((r) => !GAP_SOURCES.has(r.source));
+    if (usda > 0) ranked.unshift(...ranked.splice(usda, 1));
+  }
   const preferred = BARE_DEFAULTS[tokens.map(singular).join(' ')];
   if (preferred) {
     const i = ranked.findIndex((r) => r.name === preferred);

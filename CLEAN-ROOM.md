@@ -24,9 +24,14 @@ designed and written independently. This file records what informed it.
   recipe file that names its licensed source; none are shipped. Twenty hand-written recipes were briefly added and
   then removed, so that every value has a verifiable source.
 - **Indian Nutrient Databank (INDB)** (github.com/lindsayjaacks/Indian-Nutrient-Databank-INDB-): its method
-  (composing dishes from ingredients) was read, and its spreadsheets were analysed locally to judge whether a
-  licence would be worth asking for. Nothing from it is in this repository: it has no licence, and it is built on
-  the © ICMR-NIN Indian Food Composition Tables 2017 and two copyrighted cookbooks. IFCT 2017 itself was not used.
+  (composing dishes from ingredients) was read and its spreadsheets were analysed. INDB has no licence and is built
+  on the © ICMR-NIN Indian Food Composition Tables 2017 and two copyrighted cookbooks, so **no INDB data is in this
+  repository, the committed catalog, the Docker image or the live site.** The owner uses it for personal use only,
+  pending permission: `npm run build:db -- --personal` composes its dishes from their ingredient lists into the
+  gitignored `server/data/foods.personal.db` ([docs/personal-data-pack.md](docs/personal-data-pack.md)). INDB's own
+  nutrient values and IFCT 2017 are not used. The repository holds only our ingredient mapping
+  (`server/data/indb/ingredients.json`: INDB ingredient names matched to USDA/CoFID foods) and a two-entry alias
+  list (`server/data/aliases/indb.json`).
 
 ## Inputs deliberately not used
 

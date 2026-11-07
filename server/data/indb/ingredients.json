@@ -1,0 +1,3173 @@
+[
+ {
+  "indbCode": "G528",
+  "indbName": "Salt",
+  "uses": 833,
+  "kind": "food",
+  "fdcId": 173468,
+  "food": "Salt, table"
+ },
+ {
+  "indbCode": "K505",
+  "indbName": "Water, distilled",
+  "uses": 554,
+  "kind": "water"
+ },
+ {
+  "indbCode": "T508",
+  "indbName": "Oil, sunflower",
+  "uses": 471,
+  "kind": "food",
+  "fdcId": 171025,
+  "food": "Oil, sunflower, linoleic, (approx. 65%)"
+ },
+ {
+  "indbCode": "G017",
+  "indbName": "Onion, big (Allium cepa)",
+  "uses": 326,
+  "kind": "food",
+  "fdcId": 2709795,
+  "food": "Onions, raw"
+ },
+ {
+  "indbCode": "G516",
+  "indbName": "Chilli powder",
+  "uses": 318,
+  "kind": "food",
+  "fdcId": 171319,
+  "food": "Spices, chili powder"
+ },
+ {
+  "indbCode": "T501",
+  "indbName": "Butter, unsalted",
+  "uses": 287,
+  "kind": "food",
+  "fdcId": 173430,
+  "food": "Butter, without salt"
+ },
+ {
+  "indbCode": "G031",
+  "indbName": "Pepper, black (Piper nigrum)",
+  "uses": 283,
+  "kind": "food",
+  "fdcId": 170931,
+  "food": "Spices, pepper, black"
+ },
+ {
+  "indbCode": "I502",
+  "indbName": "Sugar, white",
+  "uses": 278,
+  "kind": "food",
+  "fdcId": 169655,
+  "food": "Sugars, granulated"
+ },
+ {
+  "indbCode": "L002",
+  "indbName": "Milk, whole, Cow",
+  "uses": 246,
+  "kind": "food",
+  "fdcId": 172217,
+  "food": "Milk, whole, 3.25% milkfat, without added vitamin A and vitamin D"
+ },
+ {
+  "indbCode": "G014",
+  "indbName": "Ginger, fresh (Zingiber officinale)",
+  "uses": 233,
+  "kind": "food",
+  "fdcId": 169231,
+  "food": "Ginger root, raw"
+ },
+ {
+  "indbCode": "G008",
+  "indbName": "Chillies, green - all varieties (Capsicum annum)",
+  "uses": 229,
+  "kind": "food",
+  "fdcId": 170497,
+  "food": "Peppers, hot chili, green, raw"
+ },
+ {
+  "indbCode": "A018",
+  "indbName": "Wheat flour, refined (Triticum aestivum)",
+  "uses": 224,
+  "kind": "food",
+  "fdcId": 169761,
+  "food": "Wheat flour, white, all-purpose, unenriched"
+ },
+ {
+  "indbCode": "G012",
+  "indbName": "Garlic, small clove (Allium sativum)",
+  "uses": 209,
+  "kind": "food",
+  "fdcId": 2709786,
+  "food": "Garlic, raw"
+ },
+ {
+  "indbCode": "M001",
+  "indbName": "Egg, poultry, whole, raw",
+  "uses": 197,
+  "kind": "food",
+  "fdcId": 171287,
+  "food": "Egg, whole, raw, fresh"
+ },
+ {
+  "indbCode": "G523",
+  "indbName": "Garam masala",
+  "uses": 187,
+  "kind": "food",
+  "fdcId": 170924,
+  "food": "Spices, curry powder",
+  "note": "USDA has no garam masala; curry powder is the closest spice blend (used in teaspoons)"
+ },
+ {
+  "indbCode": "G025",
+  "indbName": "Cumin seeds (Cuminum cyminum)",
+  "uses": 183,
+  "kind": "food",
+  "fdcId": 170923,
+  "food": "Spices, cumin seed"
+ },
+ {
+  "indbCode": "D075",
+  "indbName": "Tomato, ripe, hybrid (Solanum lycopersicum)",
+  "uses": 180,
+  "kind": "food",
+  "fdcId": 170457,
+  "food": "Tomatoes, red, ripe, raw, year round average"
+ },
+ {
+  "indbCode": "G009",
+  "indbName": "Coriander leaves (Coriandrum sativum)",
+  "uses": 174,
+  "kind": "food",
+  "fdcId": 169997,
+  "food": "Coriander (cilantro) leaves, raw"
+ },
+ {
+  "indbCode": "I504",
+  "indbName": "Sugar, icing",
+  "uses": 167,
+  "kind": "food",
+  "fdcId": 169656,
+  "food": "Sugars, powdered"
+ },
+ {
+  "indbCode": "G033",
+  "indbName": "Turmeric powder (Curcuma domestica)",
+  "uses": 159,
+  "kind": "food",
+  "fdcId": 172231,
+  "food": "Spices, turmeric, ground"
+ },
+ {
+  "indbCode": "L520",
+  "indbName": "Yogurt, whole milk, plain",
+  "uses": 119,
+  "kind": "food",
+  "fdcId": 171284,
+  "food": "Yogurt, plain, whole milk"
+ },
+ {
+  "indbCode": "T506",
+  "indbName": "Ghee, butter",
+  "uses": 113,
+  "kind": "food",
+  "fdcId": 2710168,
+  "food": "Ghee, clarified butter"
+ },
+ {
+  "indbCode": "U511",
+  "indbName": "Bread, white, average",
+  "uses": 107,
+  "kind": "food",
+  "fdcId": 174924,
+  "food": "Bread, white, commercially prepared (includes soft bread crumbs)"
+ },
+ {
+  "indbCode": "F006",
+  "indbName": "Potato, brown skin, big (Solanum tuberosum)",
+  "uses": 99,
+  "kind": "food",
+  "fdcId": 170026,
+  "food": "Potatoes, flesh and skin, raw"
+ },
+ {
+  "indbCode": "F002",
+  "indbName": "Carrot, orange (Daucus carota)",
+  "uses": 94,
+  "kind": "food",
+  "fdcId": 2709660,
+  "food": "Carrots, raw"
+ },
+ {
+  "indbCode": "L519",
+  "indbName": "Cream, fresh, single",
+  "uses": 89,
+  "kind": "food",
+  "fdcId": 170857,
+  "food": "Cream, fluid, light (coffee cream or table cream)"
+ },
+ {
+  "indbCode": "G023",
+  "indbName": "Cloves (Syzygium aromaticum)",
+  "uses": 81,
+  "kind": "food",
+  "fdcId": 171321,
+  "food": "Spices, cloves, ground"
+ },
+ {
+  "indbCode": "G518",
+  "indbName": "Cinnamon, ground",
+  "uses": 80,
+  "kind": "food",
+  "fdcId": 171320,
+  "food": "Spices, cinnamon, ground"
+ },
+ {
+  "indbCode": "K500",
+  "indbName": "Baking powder",
+  "uses": 80,
+  "kind": "food",
+  "fdcId": 172803,
+  "food": "Leavening agents, baking powder, double-acting, sodium aluminum sulfate"
+ },
+ {
+  "indbCode": "E520",
+  "indbName": "Lemons, flesh only, raw, weighed with peel and pips",
+  "uses": 76,
+  "kind": "food",
+  "fdcId": 167746,
+  "food": "Lemons, raw, without peel"
+ },
+ {
+  "indbCode": "G544",
+  "indbName": "Vanilla extract",
+  "uses": 76,
+  "kind": "food",
+  "fdcId": 173471,
+  "food": "Vanilla extract"
+ },
+ {
+  "indbCode": "A503",
+  "indbName": "Flour, corn",
+  "uses": 75,
+  "kind": "food",
+  "fdcId": 169698,
+  "food": "Cornstarch",
+  "note": "UK \"flour, corn\" is cornflour, i.e. cornstarch"
+ },
+ {
+  "indbCode": "G024",
+  "indbName": "Coriander seeds (Coriandrum sativum)",
+  "uses": 74,
+  "kind": "food",
+  "fdcId": 170922,
+  "food": "Spices, coriander seed"
+ },
+ {
+  "indbCode": "E033",
+  "indbName": "Lemon, juice (Citrus limon)",
+  "uses": 72,
+  "kind": "food",
+  "fdcId": 167747,
+  "food": "Lemon juice, raw"
+ },
+ {
+  "indbCode": "G020",
+  "indbName": "Cardamom, green (Elettaria cardamomum)",
+  "uses": 70,
+  "kind": "food",
+  "fdcId": 170919,
+  "food": "Spices, cardamom"
+ },
+ {
+  "indbCode": "L505",
+  "indbName": "Cheese, processed, plain",
+  "uses": 68,
+  "kind": "food",
+  "fdcId": 171290,
+  "food": "Cheese, pasteurized process, American, without added vitamin D"
+ },
+ {
+  "indbCode": "D061",
+  "indbName": "Peas, fresh (Pisum sativum)",
+  "uses": 66,
+  "kind": "food",
+  "fdcId": 170419,
+  "food": "Peas, green, raw"
+ },
+ {
+  "indbCode": "G512",
+  "indbName": "Bay leaf, dried",
+  "uses": 64,
+  "kind": "food",
+  "fdcId": 170917,
+  "food": "Spices, bay leaf"
+ },
+ {
+  "indbCode": "H013",
+  "indbName": "Mustard seeds (Brassica nigra)",
+  "uses": 63,
+  "kind": "food",
+  "fdcId": 170929,
+  "food": "Spices, mustard seed, ground"
+ },
+ {
+  "indbCode": "A014",
+  "indbName": "Rice, parboiled, milled (Oryza sativa )",
+  "uses": 57,
+  "kind": "food",
+  "fdcId": 169758,
+  "food": "Rice, white, long-grain, parboiled, unenriched, dry",
+  "cooked": {
+   "fdcId": 169759,
+   "food": "Rice, white, long-grain, parboiled, unenriched, cooked"
+  }
+ },
+ {
+  "indbCode": "H001",
+  "indbName": "Almond (Prunus amygdalus)",
+  "uses": 57,
+  "kind": "food",
+  "fdcId": 170567,
+  "food": "Nuts, almonds"
+ },
+ {
+  "indbCode": "A504",
+  "indbName": "Flour, gram",
+  "uses": 56,
+  "kind": "food",
+  "fdcId": 174288,
+  "food": "Chickpea flour (besan)"
+ },
+ {
+  "indbCode": "G010",
+  "indbName": "Curry leaves (Murraya koenigii)",
+  "uses": 55,
+  "kind": "food",
+  "cofidCode": "13-821",
+  "food": "Curry leaves, fresh",
+  "note": "from UK CoFID 2021 (not a catalog food; used as an ingredient)"
+ },
+ {
+  "indbCode": "G022",
+  "indbName": "Chillies, red (Capsicum annum)",
+  "uses": 52,
+  "kind": "food",
+  "fdcId": 170932,
+  "food": "Spices, pepper, red or cayenne",
+  "note": "dried red chillies, used in small amounts"
+ },
+ {
+  "indbCode": "G019",
+  "indbName": "Asafoetida (Ferula assa-foetida)",
+  "uses": 52,
+  "kind": "negligible",
+  "note": "asafoetida, a pinch"
+ },
+ {
+  "indbCode": "C033",
+  "indbName": "Spinach (Spinacia oleracea)",
+  "uses": 51,
+  "kind": "food",
+  "fdcId": 2709614,
+  "food": "Spinach, raw"
+ },
+ {
+  "indbCode": "A019",
+  "indbName": "Wheat flour, atta (Triticum aestivum)",
+  "uses": 50,
+  "kind": "food",
+  "fdcId": 168893,
+  "food": "Wheat flour, whole-grain (Includes foods for USDA's Food Distribution Program)"
+ },
+ {
+  "indbCode": "G021",
+  "indbName": "Cardamom, black (Elettaria cardamomum)",
+  "uses": 50,
+  "kind": "food",
+  "fdcId": 170919,
+  "food": "Spices, cardamom"
+ },
+ {
+  "indbCode": "L003",
+  "indbName": "Paneer",
+  "uses": 47,
+  "kind": "food",
+  "fdcId": 2705740,
+  "food": "Cheese, paneer"
+ },
+ {
+  "indbCode": "B003",
+  "indbName": "Black gram, dal (Phaseolus mungo)",
+  "uses": 46,
+  "kind": "food",
+  "fdcId": 174259,
+  "food": "Mungo beans, mature seeds, raw",
+  "cooked": {
+   "fdcId": 172427,
+   "food": "Mungo beans, mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "G532",
+  "indbName": "Vinegar",
+  "uses": 44,
+  "kind": "food",
+  "fdcId": 172237,
+  "food": "Vinegar, distilled"
+ },
+ {
+  "indbCode": "G535",
+  "indbName": "SIVA'S, AMHUR POWDER (DRY MANGO POWDER)",
+  "uses": 43,
+  "kind": "food",
+  "fdcId": 169910,
+  "food": "Mangos, raw",
+  "note": "USDA has no dry mango powder (amchur); used in teaspoons"
+ },
+ {
+  "indbCode": "B001",
+  "indbName": "Bengal gram, dal (Cicer arietinum)",
+  "uses": 43,
+  "kind": "food",
+  "fdcId": 173756,
+  "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",
+  "cooked": {
+   "fdcId": 173757,
+   "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "G533",
+  "indbName": "Mustard powder",
+  "uses": 40,
+  "kind": "food",
+  "fdcId": 170929,
+  "food": "Spices, mustard seed, ground"
+ },
+ {
+  "indbCode": "H012",
+  "indbName": "Ground nut (Arachis hypogea)",
+  "uses": 40,
+  "kind": "food",
+  "fdcId": 172430,
+  "food": "Peanuts, all types, raw"
+ },
+ {
+  "indbCode": "D033",
+  "indbName": "Capsicum, green (Capsicum annuum)",
+  "uses": 38,
+  "kind": "food",
+  "fdcId": 2709800,
+  "food": "Peppers, sweet, green, raw"
+ },
+ {
+  "indbCode": "N003",
+  "indbName": "Chicken, poultry, breast, skinless",
+  "uses": 37,
+  "kind": "food",
+  "fdcId": 171077,
+  "food": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw"
+ },
+ {
+  "indbCode": "A022",
+  "indbName": "Wheat, semolina (Triticum aestivum)",
+  "uses": 36,
+  "kind": "food",
+  "fdcId": 168933,
+  "food": "Semolina, unenriched"
+ },
+ {
+  "indbCode": "G016",
+  "indbName": "Mint leaves (Mentha spicata )",
+  "uses": 35,
+  "kind": "food",
+  "fdcId": 173475,
+  "food": "Spearmint, fresh"
+ },
+ {
+  "indbCode": "I001",
+  "indbName": "Jaggery, cane (Saccharum officinarum)",
+  "uses": 35,
+  "kind": "food",
+  "fdcId": 168833,
+  "food": "Sugars, brown",
+  "note": "USDA has no jaggery; brown sugar is the closest unrefined cane sugar"
+ },
+ {
+  "indbCode": "K504",
+  "indbName": "Gelatine",
+  "uses": 35,
+  "kind": "food",
+  "fdcId": 169599,
+  "food": "Gelatins, dry powder, unsweetened"
+ },
+ {
+  "indbCode": "H005",
+  "indbName": "Cashew nut (Anacardium occidentale)",
+  "uses": 34,
+  "kind": "food",
+  "fdcId": 170162,
+  "food": "Nuts, cashew nuts, raw"
+ },
+ {
+  "indbCode": "G554",
+  "indbName": "Ginger, ground",
+  "uses": 34,
+  "kind": "food",
+  "fdcId": 170926,
+  "food": "Spices, ginger, ground"
+ },
+ {
+  "indbCode": "C015",
+  "indbName": "Cabbage, green (Brassica oleracea var. capitata f. alba)",
+  "uses": 33,
+  "kind": "food",
+  "fdcId": 169975,
+  "food": "Cabbage, raw"
+ },
+ {
+  "indbCode": "G536",
+  "indbName": "AJWAIN SEED WHOLE ORGANIC SPICES",
+  "uses": 32,
+  "kind": "food",
+  "fdcId": 170918,
+  "food": "Spices, caraway seed",
+  "note": "USDA has no ajwain; caraway is the closest seed spice"
+ },
+ {
+  "indbCode": "V501",
+  "indbName": "Cocoa powder",
+  "uses": 31,
+  "kind": "food",
+  "fdcId": 169593,
+  "food": "Cocoa, dry powder, unsweetened"
+ },
+ {
+  "indbCode": "C028",
+  "indbName": "Parsley (Petroselinum crispum)",
+  "uses": 31,
+  "kind": "food",
+  "fdcId": 170416,
+  "food": "Parsley, fresh"
+ },
+ {
+  "indbCode": "E001",
+  "indbName": "Apple, big (Malus domestica)",
+  "uses": 29,
+  "kind": "food",
+  "fdcId": 171688,
+  "food": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)"
+ },
+ {
+  "indbCode": "D043",
+  "indbName": "Cucumber, green, elongate (Cucumis sativus)",
+  "uses": 27,
+  "kind": "food",
+  "fdcId": 168409,
+  "food": "Cucumber, with peel, raw"
+ },
+ {
+  "indbCode": "E057",
+  "indbName": "Raisins, dried, black (Vitis vinifera)",
+  "uses": 27,
+  "kind": "food",
+  "fdcId": 168165,
+  "food": "Raisins, dark, seedless (Includes foods for USDA's Food Distribution Program)"
+ },
+ {
+  "indbCode": "B010",
+  "indbName": "Green gram, dal (Vigna radiata)",
+  "uses": 27,
+  "kind": "food",
+  "fdcId": 174256,
+  "food": "Mung beans, mature seeds, raw",
+  "cooked": {
+   "fdcId": 174257,
+   "food": "Mung beans, mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "J001",
+  "indbName": "Button mushroom, fresh (Agaricus sp.)",
+  "uses": 26,
+  "kind": "food",
+  "fdcId": 169251,
+  "food": "Mushrooms, white, raw"
+ },
+ {
+  "indbCode": "H007",
+  "indbName": "Coconut, kernel, fresh (Cocos nucifera)",
+  "uses": 26,
+  "kind": "food",
+  "fdcId": 170169,
+  "food": "Nuts, coconut meat, raw"
+ },
+ {
+  "indbCode": "D050",
+  "indbName": "French beans, hybrid (Phaseolus vulgaris)",
+  "uses": 26,
+  "kind": "food",
+  "fdcId": 169961,
+  "food": "Beans, snap, green, raw"
+ },
+ {
+  "indbCode": "T502",
+  "indbName": "Oil, olive",
+  "uses": 26,
+  "kind": "food",
+  "fdcId": 171413,
+  "food": "Oil, olive, salad or cooking"
+ },
+ {
+  "indbCode": "E511",
+  "indbName": "Cherries, glace",
+  "uses": 26,
+  "kind": "food",
+  "fdcId": 171719,
+  "food": "Cherries, sweet, raw"
+ },
+ {
+  "indbCode": "L512",
+  "indbName": "Cream, fresh, whipping",
+  "uses": 26,
+  "kind": "food",
+  "fdcId": 170859,
+  "food": "Cream, fluid, heavy whipping"
+ },
+ {
+  "indbCode": "L507",
+  "indbName": "Mayonnaise, standard, retail",
+  "uses": 25,
+  "kind": "food",
+  "fdcId": 171009,
+  "food": "Salad dressing, mayonnaise, regular"
+ },
+ {
+  "indbCode": "G547",
+  "indbName": "Spring onions, bulbs and tops, raw",
+  "uses": 25,
+  "kind": "food",
+  "fdcId": 170005,
+  "food": "Onions, spring or scallions (includes tops and bulb), raw"
+ },
+ {
+  "indbCode": "K507",
+  "indbName": "Stock cubes, vegetable",
+  "uses": 25,
+  "kind": "food",
+  "fdcId": 172883,
+  "food": "Soup, stock, beef, home-prepared"
+ },
+ {
+  "indbCode": "O502",
+  "indbName": "Lamb, mince, raw",
+  "uses": 24,
+  "kind": "food",
+  "fdcId": 174370,
+  "food": "Lamb, ground, raw"
+ },
+ {
+  "indbCode": "D036",
+  "indbName": "Cauliflower (Brassica oleracea var. botrytis)",
+  "uses": 24,
+  "kind": "food",
+  "fdcId": 2709777,
+  "food": "Cauliflower, raw"
+ },
+ {
+  "indbCode": "H006",
+  "indbName": "Coconut, kernal, dry (Cocos nucifera)",
+  "uses": 24,
+  "kind": "food",
+  "fdcId": 170170,
+  "food": "Nuts, coconut meat, dried (desiccated), not sweetened"
+ },
+ {
+  "indbCode": "C025",
+  "indbName": "Lettuce (Lactuca sativa)",
+  "uses": 23,
+  "kind": "food",
+  "fdcId": 169249,
+  "food": "Lettuce, green leaf, raw"
+ },
+ {
+  "indbCode": "X505",
+  "indbName": "Tomato sauce, homemade",
+  "uses": 23,
+  "kind": "food",
+  "fdcId": 170054,
+  "food": "Tomato products, canned, sauce"
+ },
+ {
+  "indbCode": "H018",
+  "indbName": "Pistachio nuts (Pistacla vera)",
+  "uses": 23,
+  "kind": "food",
+  "fdcId": 170184,
+  "food": "Nuts, pistachio nuts, raw"
+ },
+ {
+  "indbCode": "E053",
+  "indbName": "Pineapple (Ananas comosus)",
+  "uses": 22,
+  "kind": "food",
+  "fdcId": 169124,
+  "food": "Pineapple, raw, all varieties"
+ },
+ {
+  "indbCode": "G028",
+  "indbName": "Nutmeg (Myristica fragrans)",
+  "uses": 22,
+  "kind": "food",
+  "fdcId": 171326,
+  "food": "Spices, nutmeg, ground"
+ },
+ {
+  "indbCode": "A507",
+  "indbName": "Pasta, white, dried, raw",
+  "uses": 22,
+  "kind": "food",
+  "fdcId": 169736,
+  "food": "Pasta, dry, enriched",
+  "cooked": {
+   "fdcId": 169737,
+   "food": "Pasta, cooked, enriched, without added salt"
+  }
+ },
+ {
+  "indbCode": "C020",
+  "indbName": "Fenugreek leaves (Trigonella foenum graecum)",
+  "uses": 22,
+  "kind": "food",
+  "cofidCode": "13-243",
+  "food": "Fenugreek leaves, raw",
+  "note": "from UK CoFID 2021 (not a catalog food; used as an ingredient)"
+ },
+ {
+  "indbCode": "K501",
+  "indbName": "Bicarbonate of soda",
+  "uses": 22,
+  "kind": "food",
+  "fdcId": 175040,
+  "food": "Leavening agents, baking soda"
+ },
+ {
+  "indbCode": "G510",
+  "indbName": "Fennel seeds",
+  "uses": 22,
+  "kind": "food",
+  "fdcId": 171323,
+  "food": "Spices, fennel seed"
+ },
+ {
+  "indbCode": "E047",
+  "indbName": "Orange, pulp (Citrus aurantium)",
+  "uses": 21,
+  "kind": "food",
+  "fdcId": 169097,
+  "food": "Oranges, raw, all commercial varieties"
+ },
+ {
+  "indbCode": "G026",
+  "indbName": "Fenugreek seeds (Trigonella foenum graecum)",
+  "uses": 20,
+  "kind": "food",
+  "fdcId": 171324,
+  "food": "Spices, fenugreek seed"
+ },
+ {
+  "indbCode": "M003",
+  "indbName": "Egg, poultry, yolk, raw",
+  "uses": 20,
+  "kind": "food",
+  "fdcId": 172184,
+  "food": "Egg, yolk, raw, fresh"
+ },
+ {
+  "indbCode": "E064",
+  "indbName": "Tamarind, pulp (Tamarindus indica)",
+  "uses": 19,
+  "kind": "food",
+  "fdcId": 167763,
+  "food": "Tamarinds, raw"
+ },
+ {
+  "indbCode": "E014",
+  "indbName": "Cherries, red (Prunus cerasus)",
+  "uses": 19,
+  "kind": "food",
+  "fdcId": 173954,
+  "food": "Cherries, sour, red, raw"
+ },
+ {
+  "indbCode": "G529",
+  "indbName": "Saffron",
+  "uses": 19,
+  "kind": "food",
+  "fdcId": 170934,
+  "food": "Spices, saffron"
+ },
+ {
+  "indbCode": "G517",
+  "indbName": "Chilli sauce",
+  "uses": 18,
+  "kind": "food",
+  "fdcId": 171186,
+  "food": "Sauce, hot chile, sriracha"
+ },
+ {
+  "indbCode": "M002",
+  "indbName": "Egg, poultry, white, raw",
+  "uses": 18,
+  "kind": "food",
+  "fdcId": 172183,
+  "food": "Egg, white, raw, fresh"
+ },
+ {
+  "indbCode": "X501",
+  "indbName": "Soy sauce, light and dark varieties",
+  "uses": 17,
+  "kind": "food",
+  "fdcId": 174277,
+  "food": "Soy sauce made from soy and wheat (shoyu)"
+ },
+ {
+  "indbCode": "L004",
+  "indbName": "Khoa",
+  "uses": 16,
+  "kind": "food",
+  "fdcId": 173454,
+  "food": "Milk, dry, whole, without added vitamin D",
+  "note": "USDA has no khoa; khoa is milk dried to a paste, so whole dry milk is the closest"
+ },
+ {
+  "indbCode": "O064",
+  "indbName": "MUTTON, muscle",
+  "uses": 16,
+  "kind": "food",
+  "fdcId": 172515,
+  "food": "Lamb, New Zealand, imported, leg chop/steak, bone-in, separable lean only, raw",
+  "note": "mutton muscle: lean leg meat"
+ },
+ {
+  "indbCode": "G032",
+  "indbName": "Poppy seeds (Papaver somniferum)",
+  "uses": 16,
+  "kind": "food",
+  "fdcId": 171330,
+  "food": "Spices, poppy seed"
+ },
+ {
+  "indbCode": "P057",
+  "indbName": "Pomfret, white (Pampus argenteus)",
+  "uses": 16,
+  "kind": "food",
+  "fdcId": 173682,
+  "food": "Fish, pompano, florida, raw",
+  "note": "pomfret and pompano are related butterfish"
+ },
+ {
+  "indbCode": "T510",
+  "indbName": "Oil, mustard",
+  "uses": 16,
+  "kind": "food",
+  "fdcId": 172337,
+  "food": "Oil, mustard"
+ },
+ {
+  "indbCode": "I507",
+  "indbName": "Honey",
+  "uses": 15,
+  "kind": "food",
+  "fdcId": 2710281,
+  "food": "Honey"
+ },
+ {
+  "indbCode": "E009",
+  "indbName": "Banana, ripe, montham (Musa x paradisiaca)",
+  "uses": 15,
+  "kind": "food",
+  "fdcId": 173944,
+  "food": "Bananas, raw"
+ },
+ {
+  "indbCode": "K506",
+  "indbName": "Stock cubes, chicken",
+  "uses": 15,
+  "kind": "food",
+  "fdcId": 172884,
+  "food": "Soup, stock, chicken, home-prepared"
+ },
+ {
+  "indbCode": "D037",
+  "indbName": "Celery stalk (Apium graveolens)",
+  "uses": 15,
+  "kind": "food",
+  "fdcId": 2709778,
+  "food": "Celery, raw"
+ },
+ {
+  "indbCode": "I509",
+  "indbName": "Chocolate, plain",
+  "uses": 15,
+  "kind": "food",
+  "fdcId": 170271,
+  "food": "Chocolate, dark, 45- 59% cacao solids"
+ },
+ {
+  "indbCode": "E518",
+  "indbName": "Orange juice, freshly squeezed",
+  "uses": 14,
+  "kind": "food",
+  "fdcId": 169098,
+  "food": "Orange juice, raw (Includes foods for USDA's Food Distribution Program)"
+ },
+ {
+  "indbCode": "E036",
+  "indbName": "Mango, ripe, banganapalli (Mangifera indica)",
+  "uses": 12,
+  "kind": "food",
+  "fdcId": 169910,
+  "food": "Mangos, raw"
+ },
+ {
+  "indbCode": "B501",
+  "indbName": "Beansprouts, mung, boiled in unsalted water",
+  "uses": 12,
+  "kind": "food",
+  "fdcId": 169137,
+  "food": "Mung beans, mature seeds, sprouted, cooked, boiled, drained, without salt"
+ },
+ {
+  "indbCode": "H021",
+  "indbName": "Walnut (Juglans regia)",
+  "uses": 12,
+  "kind": "food",
+  "fdcId": 170187,
+  "food": "Nuts, walnuts, english"
+ },
+ {
+  "indbCode": "V509",
+  "indbName": "Pineapple juice, unsweetened",
+  "uses": 11,
+  "kind": "food",
+  "fdcId": 169947,
+  "food": "Pineapple juice, canned or bottled, unsweetened, without added ascorbic acid"
+ },
+ {
+  "indbCode": "W504",
+  "indbName": "JAM",
+  "uses": 11,
+  "kind": "food",
+  "fdcId": 169641,
+  "food": "Jams and preserves"
+ },
+ {
+  "indbCode": "H505",
+  "indbName": "MIXED NUTS CASHEWS, ALMONDS, HAZELNUTS, PISTACHIOS, PECANS, MIXED NUTS",
+  "uses": 11,
+  "kind": "food",
+  "fdcId": 170585,
+  "food": "Nuts, mixed nuts, dry roasted, with peanuts, without salt added"
+ },
+ {
+  "indbCode": "G527",
+  "indbName": "Pepper, white",
+  "uses": 10,
+  "kind": "food",
+  "fdcId": 170933,
+  "food": "Spices, pepper, white"
+ },
+ {
+  "indbCode": "D007",
+  "indbName": "Bottle gourd, elongate, pale green (Lagenaria vulgaris)",
+  "uses": 10,
+  "kind": "food",
+  "fdcId": 169232,
+  "food": "Gourd, white-flowered (calabash), raw"
+ },
+ {
+  "indbCode": "B021",
+  "indbName": "Red gram, dal (Cajanus cajan)",
+  "uses": 10,
+  "kind": "food",
+  "fdcId": 172436,
+  "food": "Pigeon peas (red gram), mature seeds, raw",
+  "cooked": {
+   "fdcId": 172437,
+   "food": "Pigeon peas (red gram), mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "",
+  "indbName": "Citric Acid",
+  "uses": 10,
+  "kind": "negligible",
+  "note": "food acid, a pinch"
+ },
+ {
+  "indbCode": "",
+  "indbName": "KEWRA ESSENCE",
+  "uses": 10,
+  "kind": "negligible",
+  "note": "flavouring essence"
+ },
+ {
+  "indbCode": "V502",
+  "indbName": "Coffee, powder, instant",
+  "uses": 9,
+  "kind": "food",
+  "fdcId": 171893,
+  "food": "Beverages, coffee, instant, regular, powder"
+ },
+ {
+  "indbCode": "G540",
+  "indbName": "HIMALAYAN BLACK SALT",
+  "uses": 9,
+  "kind": "food",
+  "fdcId": 173468,
+  "food": "Salt, table"
+ },
+ {
+  "indbCode": "H011",
+  "indbName": "Gingelly seeds, white (Sesamum indicum)",
+  "uses": 9,
+  "kind": "food",
+  "fdcId": 170150,
+  "food": "Seeds, sesame seeds, whole, dried"
+ },
+ {
+  "indbCode": "G526",
+  "indbName": "Oregano, dried, ground",
+  "uses": 9,
+  "kind": "food",
+  "fdcId": 171328,
+  "food": "Spices, oregano, dried"
+ },
+ {
+  "indbCode": "A011",
+  "indbName": "Rice flakes (Oryza sativa )",
+  "uses": 8,
+  "kind": "food",
+  "fdcId": 169756,
+  "food": "Rice, white, long-grain, regular, raw, unenriched",
+  "note": "USDA has no flattened rice (poha); dry poha has the composition of raw milled rice"
+ },
+ {
+  "indbCode": "B013",
+  "indbName": "Lentil dal (Lens culinaris)",
+  "uses": 8,
+  "kind": "food",
+  "fdcId": 172420,
+  "food": "Lentils, raw",
+  "cooked": {
+   "fdcId": 172421,
+   "food": "Lentils, mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "D031",
+  "indbName": "Brinjal - all varieties (Solanum melongena)",
+  "uses": 8,
+  "kind": "food",
+  "fdcId": 2709785,
+  "food": "Eggplant, raw"
+ },
+ {
+  "indbCode": "D066",
+  "indbName": "Pumpkin, orange, round (Cucurbita maxima)",
+  "uses": 8,
+  "kind": "food",
+  "fdcId": 168448,
+  "food": "Pumpkin, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Kewra essence",
+  "uses": 8,
+  "kind": "negligible",
+  "note": "flavouring essence"
+ },
+ {
+  "indbCode": "L508",
+  "indbName": "Milk, condensed, whole, sweetened",
+  "uses": 8,
+  "kind": "food",
+  "fdcId": 171275,
+  "food": "Milk, canned, condensed, sweetened"
+ },
+ {
+  "indbCode": "X503",
+  "indbName": "Tomato ketchup",
+  "uses": 7,
+  "kind": "food",
+  "fdcId": 168556,
+  "food": "Catsup"
+ },
+ {
+  "indbCode": "A510",
+  "indbName": "CRACKED WHEAT",
+  "uses": 7,
+  "kind": "food",
+  "fdcId": 170688,
+  "food": "Bulgur, dry",
+  "cooked": {
+   "fdcId": 170287,
+   "food": "Bulgur, cooked"
+  }
+ },
+ {
+  "indbCode": "A012",
+  "indbName": "Rice puffed (Oryza sativa )",
+  "uses": 7,
+  "kind": "food",
+  "fdcId": 173912,
+  "food": "Cereals ready-to-eat, rice, puffed, fortified"
+ },
+ {
+  "indbCode": "B506",
+  "indbName": "Tofu, soya bean, steamed",
+  "uses": 7,
+  "kind": "food",
+  "fdcId": 172475,
+  "food": "Tofu, raw, firm, prepared with calcium sulfate"
+ },
+ {
+  "indbCode": "A505",
+  "indbName": "Flour, rice",
+  "uses": 7,
+  "kind": "food",
+  "fdcId": 169714,
+  "food": "Rice flour, white, unenriched"
+ },
+ {
+  "indbCode": "G027",
+  "indbName": "Mace (Myristica fragrans)",
+  "uses": 7,
+  "kind": "food",
+  "fdcId": 170927,
+  "food": "Spices, mace, ground"
+ },
+ {
+  "indbCode": "L517",
+  "indbName": "Whey, acid, fluid",
+  "uses": 7,
+  "kind": "food",
+  "fdcId": 170885,
+  "food": "Whey, acid, fluid"
+ },
+ {
+  "indbCode": "D057",
+  "indbName": "Mango, green, raw (Mangifera indica)",
+  "uses": 6,
+  "kind": "food",
+  "fdcId": 169910,
+  "food": "Mangos, raw"
+ },
+ {
+  "indbCode": "I501",
+  "indbName": "Ice cream, dairy, vanilla, soft scoop",
+  "uses": 6,
+  "kind": "food",
+  "fdcId": 167575,
+  "food": "Ice creams, vanilla"
+ },
+ {
+  "indbCode": "A024",
+  "indbName": "Wheat, vermicelli, roasted (Triticum aestivum)",
+  "uses": 6,
+  "kind": "food",
+  "fdcId": 169736,
+  "food": "Pasta, dry, enriched",
+  "cooked": {
+   "fdcId": 169737,
+   "food": "Pasta, cooked, enriched, without added salt"
+  }
+ },
+ {
+  "indbCode": "B020",
+  "indbName": "Rajmah, red (Phaseolus vulgaris)",
+  "uses": 6,
+  "kind": "food",
+  "fdcId": 173744,
+  "food": "Beans, kidney, red, mature seeds, raw",
+  "cooked": {
+   "fdcId": 175194,
+   "food": "Beans, kidney, red, mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "I503",
+  "indbName": "Sugar, brown",
+  "uses": 6,
+  "kind": "food",
+  "fdcId": 168833,
+  "food": "Sugars, brown"
+ },
+ {
+  "indbCode": "G550",
+  "indbName": "Lemon peel, raw",
+  "uses": 6,
+  "kind": "food",
+  "fdcId": 167749,
+  "food": "Lemon peel, raw"
+ },
+ {
+  "indbCode": "A003",
+  "indbName": "Bajra (Pennisetum typhoideum)",
+  "uses": 6,
+  "kind": "food",
+  "fdcId": 169702,
+  "food": "Millet, raw",
+  "cooked": {
+   "fdcId": 168871,
+   "food": "Millet, cooked"
+  }
+ },
+ {
+  "indbCode": "G546",
+  "indbName": "Shallots, raw",
+  "uses": 6,
+  "kind": "food",
+  "fdcId": 170499,
+  "food": "Shallots, raw"
+ },
+ {
+  "indbCode": "H501",
+  "indbName": "Coconut milk",
+  "uses": 6,
+  "kind": "food",
+  "fdcId": 170172,
+  "food": "Nuts, coconut milk, raw (liquid expressed from grated meat and water)"
+ },
+ {
+  "indbCode": "",
+  "indbName": "REETHA",
+  "uses": 6,
+  "kind": "negligible",
+  "note": "soapnut, used for washing, not eaten"
+ },
+ {
+  "indbCode": "V510",
+  "indbName": "Tea, black, infusion, average",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 173227,
+  "food": "Beverages, tea, black, brewed, prepared with tap water",
+  "note": "listed as tea leaves; the brewed infusion is what is consumed"
+ },
+ {
+  "indbCode": "O501",
+  "indbName": "Ham",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 173864,
+  "food": "Ham, sliced, regular (approximately 11% fat)"
+ },
+ {
+  "indbCode": "G541",
+  "indbName": "MSG MONOSODIUM GLUTAMATE",
+  "uses": 5,
+  "kind": "negligible",
+  "note": "MSG, a pinch"
+ },
+ {
+  "indbCode": "F501",
+  "indbName": "Turnip, flesh only, raw",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 170465,
+  "food": "Turnips, raw"
+ },
+ {
+  "indbCode": "N500",
+  "indbName": "Chicken, whole, corn-fed, raw, meat and skin, weighed with bone",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 171447,
+  "food": "Chicken, broilers or fryers, meat and skin, raw",
+  "note": "INDB weighs it with bone; edible portion used"
+ },
+ {
+  "indbCode": "D503",
+  "indbName": "Sweetcorn, kernels, raw",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 169998,
+  "food": "Corn, sweet, yellow, raw"
+ },
+ {
+  "indbCode": "F010",
+  "indbName": "Radish, elongate, white skin (Raphanus sativus)",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 168451,
+  "food": "Radishes, oriental, raw"
+ },
+ {
+  "indbCode": "G515",
+  "indbName": "Mixed curry spices",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 170924,
+  "food": "Spices, curry powder"
+ },
+ {
+  "indbCode": "C008",
+  "indbName": "Bathua leaves (Chenopodium album)",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 169244,
+  "food": "Lambsquarters, raw"
+ },
+ {
+  "indbCode": "E030",
+  "indbName": "Jack fruit, ripe (Artocarpus heterophyllus)",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 174687,
+  "food": "Jackfruit, raw"
+ },
+ {
+  "indbCode": "E022",
+  "indbName": "Grapes, seeded, round, black (Vitis vinifera)",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 174683,
+  "food": "Grapes, red or green (European type, such as Thompson seedless), raw"
+ },
+ {
+  "indbCode": "G552",
+  "indbName": "Orange peel, raw",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 169103,
+  "food": "Orange peel, raw"
+ },
+ {
+  "indbCode": "I505",
+  "indbName": "Syrup, corn, dark",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 168836,
+  "food": "Syrups, corn, dark"
+ },
+ {
+  "indbCode": "C500",
+  "indbName": "Broccoli, green, raw",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 2709643,
+  "food": "Broccoli, raw"
+ },
+ {
+  "indbCode": "D034",
+  "indbName": "Capsicum, red (Capsicum annuum)",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 2709801,
+  "food": "Peppers, sweet, red, raw"
+ },
+ {
+  "indbCode": "E509",
+  "indbName": "Pears, canned in juice, whole contents",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 169936,
+  "food": "Pears, canned, juice pack, solids and liquids"
+ },
+ {
+  "indbCode": "G513",
+  "indbName": "Sesame seeds",
+  "uses": 5,
+  "kind": "food",
+  "fdcId": 170150,
+  "food": "Seeds, sesame seeds, whole, dried"
+ },
+ {
+  "indbCode": "L502",
+  "indbName": "Cheese, cottage, plain",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 2705748,
+  "food": "Cheese, cottage, creamed, large or small curd"
+ },
+ {
+  "indbCode": "X512",
+  "indbName": "Mint sauce, homemade",
+  "uses": 4,
+  "kind": "food",
+  "cofidCode": "17-811",
+  "food": "Mint sauce, homemade",
+  "note": "from UK CoFID 2021 (not a catalog food; used as an ingredient)"
+ },
+ {
+  "indbCode": "A508",
+  "indbName": "Porridge oats, unfortified",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 173904,
+  "food": "Cereals, oats, regular and quick, not fortified, dry",
+  "cooked": {
+   "fdcId": 173905,
+   "food": "Cereals, oats, regular and quick, unenriched, cooked with water (includes boiling and microwaving), without salt"
+  }
+ },
+ {
+  "indbCode": "A501",
+  "indbName": "Breakfast cereal, crunchy clusters type, without nuts, unfortified",
+  "uses": 4,
+  "kind": "unmapped",
+  "note": "generic breakfast cereal cluster, no single USDA match"
+ },
+ {
+  "indbCode": "B509",
+  "indbName": "Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 173756,
+  "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",
+  "cooked": {
+   "fdcId": 173757,
+   "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "G511",
+  "indbName": "Basil, dried, ground",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 171317,
+  "food": "Spices, basil, dried"
+ },
+ {
+  "indbCode": "L503",
+  "indbName": "Cheese, Mozzarella, fresh",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 170845,
+  "food": "Cheese, mozzarella, whole milk"
+ },
+ {
+  "indbCode": "B025",
+  "indbName": "Soya bean, white (Glycine max)",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 174270,
+  "food": "Soybeans, mature seeds, raw",
+  "cooked": {
+   "fdcId": 174271,
+   "food": "Soybeans, mature cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "D056",
+  "indbName": "Ladies finger (Abelmoschus esculentus)",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 169260,
+  "food": "Okra, raw"
+ },
+ {
+  "indbCode": "E055",
+  "indbName": "Pomegranate, maroon seeds (Punica granatum)",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 169134,
+  "food": "Pomegranates, raw"
+ },
+ {
+  "indbCode": "T507",
+  "indbName": "Oil, coconut",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 171412,
+  "food": "Oil, coconut"
+ },
+ {
+  "indbCode": "X504",
+  "indbName": "Tomato puree",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 170460,
+  "food": "Tomato products, canned, puree, without salt added"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Red colour",
+  "uses": 4,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "P034",
+  "indbName": "Mackerel (Rastrelliger kanagurta)",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 175119,
+  "food": "Fish, mackerel, Atlantic, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Yellow colour",
+  "uses": 4,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Orange colour",
+  "uses": 4,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "K503",
+  "indbName": "Custard powder",
+  "uses": 4,
+  "kind": "food",
+  "cofidCode": "11-1138",
+  "food": "Custard powder",
+  "note": "from UK CoFID 2021 (not a catalog food; used as an ingredient)"
+ },
+ {
+  "indbCode": "E017",
+  "indbName": "Dates, dry, pale brown (Phoenix dactylifera)",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 171726,
+  "food": "Dates, deglet noor"
+ },
+ {
+  "indbCode": "U505",
+  "indbName": "Cream of tartar",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 175041,
+  "food": "Leavening agents, cream of tartar"
+ },
+ {
+  "indbCode": "I508",
+  "indbName": "Sago, raw",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 169717,
+  "food": "Tapioca, pearl, dry"
+ },
+ {
+  "indbCode": "E015",
+  "indbName": "Currants, black (Ribes nigrum)",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 173963,
+  "food": "Currants, european black, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Yellow color",
+  "uses": 4,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "A512",
+  "indbName": "SWEET SUNNAH, WHOLE BLACK SEEDS NIGELLA SATIVA",
+  "uses": 4,
+  "kind": "unmapped",
+  "note": "no nigella (kalonji) seed in USDA"
+ },
+ {
+  "indbCode": "G538",
+  "indbName": "Vinegar, distilled",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 172237,
+  "food": "Vinegar, distilled"
+ },
+ {
+  "indbCode": "O500",
+  "indbName": "Bacon rashers, back, raw",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 168277,
+  "food": "Pork, cured, bacon, unprepared"
+ },
+ {
+  "indbCode": "X507",
+  "indbName": "Worcestershire sauce",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 171610,
+  "food": "Sauce, worcestershire"
+ },
+ {
+  "indbCode": "",
+  "indbName": "COLOUR",
+  "uses": 4,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "U501",
+  "indbName": "Bread, brown, average",
+  "uses": 4,
+  "kind": "food",
+  "fdcId": 172688,
+  "food": "Bread, whole-wheat, commercially prepared"
+ },
+ {
+  "indbCode": "V503",
+  "indbName": "Cola",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 174852,
+  "food": "Beverages, carbonated, cola, regular"
+ },
+ {
+  "indbCode": "L501",
+  "indbName": "Cheese spread, cream cheese, regular",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 173418,
+  "food": "Cheese, cream"
+ },
+ {
+  "indbCode": "A006",
+  "indbName": "Maize, dry (Zea mays)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 170288,
+  "food": "Corn grain, yellow"
+ },
+ {
+  "indbCode": "B015",
+  "indbName": "Lentil whole, yellowish (Lens culinaris)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 172420,
+  "food": "Lentils, raw",
+  "cooked": {
+   "fdcId": 172421,
+   "food": "Lentils, mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "B004",
+  "indbName": "Black gram, whole (Phaseolus mungo)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 174259,
+  "food": "Mungo beans, mature seeds, raw",
+  "cooked": {
+   "fdcId": 172427,
+   "food": "Mungo beans, mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "D059",
+  "indbName": "Papaya, raw (Carica papaya)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 169926,
+  "food": "Papayas, raw"
+ },
+ {
+  "indbCode": "F005",
+  "indbName": "Lotus root (Nelumbium nelumbo)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 169250,
+  "food": "Lotus root, raw"
+ },
+ {
+  "indbCode": "F004",
+  "indbName": "Colocasia (Colocasia esculenta)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 169308,
+  "food": "Taro, raw"
+ },
+ {
+  "indbCode": "F018",
+  "indbName": "Yam, ordinary (Amorphophallus sp.)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 170071,
+  "food": "Yam, raw"
+ },
+ {
+  "indbCode": "H503",
+  "indbName": "Seeds, lotus seeds, dried",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 170149,
+  "food": "Seeds, lotus seeds, dried"
+ },
+ {
+  "indbCode": "B500",
+  "indbName": "Beans, chick peas, Kabuli, whole, dried, raw",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 173756,
+  "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",
+  "cooked": {
+   "fdcId": 173757,
+   "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "I510",
+  "indbName": "Candies, gum drops, no sugar or low calorie (sorbitol)",
+  "uses": 3,
+  "kind": "unmapped",
+  "note": "sugar-free gum drops, no USDA match"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Orange essence",
+  "uses": 3,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "K502",
+  "indbName": "Spirits, 40% volume",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 174815,
+  "food": "Alcoholic beverage, distilled, all (gin, rum, vodka, whiskey) 80 proof"
+ },
+ {
+  "indbCode": "W501",
+  "indbName": "Jelly, made with water",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 169596,
+  "food": "Gelatin desserts, dry mix, prepared with water"
+ },
+ {
+  "indbCode": "W505",
+  "indbName": "STRAWBERRY JAM",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 169641,
+  "food": "Jams and preserves"
+ },
+ {
+  "indbCode": "B511",
+  "indbName": "ROASTED CHICKPEAS",
+  "uses": 3,
+  "kind": "unmapped",
+  "note": "no roasted chickpea (chana) snack in USDA"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Pineapple essence",
+  "uses": 3,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "E506",
+  "indbName": "Sultanas",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 168164,
+  "food": "Raisins, golden, seedless"
+ },
+ {
+  "indbCode": "I511",
+  "indbName": "TUTTI FRUTTI GUMBALLS, TUTTI FRUTTI",
+  "uses": 3,
+  "kind": "unmapped",
+  "note": "tutti frutti candied fruit, no USDA match"
+ },
+ {
+  "indbCode": "E054",
+  "indbName": "Plum (Prunus domestica)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 169949,
+  "food": "Plums, raw"
+ },
+ {
+  "indbCode": "E028",
+  "indbName": "Guava, white flesh (Psidium guajava)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 173044,
+  "food": "Guavas, common, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Green colour",
+  "uses": 3,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "G520",
+  "indbName": "Curry powder",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 170924,
+  "food": "Spices, curry powder"
+ },
+ {
+  "indbCode": "D042",
+  "indbName": "Corn, Baby (Zea mays)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 169998,
+  "food": "Corn, sweet, yellow, raw"
+ },
+ {
+  "indbCode": "G531",
+  "indbName": "Thyme, dried, ground",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 170938,
+  "food": "Spices, thyme, dried"
+ },
+ {
+  "indbCode": "L515",
+  "indbName": "Cream, fluid, light (coffee cream or table cream)",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 170857,
+  "food": "Cream, fluid, light (coffee cream or table cream)"
+ },
+ {
+  "indbCode": "",
+  "indbName": "LEMON ESSENCE",
+  "uses": 3,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "YELLOW COLOUR",
+  "uses": 3,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Food colour",
+  "uses": 3,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "CITRIC ACID",
+  "uses": 3,
+  "kind": "negligible",
+  "note": "food acid, a pinch"
+ },
+ {
+  "indbCode": "L002",
+  "indbName": "Milk, Cow",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 172217,
+  "food": "Milk, whole, 3.25% milkfat, without added vitamin A and vitamin D"
+ },
+ {
+  "indbCode": "G524",
+  "indbName": "Garlic powder",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 171325,
+  "food": "Spices, garlic powder"
+ },
+ {
+  "indbCode": "L500",
+  "indbName": "Cheese, Cheddar, English",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 2705709,
+  "food": "Cheese, Cheddar"
+ },
+ {
+  "indbCode": "L514",
+  "indbName": "Sour cream, regular",
+  "uses": 3,
+  "kind": "food",
+  "fdcId": 171257,
+  "food": "Cream, sour, cultured"
+ },
+ {
+  "indbCode": "V504",
+  "indbName": "Drinking chocolate, powder",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 174122,
+  "food": "Beverages, Cocoa mix, powder"
+ },
+ {
+  "indbCode": "O503",
+  "indbName": "Salami",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 172936,
+  "food": "Salami, cooked, beef and pork"
+ },
+ {
+  "indbCode": "U509",
+  "indbName": "Wafers, plain ice cream wafers, not filled",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 174973,
+  "food": "Cookies, vanilla wafers, lower fat"
+ },
+ {
+  "indbCode": "B011",
+  "indbName": "Green gram, whole (Vigna radiata)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 174256,
+  "food": "Mung beans, mature seeds, raw",
+  "cooked": {
+   "fdcId": 174257,
+   "food": "Mung beans, mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "D046",
+  "indbName": "Drumstick (Moringa oleifera)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 170483,
+  "food": "Drumstick pods, raw"
+ },
+ {
+  "indbCode": "E503",
+  "indbName": "Bananas, raw, flesh only, weighed with skin",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 173944,
+  "food": "Bananas, raw"
+ },
+ {
+  "indbCode": "C026",
+  "indbName": "Mustard leaves (Brassica juncea)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 2709606,
+  "food": "Mustard greens, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Mango essence",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Colour",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "E514",
+  "indbName": "DRIED MANGO",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 169091,
+  "food": "Mango, dried, sweetened"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Banana essence ",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "V505",
+  "indbName": "Energy drink, carbonated",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 173210,
+  "food": "Beverages, Energy drink, RED BULL"
+ },
+ {
+  "indbCode": "G534",
+  "indbName": "Yeast extract",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 2710006,
+  "food": "Yeast extract spread"
+ },
+ {
+  "indbCode": "O504",
+  "indbName": "Sausages, premium, raw",
+  "uses": 2,
+  "kind": "unmapped",
+  "note": "no plain raw pork sausage in USDA"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Kewra",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "TOMATO COLOUR",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "Q007",
+  "indbName": "Tiger prawns, brown (Solenocera crassicornis)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 175179,
+  "food": "Crustaceans, shrimp, raw"
+ },
+ {
+  "indbCode": "D006",
+  "indbName": "Bitter gourd, jagged, smooth ridges, elongate (Momordica charantia)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 168393,
+  "food": "Balsam-pear (bitter gourd), pods, raw"
+ },
+ {
+  "indbCode": "F013",
+  "indbName": "Sweet potato, brown skin (Ipomoea batatas)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 168482,
+  "food": "Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)"
+ },
+ {
+  "indbCode": "X510",
+  "indbName": "Dressing, French",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 171414,
+  "food": "Salad dressing, french dressing, commercial, regular"
+ },
+ {
+  "indbCode": "E516",
+  "indbName": "Fruit cocktail, canned in juice, whole contents",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 174668,
+  "food": "Fruit cocktail, (peach and pineapple and pear and grape and cherry), canned, juice pack, solids and liquids"
+ },
+ {
+  "indbCode": "",
+  "indbName": "STRAWBERRY ESSENCE ",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "U500",
+  "indbName": "Biscuits, digestive, plain",
+  "uses": 2,
+  "kind": "food",
+  "cofidCode": "11-799",
+  "food": "Biscuits, digestive, plain",
+  "note": "from UK CoFID 2021 (not a catalog food; used as an ingredient)"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Red colour ",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "E513",
+  "indbName": "Raspberries, raw",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 2709281,
+  "food": "Raspberries, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "ORANGE COLOUR",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "ORANGE ESSENCE",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "E051",
+  "indbName": "Pear (Pyrus sp.)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 169118,
+  "food": "Pears, raw"
+ },
+ {
+  "indbCode": "E515",
+  "indbName": "Gooseberries, raw",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 173030,
+  "food": "Gooseberries, raw"
+ },
+ {
+  "indbCode": "B503",
+  "indbName": "Flour, soya",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 174273,
+  "food": "Soy flour, full-fat, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Rose water",
+  "uses": 2,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "E019",
+  "indbName": "Dates, processed (Phoenix dactylifera)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 168191,
+  "food": "Dates, medjool"
+ },
+ {
+  "indbCode": "T504",
+  "indbName": "MARGARINE",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 172346,
+  "food": "Margarine, regular, 80% fat, composite, stick, with salt"
+ },
+ {
+  "indbCode": "A010",
+  "indbName": "Ragi (Eleusine coracana)",
+  "uses": 2,
+  "kind": "unmapped",
+  "note": "no finger millet (ragi) in USDA"
+ },
+ {
+  "indbCode": "L521",
+  "indbName": "Milk, buttermilk, fluid, whole",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 172225,
+  "food": "Milk, buttermilk, fluid, whole"
+ },
+ {
+  "indbCode": "H507",
+  "indbName": "ALMOND MILK",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 174832,
+  "food": "Beverages, almond milk, unsweetened, shelf stable"
+ },
+ {
+  "indbCode": "E050",
+  "indbName": "Peach (Prunus communis)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 169928,
+  "food": "Peaches, yellow, raw"
+ },
+ {
+  "indbCode": "G545",
+  "indbName": "Paprika",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 171329,
+  "food": "Spices, paprika"
+ },
+ {
+  "indbCode": "D500",
+  "indbName": "Curly kale, raw",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 2709599,
+  "food": "Kale, raw"
+ },
+ {
+  "indbCode": "G549",
+  "indbName": "Peppers, jalapeno, raw",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 168576,
+  "food": "Peppers, jalapeno, raw"
+ },
+ {
+  "indbCode": "G537",
+  "indbName": "STAR ANISE",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 171316,
+  "food": "Spices, anise seed"
+ },
+ {
+  "indbCode": "A005",
+  "indbName": "Jowar (Sorghum vulgare)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 169716,
+  "food": "Sorghum grain"
+ },
+ {
+  "indbCode": "L518",
+  "indbName": "Cheese, cream, low fat",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 169079,
+  "food": "Cheese, cream, low fat"
+ },
+ {
+  "indbCode": "E034",
+  "indbName": "Lime, sweet,pulp (Citrus limetta)",
+  "uses": 2,
+  "kind": "food",
+  "fdcId": 168155,
+  "food": "Limes, raw"
+ },
+ {
+  "indbCode": "V508",
+  "indbName": "Fruit juice drink/squash, undiluted",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "generic squash concentrate, no single USDA match"
+ },
+ {
+  "indbCode": "H508",
+  "indbName": "Nuts, coconut water (liquid from coconuts)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170174,
+  "food": "Nuts, coconut water (liquid from coconuts)"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Pineapple Essesnce",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Orange Essesnce",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "U502",
+  "indbName": "Bread, brown, toasted",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172689,
+  "food": "Bread, whole-wheat, commercially prepared, toasted"
+ },
+ {
+  "indbCode": "D504",
+  "indbName": "Olives, green, in brine, drained, flesh and skin",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169096,
+  "food": "Olives, pickled, canned or bottled, green"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Orange and green color",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "X500",
+  "indbName": "Sauces, Indian cook in, other",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "generic Indian cook-in sauce"
+ },
+ {
+  "indbCode": "B016",
+  "indbName": "Moth bean (Vigna aconitifolia)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172425,
+  "food": "Mothbeans, mature seeds, raw",
+  "cooked": {
+   "fdcId": 172426,
+   "food": "Mothbeans, mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "B002",
+  "indbName": "Bengal gram, whole (Cicer arietinum)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173756,
+  "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",
+  "cooked": {
+   "fdcId": 173757,
+   "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "B005",
+  "indbName": "Cowpea, brown (Vigna catjang)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173758,
+  "food": "Cowpeas, common (blackeyes, crowder, southern), mature seeds, raw",
+  "cooked": {
+   "fdcId": 173759,
+   "food": "Cowpeas, common (blackeyes, crowder, southern), mature seeds, cooked, boiled, without salt"
+  }
+ },
+ {
+  "indbCode": "D073",
+  "indbName": "Tinda, tender (Praecitrullus fistulosus)",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "no tinda gourd in USDA"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Tartaric acid",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food acid, a pinch"
+ },
+ {
+  "indbCode": "S006",
+  "indbName": "Rohu (Labeo rohita)",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "no rohu fish in USDA"
+ },
+ {
+  "indbCode": "F009",
+  "indbName": "Radish, elongate, red skin (Raphanus sativus)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169276,
+  "food": "Radishes, raw"
+ },
+ {
+  "indbCode": "X509",
+  "indbName": "Dressing, thousand island",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 171402,
+  "food": "Salad dressing, thousand island, commercial, regular"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Pineapple syrup",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "generic flavoured syrup"
+ },
+ {
+  "indbCode": "E516",
+  "indbName": "Fruit cocktail, canned in syrup, whole contents",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173028,
+  "food": "Fruit cocktail, (peach and pineapple and pear and grape and cherry), canned, heavy syrup, solids and liquids"
+ },
+ {
+  "indbCode": "W502",
+  "indbName": "Marmalade",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 168819,
+  "food": "Marmalade, orange"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Silver Foil",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "edible silver leaf"
+ },
+ {
+  "indbCode": "U508",
+  "indbName": "WHOLE WHEAT HAMBURGER BUNS",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172688,
+  "food": "Bread, whole-wheat, commercially prepared"
+ },
+ {
+  "indbCode": "X513",
+  "indbName": "Pizza base, raw",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "raw pizza base"
+ },
+ {
+  "indbCode": "X514",
+  "indbName": "MUSTARD SAUCE",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172234,
+  "food": "Mustard, prepared, yellow"
+ },
+ {
+  "indbCode": "G548",
+  "indbName": "GINGER JUICE, GINGER",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169231,
+  "food": "Ginger root, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Banana flavour",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Syrawberry flavour",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "E063",
+  "indbName": "Strawberry (Fragaria x ananassa)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 2709283,
+  "food": "Strawberries, raw"
+ },
+ {
+  "indbCode": "L510",
+  "indbName": "Milk, skimmed, dried, fortified",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172195,
+  "food": "Milk, dry, nonfat, regular, with added vitamin A and vitamin D"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Ammonium bicarbonate",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "raising agent, a pinch"
+ },
+ {
+  "indbCode": "E035",
+  "indbName": "Litchi (Nephelium litchi)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169086,
+  "food": "Litchis, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Alum Solution (2%)",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "alum solution, not eaten in amount"
+ },
+ {
+  "indbCode": "E507",
+  "indbName": "Amla",
+  "uses": 1,
+  "kind": "food",
+  "cofidCode": "14-001",
+  "food": "Amla",
+  "note": "from UK CoFID 2021 (not a catalog food; used as an ingredient)"
+ },
+ {
+  "indbCode": "E505",
+  "indbName": "Redcurrants, raw",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173964,
+  "food": "Currants, red and white, raw"
+ },
+ {
+  "indbCode": "V511",
+  "indbName": "Tea, green, infusion",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 171917,
+  "food": "Beverages, tea, green, brewed, regular"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Fruit essence",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "G542",
+  "indbName": "Capers, canned",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172238,
+  "food": "Capers, canned"
+ },
+ {
+  "indbCode": "F001",
+  "indbName": "Beet root (Beta vulgaris)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 2709770,
+  "food": "Beets, raw"
+ },
+ {
+  "indbCode": "D058",
+  "indbName": "Onion, stalk (Allium cepa)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170005,
+  "food": "Onions, spring or scallions (includes tops and bulb), raw"
+ },
+ {
+  "indbCode": "X506",
+  "indbName": "White sauce, savoury, made with whole milk, homemade",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "homemade white sauce, no single USDA match"
+ },
+ {
+  "indbCode": "C031",
+  "indbName": "Radish leaves (Raphanus sativus)",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "no radish leaves in USDA"
+ },
+ {
+  "indbCode": "D502",
+  "indbName": "Tomatoes, cherry, raw",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170457,
+  "food": "Tomatoes, red, ripe, raw, year round average"
+ },
+ {
+  "indbCode": "F500",
+  "indbName": "Beetroot, raw",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 2709770,
+  "food": "Beets, raw"
+ },
+ {
+  "indbCode": "X508",
+  "indbName": "Dips, sour-cream based, assorted flavours",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "assorted sour-cream dips"
+ },
+ {
+  "indbCode": "B505",
+  "indbName": "Peanuts, dry roasted",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173806,
+  "food": "Peanuts, all types, dry-roasted, without salt"
+ },
+ {
+  "indbCode": "E023",
+  "indbName": "Grapes, seeded, round, green (Vitis vinifera)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 174683,
+  "food": "Grapes, red or green (European type, such as Thompson seedless), raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "STRAWBERRY COLOUR",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "ORANGE FLAVOURED JELLY CRYSTALS",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 168775,
+  "food": "Gelatin desserts, dry mix"
+ },
+ {
+  "indbCode": "",
+  "indbName": "LEMON JELLY CRYSTALS",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 168775,
+  "food": "Gelatin desserts, dry mix"
+ },
+ {
+  "indbCode": "",
+  "indbName": "PINEAPPLE ESSENCE",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "E005",
+  "indbName": "Apricot, dried (Prunus armeniaca)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173941,
+  "food": "Apricots, dried, sulfured, uncooked"
+ },
+ {
+  "indbCode": "L509",
+  "indbName": "Milk, evaporated, light",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170878,
+  "food": "Milk, canned, evaporated, nonfat, with added vitamin A and vitamin D"
+ },
+ {
+  "indbCode": "B504",
+  "indbName": "Peanut butter, smooth",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172470,
+  "food": "Peanut butter, smooth style, without salt"
+ },
+ {
+  "indbCode": "U506",
+  "indbName": "HOT DOG BUNS",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172796,
+  "food": "Rolls, hamburger or hotdog, plain"
+ },
+ {
+  "indbCode": "X518",
+  "indbName": "CREAMED CORN",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169215,
+  "food": "Corn, sweet, yellow, canned, cream style, regular pack"
+ },
+ {
+  "indbCode": "",
+  "indbName": "LEMON COLOUR",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Strawberry essence",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "E504",
+  "indbName": "Cherries, West Indian, flesh only",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 171686,
+  "food": "Acerola, (west indian cherry), raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Lemon color",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Lemon essence",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "ORANGE DRINK",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "generic orange drink"
+ },
+ {
+  "indbCode": "",
+  "indbName": "ALMOND ESSENCE",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "ALMONDS ESSENCE",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "",
+  "indbName": "GREEN COLOUR",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "E006",
+  "indbName": "Apricot, processed (Prunus armeniaca)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173937,
+  "food": "Apricots, canned, juice pack, with skin, solids and liquids"
+ },
+ {
+  "indbCode": "",
+  "indbName": "SPINACH POWDER",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "spinach powder"
+ },
+ {
+  "indbCode": "C004",
+  "indbName": "Amaranth leaves, red and green mix (Amaranthus gangeticus)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 168385,
+  "food": "Amaranth leaves, raw"
+ },
+ {
+  "indbCode": "",
+  "indbName": "ESSENCE",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "food colour or flavouring essence, a few drops"
+ },
+ {
+  "indbCode": "D501",
+  "indbName": "Spring onions, bulbs only, raw",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170005,
+  "food": "Onions, spring or scallions (includes tops and bulb), raw"
+ },
+ {
+  "indbCode": "E067",
+  "indbName": "Wood Apple (Limonia acidissima)",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "no wood apple in USDA"
+ },
+ {
+  "indbCode": "K505",
+  "indbName": " Water, distilled",
+  "uses": 1,
+  "kind": "water"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Gulkand",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "rose petal preserve"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Rose petals",
+  "uses": 1,
+  "kind": "negligible",
+  "note": "garnish"
+ },
+ {
+  "indbCode": "H500",
+  "indbName": "Melon seeds",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169407,
+  "food": "Seeds, watermelon seed kernels, dried"
+ },
+ {
+  "indbCode": "H506",
+  "indbName": "Chia seeds",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170554,
+  "food": "Seeds, chia seeds, dried"
+ },
+ {
+  "indbCode": "",
+  "indbName": "Nannari root/ Indian sarsaparilla",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "nannari root"
+ },
+ {
+  "indbCode": "A509",
+  "indbName": "BLACK RICE",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "black rice"
+ },
+ {
+  "indbCode": "E502",
+  "indbName": "Kiwi fruit, flesh only, raw",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 168153,
+  "food": "Kiwifruit, green, raw"
+ },
+ {
+  "indbCode": "A001",
+  "indbName": "Amaranth seed, black (Amaranthus cruentus)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170682,
+  "food": "Amaranth grain, uncooked",
+  "cooked": {
+   "fdcId": 170683,
+   "food": "Amaranth grain, cooked"
+  }
+ },
+ {
+  "indbCode": "A502",
+  "indbName": "Couscous, plain, raw",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169699,
+  "food": "Couscous, dry",
+  "cooked": {
+   "fdcId": 169700,
+   "food": "Couscous, cooked"
+  }
+ },
+ {
+  "indbCode": "V500",
+  "indbName": "Apple juice, clear, ambient and chilled",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173933,
+  "food": "Apple juice, canned or bottled, unsweetened, without added ascorbic acid"
+ },
+ {
+  "indbCode": "C502",
+  "indbName": "Watercress, raw",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 2709639,
+  "food": "Watercress, raw"
+ },
+ {
+  "indbCode": "T500",
+  "indbName": "Butter, salted",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173410,
+  "food": "Butter, salted"
+ },
+ {
+  "indbCode": "L511",
+  "indbName": "Cheese, Ricotta",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170851,
+  "food": "Cheese, ricotta, whole milk"
+ },
+ {
+  "indbCode": "H020",
+  "indbName": "Sunflower seeds (Helianthus annuus)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170562,
+  "food": "Seeds, sunflower seed kernels, dried"
+ },
+ {
+  "indbCode": "A513",
+  "indbName": "ALMOND FLOUR, ALMOND",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "almond flour"
+ },
+ {
+  "indbCode": "H502",
+  "indbName": "Hazelnuts, kernel only",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170581,
+  "food": "Nuts, hazelnuts or filberts"
+ },
+ {
+  "indbCode": "L516",
+  "indbName": "Milk, dry, nonfat, regular, without added vitamin A and vitamin D",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170877,
+  "food": "Milk, dry, nonfat, regular, without added vitamin A and vitamin D"
+ },
+ {
+  "indbCode": "E501",
+  "indbName": "Cranberries",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 2709279,
+  "food": "Cranberries, raw"
+ },
+ {
+  "indbCode": "D507",
+  "indbName": "PITTED BLACK OLIVES",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169094,
+  "food": "Olives, ripe, canned (small-extra large)"
+ },
+ {
+  "indbCode": "E500",
+  "indbName": "Blueberries",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 2709275,
+  "food": "Blueberries, raw"
+ },
+ {
+  "indbCode": "E062",
+  "indbName": "Star fruit (Averrhoa carambola)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 171715,
+  "food": "Carambola, (starfruit), raw"
+ },
+ {
+  "indbCode": "D091",
+  "indbName": "LOTUS STEM, dry",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "dried lotus stem"
+ },
+ {
+  "indbCode": "G543",
+  "indbName": "RICE VINEGAR",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172237,
+  "food": "Vinegar, distilled"
+ },
+ {
+  "indbCode": "G539",
+  "indbName": "BALSAMIC VINEGAR",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172241,
+  "food": "Vinegar, balsamic"
+ },
+ {
+  "indbCode": "T509",
+  "indbName": "Oil, sesame",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 171016,
+  "food": "Oil, sesame, salad or cooking"
+ },
+ {
+  "indbCode": "D002",
+  "indbName": "Bamboo shoot, tender (Bambusa vulgaris)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169210,
+  "food": "Bamboo shoots, raw"
+ },
+ {
+  "indbCode": "D074",
+  "indbName": "Tomato, green (Solanum lycopersicum)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170456,
+  "food": "Tomatoes, green, raw"
+ },
+ {
+  "indbCode": "G525",
+  "indbName": "Rosemary, dried",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 171333,
+  "food": "Spices, rosemary, dried"
+ },
+ {
+  "indbCode": "G555",
+  "indbName": "Spices, onion powder",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 171327,
+  "food": "Spices, onion powder"
+ },
+ {
+  "indbCode": "L513",
+  "indbName": "Cheese, provolone",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 2705733,
+  "food": "Cheese, Provolone"
+ },
+ {
+  "indbCode": "X517",
+  "indbName": "CAJUN SEASONING, CAJUN",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "Cajun seasoning blend"
+ },
+ {
+  "indbCode": "H017",
+  "indbName": "Pine seed (Pinus sp.)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170591,
+  "food": "Nuts, pine nuts, dried"
+ },
+ {
+  "indbCode": "D505",
+  "indbName": "Gherkins, pickled, drained",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 168558,
+  "food": "Pickles, cucumber, dill or kosher dill"
+ },
+ {
+  "indbCode": "D506",
+  "indbName": "Pickle, sweet",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 169378,
+  "food": "Pickles, cucumber, sweet (includes bread and butter pickles)"
+ },
+ {
+  "indbCode": "X515",
+  "indbName": "DIJON MUSTARD, DIJON",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172234,
+  "food": "Mustard, prepared, yellow"
+ },
+ {
+  "indbCode": "L506",
+  "indbName": "Cheese, Feta",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 2705714,
+  "food": "Cheese, Feta"
+ },
+ {
+  "indbCode": "H018",
+  "indbName": "Pumpkin seeds",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170556,
+  "food": "Seeds, pumpkin and squash seed kernels, dried"
+ },
+ {
+  "indbCode": "A514",
+  "indbName": "Buckwheat, groats",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170685,
+  "food": "Buckwheat groats, roasted, dry",
+  "cooked": {
+   "fdcId": 170686,
+   "food": "Buckwheat groats, roasted, cooked"
+  }
+ },
+ {
+  "indbCode": "A009",
+  "indbName": "Quinoa (Chenopodium quinoa)",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 168874,
+  "food": "Quinoa, uncooked",
+  "cooked": {
+   "fdcId": 168917,
+   "food": "Quinoa, cooked"
+  }
+ },
+ {
+  "indbCode": "E017",
+  "indbName": "DATES, dried",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 171726,
+  "food": "Dates, deglet noor"
+ },
+ {
+  "indbCode": "U507",
+  "indbName": "WHITE HAMBURGER BUNS",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 172796,
+  "food": "Rolls, hamburger or hotdog, plain"
+ },
+ {
+  "indbCode": "G509",
+  "indbName": "Agar, dried",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 170090,
+  "food": "Seaweed, agar, dried"
+ },
+ {
+  "indbCode": "D508",
+  "indbName": "Beans, broad, whole, raw",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 175205,
+  "food": "Broadbeans (fava beans), mature seeds, raw"
+ },
+ {
+  "indbCode": "G521",
+  "indbName": "Mixed herbs, dried",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 171317,
+  "food": "Spices, basil, dried"
+ },
+ {
+  "indbCode": "G551",
+  "indbName": "Lemon grass (citronella), raw",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 168573,
+  "food": "Lemon grass (citronella), raw"
+ },
+ {
+  "indbCode": "B012",
+  "indbName": "Horse gram, whole (Dolicus biflorus)",
+  "uses": 1,
+  "kind": "unmapped",
+  "note": "no horse gram in USDA"
+ },
+ {
+  "indbCode": "B507",
+  "indbName": "BLACK BEANS",
+  "uses": 1,
+  "kind": "food",
+  "fdcId": 173734,
+  "food": "Beans, black, mature seeds, raw",
+  "cooked": {
+   "fdcId": 173735,
+   "food": "Beans, black, mature seeds, cooked, boiled, without salt"
+  }
+ }
+]
