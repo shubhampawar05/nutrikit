@@ -50,7 +50,8 @@ Enables photo logging, label photos and `ai: true` text parsing. Without a provi
 | `NUTRIKIT_SIGNUP_LIMIT` | `5` | Signups per hour per client address (invalid attempts count). Raise it if many developers share one network, e.g. an office or college |
 | `NUTRIKIT_LOGIN_IP_LIMIT` | `20` | Failed logins per 15 minutes per client address, across all emails (each email also has its own limit of 5) |
 | `NUTRIKIT_DB_POOL` | `10` | Postgres connections per instance |
-| `NUTRIKIT_OFFLINE` | – | `1` serves barcodes from the cache only |
+| `NUTRIKIT_OFFLINE` | – | `1` serves barcodes from the packaged-foods store and the cache only |
+| `NUTRIKIT_PACKAGED_DB` | `data/packaged.db` | Packaged-foods store built from an Open Food Facts export (see below); without it barcodes use the live API and packaged-food search answers 503 |
 | `NUTRIKIT_WEB_DIST` | `web/dist` | Built website to serve; without it the server is API-only |
 | `NUTRIKIT_LOG_LEVEL` | `info` | `fatal` … `debug`, or `silent`. Logs are JSON lines on stdout, one per request, with its `requestId` (also sent as `X-Request-Id`); bodies and credentials are never logged |
 
@@ -60,3 +61,20 @@ Enables photo logging, label photos and `ai: true` text parsing. Without a provi
 |---|---|
 | `TEST_DATABASE_URL` | Where `npm test` creates throwaway databases. Never point it at production |
 | `NUTRIKIT_AUTH` | `off` disables API key checks |
+
+## Packaged foods
+
+Barcode lookups and `GET /v1/barcodes/search` read a store built from an Open Food Facts export. Download the
+JSONL export from [world.openfoodfacts.org/data](https://world.openfoodfacts.org/data) (about 80 GB uncompressed),
+then:
+
+```bash
+npm run build:packaged -w server -- /path/to/openfoodfacts-products.jsonl
+```
+
+The export is read one line at a time (about 20 minutes, little memory) and `server/data/packaged.db` is written:
+products sold in India or the US whose label values pass the checks in [api.md](api.md#missing-data), a few hundred
+MB. The build prints, and stores in the file's `meta` table, how many products it kept and why the others were left
+out. The file is gitignored. It is a database under the ODbL 1.0, separate from `foods.db`; if you publish it or a
+service built on it, credit Open Food Facts and share the database under the same licence. Rebuild from a newer
+export to refresh it.

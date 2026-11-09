@@ -7,6 +7,8 @@ import { createKey } from '../src/domain/auth.ts';
 import { isValidGtin, fromOpenFoodFacts, lookupBarcode } from '../src/domain/barcode.ts';
 import { LABEL_WARNINGS } from '../src/domain/label.ts';
 
+// Barcode tests use a fake Open Food Facts API, not a locally built packaged-foods store (test/packaged.test.mjs).
+process.env.NUTRIKIT_PACKAGED_DB = 'data/no-packaged-store-in-tests.db';
 const app = await buildApp();
 
 let base;
@@ -234,6 +236,10 @@ test('barcode lookup caches hits and misses', async () => {
   assert.equal(hits, 2);
   const offline = await lookupBarcode(sql, '73513537', { fetch: fakeFetch, offline: true });
   assert.deepEqual(offline, { found: false, cached: false, offline: true });
+  // A product cached before the label checks existed (no `issues`) is fetched again.
+  await sql`UPDATE barcode_cache SET payload = payload - 'issues' WHERE code = '4006381333931'`;
+  assert.equal((await lookupBarcode(sql, '4006381333931', { fetch: fakeFetch })).cached, false);
+  assert.equal(hits, 3);
 });
 
 test('meal plan endpoint validates input', async () => {
@@ -287,12 +293,20 @@ test('OpenAPI spec documents every API route', async () => {
   assert.equal(spec.openapi, '3.1.0');
   const documented = new Set(Object.entries(spec.paths).flatMap(([p, ops]) => Object.keys(ops).map((m) => `${m.toUpperCase()} ${p}`)));
   const api = app.routeTable.filter((r) => r.url.startsWith('/v1/') && r.method !== 'HEAD' && !r.hidden);
-  assert.equal(api.length, 23, 'all /v1 routes are registered');
+  assert.equal(api.length, 24, 'all /v1 routes are registered');
   for (const r of api) {
     const p = r.url.replace(/:(\w+)(\([^/]*\))?/g, '{$1}');
     assert.ok(documented.has(`${r.method} ${p}`), `${r.method} ${p} missing from openapi.json`);
   }
   for (const name of ['SearchResult', 'Food', 'LogResult', 'Error']) assert.ok(spec.components.schemas[name], `${name} schema`);
+});
+
+test('packaged-food search is a 503 when the server has no export, and is not charged', async () => {
+  const r = await call('/v1/barcodes/search?q=parle');
+  assert.equal(r.status, 503);
+  assert.equal((await r.json()).error.code, 'packaged_foods_unavailable');
+  assert.equal(r.headers.get('x-tokens-charged'), null);
+  assert.equal((await call('/v1/barcodes/search?q=x&country=uk')).status, 400);
 });
 
 test('an Open Food Facts timeout is a 502, not a hung or 500 response', async () => {

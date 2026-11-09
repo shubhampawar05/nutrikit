@@ -321,6 +321,12 @@
               "null"
             ]
           },
+          "packageSize": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "servingSize": {
             "type": [
               "string",
@@ -332,6 +338,26 @@
               "number",
               "null"
             ]
+          },
+          "servingMl": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "imageUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "100g",
+              "100ml"
+            ],
+            "description": "What per100g is per: liquids are labelled per 100 ml"
           },
           "per100g": {
             "type": "object"
@@ -346,6 +372,19 @@
               }
             ]
           },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Why the label values were withheld (they contradict each other); empty when they passed the checks"
+          },
+          "updatedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "source": {
             "type": "string"
           },
@@ -354,6 +393,28 @@
           },
           "cached": {
             "type": "boolean"
+          },
+          "local": {
+            "type": "boolean",
+            "description": "Served from the local Open Food Facts export rather than the live API"
+          }
+        }
+      },
+      "PackagedSearchResult": {
+        "title": "PackagedSearchResult",
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BarcodeProduct"
+            }
           }
         }
       },
@@ -1196,7 +1257,7 @@
             }
           },
           "503": {
-            "description": "AI provider unavailable",
+            "description": "Service or AI provider unavailable",
             "content": {
               "application/json": {
                 "schema": {
@@ -1289,6 +1350,124 @@
           },
           "502": {
             "description": "Upstream source failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/barcodes/search": {
+      "get": {
+        "summary": "Search packaged foods by name or brand",
+        "description": "Costs 1 token(s). Products sold in India or the US from a local Open Food Facts export, with label values that passed the consistency checks. 503 when the server has no export loaded.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S",
+              "maxLength": 200
+            },
+            "in": "query",
+            "name": "q",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000,
+              "default": 0
+            },
+            "in": "query",
+            "name": "offset",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "in",
+                "us"
+              ]
+            },
+            "in": "query",
+            "name": "country",
+            "required": false,
+            "description": "in = sold in India, us = sold in the US"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "X-Tokens-Charged": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-Tokens-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackagedSearchResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or monthly token allowance exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or AI provider unavailable",
             "content": {
               "application/json": {
                 "schema": {
@@ -1558,7 +1737,7 @@
             }
           },
           "503": {
-            "description": "AI provider unavailable",
+            "description": "Service or AI provider unavailable",
             "content": {
               "application/json": {
                 "schema": {

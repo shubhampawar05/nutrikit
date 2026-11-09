@@ -13,7 +13,8 @@ A copy is checked in at [server/docs/openapi.json](../server/docs/openapi.json) 
 | Text logging | `POST /v1/log/text` | 5 | Rule-based parser; `ai: true` uses the AI provider for free-form text |
 | Voice logging | `POST /v1/log/voice` | 5 | The device transcribes; the server cleans filler words and logs it |
 | Photo logging | `POST /v1/log/photo` | 20 | AI lists the foods with gram estimates, then matches each to the catalog |
-| Barcodes | `GET /v1/barcodes/{ean}` | 5 | Looks up Open Food Facts; cached for 30 days |
+| Barcodes | `GET /v1/barcodes/{ean}` | 5 | The server's local Open Food Facts export first ([packaged foods](#packaged-foods)), then the live Open Food Facts API (cached for 30 days). Label values that contradict each other are withheld and explained in `issues` |
+| Packaged-food search | `GET /v1/barcodes/search?q=&country=` | 1 | Products sold in India (`in`) or the US (`us`) by name or brand, from the local export. `503 packaged_foods_unavailable` where the server has none loaded |
 | Nutrition labels | `POST /v1/labels/parse` | 5 (text) / 20 (photo) | Parses US FDA labels; photos are read by the AI provider |
 | Meal plans | `POST /v1/meal-plans` | 20 | 1–7 days, 6 diets, exclusions, scaled to a calorie target; same seed, same plan |
 | Nutrition advisor | `POST /v1/advisor` | 5 | Answers a nutrition question with the AI provider. Optional `context` (goals, today's log) tailors it and is treated as data. Medical and out-of-scope questions return `declined: true` |
@@ -103,7 +104,16 @@ Nutrikit never fills a gap with a guess or a zero.
   out of the totals.
 - **A food the catalog doesn't have** is listed in `unmatched`, never swapped for a different food. With no
   items, `totals` is `{}`.
-- **Open Food Facts** values that are blank, `null` or not numbers are left out.
+- **Open Food Facts** values that are blank, `null` or not numbers are left out, and so are values Open Food Facts
+  calculated itself rather than copied from the label (its added-sugar estimates, marked `~`).
+- **Open Food Facts labels that contradict themselves are not served.** Volunteers sometimes type per-serving
+  figures as per 100 g, or kJ as kcal. A product's values are withheld (`per100g` is `{}` and `issues` says why)
+  when any amount is negative, energy is above 900 kcal per 100 g, protein + carbohydrate + fat weigh more than
+  100 g per 100 g, sugars exceed carbohydrate or saturated fat exceeds fat, or energy is far from what the protein,
+  carbohydrate and fat give. The limits allow for US label rounding (21 CFR 101.9(c)) when the label is per
+  serving, and for fibre and sugar alcohols, which give less energy than other carbohydrate.
+- **Liquids are per 100 ml.** Open Food Facts records drinks per 100 ml, so a barcode product says what its values
+  are per in `basis` (`100g` or `100ml`), and `perServing` is given only when the serving is in the same unit.
 
 Coverage by source (share of foods with a value):
 
@@ -118,6 +128,16 @@ Coverage by source (share of foods with a value):
 | Added sugars | – | – | – | – |
 
 Added sugars come only from Open Food Facts and nutrition labels; USDA's food tables don't report them.
+
+### Packaged foods
+
+A server can load an [Open Food Facts](https://world.openfoodfacts.org/data) export, so barcodes are answered without
+the live API and packaged products can be searched by name ("parle g", "amul butter"). The build keeps products
+sold in India or the US that have a valid barcode, a name, and label values for energy, protein, carbohydrate and fat
+that pass the checks above; anything else is left out rather than guessed. It is a separate database under the
+ODbL (`server/data/packaged.db`, built locally and never committed, see
+[configuration](configuration.md#packaged-foods)); responses carry `source: "openfoodfacts"` and the ODbL
+attribution, and `updatedAt` says when the product was last edited on Open Food Facts.
 
 ### UK CoFID dishes
 
