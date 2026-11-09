@@ -21,10 +21,19 @@
    A failure withholds all values: which one was mistyped is unknowable.
 3. **Basis.** Export: `aggregated_set.per`. Flat form: `100ml` when the serving (else package) unit is ml, as Open
    Food Facts stores liquids per 100 ml. No density conversion is attempted.
-4. **Store.** SQLite `data/packaged.db`, one row per barcode (latest edit wins), payload without `perServing`
-   (computed on read; it was 60% of the row), FTS5 over name and brand, `meta.source` with counts by skip reason.
-   Gitignored and separate from `foods.db`: ODbL share-alike applies to a derived database.
-5. **Lookup order.** Local store, then Postgres cache, then live API. 12-digit UPC matches its 13-digit form.
+4. **Store.** SQLite, one row per barcode (latest edit wins) in plain columns: nutrients as a JSON array in a fixed
+   key order (`meta.nutrient_keys`), the image as "<language>.<revision>", no per-serving copy (computed on read).
+   The JSON-object layout was 477 MB for 748k products; the compact one is 141 MB. FTS5 over name and brand,
+   `meta.source` with counts by skip reason. Separate from `foods.db`: ODbL share-alike applies to a derived
+   database, so it carries its own licence notice.
+5. **Live set.** 82% of checked products (610k) have never been scanned on Open Food Facts; 555k have no photo.
+   The committed set keeps every product sold in India (9.6k) and US products with at least one unique scan (131k):
+   ~140k products, 33 MB, small enough for git and the Docker image. The rest stay reachable through the live API.
+6. **Search duplicates.** 45k products repeat another's name, brand and label values under a different barcode;
+   search shows one result per product with all barcodes, while each barcode keeps its own row for lookups.
+   2,056 names have no Latin letters (imports tagged as sold in the US); they are left out of name search unless
+   sold in India, whose labels may use Indian scripts.
+7. **Lookup order.** Local store, then Postgres cache, then live API. 12-digit UPC matches its 13-digit form.
 
 ## Risks
 

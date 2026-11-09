@@ -13,6 +13,6 @@ mcp/dist/
 web/dist/
 e2e/test-results/
 e2e/playwright-report/
-# Built locally from an Open Food Facts export (npm run build:packaged -w server -- <export.jsonl>).
-server/data/packaged.db
-server/data/packaged.db.tmp*
+# Open Food Facts stores: data/packaged.db (the live set) is committed; the full set is local only.
+server/data/packaged.all.db
+server/data/*.db.tmp*

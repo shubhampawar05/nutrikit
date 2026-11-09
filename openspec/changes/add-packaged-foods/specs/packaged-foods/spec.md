@@ -27,6 +27,10 @@ SHALL answer 503 `packaged_foods_unavailable` and charge nothing.
 - **WHEN** a caller searches "parle" with `country=in` and the store is loaded
 - **THEN** the results are Parle products sold in India
 
+#### Scenario: One product under several barcodes
+- **WHEN** two barcodes carry the same name, brand and label values and a search matches them
+- **THEN** they are one result, with both codes in `barcodes`
+
 #### Scenario: No store
 - **WHEN** the server has no store loaded
 - **THEN** the search answers 503 and no tokens are charged

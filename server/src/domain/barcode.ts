@@ -88,6 +88,10 @@ const OFF_MAP: Record<string, [string, number]> = {
   zinc: ['zinc', 1000], vitaminA: ['vitamin-a', 1e6], vitaminC: ['vitamin-c', 1000],
   vitaminD: ['vitamin-d', 1e6], caffeine: ['caffeine', 1000], alcohol: ['alcohol', 1],
 };
+/** Nutrient keys Open Food Facts products can carry, in a fixed order (the packaged-foods store's columns). */
+export const OFF_NUTRIENT_KEYS = Object.keys(OFF_MAP);
+export const OFF_LICENSE = 'ODbL (Open Food Facts contributors)';
+const OFF_IMAGES = 'https://images.openfoodfacts.org/images/products';
 const KCAL_PER_KJ = 1 / 4.184;
 const SODIUM_PER_SALT = 0.4; // EU Regulation 1169/2011 Annex I: salt = sodium x 2.5
 
@@ -152,6 +156,9 @@ export function offImagePath(code: string): string {
   return code.padStart(13, '0').replace(/^(\d{3})(\d{3})(\d{3})(\d+)$/, '$1/$2/$3/$4');
 }
 
+/** URL of a product's selected front image; `image` is "<language>.<revision>", e.g. "en.7". */
+export const offFrontImage = (code: string, image: string) => `${OFF_IMAGES}/${offImagePath(code)}/front_${image}.200.jpg`;
+
 /**
  * Map an Open Food Facts product to a BarcodeProduct, keeping only values printed on the label.
  * @param basisHint what the values are per when the source says so (OFF exports); otherwise inferred from the
@@ -189,7 +196,7 @@ export function fromOpenFoodFacts(product: OffProduct, basisHint?: '100g' | '100
     issues,
     updatedAt: product.last_modified_t ? new Date(product.last_modified_t * 1000).toISOString().slice(0, 10) : null,
     source: 'openfoodfacts',
-    license: 'ODbL (Open Food Facts contributors)',
+    license: OFF_LICENSE,
   };
   out.perServing = servingNutrients(out);
   return out;

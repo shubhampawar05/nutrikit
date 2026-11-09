@@ -9,6 +9,8 @@ import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { fromOpenFoodFacts, labelIssues, lookupBarcode, offImagePath } from '../src/domain/barcode.ts';
 import { packagedByBarcode, packagedSource, resetPackaged, searchPackaged } from '../src/domain/packaged.ts';
+import { DatabaseSync } from 'node:sqlite';
+import { OFF_NUTRIENT_KEYS } from '../src/domain/barcode.ts';
 import { fromExportRecord, frontImage } from '../scripts/build-packaged.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -70,11 +72,12 @@ const record = (over = {}) => ({
 });
 
 test('export records: label sources only, prepared-only values and bad barcodes are skipped', () => {
-  const { product } = fromExportRecord(record());
+  const { product, image } = fromExportRecord(record());
   assert.deepEqual(product.per100g, { calories: 478, protein: 7, fat: 18, carbs: 72 });
-  assert.equal(product.imageUrl, 'https://images.openfoodfacts.org/images/products/890/106/315/4025/front_en.7.200.jpg');
+  assert.equal(image, 'en.7');
+  assert.equal(offImagePath('8901063154025'), '890/106/315/4025');
   assert.equal(offImagePath('96385074'), '96385074');
-  assert.equal(frontImage({ code: '1', images: {} }), undefined);
+  assert.equal(frontImage({ code: '1', images: {} }), null);
   assert.match(fromExportRecord(record({ code: '8901063154026' })).skipped, /invalid barcode/);
   assert.match(fromExportRecord(record({ product_name: '' })).skipped, /no name/);
   const prepared = record(); prepared.nutrition.aggregated_set.preparation = 'prepared';
@@ -82,30 +85,82 @@ test('export records: label sources only, prepared-only values and bad barcodes 
   assert.match(fromExportRecord(record({ nutrition: null, nutriments: { 'energy-kcal_100g': 400 } })).skipped, /no label energy/);
 });
 
-test('the build stores checked products, and lookups and search read them', async () => {
-  const lines = [
-    record(),
-    record({ code: '0012000161155', product_name: 'Diet Cola', brands: 'Pepsi', countries_tags: ['en:united-states'], unique_scans_n: 9 }),
-    record({ code: '4006381333931', product_name: 'Bad label', countries_tags: ['en:united-states'], nutrition: null, nutriments: { 'energy-kcal_100g': 960, proteins_100g: 32, carbohydrates_100g: 240, fat_100g: 112 } }),
-    record({ code: '3017624010701', product_name: 'French only', countries_tags: ['en:france'] }),
-  ];
-  const input = path.join(TMP, 'export.jsonl');
+const build = (lines, out, ...flags) => {
+  const input = path.join(TMP, `${path.basename(out)}.jsonl`);
   fs.writeFileSync(input, lines.map((l) => JSON.stringify(l)).join('\n') + '\n');
-  const out = path.join(TMP, 'packaged.db');
-  execFileSync(process.execPath, ['--import', 'tsx', 'scripts/build-packaged.mjs', input, '--out', out], { cwd: ROOT, stdio: 'pipe' });
+  execFileSync(process.execPath, ['--import', 'tsx', 'scripts/build-packaged.mjs', input, '--out', out, ...flags], { cwd: ROOT, stdio: 'pipe' });
   process.env.NUTRIKIT_PACKAGED_DB = out;
   resetPackaged();
+};
+const us = (over) => record({ countries_tags: ['en:united-states'], ...over });
+const FIXTURE = [
+  record(),
+  record({ code: '8901063154049', serving_quantity: 30 }), // the same cookies under a second barcode
+  us({ code: '0012000161155', product_name: 'Diet Cola', brands: 'Pepsi', unique_scans_n: 9 }),
+  us({ code: '0012000001291', product_name: 'Cola Zero', brands: 'Pepsi', unique_scans_n: 0 }),
+  us({ code: '4006381333931', product_name: 'Bad label', unique_scans_n: 3, nutrition: null, nutriments: { 'energy-kcal_100g': 960, proteins_100g: 32, carbohydrates_100g: 240, fat_100g: 112 } }),
+  us({ code: '4600000000008', product_name: 'Пряники', brands: 'Самокат', unique_scans_n: 2 }),
+  record({ code: '3017624010701', product_name: 'French only', countries_tags: ['en:france'] }),
+];
 
+test('the live set: every Indian product, and US products someone has scanned', async () => {
+  build(FIXTURE, path.join(TMP, 'packaged.db'));
   const source = packagedSource();
-  assert.equal(source.products, 2);
-  assert.deepEqual(source.skipped, { 'label values contradict each other': 1 });
+  assert.equal(source.set, 'live');
+  assert.equal(source.products, 4);
+  assert.deepEqual(source.skipped, { 'label values contradict each other': 1, 'not in the live set (US, never scanned)': 1 });
   assert.equal(packagedByBarcode('012000161155').name, 'Diet Cola', 'a 12-digit UPC finds its 13-digit EAN form');
+  assert.equal(packagedByBarcode('0012000001291'), null, 'never scanned in the US: left to the live API');
   assert.equal(packagedByBarcode('4006381333931'), null, 'contradicting labels are not stored');
-  assert.equal(packagedByBarcode('8901063154025').perServing.calories.amount, 96, 'per serving is computed on read');
-  assert.deepEqual(searchPackaged('ragi cook').results.map((p) => p.name), ['Ragi cookies'], 'word prefixes');
-  assert.deepEqual(searchPackaged('britannia', { country: 'us' }).results, []);
-  assert.equal(searchPackaged('pepsi', { country: 'us' }).total, 1, 'brands are searchable');
+  const cookies = packagedByBarcode('8901063154025');
+  assert.equal(cookies.perServing.calories.amount, 96, 'per serving is computed on read');
+  assert.equal(cookies.imageUrl, 'https://images.openfoodfacts.org/images/products/890/106/315/4025/front_en.7.200.jpg');
+  assert.deepEqual(cookies.issues, []);
   const hit = await lookupBarcode(null, '8901063154025');
   assert.deepEqual([hit.found, hit.local, hit.product.name], [true, true, 'Ragi cookies'], 'barcodes are served locally first');
-  assert.throws(() => execFileSync(process.execPath, ['--import', 'tsx', 'scripts/build-packaged.mjs', input, '--out', path.join(TMP, 'foods.db')], { cwd: ROOT, stdio: 'pipe' }), /never write it into foods.db/);
+});
+
+test('search: word prefixes, brands, countries; one result per product however many barcodes', () => {
+  const ragi = searchPackaged('ragi cook');
+  assert.equal(ragi.total, 1);
+  assert.deepEqual(ragi.results[0].barcodes, ['8901063154025', '8901063154049'], 'the shown barcode first, then the others');
+  assert.deepEqual(searchPackaged('britannia', { country: 'us' }).results, []);
+  assert.equal(searchPackaged('pepsi', { country: 'us' }).total, 1);
+  assert.equal(searchPackaged('пряники').total, 0, 'names only in other scripts are not listed by search');
+  assert.equal(packagedByBarcode('4600000000008').name, 'Пряники', 'but their barcodes work');
+});
+
+test('the store is compact: nutrients in a fixed key order, no per-serving copy', () => {
+  const db = new DatabaseSync(path.join(TMP, 'packaged.db'), { readOnly: true });
+  assert.deepEqual(JSON.parse(db.prepare("SELECT value FROM meta WHERE key = 'nutrient_keys'").get().value), OFF_NUTRIENT_KEYS);
+  const row = db.prepare("SELECT * FROM products WHERE code = '8901063154025'").get();
+  assert.equal(JSON.parse(row.nutrients).length, OFF_NUTRIENT_KEYS.length);
+  assert.deepEqual([row.image, row.serving_qty, row.serving_unit, row.per_ml], ['en.7', 20, 'g', 0]);
+  db.close();
+});
+
+test('--all keeps every checked product; foods.db is refused', () => {
+  build(FIXTURE, path.join(TMP, 'packaged.all.db'), '--all');
+  assert.equal(packagedSource().set, 'all');
+  assert.equal(packagedByBarcode('0012000001291').name, 'Cola Zero');
+  assert.throws(() => build(FIXTURE, path.join(TMP, 'foods.db')), /never write it into foods.db/);
+});
+
+test('the committed store is the live set, and every product in it passes the label checks', () => {
+  const db = new DatabaseSync(path.join(ROOT, 'data/packaged.db'), { readOnly: true });
+  const source = JSON.parse(db.prepare("SELECT value FROM meta WHERE key = 'source'").get().value);
+  assert.equal(source.set, 'live');
+  assert.match(source.license, /ODbL/);
+  assert.ok(source.products > 100_000, `${source.products} products`);
+  assert.equal(db.prepare('SELECT count(*) n FROM products WHERE country_in = 0 AND scans < 1').get().n, 0, 'live set only');
+  const keys = JSON.parse(db.prepare("SELECT value FROM meta WHERE key = 'nutrient_keys'").get().value);
+  const failing = [];
+  for (const r of db.prepare('SELECT code, per_ml, serving_qty, nutrients FROM products').iterate()) {
+    const per100g = Object.fromEntries(JSON.parse(r.nutrients).map((v, i) => [keys[i], v]).filter(([, v]) => v != null));
+    if (['calories', 'protein', 'carbs', 'fat'].some((k) => per100g[k] == null)) failing.push(`${r.code}: missing core values`);
+    // The build allowed per-serving label rounding for the product's own serving at most.
+    else if (labelIssues(per100g, r.per_ml ? '100ml' : '100g', r.serving_qty).length) failing.push(r.code);
+  }
+  db.close();
+  assert.deepEqual(failing, []);
 });

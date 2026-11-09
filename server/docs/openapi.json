@@ -397,6 +397,13 @@
           "local": {
             "type": "boolean",
             "description": "Served from the local Open Food Facts export rather than the live API"
+          },
+          "barcodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Search results only: every barcode this product is sold under (same name, brand and label values), the shown one first"
           }
         }
       },

@@ -14,7 +14,7 @@ A copy is checked in at [server/docs/openapi.json](../server/docs/openapi.json) 
 | Voice logging | `POST /v1/log/voice` | 5 | The device transcribes; the server cleans filler words and logs it |
 | Photo logging | `POST /v1/log/photo` | 20 | AI lists the foods with gram estimates, then matches each to the catalog |
 | Barcodes | `GET /v1/barcodes/{ean}` | 5 | The server's local Open Food Facts export first ([packaged foods](#packaged-foods)), then the live Open Food Facts API (cached for 30 days). Label values that contradict each other are withheld and explained in `issues` |
-| Packaged-food search | `GET /v1/barcodes/search?q=&country=` | 1 | Products sold in India (`in`) or the US (`us`) by name or brand, from the local export. `503 packaged_foods_unavailable` where the server has none loaded |
+| Packaged-food search | `GET /v1/barcodes/search?q=&country=` | 1 | Products sold in India (`in`) or the US (`us`) by name or brand, from the local export. A product sold under several barcodes is one result, with all of them in `barcodes`. `503 packaged_foods_unavailable` where the server has none loaded |
 | Nutrition labels | `POST /v1/labels/parse` | 5 (text) / 20 (photo) | Parses US FDA labels; photos are read by the AI provider |
 | Meal plans | `POST /v1/meal-plans` | 20 | 1–7 days, 6 diets, exclusions, scaled to a calorie target; same seed, same plan |
 | Nutrition advisor | `POST /v1/advisor` | 5 | Answers a nutrition question with the AI provider. Optional `context` (goals, today's log) tailors it and is treated as data. Medical and out-of-scope questions return `declined: true` |
@@ -131,13 +131,20 @@ Added sugars come only from Open Food Facts and nutrition labels; USDA's food ta
 
 ### Packaged foods
 
-A server can load an [Open Food Facts](https://world.openfoodfacts.org/data) export, so barcodes are answered without
-the live API and packaged products can be searched by name ("parle g", "amul butter"). The build keeps products
-sold in India or the US that have a valid barcode, a name, and label values for energy, protein, carbohydrate and fat
-that pass the checks above; anything else is left out rather than guessed. It is a separate database under the
-ODbL (`server/data/packaged.db`, built locally and never committed, see
-[configuration](configuration.md#packaged-foods)); responses carry `source: "openfoodfacts"` and the ODbL
-attribution, and `updatedAt` says when the product was last edited on Open Food Facts.
+Barcodes and packaged-food search ("parle g", "amul butter") are served from a store built from the
+[Open Food Facts](https://world.openfoodfacts.org/data) export. The hosted service ships the **live set**: every
+product sold in India, and the US products someone has scanned at least once on Open Food Facts (about 140,000).
+Any other barcode is looked up on the live Open Food Facts API, with the same checks. A product is kept only with a
+valid barcode, a name, and label values for energy, protein, carbohydrate and fat that pass the checks above;
+anything else is left out rather than guessed.
+
+- `updatedAt` says when the product was last edited on Open Food Facts.
+- Search lists one result per product: the same name, brand and label values under several barcodes are one
+  result, with every barcode in `barcodes`. Products named only in a script other than Latin (imports with Russian,
+  Korean or Arabic labels) are found by barcode, not by name, unless they are sold in India.
+- The store is a separate database under the ODbL ([licence notice](../server/data/packaged.LICENSE.md)); responses
+  carry `source: "openfoodfacts"` and the attribution. See [configuration](configuration.md#packaged-foods) to
+  rebuild it or to use the full set of about 750,000 products.
 
 ### UK CoFID dishes
 

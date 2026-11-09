@@ -10,6 +10,9 @@
 - [x] 2.1 `scripts/build-packaged.mjs`: streamed export, country pre-filter, label sources, skip reasons, FTS, refuses `foods.db`
 - [x] 2.2 `src/domain/packaged.ts`: barcode (UPC/EAN forms) and search; lookup reads the store first
 - [x] 2.3 Fixture build test; full build from the export, counts reviewed
+- [x] 2.4 Compact layout; live set (`data/packaged.db`, committed, in the Docker image) and `--all` full set
+- [x] 2.5 Search collapses duplicate barcodes (`barcodes`); non-Latin names searchable only when sold in India
+- [x] 2.6 Test over the committed store: live set only, every row passes the label checks; ODbL notice
 
 ## 3. API and docs
 
