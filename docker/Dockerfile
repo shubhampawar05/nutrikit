@@ -41,6 +41,8 @@ COPY --from=build /app/server/dist server/dist
 COPY --from=build /app/web/dist web/dist
 COPY server/migrations server/migrations
 COPY server/data/foods.db server/data/foods.db
+# Packaged foods from Open Food Facts (ODbL; see server/data/packaged.LICENSE.md).
+COPY server/data/packaged.db server/data/packaged.db
 COPY sdk/js/nutrikit.mjs sdk/js/nutrikit.d.ts sdk/js/
 USER node
 WORKDIR /app/server

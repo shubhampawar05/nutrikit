@@ -13,7 +13,8 @@ A copy is checked in at [server/docs/openapi.json](../server/docs/openapi.json) 
 | Text logging | `POST /v1/log/text` | 5 | Rule-based parser; `ai: true` uses the AI provider for free-form text |
 | Voice logging | `POST /v1/log/voice` | 5 | The device transcribes; the server cleans filler words and logs it |
 | Photo logging | `POST /v1/log/photo` | 20 | AI lists the foods with gram estimates, then matches each to the catalog |
-| Barcodes | `GET /v1/barcodes/{ean}` | 5 | Looks up Open Food Facts; cached for 30 days |
+| Barcodes | `GET /v1/barcodes/{ean}` | 5 | The server's local Open Food Facts export first ([packaged foods](#packaged-foods)), then the live Open Food Facts API (cached for 30 days). Label values that contradict each other are withheld and explained in `issues` |
+| Packaged-food search | `GET /v1/barcodes/search?q=&country=` | 1 | Products sold in India (`in`) or the US (`us`) by name or brand, from the local export. A product sold under several barcodes is one result, with all of them in `barcodes`. `503 packaged_foods_unavailable` where the server has none loaded |
 | Nutrition labels | `POST /v1/labels/parse` | 5 (text) / 20 (photo) | Parses US FDA labels; photos are read by the AI provider |
 | Meal plans | `POST /v1/meal-plans` | 20 | 1–7 days, 6 diets, exclusions, scaled to a calorie target; same seed, same plan |
 | Nutrition advisor | `POST /v1/advisor` | 5 | Answers a nutrition question with the AI provider. Optional `context` (goals, today's log) tailors it and is treated as data. Medical and out-of-scope questions return `declined: true` |
@@ -103,7 +104,16 @@ Nutrikit never fills a gap with a guess or a zero.
   out of the totals.
 - **A food the catalog doesn't have** is listed in `unmatched`, never swapped for a different food. With no
   items, `totals` is `{}`.
-- **Open Food Facts** values that are blank, `null` or not numbers are left out.
+- **Open Food Facts** values that are blank, `null` or not numbers are left out, and so are values Open Food Facts
+  calculated itself rather than copied from the label (its added-sugar estimates, marked `~`).
+- **Open Food Facts labels that contradict themselves are not served.** Volunteers sometimes type per-serving
+  figures as per 100 g, or kJ as kcal. A product's values are withheld (`per100g` is `{}` and `issues` says why)
+  when any amount is negative, energy is above 900 kcal per 100 g, protein + carbohydrate + fat weigh more than
+  100 g per 100 g, sugars exceed carbohydrate or saturated fat exceeds fat, or energy is far from what the protein,
+  carbohydrate and fat give. The limits allow for US label rounding (21 CFR 101.9(c)) when the label is per
+  serving, and for fibre and sugar alcohols, which give less energy than other carbohydrate.
+- **Liquids are per 100 ml.** Open Food Facts records drinks per 100 ml, so a barcode product says what its values
+  are per in `basis` (`100g` or `100ml`), and `perServing` is given only when the serving is in the same unit.
 
 Coverage by source (share of foods with a value):
 
@@ -118,6 +128,23 @@ Coverage by source (share of foods with a value):
 | Added sugars | – | – | – | – |
 
 Added sugars come only from Open Food Facts and nutrition labels; USDA's food tables don't report them.
+
+### Packaged foods
+
+Barcodes and packaged-food search ("parle g", "amul butter") are served from a store built from the
+[Open Food Facts](https://world.openfoodfacts.org/data) export. The hosted service ships the **live set**: every
+product sold in India, and the US products someone has scanned at least once on Open Food Facts (about 140,000).
+Any other barcode is looked up on the live Open Food Facts API, with the same checks. A product is kept only with a
+valid barcode, a name, and label values for energy, protein, carbohydrate and fat that pass the checks above;
+anything else is left out rather than guessed.
+
+- `updatedAt` says when the product was last edited on Open Food Facts.
+- Search lists one result per product: the same name, brand and label values under several barcodes are one
+  result, with every barcode in `barcodes`. Products named only in a script other than Latin (imports with Russian,
+  Korean or Arabic labels) are found by barcode, not by name, unless they are sold in India.
+- The store is a separate database under the ODbL ([licence notice](../server/data/packaged.LICENSE.md)); responses
+  carry `source: "openfoodfacts"` and the attribution. See [configuration](configuration.md#packaged-foods) to
+  rebuild it or to use the full set of about 750,000 products.
 
 ### UK CoFID dishes
 

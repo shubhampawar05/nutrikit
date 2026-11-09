@@ -18,6 +18,12 @@ designed and written independently. This file records what informed it.
   definitions (`server/scripts/cofid.mjs`). Crown copyright, Open Government Licence v3.0; the workbook's SHA-256 is
   pinned. Its user guide was read for definitions. Quadram Institute's CoFID API (a separate, non-commercial
   product) was not used.
+- **Open Food Facts export** (world.openfoodfacts.org/data, ODbL 1.0 database, DbCL 1.0 contents): products sold in
+  India or the US are built into a separate database (`server/scripts/build-packaged.mjs`): the live set,
+  `server/data/packaged.db`, is committed under the ODbL with its notice (`server/data/packaged.LICENSE.md`); the
+  full set stays local. Only label values that pass consistency checks are kept. Open Food
+  Facts' public API and data documentation were read for field meanings; the label checks use US label rounding
+  rules (21 CFR 101.9(c)) and Atwater energy factors.
 - **Dish-name aliases** (`server/data/aliases/cofid.json`): each maps a common Indian name to a CoFID dish and cites a
   public reference page that uses the name.
 - **Recipes:** the catalog build can compose dishes from USDA foods (`server/scripts/recipes.mjs`), but only from a

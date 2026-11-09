@@ -5,6 +5,8 @@
 .git
 openspec
 server/data/raw
+server/data/packaged.all.db
+server/data/*.db.tmp*
 server/data/app.db*
 server/test
 **/*.test.ts

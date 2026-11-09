@@ -10,6 +10,7 @@ import { NUTRIENTS, scaleNutrients, sumNutrients } from '../domain/nutrients.ts'
 import { resolvePortion } from '../domain/units.ts';
 import { logText, resolvePhrase, type LoggedItem, type Unmatched } from '../domain/textlog.ts';
 import { isValidGtin, lookupBarcode } from '../domain/barcode.ts';
+import { COUNTRIES, searchPackaged } from '../domain/packaged.ts';
 import { parseLabelText, LABEL_WARNINGS } from '../domain/label.ts';
 import { generateMealPlan, DIETS } from '../domain/mealplan.ts';
 import { getProvider, type AIProvider, type AICapability, type MealRecognition, type LabelReading, type AIFoodItem } from '../domain/providers/index.ts';
@@ -255,7 +256,27 @@ export async function v1Routes(fastify: FastifyInstance) {
     if (!isValidGtin(code)) throw bad('not a valid EAN/UPC barcode (8, 12, 13 or 14 digits with a correct check digit)', 'invalid_barcode');
     const r = await lookupBarcode(fastify.sql, code);
     if (!r.found) throw new HttpError(404, 'not_found', r.offline ? 'barcode not cached and server is offline' : 'no product found for this barcode');
-    return { ...r.product, cached: r.cached };
+    return { ...r.product, cached: r.cached, local: Boolean(r.local) };
+  });
+
+  app.get('/v1/barcodes/search', {
+    config: v1('search'),
+    schema: {
+      summary: 'Search packaged foods by name or brand',
+      description: `${cost('search')}. Products sold in India or the US from a local Open Food Facts export, with label values that passed the consistency checks. 503 when the server has no export loaded.`,
+      querystring: Type.Object({
+        q: nonBlank(200),
+        limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 10 })),
+        offset: Type.Optional(Type.Integer({ minimum: 0, maximum: 1000, default: 0 })),
+        country: Type.Optional(Type.String({ enum: [...COUNTRIES], description: 'in = sold in India, us = sold in the US' })),
+      }),
+      response: { ...ok({ $ref: 'PackagedSearchResult#' }), ...errors(400, 401, 429, 503) },
+    },
+  }, (req) => {
+    const { q, limit, offset, country } = req.query;
+    const found = searchPackaged(q, { limit, offset, country: country as (typeof COUNTRIES)[number] | undefined });
+    if (!found) throw new HttpError(503, 'packaged_foods_unavailable', 'this server has no packaged-foods export loaded; look products up by barcode instead');
+    return found;
   });
 
   app.post('/v1/labels/parse', {

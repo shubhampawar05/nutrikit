@@ -50,7 +50,8 @@ Enables photo logging, label photos and `ai: true` text parsing. Without a provi
 | `NUTRIKIT_SIGNUP_LIMIT` | `5` | Signups per hour per client address (invalid attempts count). Raise it if many developers share one network, e.g. an office or college |
 | `NUTRIKIT_LOGIN_IP_LIMIT` | `20` | Failed logins per 15 minutes per client address, across all emails (each email also has its own limit of 5) |
 | `NUTRIKIT_DB_POOL` | `10` | Postgres connections per instance |
-| `NUTRIKIT_OFFLINE` | – | `1` serves barcodes from the cache only |
+| `NUTRIKIT_OFFLINE` | – | `1` serves barcodes from the packaged-foods store and the cache only |
+| `NUTRIKIT_PACKAGED_DB` | `data/packaged.db` | Packaged-foods store (see below). Set it to `data/packaged.all.db` to use the full local set; without a store, barcodes use the live API and packaged-food search answers 503 |
 | `NUTRIKIT_WEB_DIST` | `web/dist` | Built website to serve; without it the server is API-only |
 | `NUTRIKIT_LOG_LEVEL` | `info` | `fatal` … `debug`, or `silent`. Logs are JSON lines on stdout, one per request, with its `requestId` (also sent as `X-Request-Id`); bodies and credentials are never logged |
 
@@ -60,3 +61,31 @@ Enables photo logging, label photos and `ai: true` text parsing. Without a provi
 |---|---|
 | `TEST_DATABASE_URL` | Where `npm test` creates throwaway databases. Never point it at production |
 | `NUTRIKIT_AUTH` | `off` disables API key checks |
+
+## Packaged foods
+
+Barcode lookups and `GET /v1/barcodes/search` read a store built from an Open Food Facts export. Two sets can be
+built from the JSONL export at [world.openfoodfacts.org/data](https://world.openfoodfacts.org/data) (about 80 GB
+uncompressed); each build reads it one line at a time (about 10 minutes, little memory):
+
+- **Live set** (`server/data/packaged.db`, committed and in the Docker image): every product sold in India, and the
+  US products someone has scanned at least once on Open Food Facts. About 140,000 products in 35 MB. Other US
+  barcodes are answered by the live Open Food Facts API.
+
+  ```bash
+  npm run build:packaged -w server -- /path/to/openfoodfacts-products.jsonl
+  ```
+
+- **Full set** (`server/data/packaged.all.db`, gitignored): every product sold in India or the US whose label passes
+  the checks, about 750,000 products. Use it locally with `NUTRIKIT_PACKAGED_DB=data/packaged.all.db`.
+
+  ```bash
+  npm run build:packaged -w server -- /path/to/openfoodfacts-products.jsonl --all
+  ```
+
+Only products whose label values pass the checks in [api.md](api.md#missing-data) are kept. The build prints, and
+stores in the file's `meta` table, how many products it kept and why the others were left out. Each store is a
+database under the ODbL 1.0, separate from `foods.db` ([server/data/packaged.LICENSE.md](../server/data/packaged.LICENSE.md)):
+credit Open Food Facts, and share it or a database made from it under the same licence. Rebuild from a newer export
+to refresh it; every rebuild of the live set adds its size to the git history, so refresh it a few times a year
+rather than weekly.
