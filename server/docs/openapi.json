@@ -101,6 +101,10 @@
             ],
             "description": "How the results matched; absent when nothing matched"
           },
+          "didYouMean": {
+            "type": "string",
+            "description": "Set when the query as typed matched no food well: the respelled query these results are for"
+          },
           "total": {
             "type": "integer"
           },
@@ -284,6 +288,10 @@
                       }
                     }
                   }
+                },
+                "didYouMean": {
+                  "type": "string",
+                  "description": "The phrase respelled, when only the respelling matches a food (\"1 cup panner\" -> \"1 cup paneer\")"
                 }
               }
             }

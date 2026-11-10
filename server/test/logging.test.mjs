@@ -71,6 +71,31 @@ test('a weak partial match is unmatched with suggestions, not logged', () => {
   assert.match(item('homemade veggie burger').food.name, /^Veggie burger/, 'a word counts in its typed form too');
 });
 
+test('a misspelled search returns the respelled foods with didYouMean', () => {
+  const r = searchFoods('panner', { limit: 3 });
+  assert.equal(r.didYouMean, 'paneer');
+  assert.match(r.results[0].name, /paneer/i);
+  assert.equal(searchFoods('chiken curry').didYouMean, 'chicken curry');
+  assert.equal(searchFoods('bananna').didYouMean, 'banana');
+  assert.equal(searchFoods('samosaa').didYouMean, 'samosa', 'the singular wins over the plural');
+});
+
+test('correct spellings, partial typing and nonsense are not respelled', () => {
+  for (const q of ['paneer', 'chicken curry', 'chick', 'tomatoe']) assert.equal(searchFoods(q).didYouMean, undefined, q);
+  const nonsense = searchFoods('asdfgh');
+  assert.equal(nonsense.didYouMean, undefined);
+  assert.equal(nonsense.results.length, 0);
+});
+
+test('logging suggests a respelling instead of logging it', () => {
+  const r = logText('2 rotis and 1 cup panner');
+  assert.equal(r.items.length, 1, 'the roti is logged, the misspelled phrase is not');
+  assert.equal(r.unmatched[0].text, '1 cup panner');
+  assert.equal(r.unmatched[0].didYouMean, '1 cup paneer', 'the amount is kept in the respelled phrase');
+  assert.match(r.unmatched[0].suggestions[0].name, /paneer/i);
+  assert.equal(logText('asdfgh').unmatched[0].didYouMean, undefined);
+});
+
 test('words that ask for a variant still get it', () => {
   assert.match(item('iced tea').food.name, /iced/i);
   assert.match(item('chicken salad').food.name, /chicken/i);

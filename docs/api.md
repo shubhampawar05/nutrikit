@@ -88,6 +88,12 @@ setup is in [mcp/README.md](../mcp/README.md).
   more than half of the phrase's words; otherwise the phrase is listed in `unmatched` with `reason`
   `no confident match` and `suggestions`, rather than logged as a different food ("butter chicken" is never a cup
   of butter).
+- Misspellings get a suggestion, never a silent guess. When a search finds no food with all of its words, each word
+  the catalog doesn't know is replaced by the closest catalog word (one typing mistake away, two for words of 8
+  letters or more); if that finds foods, search returns them with `didYouMean` ("panner" → `paneer`). Logging never
+  logs a respelling: the phrase is listed in `unmatched` with `didYouMean`, the phrase respelled ("1 cup panner" →
+  "1 cup paneer"), and `suggestions`, so the app can log it once the user confirms. Amount words (bowl, katori,
+  plate, glass) are never respelled.
 - The same food from two data sources appears once in search results. When two USDA datasets list the same name,
   the catalog keeps the record with more Nutrition Facts label nutrients (newest data on a tie) and never mixes
   values from the two.

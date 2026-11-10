@@ -45,6 +45,14 @@ export interface Unmatched {
   reason: string;
   /** Foods sharing some of the phrase's words, when the best of them was too weak to log. */
   suggestions?: { id: number; name: string }[];
+  /** The phrase respelled ("1 cup panner" -> "1 cup paneer") when only the respelling matches a food. */
+  didYouMean?: string;
+}
+
+// "1 cup panner" with food "panner" respelled "paneer" -> "1 cup paneer".
+function respellPhrase(text: string, food: string, respelled: string): string {
+  const at = text.toLowerCase().indexOf(food.toLowerCase());
+  return at < 0 ? respelled : text.slice(0, at) + respelled + text.slice(at + food.length);
 }
 
 export interface ResolvedItems {
@@ -122,6 +130,11 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
   const found = searchFoods(ph.food, { limit: alternatives + 1 });
   const text = ph.text || ph.food;
   if (!found.results.length) return { unmatched: { text, reason: 'no matching food' } };
+  // Only a respelling matched: suggest it rather than log a food the user may not have meant.
+  if (found.didYouMean) {
+    const suggestions = found.results.map((r) => ({ id: r.id, name: r.name }));
+    return { unmatched: { text, reason: 'no matching food', suggestions, didYouMean: respellPhrase(text, ph.food, found.didYouMean) } };
+  }
   // A fallback match (prefix or any one word) is logged only when the food shares more than half of the phrase's
   // words; otherwise "butter chicken" would be logged as butter. Weaker hits are offered as suggestions instead.
   if (found.match !== 'all-words' && wordCoverage(ph.food, found.results[0].name) <= 0.5) {

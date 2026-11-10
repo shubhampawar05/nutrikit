@@ -53,11 +53,20 @@ function NutritionLabel({ totals, count, changed }: { totals: Totals; count: num
   );
 }
 
-function Items({ view }: { view: ItemsView }) {
+type Unmatched = DemoResult['unmatched'][number];
+
+function Items({ view, onRespell }: { view: ItemsView; onRespell: (u: Unmatched) => void }) {
   if (view.kind === 'message') return <p className="demo-empty">{view.text}</p>;
   if (view.kind === 'limit') return <LimitMessage text={view.text} />;
   const { items, unmatched } = view.result;
-  if (!items.length) return <p className="demo-empty">No foods recognised — try “a banana and a coffee”.</p>;
+  const respellable = unmatched.filter((u) => u.didYouMean);
+  const skipped = unmatched.filter((u) => !u.didYouMean);
+  const suggestions = respellable.map((u) => (
+    <p key={u.text} className="demo-empty demo-respell">
+      Did you mean <button type="button" onClick={() => onRespell(u)}>{u.didYouMean}</button>?
+    </p>
+  ));
+  if (!items.length) return suggestions.length ? <>{suggestions}</> : <p className="demo-empty">No foods recognised — try “a banana and a coffee”.</p>;
   return (
     <>
       {items.map((i, n) => (
@@ -67,7 +76,8 @@ function Items({ view }: { view: ItemsView }) {
           <span className="said">{amountText(i)}</span><span className="grams">{i.portionBasis ? `from ${i.portionBasis}` : ''}</span>
         </div>
       ))}
-      {unmatched.length > 0 && <p className="demo-empty">Skipped: {unmatched.map((u) => u.text).join(', ')}</p>}
+      {suggestions}
+      {skipped.length > 0 && <p className="demo-empty">Skipped: {skipped.map((u) => u.text).join(', ')}</p>}
     </>
   );
 }
@@ -150,6 +160,12 @@ export function Demo() {
     void run(example);
   };
 
+  // Swap the respelled phrase into what the user typed and log again.
+  const respell = (u: Unmatched) => {
+    const at = text.indexOf(u.text);
+    pick(at < 0 ? u.didYouMean! : text.slice(0, at) + u.didYouMean + text.slice(at + u.text.length));
+  };
+
   return (
     <div className="demo" role="region" aria-labelledby="demo-title">
       <form className="demo-input" onSubmit={onSubmit}>
@@ -165,7 +181,7 @@ export function Demo() {
       <div className="demo-body">
         <div className="demo-items" aria-live="polite">
           <h4>Matched foods</h4>
-          <div><Items view={view} /></div>
+          <div><Items view={view} onRespell={respell} /></div>
         </div>
         <NutritionLabel totals={totals} count={count} changed={changed} />
       </div>

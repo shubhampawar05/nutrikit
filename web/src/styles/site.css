@@ -171,6 +171,8 @@ pre code { background: none; border: 0; padding: 0; font-size: .84rem; }
 .demo-item .kcal { font: 600 .95rem/1.3 var(--mono); text-align: right; }
 .demo-item .grams { font-size: .78rem; color: var(--muted); text-align: right; font-family: var(--mono); }
 .demo-empty { color: var(--muted); font-size: .92rem; padding-top: 30px; }
+.demo-respell button { font: inherit; color: var(--tomato); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.demo-respell button:hover, .demo-respell button:focus-visible { color: var(--tomato-ink); }
 .demo-foot { display: flex; justify-content: space-between; gap: 10px; padding: 10px 20px; border-top: 1.5px solid var(--ink); font: 500 .75rem/1.4 var(--mono); color: var(--muted); background: var(--paper); }
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (max-width: 560px) { .demo-body { grid-template-columns: 1fr; } .demo-items { border-right: 0; border-bottom: 1.5px solid var(--ink); min-height: 0; } }

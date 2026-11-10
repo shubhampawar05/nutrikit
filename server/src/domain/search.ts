@@ -3,6 +3,7 @@
 import { foods } from './db.ts';
 import { lookup } from './lookup.ts';
 import { headSegments } from './names.ts';
+import { closestWord, vocabulary } from './spelling.ts';
 
 interface SearchRow {
   id: number;
@@ -34,6 +35,8 @@ export interface SearchResult {
   query: string;
   relaxed?: boolean; // absent when the query normalizes to nothing; true when match is 'any-word'
   match?: SearchMatch; // absent when nothing matched
+  /** Set when the query as typed found no good match: the respelled query these results are for. */
+  didYouMean?: string;
   total: number;
   results: SearchHit[];
 }
@@ -163,11 +166,48 @@ function score(row: SearchRow, tokens: string[], rawQuery: string) {
   return s;
 }
 
+// Words that describe an amount or a meal, never a food, so they are not respelled.
+const NOT_FOOD_WORDS = new Set(['bowl', 'bowls', 'katori', 'katoris', 'plate', 'plates', 'glass', 'glasses',
+  'piece', 'pieces', 'slice', 'slices', 'serving', 'servings', 'small', 'medium', 'large', 'half', 'quarter', 'cups',
+  'spoon', 'spoons', 'ladle', 'handful', 'some', 'with', 'without', 'homemade']);
+
+/** A word the catalog knows, as typed, singular, or through a synonym ("curd" -> yogurt). */
+function knownWord(word: string): boolean {
+  const { counts } = vocabulary();
+  return [word, ...normalizeQuery(word).split(' ')].some((f) => counts.has(f) || counts.has(singular(f)));
+}
+
 /**
- * @param {string} query
- * @param {{limit?: number, offset?: number, source?: string}} opts
+ * The query with each word the catalog doesn't know replaced by the closest one it does ("panner tikka" ->
+ * "paneer tikka"), or null when every word is known or has no close match.
  */
-export function searchFoods(query: string | null | undefined, { limit = 10, offset = 0, source }: SearchOptions = {}): SearchResult {
+export function correctSpelling(query: string): string | null {
+  let changed = false;
+  const words = String(query || '').toLowerCase().split(/\s+/).filter(Boolean).map((w) => {
+    const word = w.replace(/[^a-z]/g, '');
+    if (word.length < 4 || word !== w || NOT_FOOD_WORDS.has(word) || knownWord(word)) return w;
+    const fix = closestWord(word) ?? closestWord(singular(word));
+    if (!fix) return w;
+    changed = true;
+    return fix;
+  });
+  return changed ? words.join(' ') : null;
+}
+
+/**
+ * Search the catalog. When the query as typed finds no food with all its words, a respelled query is tried, and
+ * its results are returned with `didYouMean` when they match better.
+ */
+export function searchFoods(query: string | null | undefined, opts: SearchOptions = {}): SearchResult {
+  const asTyped = searchOnce(query, opts);
+  if (asTyped.match === 'all-words' || asTyped.match === 'prefix') return asTyped;
+  const respelled = correctSpelling(String(query ?? ''));
+  if (!respelled) return asTyped;
+  const fixed = searchOnce(respelled, opts);
+  return fixed.match === 'all-words' || fixed.match === 'prefix' ? { ...fixed, didYouMean: respelled } : asTyped;
+}
+
+function searchOnce(query: string | null | undefined, { limit = 10, offset = 0, source }: SearchOptions = {}): SearchResult {
   const q = normalizeQuery(query);
   if (!q) return { query: q, total: 0, results: [] };
   const tokens = q.split(' ');

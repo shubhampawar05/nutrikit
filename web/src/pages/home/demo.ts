@@ -15,7 +15,8 @@ export interface DemoItem {
 
 export interface DemoResult {
   items: DemoItem[];
-  unmatched: { text: string }[];
+  /** `didYouMean`: the phrase respelled, when only the respelling matches a food. */
+  unmatched: { text: string; didYouMean?: string }[];
   totals: Totals;
 }
 
