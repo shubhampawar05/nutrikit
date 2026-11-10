@@ -22,6 +22,8 @@ export interface SearchResult {
   relaxed: boolean;
   /** How the results matched: every word whole, every word as a prefix, or any one word. Absent when nothing matched. */
   match?: 'all-words' | 'prefix' | 'any-word';
+  /** Set when the query as typed matched no food well: the respelled query these results are for ("panner" -> "paneer"). */
+  didYouMean?: string;
   total: number;
   results: { id: number; name: string; source: FoodSource; category: string | null; score: number }[];
 }
@@ -64,8 +66,11 @@ export interface LoggedItem {
 export interface LogResult {
   meal: 'breakfast' | 'lunch' | 'dinner' | 'snack' | null;
   items: LoggedItem[];
-  /** Phrases not logged. A weak partial match is listed here with suggestions instead of being counted. */
-  unmatched: { text: string; reason: 'no matching food' | 'no confident match'; suggestions?: { id: number; name: string }[] }[];
+  /**
+   * Phrases not logged. A weak partial match is listed here with suggestions instead of being counted; a likely
+   * misspelling carries `didYouMean`, the phrase respelled ("1 cup panner" -> "1 cup paneer"), to log after the user confirms.
+   */
+  unmatched: { text: string; reason: 'no matching food' | 'no confident match'; suggestions?: { id: number; name: string }[]; didYouMean?: string }[];
   totals: NutrientMap;
   provider: string;
   notes?: string;

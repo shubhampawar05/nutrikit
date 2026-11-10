@@ -104,6 +104,28 @@ describe('Home', () => {
     expect(JSON.parse(String(init.body))).toEqual({ text: words.join(' ') });
   });
 
+  it('offers a respelling and logs the corrected meal when it is clicked', async () => {
+    const respelled = { ...demoResponse, items: [demoResponse.items[0]], unmatched: [{ text: '1 cup panner', didYouMean: '1 cup paneer' }] };
+    const bodies: string[] = [];
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (url !== '/portal/api/demo') return Promise.resolve(json({}, 401));
+      bodies.push(JSON.parse(String(init?.body)).text);
+      return Promise.resolve(json(bodies.length === 2 ? respelled : demoResponse));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage(<Home />);
+    await screen.findByText('Egg, whole, cooked');
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '2 eggs and 1 cup panner' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Log it' }));
+    const suggestion = await screen.findByRole('button', { name: '1 cup paneer' });
+    expect(screen.queryByText(/Skipped/)).toBeNull(); // a respellable phrase is offered, not listed as skipped
+
+    fireEvent.click(suggestion);
+    await waitFor(() => expect(bodies[2]).toBe('2 eggs and 1 cup paneer'));
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('2 eggs and 1 cup paneer');
+  });
+
   it('submits immediately and shows a busy, disabled button while a request runs', async () => {
     let finish: (r: Response) => void = () => {};
     let calls = 0;

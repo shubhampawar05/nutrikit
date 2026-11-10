@@ -14,5 +14,7 @@
   { "alias": "aloo matar", "cofidCode": "15-781", "cofidName": "Curry, potato and pea, homemade", "reference": "https://en.wikipedia.org/wiki/Aloo_mutter", "note": "Potato (aloo) and pea (matar)." },
   { "alias": "aloo mutter", "cofidCode": "15-781", "cofidName": "Curry, potato and pea, homemade", "reference": "https://en.wikipedia.org/wiki/Aloo_mutter", "note": "Alternative spelling." },
   { "alias": "onion bhaji", "cofidCode": "15-828", "cofidName": "Pakora/bhajia, onion, fried in vegetable oil, homemade", "reference": "https://en.wikipedia.org/wiki/Bhaji", "note": "Fried onion fritters." },
-  { "alias": "veg pulao", "cofidCode": "12-472", "cofidName": "Pilau, vegetable, homemade", "reference": "https://en.wikipedia.org/wiki/Pilaf", "note": "Vegetable pulao (pilau)." }
+  { "alias": "veg pulao", "cofidCode": "12-472", "cofidName": "Pilau, vegetable, homemade", "reference": "https://en.wikipedia.org/wiki/Pilaf", "note": "Vegetable pulao (pilau)." },
+  { "alias": "dal makhani", "cofidCode": "15-735", "cofidName": "Curry, black gram, whole and red kidney bean, homemade", "reference": "https://en.wikipedia.org/wiki/Dal_makhani", "note": "Whole black gram (urad) and red kidney beans; this is the homemade recipe, lighter than restaurant versions finished with cream and butter." },
+  { "alias": "dal makhni", "cofidCode": "15-735", "cofidName": "Curry, black gram, whole and red kidney bean, homemade", "reference": "https://en.wikipedia.org/wiki/Dal_makhani", "note": "Alternative spelling." }
 ]
