@@ -1,0 +1,7 @@
+[
+  { "alias": "gulab jamun", "name": "Gulab Jamun with khoya", "reference": "https://en.wikipedia.org/wiki/Gulab_jamun" },
+  { "alias": "murgh makhani", "name": "Butter chicken", "reference": "https://en.wikipedia.org/wiki/Butter_chicken" },
+  { "alias": "butter chicken", "name": "Butter chicken", "reference": "https://en.wikipedia.org/wiki/Butter_chicken" },
+  { "alias": "rasgulla", "name": "Rasgulla", "reference": "https://en.wikipedia.org/wiki/Rasgulla" },
+  { "alias": "rasgola", "name": "Rasgulla", "reference": "https://en.wikipedia.org/wiki/Rasgulla" }
+]

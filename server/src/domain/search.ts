@@ -64,6 +64,14 @@ const PHRASES: [RegExp, string][] = [
   [/\b(?:full[- ]fat|whole[- ]milk) (?:curd|dahi)\b/g, 'whole milk plain yogurt'],
   [/\bdal (tadka|fry)\b|\btadka dal\b/g, 'dal'], // USDA "Dal" is tempered lentil dal
   [/\bmasala chai\b/g, 'chai'],
+  [/\bmasala dosa\b|\bdosa masala\b/g, 'dosa with filling'], // FNDDS stuffed dosa, not plain crepe
+  [/\b(?:\d+\s+)?(?:cup|cups|plate|bowl|glass)\s+butter chicken\b/g, 'butter chicken'],
+  [/\bbutter chicken\b/g, 'butter chicken'],
+  [/\b(?:\d+\s+)?(?:cup|cups|plate|bowl)\s+poha\b|\bpoha\b/g, 'poha'],
+  [/\b(?:\d+\s+)?(?:cup|cups|plate|bowl)\s+khichdi\b|\bkhichdi\b|\bkhichri\b/g, 'khichdi'],
+  [/\bpav bhaji\b/g, 'pav bhaji'],
+  [/\bboiled egg\b/g, 'egg whole boiled'],
+  [/\b(?:\d+\s+)?eggs\b/g, 'egg whole raw'],
 ];
 
 // A bare everyday word (the whole query, nothing else) means one particular food: "tea" is a cup of hot black
@@ -71,9 +79,31 @@ const PHRASES: [RegExp, string][] = [
 // The default food is pinned first; the other matches still follow, so searching "tea" lists every tea.
 const BARE_DEFAULTS: Record<string, string> = lookup({
   tea: 'Tea, hot, leaf, black',
+  coffee: 'Coffee, brewed',
+  'hot chocolate': 'Hot chocolate / cocoa, NFS',
   // Chai as drunk in India: brewed with milk and sugar (this FNDDS entry is sweetened, about 51 kcal per 100 g).
   chai: 'Tea, hot, with milk',
   salad: 'Lettuce, salad with assorted vegetables including tomatoes and/or carrots, no dressing',
+  korma: 'Curry, chicken korma, homemade',
+  vindaloo: 'Curry, chicken vindaloo, homemade',
+  pulao: 'Pilau, vegetable, homemade',
+  pulav: 'Pilau, vegetable, homemade',
+  lassi: 'Lassi, sweet',
+  chaas: 'Lassi (salted)',
+  kheer: 'Kheer (rice pudding)',
+  halwa: 'Semolina halwa',
+  dhokla: 'Instant dhokla',
+  naan: 'Bread, naan',
+  samosa: 'Samosa',
+  samosas: 'Samosa',
+  egg: 'Egg, whole, raw',
+  eggs: 'Egg, whole, raw',
+  biryani: 'Biryani with chicken',
+  'urad dal': 'Urad dahl, homemade',
+  poha: 'Poha (flattened rice with onion and peanuts)',
+  khichdi: 'Khichadi, with butter ghee',
+  khichri: 'Khichadi, with butter ghee',
+  'moong dal': 'Curry, mung bean dahl and tomato, homemade',
 });
 
 const GENERIC = /\b(raw|nfs|plain|cooked|regular|fresh|boiled|baked|brewed|without salt|ns as to)\b/i;
@@ -186,7 +216,13 @@ function score(row: SearchRow, tokens: string[], rawQuery: string) {
   const second = (name.split(',')[1] || '').trim();
   if (/^(regular|original|nfs|plain)$/.test(second) || STAPLE_DEFAULTS[head] === second) s += 1; // the default variety
   s -= name.split(/[\s,]+/).length * 0.35; // shorter, more generic names first
-  if (row.source === 'survey' || row.source === 'recipe') s += 1; // dishes as eaten suit meal logging
+  if (row.source === 'survey') s += 1; // dishes as eaten suit meal logging
+  if (row.source === 'indb') {
+    s += namesQuery(row, tokens) ? 1 : -3; // dish databank totals, not generic staples ("2 eggs")
+  }
+  if (row.source === 'recipe') {
+    s += namesQuery(row, tokens) ? 0.25 : -3; // broad composed names must not beat CoFID aliases or INDB totals
+  }
   if (row.source === 'foundation') s += 0.5;
   return s;
 }
@@ -261,9 +297,16 @@ function searchOnce(query: string | null | undefined, { limit = 10, offset = 0, 
     .sort((a, b) => b.score - a.score);
   // CoFID fills gaps in USDA's dishes: a USDA food named exactly what was searched comes before every CoFID food
   // (it also has household portions). "sambar" is USDA's sambar; "rajma", which USDA lacks, is CoFID's.
-  const usdaNamed = ranked.findIndex((r) => r.source !== 'cofid' && namesQuery(r, tokens));
-  const firstCofid = ranked.findIndex((r) => r.source === 'cofid');
+  const usdaNamed = ranked.findIndex((r) => r.source !== 'cofid' && r.source !== 'recipe' && r.source !== 'indb' && namesQuery(r, tokens));
+  const firstCofid = ranked.findIndex((r) => r.source === 'cofid' && namesQuery(r, tokens));
+  const firstRecipe = ranked.findIndex((r) => r.source === 'recipe' || r.source === 'indb');
   if (usdaNamed > 0 && firstCofid >= 0 && firstCofid < usdaNamed) ranked.splice(firstCofid, 0, ...ranked.splice(usdaNamed, 1));
+  if (usdaNamed > 0 && firstRecipe >= 0 && firstRecipe < usdaNamed) ranked.splice(usdaNamed, 0, ...ranked.splice(firstRecipe, 1));
+  else if (firstCofid >= 0 && namesQuery(ranked[firstCofid], tokens)) {
+    const [cofid] = ranked.splice(firstCofid, 1);
+    const insertAt = ranked.findIndex((r) => r.source === 'recipe');
+    ranked.splice(insertAt >= 0 ? insertAt : 0, 0, cofid);
+  } else if (firstCofid > 0 && firstRecipe >= 0 && firstRecipe < firstCofid) ranked.splice(firstCofid, 0, ...ranked.splice(firstRecipe, 1));
   const preferred = BARE_DEFAULTS[tokens.map(singular).join(' ')];
   if (preferred) {
     const i = ranked.findIndex((r) => r.name === preferred);

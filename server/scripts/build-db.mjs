@@ -5,7 +5,8 @@
 //
 // Datasets: SR Legacy (generic foods), FNDDS survey foods (dishes "as eaten"),
 // Foundation Foods (recent analytical data), CoFID dishes (see scripts/cofid.mjs). Values are stored per 100 g.
-// Dishes USDA lacks can be added from licensed sources in data/recipes/ (see scripts/recipes.mjs); none are shipped.
+// Dishes USDA lacks can be added from cited recipes (data/recipes/), INDB.xlsx totals (scripts/indb-totals.mjs), or —
+// only when INDB.xlsx is absent — USDA-composed INDB ingredient lists (scripts/indb.mjs).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +15,9 @@ import { NUTRIENTS } from '../src/domain/nutrients.ts';
 import { loadRecipes, composeRecipe } from './recipes.mjs';
 import { readXlsx } from './xlsx.mjs';
 import { COFID_SOURCE, DISH_GROUPS, cofidFoods, convertCofid, cofidId, verifyCofidFile, cofidAliases } from './cofid.mjs';
+import { INDB_SOURCE, indbDataDir, indbRecipes } from './indb.mjs';
+import { INDB_TOTALS_SOURCE, indbTotalFoods } from './indb-totals.mjs';
+import { recipeAliases } from './recipe-aliases.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const RAW = path.join(ROOT, 'data/raw');
@@ -21,6 +25,8 @@ const OUT = path.join(ROOT, 'data/foods.db');
 const RECIPES = path.join(ROOT, 'data/recipes');
 const COFID_FILE = path.join(RAW, 'cofid', COFID_SOURCE.file);
 const COFID_ALIASES = path.join(ROOT, 'data/aliases/cofid.json');
+const RECIPE_ALIASES = path.join(ROOT, 'data/aliases/recipes.json');
+const INDB_OVERRIDES = path.join(ROOT, 'data/indb/ingredient-map.json');
 
 const DATASETS = [
   { dir: 'FoodData_Central_survey_food_csv_2024-10-31', source: 'survey', types: ['survey_fndds_food'] },
@@ -72,7 +78,7 @@ db.exec(`
   CREATE TABLE foods (
     id INTEGER PRIMARY KEY,          -- USDA fdc_id, or 800,000,000 + CoFID code (see cofid.mjs)
     name TEXT NOT NULL,
-    source TEXT NOT NULL,            -- survey | foundation | sr_legacy | cofid | recipe
+    source TEXT NOT NULL,            -- survey | foundation | sr_legacy | cofid | indb | recipe
     category TEXT,
     nutrients TEXT NOT NULL,         -- JSON {key: amount per 100 g}
     aliases TEXT                     -- other names, "|"-separated (data/aliases/), or NULL
@@ -107,11 +113,17 @@ const normUnit = (u) => {
 // tie, the newest data (Foundation, then survey, then SR Legacy). Two records are different samples, so their
 // values are never mixed into one food.
 const LABEL_KEYS = ['calories', 'protein', 'fat', 'carbs', 'fiber', 'sugar', 'saturatedFat', 'cholesterol', 'sodium', 'potassium', 'calcium', 'iron', 'vitaminD'];
-const SOURCE_RANK = { foundation: 0, survey: 1, sr_legacy: 2, cofid: 3 };
+const SOURCE_RANK = { foundation: 0, survey: 1, sr_legacy: 2, cofid: 3, indb: 4 };
 const labelCoverage = (f) => LABEL_KEYS.filter((k) => f.n[k] != null).length;
 const better = (a, b) => {
   const ka = labelCoverage(a), kb = labelCoverage(b);
   return ka !== kb ? ka > kb : SOURCE_RANK[a.source] < SOURCE_RANK[b.source];
+};
+/** INDB published totals replace USDA-composed or generic rows with the same name. */
+const preferIndb = (indb, prev) => {
+  if (prev.source === 'indb') return better(indb, prev);
+  if (prev.source === 'recipe') return true;
+  return better(indb, prev);
 };
 
 const counts = {};
@@ -200,6 +212,27 @@ if (fs.existsSync(COFID_FILE)) {
   console.warn(`CoFID workbook not found at ${COFID_FILE}; building without CoFID dishes (download: ${COFID_SOURCE.url})`);
 }
 
+const indbDir = indbDataDir(RAW);
+const indbTotalsPath = indbDir ? path.join(indbDir, 'INDB.xlsx') : null;
+const useIndbTotals = !!(indbTotalsPath && fs.existsSync(indbTotalsPath));
+let indbTotalsMeta = null;
+if (useIndbTotals) {
+  const dishes = indbTotalFoods(indbDir);
+  let merged = 0;
+  for (const f of dishes) {
+    const key = f.name.toLowerCase();
+    const prev = kept.get(key);
+    if (prev) collisions++;
+    if (!prev || preferIndb(f, prev)) {
+      kept.set(key, f);
+      merged++;
+    }
+  }
+  indbTotalsMeta = { ...INDB_TOTALS_SOURCE, dishes: dishes.length, merged, mode: 'totals' };
+} else if (indbDir) {
+  console.warn('INDB.xlsx not found; skipping INDB dish totals (only ingredient-compose fallback may run)');
+}
+
 db.exec('BEGIN');
 for (const f of kept.values()) {
   insertFood.run(f.id, f.name, f.source, f.category, JSON.stringify(f.n), f.aliases?.join('|') ?? null);
@@ -207,14 +240,69 @@ for (const f of kept.values()) {
   counts[f.source] = (counts[f.source] ?? 0) + 1;
 }
 const byId = new Map([...kept.values()].map((f) => [f.id, f]));
-for (const recipe of loadRecipes(RECIPES)) {
-  const r = composeRecipe(recipe, (id) => byId.get(id), NUTRIENTS.map((n) => n.key));
-  if (byId.has(r.id) || kept.has(r.name.toLowerCase())) throw new Error(`recipe ${recipe.file}: id or name already in the catalog`);
+const catalogByName = new Map([...kept.values()].map((f) => [f.name.toLowerCase(), f]));
+const searchCatalog = (q) => {
+  const t = String(q).toLowerCase();
+  const exact = catalogByName.get(t);
+  if (exact) return { id: exact.id, name: exact.name };
+  const list = [...kept.values()];
+  const hit = list.find((f) => f.name.toLowerCase().startsWith(t))
+    ?? list.find((f) => f.name.toLowerCase().includes(t));
+  return hit ? { id: hit.id, name: hit.name } : undefined;
+};
+const findFood = (id) => {
+  const f = byId.get(id);
+  return f ? { name: f.name, n: f.n ?? f.nutrients } : undefined;
+};
+const keys = NUTRIENTS.map((n) => n.key);
+const addRecipe = (recipe, { strict }) => {
+  let r;
+  try {
+    r = composeRecipe(recipe, findFood, keys);
+  } catch (err) {
+    if (strict) throw err;
+    return false;
+  }
+  if (byId.has(r.id) || kept.has(r.name.toLowerCase())) {
+    if (strict) throw new Error(`recipe ${recipe.file}: id or name already in the catalog`);
+    return false;
+  }
   byId.set(r.id, { ...r, n: r.nutrients });
   kept.set(r.name.toLowerCase(), r);
-  insertFood.run(r.id, r.name, 'recipe', r.category, JSON.stringify(r.nutrients), null);
+  const aliasList = [...(recipe.aliases ?? [])];
+  const aliases = aliasList.length ? aliasList.join('|') : null;
+  insertFood.run(r.id, r.name, 'recipe', r.category, JSON.stringify(r.nutrients), aliases);
   for (const p of r.portions) insertPortion.run(r.id, p.seq, p.label, p.amount, p.unit, p.grams);
   counts.recipe = (counts.recipe ?? 0) + 1;
+  return true;
+};
+for (const recipe of loadRecipes(RECIPES)) addRecipe(recipe, { strict: true });
+let indbMeta = null;
+if (indbDir && !useIndbTotals) {
+  const overrides = JSON.parse(fs.readFileSync(INDB_OVERRIDES, 'utf8'));
+  const parsed = indbRecipes(indbDir, catalogByName, overrides, searchCatalog);
+  let added = 0;
+  let skipped = 0;
+  for (const recipe of parsed) {
+    if (addRecipe(recipe, { strict: false })) added++;
+    else skipped++;
+  }
+  indbMeta = { ...INDB_SOURCE, recipes: added, skipped, candidates: parsed.length, mode: 'compose' };
+} else if (indbDir && useIndbTotals) {
+  indbMeta = indbTotalsMeta;
+  console.warn('INDB: using INDB.xlsx published totals; skipping USDA-composed INDB recipes');
+} else if (!indbDir) {
+  console.warn(`INDB workbooks not found under ${path.join(RAW, 'indb')}; building without INDB (see data/indb/README.md)`);
+}
+if (fs.existsSync(RECIPE_ALIASES)) {
+  const byName = new Map([...kept.values()].map((f) => [f.name.toLowerCase(), f]));
+  const extra = recipeAliases(JSON.parse(fs.readFileSync(RECIPE_ALIASES, 'utf8')), byName);
+  const updateAlias = db.prepare('UPDATE foods SET aliases = ? WHERE id = ?');
+  for (const [id, aliases] of extra) {
+    updateAlias.run(aliases.join('|'), id);
+    const f = [...kept.values()].find((x) => x.id === id);
+    if (f) f.aliases = aliases.join('|');
+  }
 }
 db.exec("INSERT INTO foods_fts(foods_fts) VALUES ('rebuild')");
 const insertMeta = db.prepare('INSERT INTO meta VALUES (?, ?)');
@@ -223,6 +311,7 @@ insertMeta.run('sources', JSON.stringify(DATASETS.map((d) => d.dir)));
 insertMeta.run('clamped', String(clamped));
 insertMeta.run('collisions', String(collisions));
 if (cofidMeta) insertMeta.run('cofid_source', JSON.stringify(cofidMeta));
+if (indbMeta) insertMeta.run('indb_source', JSON.stringify(indbMeta));
 db.exec('COMMIT');
 db.exec('VACUUM');
 

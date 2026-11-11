@@ -14,8 +14,8 @@ export interface NutrientAmount {
   missingFrom?: number;
 }
 export type NutrientMap = Partial<Record<NutrientKey, NutrientAmount>>;
-/** USDA dataset, or `cofid`: a UK CoFID 2021 dish (Open Government Licence v3.0; see the docs' Data sources). */
-export type FoodSource = 'survey' | 'foundation' | 'sr_legacy' | 'cofid';
+/** USDA dataset, `cofid` (UK CoFID 2021, OGL), `indb` (INDB.xlsx dish totals), or `recipe` (cited compose). */
+export type FoodSource = 'survey' | 'foundation' | 'sr_legacy' | 'cofid' | 'indb' | 'recipe';
 
 export interface SearchResult {
   query: string;

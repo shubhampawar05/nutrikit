@@ -148,7 +148,7 @@ export async function v1Routes(fastify: FastifyInstance) {
         q: nonBlank(),
         limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 10 })),
         offset: Type.Optional(Type.Integer({ minimum: 0, maximum: 1000, default: 0 })),
-        source: Type.Optional(Type.String({ enum: ['survey', 'foundation', 'sr_legacy', 'cofid'] })),
+        source: Type.Optional(Type.String({ enum: ['survey', 'foundation', 'sr_legacy', 'cofid', 'indb', 'recipe'] })),
       }),
       response: { ...ok({ $ref: 'SearchResult#' }), ...errors(400, 401, 429) },
     },
