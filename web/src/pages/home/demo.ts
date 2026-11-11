@@ -5,7 +5,7 @@ export type Totals = Partial<Record<string, DemoNutrient>>;
 
 export interface DemoItem {
   input: string;
-  food: { id?: number | string; name: string };
+  food: { id?: number | string; name: string; source?: string };
   quantity: number;
   unit: string;
   grams: number;
@@ -15,8 +15,8 @@ export interface DemoItem {
 
 export interface DemoResult {
   items: DemoItem[];
-  /** `didYouMean`: the phrase respelled, when only the respelling matches a food. */
-  unmatched: { text: string; didYouMean?: string }[];
+  /** `didYouMean`: the phrase respelled, when only the respelling matches a food; `note`: why a match was held back. */
+  unmatched: { text: string; didYouMean?: string; note?: string }[];
   totals: Totals;
 }
 
@@ -75,10 +75,20 @@ export function amountText(item: Pick<DemoItem, 'quantity' | 'unit' | 'grams'>):
   return `${item.quantity} ${pluralise(item.unit, item.quantity)} · ${item.grams} g`;
 }
 
-/** The label text for one nutrient, e.g. "8g". */
+/** The label text for one nutrient, e.g. "8g"; a dash when no food in the meal has a value for it (never a made-up 0). */
 export function valueText(totals: Totals, row: LabelRow): string {
   const n = totals[row.key];
-  return `${n ? row.round(n.amount) : 0}${row.unit}`;
+  return n ? `${row.round(n.amount)}${row.unit}` : '—';
+}
+
+const SOURCE_NAMES: Record<string, string> = {
+  survey: 'USDA FoodData Central', sr_legacy: 'USDA FoodData Central', foundation: 'USDA FoodData Central', cofid: 'UK CoFID 2021',
+};
+
+/** Where the logged foods' values come from, e.g. "USDA FoodData Central · UK CoFID 2021". */
+export function sourceText(items: Pick<DemoItem, 'food'>[]): string {
+  const names = [...new Set(items.map((i) => (i.food.source ? SOURCE_NAMES[i.food.source] ?? i.food.source.toUpperCase() : null)).filter(Boolean))];
+  return names.length ? names.join(' · ') : 'USDA FoodData Central · UK CoFID 2021';
 }
 
 /** Text of every label line, keyed by nutrient, used to spot values that changed. */

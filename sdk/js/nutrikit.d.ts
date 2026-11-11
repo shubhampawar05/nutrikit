@@ -69,8 +69,9 @@ export interface LogResult {
   /**
    * Phrases not logged. A weak partial match is listed here with suggestions instead of being counted; a likely
    * misspelling carries `didYouMean`, the phrase respelled ("1 cup panner" -> "1 cup paneer"), to log after the user confirms.
+   * `note` says why a phrase that matched a food was still held back (a plate or bowl of a dry, uncooked staple).
    */
-  unmatched: { text: string; reason: 'no matching food' | 'no confident match'; suggestions?: { id: number; name: string }[]; didYouMean?: string }[];
+  unmatched: { text: string; reason: 'no matching food' | 'no confident match'; suggestions?: { id: number; name: string }[]; didYouMean?: string; note?: string }[];
   totals: NutrientMap;
   provider: string;
   notes?: string;

@@ -48,12 +48,20 @@ const SYNONYMS: Record<string, string> = lookup({
   oj: 'orange juice', coffee: 'coffee', espresso: 'coffee espresso', latte: 'coffee latte', tofu: 'tofu',
   toast: 'bread toasted', aubergine: 'eggplant', courgette: 'zucchini', prawns: 'shrimp', prawn: 'shrimp', mince: 'ground beef',
   donut: 'doughnut', donuts: 'doughnut',
-  // Indian English: curd and dahi are plain yogurt (bean curd is protected by PHRASES).
-  curd: 'yogurt', dahi: 'yogurt',
+  // Indian English: curd and dahi are plain, unsweetened yogurt, whole milk unless a fat level is given (PHRASES keeps
+  // "low fat curd" low fat; "bean curd" is tofu).
+  curd: 'whole milk plain yogurt', dahi: 'whole milk plain yogurt',
 });
 // Multi-word phrases rewritten before the word synonyms run.
 const PHRASES: [RegExp, string][] = [
   [/\bbean curd\b/g, 'tofu'],
+  // Sugar-sweetened yogurt, not USDA's "sweetened with low-calorie sweetener" (sugar-free) or frozen yogurt.
+  [/\bsweet(?:ened)? (?:curd|dahi)\b/g, 'whole milk yogurt flavors other than fruit'],
+  [/\bsweet(?:ened)? yogh?urt\b/g, 'yogurt ns as to type of milk flavors other than fruit'],
+  [/\bpoha (?:fruit|berry|berries)\b/g, 'groundcherries'], // the Hawaiian fruit, not flattened rice
+  [/\b(?:low[- ]?fat|toned) (?:curd|dahi)\b/g, 'low fat milk plain yogurt'],
+  [/\b(?:skim(?:med)?|non[- ]?fat|fat[- ]free|double[- ]toned) (?:curd|dahi)\b/g, 'nonfat milk plain yogurt'],
+  [/\b(?:full[- ]fat|whole[- ]milk) (?:curd|dahi)\b/g, 'whole milk plain yogurt'],
   [/\bdal (tadka|fry)\b|\btadka dal\b/g, 'dal'], // USDA "Dal" is tempered lentil dal
   [/\bmasala chai\b/g, 'chai'],
 ];
@@ -103,6 +111,19 @@ const sameFoodKey = (name: string) =>
   name.split(/[^A-Za-z0-9']+/).filter((w) => w && !(w.length > 1 && w === w.toUpperCase() && /[A-Z]/.test(w)))
     .map((w) => singular(w.toLowerCase())).sort().join(' ');
 
+// A name's other names in parentheses ("Groundcherries, (cape-gooseberries or poha), raw") are not what the food is
+// called: a food matched only through one word of them ("poha") is dropped, while "skim milk" still finds "Milk, …
+// (fat free or skim)" because "milk" is in the name itself, and a whole other name ("cape gooseberries") still counts.
+function onlyInParentheses(row: SearchRow, tokens: string[], prefix: boolean): boolean {
+  if (!row.name.includes('(')) return false;
+  const wordsOf = (text: string) => text.toLowerCase().split(/[^a-z0-9']+/).filter(Boolean).map(singular);
+  const has = (words: string[], t: string) => words.some((w) => w === singular(t) || (prefix && w.startsWith(singular(t))));
+  const outside = wordsOf(`${row.name.replace(/\([^)]*\)/g, ' ')} ${row.aliases?.replaceAll('|', ' ') ?? ''}`);
+  if (tokens.some((t) => has(outside, t))) return false;
+  const inside = wordsOf((row.name.match(/\([^)]*\)/g) ?? []).join(' '));
+  return !(tokens.length > 1 && tokens.every((t) => has(inside, t)));
+}
+
 function ftsQuery(tokens: string[], op: 'AND' | 'OR', prefix: boolean) {
   return tokens.map((t) => `"${t.replace(/"/g, '')}"${prefix ? '*' : ''}`).join(` ${op} `);
 }
@@ -150,6 +171,10 @@ function score(row: SearchRow, tokens: string[], rawQuery: string) {
   if (qWords.every((t) => nameWords.includes(t))) s += 4;
   // "Beans and white rice" is a combination dish; only prefer it when the query asks for one.
   if (/\b(and|with)\b/.test(head) && !/\b(and|with)\b/.test(rawQuery)) s -= 6;
+  // "Wild rice", "Frozen yogurts", "Peanut butter", "Sweet potato": a leading name that is another word plus the food
+  // searched is a different food, unless that word was searched too ("raw rice" is rice, not wild rice).
+  const headOnly = head.split(/\s+/).map(singular);
+  if (!namesQuery(row, tokens) && headOnly.length > 1 && qWords.includes(headOnly.at(-1)!) && headOnly.slice(0, -1).some((w) => !qWords.includes(w))) s -= 8;
   // A drink is hot unless the query says iced ("green tea" is a cup of green tea, not iced tea).
   if (/\biced\b/.test(name) && !/\b(iced?|cold)\b/.test(rawQuery)) s -= 5;
   if (GENERIC.test(name)) s += 2.5;
@@ -223,7 +248,8 @@ function searchOnce(query: string | null | undefined, { limit = 10, offset = 0, 
   let rows: SearchRow[] = [];
   let match: SearchMatch | undefined;
   for (const [kind, op, prefix] of passes) {
-    rows = stmt.all(...(source ? [ftsQuery(tokens, op, prefix), source] : [ftsQuery(tokens, op, prefix)])) as unknown as SearchRow[];
+    rows = (stmt.all(...(source ? [ftsQuery(tokens, op, prefix), source] : [ftsQuery(tokens, op, prefix)])) as unknown as SearchRow[])
+      .filter((r) => !onlyInParentheses(r, tokens, prefix));
     // The tokenizer stems the query too, so a half-typed "chicke" matches "chick" as a whole word; unless some
     // result really contains a word as typed, treat the query as partial and try prefixes.
     if (kind === 'all-words' && !rows.some((r) => wordCoverage(String(query), `${r.name} ${r.aliases?.replaceAll('|', ' ') ?? ''}`) > 0)) continue;

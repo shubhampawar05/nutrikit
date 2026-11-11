@@ -47,6 +47,21 @@ export interface Unmatched {
   suggestions?: { id: number; name: string }[];
   /** The phrase respelled ("1 cup panner" -> "1 cup paneer") when only the respelling matches a food. */
   didYouMean?: string;
+  /** Why a phrase that matched a food was still not logged. */
+  note?: string;
+}
+
+// A plate or bowl of something is a cooked dish. When the best match is a dry grain, flour or pulse (under 20 g water
+// per 100 g), logging it would count a plate of uncooked staple, roughly two to three times the calories of the dish,
+// so the phrase is offered back instead of logged. A stated weight ("60 g poha") still logs the dry food.
+const DISH_PORTIONS = new Set(['plate', 'plates', 'bowl', 'bowls', 'katori', 'katoris', 'thali']);
+const STAPLE_CATEGORY = /cereal grains|legume|cereals and millets|grain legumes/i;
+// Survey foods such as "Oats, raw" carry no useful category: any flour, and a grain or pulse named raw or dry, count too.
+const STAPLE_NAME = /\b(oats?|rice|wheat|barley|millet|quinoa|lentils?|beans?|chickpeas?|gram|dal|flour|semolina)\b/i;
+const UNCOOKED = /\b(raw|dry|uncooked|unprepared)\b/i;
+function dryStaple(food: Food): boolean {
+  if ((food.per100g.water ?? 100) >= 20) return false;
+  return STAPLE_CATEGORY.test(food.category ?? '') || /\bflours?\b/i.test(food.name) || (STAPLE_NAME.test(food.name) && UNCOOKED.test(food.name));
 }
 
 // "1 cup panner" with food "panner" respelled "paneer" -> "1 cup paneer".
@@ -89,7 +104,12 @@ export function splitMealText(text: string): { meal: string | null; items: Parse
     const glued = r.match(/^(g|kg|mg|oz|lb|ml|l)\b\.?\s*/i);
     const two = r.match(/^(fl\.? oz|fluid ounces?)\b\s*/i);
     const one = r.match(/^([a-z]+)\b\.?\s*/i);
-    if (two) { unit = 'fl oz'; r = r.slice(two[0].length); }
+    // Katoris, with or without a size: "small katori", "2 large katoris of".
+    const measure = r.match(/^((?:small|medium|large|big)\s+)?(katoris?)\b\s*/i);
+    if (measure && r.split(/\s+/).length > (measure[1] ? 2 : 1)) {
+      unit = measure[0].trim().toLowerCase();
+      r = r.slice(measure[0].length);
+    } else if (two) { unit = 'fl oz'; r = r.slice(two[0].length); }
     else if (glued) { unit = glued[1].toLowerCase(); r = r.slice(glued[0].length); }
     else if (one && canonicalUnit(one[1]) && r.split(/\s+/).length > 1) { unit = one[1].toLowerCase(); r = r.slice(one[0].length); }
     r = r.replace(/^(of|the)\s+/i, '').trim();
@@ -141,7 +161,20 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
     const suggestions = found.results.filter((r) => wordCoverage(ph.food, r.name) > 0).map((r) => ({ id: r.id, name: r.name }));
     return { unmatched: { text, reason: 'no confident match', ...(suggestions.length ? { suggestions } : {}) } };
   }
-  const best = getFood(found.results[0].id)!;
+  let pick = found.results[0];
+  let best = getFood(pick.id)!;
+  if (!ph.grams && DISH_PORTIONS.has(String(ph.unit ?? '').toLowerCase().split(/\s+/).at(-1)!) && dryStaple(best)) {
+    // Every whole-word result names the phrase in full, so the first that is not a dry staple is the cooked dish
+    // ("1 bowl masoor dal" -> the dal curry, not dry lentils). Without one, the phrase is offered back.
+    const cooked = found.match === 'all-words' ? found.results.find((r) => !dryStaple(getFood(r.id)!)) : undefined;
+    if (!cooked) {
+      const suggestions = found.results.map((r) => ({ id: r.id, name: r.name }));
+      const note = `"${best.name}" is the dry, uncooked food and no cooked dish for it is in the catalog; give a weight to log the dry amount`;
+      return { unmatched: { text, reason: 'no confident match', suggestions, note } };
+    }
+    pick = cooked;
+    best = getFood(pick.id)!;
+  }
   let portion: ResolvedPortion;
   if (ph.grams) {
     portion = { grams: ph.grams, quantity: ph.quantity ?? 1, unit: ph.unit || 'serving', portion: null, method: 'provided-grams' };
@@ -160,9 +193,9 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
       grams,
       portionBasis: portion.portion,
       portionMethod: portion.method,
-      confidence: found.relaxed ? 'low' : found.results[0].score > 15 ? 'high' : 'medium',
+      confidence: found.relaxed ? 'low' : pick.score > 15 ? 'high' : 'medium',
       nutrients: scaleNutrients(best.per100g, grams),
-      alternatives: found.results.slice(1).map((r) => ({ id: r.id, name: r.name })),
+      alternatives: found.results.filter((r) => r !== pick).map((r) => ({ id: r.id, name: r.name })),
     },
   };
 }

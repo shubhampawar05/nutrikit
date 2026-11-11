@@ -51,10 +51,43 @@ test('category-led names match their food', () => {
 });
 
 test('regional and spelling variants match the right food', () => {
-  assert.match(item('1 cup curd').food.name, /^Yogurt/);
-  assert.match(item('1 cup dahi').food.name, /^Yogurt/);
   assert.match(item('100 g bean curd').food.name, /^Tofu/);
   assert.match(item('1 donut').food.name, /^Doughnut/);
+});
+
+test('curd and dahi are plain, unsweetened yogurt and keep a stated fat level', () => {
+  for (const t of ['1 cup curd', '1 cup dahi', '200 g full fat curd']) {
+    const name = item(t).food.name;
+    assert.match(name, /whole milk/i, t);
+    assert.match(name, /plain/i, t);
+    assert.doesNotMatch(name, /greek|NFS|fruit|sweet/i, `${t}: not Greek, sweetened or the all-yogurt average`);
+  }
+  assert.match(item('200 g low fat curd').food.name, /low fat.*plain|plain.*low fat/i);
+  assert.match(item('skim dahi').food.name, /nonfat.*plain|plain.*nonfat/i);
+  assert.ok(item('1 cup curd').nutrients.calories.amount < 200, 'plain curd, not the 230 kcal sweetened average');
+});
+
+test('a word found only in another name in parentheses does not match', () => {
+  assert.equal(searchFoods('poha').results.length, 0, 'poha (flattened rice) is not groundcherries');
+  assert.equal(logText('1 plate poha').items.length, 0);
+  for (const q of ['poha fruit', 'poha berries', 'cape gooseberries', 'groundcherries']) {
+    assert.match(searchFoods(q).results[0].name, /^Groundcherries/, q);
+  }
+  assert.match(searchFoods('skim milk').results.map((r) => r.name).join('|'), /Milk, fat free \(skim\)/, 'a word in the name itself still matches');
+});
+
+test('a plate or bowl is a cooked dish, never a dry, uncooked staple', () => {
+  const oats = item('1 bowl oats');
+  assert.match(oats.food.name, /prepared|cooked/i, 'cooked oats, not a bowl of raw oats');
+  assert.ok(oats.nutrients.calories.amount < 250);
+  for (const t of ['1 plate flour', '1 bowl dry lentils']) assert.equal(logText(t).items.length, 0, t);
+  const r = logText('1 bowl wheat flour');
+  assert.equal(r.items.length, 0, 'no cooked form: offered back, not logged');
+  assert.match(r.unmatched[0].note, /dry, uncooked/);
+  assert.ok(r.unmatched[0].suggestions.length > 0);
+  assert.equal(item('100 g oats').food.name, 'Oats, raw', 'a stated weight logs the dry food');
+  assert.match(item('1 bowl rice').food.name, /cooked/i, 'a cooked food is still logged');
+  assert.match(item('1 bowl oatmeal').food.name, /^Oatmeal/);
 });
 
 test('plain foods are preferred over prepared forms', () => {
@@ -168,4 +201,34 @@ test('a USDA food named exactly what was searched comes before CoFID dishes', ()
   assert.equal(item('1 samosa').food.name, 'Samosa');
   assert.equal(item('1 cup dal').food.name, 'Dal');
   assert.equal(searchFoods('sambar').results[0].source, 'survey');
+});
+
+test('a katori is an ICMR-NIN standard volume weighed through the food\'s own density', () => {
+  const dal = item('1 katori dal');
+  assert.equal(dal.unit, 'katori');
+  assert.equal(dal.portionMethod, 'volume-conversion', 'USDA dal: 240 g per cup');
+  assert.equal(Math.round(dal.grams), Math.round(200 * 240 / 236.588), 'medium katori = 200 ml');
+  assert.match(dal.portionBasis, /medium katori \(200 ml, ICMR-NIN Dietary Guidelines 2024, Annexure I C7\)/);
+  assert.equal(Math.round(item('1 small katori dal').grams), Math.round(155 * 240 / 236.588), 'small = 155 ml (C8)');
+  assert.equal(Math.round(item('2 katoris dal').grams), Math.round(2 * dal.grams));
+  assert.equal(Math.round(item('half katori dal').grams), Math.round(dal.grams / 2));
+  const rice = item('1 large katori rice');
+  assert.match(rice.food.name, /cooked/i);
+  assert.match(rice.portionBasis, /360 ml/);
+  assert.ok(rice.grams > dal.grams / 2 && rice.grams < 300, 'cooked rice is lighter than dal per ml');
+});
+
+test('a katori of a food without density data says it is an estimate', () => {
+  const rajma = item('1 katori rajma');
+  assert.equal(rajma.portionMethod, 'density-estimate');
+  assert.equal(rajma.grams, 200);
+});
+
+test('a bowl without its own portion is a cup of the food, never one piece, and says so', () => {
+  const chips = item('1 bowl chips');
+  assert.ok(chips.grams > 10, `a bowl of chips is not one chip (${chips.grams} g)`);
+  assert.equal(chips.portionMethod, 'volume-conversion');
+  assert.match(item('1 bowl dal').portionBasis, /^bowl, taken as 1 cup \(236\.6 ml\)/);
+  assert.equal(item('1 bowl dal').grams, 240, 'the same as before: one cup of dal');
+  assert.equal(item('1 cup dal').grams, 240, 'other units are unchanged');
 });

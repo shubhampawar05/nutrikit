@@ -74,6 +74,12 @@ setup is in [mcp/README.md](../mcp/README.md).
   Open Food Facts. Not medical advice.
 - Portions fall back in order: stated unit → household portion → volume conversion → water density → 100 g.
   Each item's `portionMethod` says which was used.
+- A katori is a standard volume from the ICMR-NIN Dietary Guidelines for Indians 2024 (Annexure I): small 155 ml (C8),
+  medium 200 ml (C7, the default) and large 360 ml (C6). It is weighed through the food's own density, from its USDA
+  volume portion (`volume-conversion`: a medium katori of dal is 203 g, of cooked rice 134 g), or as water when the
+  food has none (`density-estimate`), never one weight for every food. `portionBasis` names the katori and its source.
+  A bowl has no standard size: it is the food's own bowl portion when it has one, otherwise one cup of the food
+  (`portionBasis` says "bowl, taken as 1 cup"), never one of its pieces.
 - An add-on without an amount ("with sugar", "with milk") is a spoonful or a splash: at most 15 g for sugars,
   fats and sauces, 60 g for anything else (`portionMethod` `add-on-smallest-portion`, or `add-on-cap` when the
   food has no portion that small).
@@ -82,7 +88,18 @@ setup is in [mcp/README.md](../mcp/README.md).
 - A bare everyday word means the everyday food: "tea" is hot black tea, "chai" is hot tea with milk (as drunk in
   India) and "salad" is a green salad, while "iced tea" or "chicken salad" get what they say. Search lists that food
   first and keeps the other matches.
-- Indian English words mean what they mean in India: "curd" and "dahi" are plain yogurt ("bean curd" is still tofu).
+- Indian English words mean what they mean in India: "curd" and "dahi" are plain, unsweetened whole-milk yogurt, and
+  keep a fat level when one is given ("low fat curd", "skim dahi"); "bean curd" is still tofu.
+- A food whose leading name is another word plus the food searched is a different food unless that word was searched:
+  "raw rice" is white rice, not wild rice; "butter" is not peanut butter; "potato" is not sweet potato.
+- "Sweetened yogurt" is USDA's sugar-sweetened flavored yogurt, never "sweetened with low-calorie sweetener" (sugar-free)
+  or frozen yogurt; "sweet curd" and "sweet dahi" are its whole-milk version.
+- A food named only in another name in parentheses is not matched on one word of it: USDA's "Groundcherries,
+  (cape-gooseberries or poha), raw" is not "poha" (flattened rice), but "cape gooseberries" and "poha fruit" still find it.
+- A plate or bowl is a cooked dish, never a dry, uncooked grain, flour or pulse: when the best match is one, the next
+  match that names the phrase and isn't is used ("1 bowl oats" → oats prepared with water, "1 bowl masoor dal" → the
+  dal curry). With none ("1 bowl wheat flour"), the phrase is listed in `unmatched` with a `note` instead of being
+  logged at two to three times the dish's calories. A stated weight ("60 g oats") logs the dry food.
 - Search matches whole words first, then word prefixes ("chick"), then any one word, and says which in `match`
   (`all-words`, `prefix`, `any-word`). When logging, a `prefix` or `any-word` match is used only if the food shares
   more than half of the phrase's words; otherwise the phrase is listed in `unmatched` with `reason`
