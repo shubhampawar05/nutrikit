@@ -226,14 +226,16 @@ test('pages carry their own title, description, canonical URL and robots rule', 
     const res = await fetch(base + path, { headers: { Accept: 'text/html', ...headers } });
     return { status: res.status, html: await res.text() };
   };
-  const pricing = await page('/pricing/', { 'X-Forwarded-Proto': 'https' });
-  assert.match(pricing.html, /<title>Pricing — Nutrikit Nutrition API<\/title>/);
-  assert.match(pricing.html, /<meta name="description" content="Start free with 2,000 tokens/);
-  assert.equal(pricing.html.match(/<meta name="description"/g).length, 1, 'one description');
-  assert.match(pricing.html, new RegExp(`<link rel="canonical" href="https://${new URL(base).host}/pricing">`));
-  assert.match(pricing.html, /<meta name="robots" content="index, follow">/);
-  assert.match(pricing.html, /<meta property="og:image" content="https:\/\/[^"]+\/og-image.png">/);
-  assert.match(pricing.html, /<meta name="twitter:card" content="summary_large_image">/);
+  const docs = await page('/docs/', { 'X-Forwarded-Proto': 'https' });
+  assert.match(docs.html, /<title>Documentation — Nutrikit Nutrition API<\/title>/);
+  assert.match(docs.html, /<meta name="description" content="Quick start, authentication and guides/);
+  assert.equal(docs.html.match(/<meta name="description"/g).length, 1, 'one description');
+  assert.match(docs.html, new RegExp(`<link rel="canonical" href="https://${new URL(base).host}/docs">`));
+  assert.match(docs.html, /<meta name="robots" content="index, follow">/);
+  assert.match(docs.html, /<meta property="og:image" content="https:\/\/[^"]+\/og-image.png">/);
+  assert.match(docs.html, /<meta name="twitter:card" content="summary_large_image">/);
+  // Pricing is hidden while payments are off (web/src/features.ts): kept out of search results.
+  assert.match((await page('/pricing')).html, /<meta name="robots" content="noindex, follow">/);
 
   const home = await page('/');
   const [, json] = home.html.match(/<script type="application\/ld\+json">(.*?)<\/script>/);
@@ -263,7 +265,7 @@ test('robots.txt and sitemap.xml list the public pages with absolute URLs', asyn
   assert.match(sitemap.headers.get('content-type'), /application\/xml/);
   const xml = await sitemap.text();
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
-  assert.deepEqual(locs, ['/', '/pricing', '/docs', '/docs/reference', '/playground', '/signup']);
+  assert.deepEqual(locs, ['/', '/docs', '/docs/reference', '/playground', '/signup']); // /pricing is hidden while payments are off
   assert.doesNotMatch(xml, /dashboard|admin|login/);
 });
 

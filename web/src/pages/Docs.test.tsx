@@ -3,6 +3,9 @@ import { fireEvent, screen } from '@testing-library/react';
 import { renderPage } from '../test-utils.tsx';
 import { Docs } from './Docs.tsx';
 
+// These tests cover the paid-plan screens, which features.ts can hide; they run with payments shown.
+vi.mock('../features.ts', () => ({ PAYMENTS_VISIBLE: true }));
+
 afterEach(() => vi.unstubAllGlobals());
 
 describe('Docs', () => {

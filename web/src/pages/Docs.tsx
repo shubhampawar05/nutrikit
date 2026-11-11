@@ -2,6 +2,7 @@
 // server's base URL in the examples, and the nutrient table from the public /v1/nutrients catalog.
 import { useEffect, useState, type MouseEvent } from 'react';
 import { Link } from 'react-router';
+import { PAYMENTS_VISIBLE } from '../features.ts';
 import { useQuery } from '@tanstack/react-query';
 import { CodeBlock } from '../components/CodeBlock.tsx';
 
@@ -242,7 +243,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
 
         <section id="tokens">
           <h2>Tokens &amp; usage</h2>
-          <p>Each successful call is charged tokens from your account's monthly allowance. Failed calls are free, except AI usage the server's AI provider had already consumed before the call failed; that amount is shown in <code>X-Tokens-Charged</code>. See the <Link to="/pricing">cost table</Link>. Every metered response carries:</p>
+          <p>Each successful call is charged tokens from your account's monthly allowance. Failed calls are free, except AI usage the server's AI provider had already consumed before the call failed; that amount is shown in <code>X-Tokens-Charged</code>.{PAYMENTS_VISIBLE ? <> See the <Link to="/pricing">cost table</Link>.</> : null} Every metered response carries:</p>
           <div className="table-scroll"><table className="data">
             <thead><tr><th scope="col">Header</th><th scope="col">Meaning</th></tr></thead><tbody>
             <tr><td><code>X-Tokens-Charged</code></td><td>Tokens this call cost</td></tr>

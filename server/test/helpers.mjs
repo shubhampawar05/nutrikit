@@ -27,6 +27,7 @@ process.env.NUTRIKIT_LOGIN_IP_LIMIT = '100000';
 process.env.NUTRIKIT_EMAIL_IP_LIMIT = '100000';
 delete process.env.RESEND_API_KEY;
 delete process.env.BREVO_API_KEY;
+delete process.env.NUTRIKIT_PUBLIC_URL; // pages and email links use the request's own host in tests
 
 /** Every email the app sent in this test file, newest last (the test mailer records instead of sending). */
 export const sentMail = [];

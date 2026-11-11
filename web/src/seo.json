@@ -16,7 +16,7 @@
     "/pricing": {
       "title": "Pricing — Nutrikit Nutrition API",
       "description": "Start free with 2,000 tokens a month, no card needed. Simple token pricing for food search, meal logging, barcode lookup, label parsing and meal plans.",
-      "index": true,
+      "index": false,
       "priority": 0.8
     },
     "/docs": {
