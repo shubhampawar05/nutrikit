@@ -3,6 +3,7 @@
 import type { Portion, ResolvedPortion } from './types.ts';
 import { lookup } from './lookup.ts';
 import { headSegments } from './names.ts';
+import { utensil } from './utensils.ts';
 
 const WORD_NUMBERS: Record<string, number> = lookup({
   a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
@@ -15,11 +16,11 @@ const MASS: Record<string, number> = lookup({ g: 1, gram: 1, grams: 1, gr: 1, kg
 const VOLUME: Record<string, number> = lookup({ cup: 1, cups: 1, c: 1, tbsp: 1 / 16, tablespoon: 1 / 16, tablespoons: 1 / 16, tbs: 1 / 16, tsp: 1 / 48, teaspoon: 1 / 48, teaspoons: 1 / 48, 'fl oz': 1 / 8, ml: 1 / 236.588, milliliter: 1 / 236.588, milliliters: 1 / 236.588, l: 4.22675, liter: 4.22675, liters: 4.22675, pint: 2, pints: 2, glass: 1, glasses: 1, mug: 1.5, mugs: 1.5 });
 const COUNT: Record<string, string> = lookup({ slice: 'slice', slices: 'slice', piece: 'piece', pieces: 'piece', serving: 'serving', servings: 'serving', small: 'small', medium: 'medium', large: 'large', extra: 'extra', bowl: 'bowl', bowls: 'bowl', can: 'can', cans: 'can', bottle: 'bottle', bottles: 'bottle', bar: 'bar', bars: 'bar', scoop: 'scoop', scoops: 'scoop', handful: 'handful', handfuls: 'handful', stick: 'stick', sticks: 'stick', strip: 'strip', strips: 'strip', fillet: 'fillet', fillets: 'fillet', patty: 'patty', patties: 'patty', link: 'link', links: 'link', packet: 'packet', packets: 'packet', package: 'package', container: 'container', plate: 'plate', plates: 'plate', sandwich: 'sandwich', wedge: 'wedge', wedges: 'wedge', clove: 'clove', cloves: 'clove', leaf: 'leaf', leaves: 'leaf', jar: 'jar' });
 
-export const UNIT_WORDS = [...Object.keys(MASS), ...Object.keys(VOLUME), ...Object.keys(COUNT)];
+export const UNIT_WORDS = [...Object.keys(MASS), ...Object.keys(VOLUME), ...Object.keys(COUNT), 'katori', 'katoris'];
 
 export type CanonicalUnit =
   | { kind: 'mass'; unit: string; grams: number }
-  | { kind: 'volume'; unit: string; cups: number }
+  | { kind: 'volume'; unit: string; cups: number; basis?: string } // basis: an Indian measure's volume and source
   | { kind: 'count'; unit: string };
 
 /** Canonical unit: { kind: 'mass'|'volume'|'count', unit, factor? } or null. */
@@ -28,6 +29,8 @@ export function canonicalUnit(word: string | null | undefined): CanonicalUnit | 
   const w = word.toLowerCase().replace(/\.$/, '');
   if (w in MASS) return { kind: 'mass', unit: w === 'gram' || w === 'grams' || w === 'gr' ? 'g' : w, grams: MASS[w] };
   if (w in VOLUME) return { kind: 'volume', unit: w, cups: VOLUME[w] };
+  const measure = utensil(w);
+  if (measure) return { kind: 'volume', unit: w.replace(/s$/, ''), cups: measure.ml / 236.588, basis: measure.basis };
   if (w in COUNT) return { kind: 'count', unit: COUNT[w] };
   return null;
 }
@@ -90,6 +93,27 @@ const SIZES: string[] = ['small', 'medium', 'large'];
 const SIZE_SERVINGS: [RegExp, Record<Size, number>][] = [
   [/\bfrench fries\b/i, { small: 71, medium: 117, large: 154 }],
 ];
+/**
+ * A volume of a food in grams. A portion in the same unit wins; otherwise the food's own volume portion gives its
+ * density ("1 cup dal = 240 g", `volume-conversion`); without one, water density is assumed (`density-estimate`).
+ * "1 cup, dry, yields" weighs the cooked result of a dry cup (740 g for barley), so it is never a volume of this food.
+ * `basis` (an Indian measure's volume and source) leads the returned portion text.
+ */
+function volumePortion(portions: Portion[], q: number, unitName: string, cups: number, basis?: string): ResolvedPortion {
+  const perUnit = (p: Portion) => p.grams / (p.amount || 1);
+  const label = (via?: string) => [basis, via].filter(Boolean).join('; ') || null;
+  const volumes = portions.filter((p) => !YIELDS.test(p.label));
+  const same = !basis && volumes.find((p) => p.unit === unitName || (unitName === 'cups' && p.unit === 'cup'));
+  if (same) return { grams: q * perUnit(same), quantity: q, unit: unitName, portion: same.label, method: 'portion' };
+  const vol = volumes.find((p) => VOLUME_PORTIONS[p.unit as string]);
+  if (vol) {
+    const gramsPerCup = perUnit(vol) / VOLUME_PORTIONS[vol.unit as string];
+    return { grams: q * cups * gramsPerCup, quantity: q, unit: unitName, portion: label(vol.label), method: 'volume-conversion' };
+  }
+  // No density data for this food: assume water-like density (1 cup = 236.6 g).
+  return { grams: q * cups * 236.588, quantity: q, unit: unitName, portion: label(), method: 'density-estimate' };
+}
+
 export function resolvePortion(food: PortionFood, quantity: number | null | undefined, unitWord: string | null | undefined): ResolvedPortion {
   const q = quantity ?? 1;
   const unit = canonicalUnit(unitWord);
@@ -107,20 +131,7 @@ export function resolvePortion(food: PortionFood, quantity: number | null | unde
     const oz = portions.find((p) => p.unit === 'oz');
     return { grams: q * (oz ? perUnit(oz) : 28.35), quantity: q, unit: 'handful', portion: oz?.label || null, method: 'estimate-1oz' };
   }
-  if (unit?.kind === 'volume') {
-    // Prefer a portion in the same unit, else convert through any volume portion of this food. "1 cup, dry,
-    // yields" weighs the cooked result of a dry cup (740 g for barley), so it is never a volume of this food.
-    const volumes = portions.filter((p) => !YIELDS.test(p.label));
-    const same = volumes.find((p) => p.unit === unit.unit || (unit.unit === 'cups' && p.unit === 'cup'));
-    if (same) return { grams: q * perUnit(same), quantity: q, unit: unit.unit, portion: same.label, method: 'portion' };
-    const vol = volumes.find((p) => VOLUME_PORTIONS[p.unit as string]);
-    if (vol) {
-      const gramsPerCup = perUnit(vol) / VOLUME_PORTIONS[vol.unit as string];
-      return { grams: q * unit.cups * gramsPerCup, quantity: q, unit: unit.unit, portion: vol.label, method: 'volume-conversion' };
-    }
-    // No density data for this food: assume water-like density (1 cup = 236.6 g).
-    return { grams: q * unit.cups * 236.588, quantity: q, unit: unit.unit, portion: null, method: 'density-estimate' };
-  }
+  if (unit?.kind === 'volume') return volumePortion(portions, q, unit.unit, unit.cups, unit.basis);
   if (unit?.kind === 'count') {
     const wanted = unit.unit;
     // A "slice" of pizza is listed as a "piece" and vice versa.
@@ -131,6 +142,9 @@ export function resolvePortion(food: PortionFood, quantity: number | null | unde
       const match = matches.find((p) => /\b(medium|regular)\b/i.test(p.label)) || matches[0];
       if (match) return { grams: q * perUnit(match), quantity: q, unit: wanted, portion: match.label, method: 'portion' };
     }
+    // A bowl the food has no bowl portion for is a cup of it (no standard bowl size exists), never one of its
+    // pieces: "1 bowl chips" is not one chip.
+    if (wanted === 'bowl') return volumePortion(portions, q, 'bowl', 1, 'bowl, taken as 1 cup (236.6 ml)');
   }
   // A size the food has no portion for ("medium fries"): a typical serving of that size where one is known.
   const size = unit?.kind === 'count' && SIZES.includes(unit.unit) ? unit.unit as Size : null;

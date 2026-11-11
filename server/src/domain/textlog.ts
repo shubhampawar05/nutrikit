@@ -104,7 +104,12 @@ export function splitMealText(text: string): { meal: string | null; items: Parse
     const glued = r.match(/^(g|kg|mg|oz|lb|ml|l)\b\.?\s*/i);
     const two = r.match(/^(fl\.? oz|fluid ounces?)\b\s*/i);
     const one = r.match(/^([a-z]+)\b\.?\s*/i);
-    if (two) { unit = 'fl oz'; r = r.slice(two[0].length); }
+    // Katoris, with or without a size: "small katori", "2 large katoris of".
+    const measure = r.match(/^((?:small|medium|large|big)\s+)?(katoris?)\b\s*/i);
+    if (measure && r.split(/\s+/).length > (measure[1] ? 2 : 1)) {
+      unit = measure[0].trim().toLowerCase();
+      r = r.slice(measure[0].length);
+    } else if (two) { unit = 'fl oz'; r = r.slice(two[0].length); }
     else if (glued) { unit = glued[1].toLowerCase(); r = r.slice(glued[0].length); }
     else if (one && canonicalUnit(one[1]) && r.split(/\s+/).length > 1) { unit = one[1].toLowerCase(); r = r.slice(one[0].length); }
     r = r.replace(/^(of|the)\s+/i, '').trim();
@@ -158,7 +163,7 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
   }
   let pick = found.results[0];
   let best = getFood(pick.id)!;
-  if (!ph.grams && DISH_PORTIONS.has(String(ph.unit ?? '').toLowerCase()) && dryStaple(best)) {
+  if (!ph.grams && DISH_PORTIONS.has(String(ph.unit ?? '').toLowerCase().split(/\s+/).at(-1)!) && dryStaple(best)) {
     // Every whole-word result names the phrase in full, so the first that is not a dry staple is the cooked dish
     // ("1 bowl masoor dal" -> the dal curry, not dry lentils). Without one, the phrase is offered back.
     const cooked = found.match === 'all-words' ? found.results.find((r) => !dryStaple(getFood(r.id)!)) : undefined;

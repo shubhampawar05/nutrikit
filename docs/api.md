@@ -74,6 +74,12 @@ setup is in [mcp/README.md](../mcp/README.md).
   Open Food Facts. Not medical advice.
 - Portions fall back in order: stated unit → household portion → volume conversion → water density → 100 g.
   Each item's `portionMethod` says which was used.
+- A katori is a standard volume from the ICMR-NIN Dietary Guidelines for Indians 2024 (Annexure I): small 155 ml (C8),
+  medium 200 ml (C7, the default) and large 360 ml (C6). It is weighed through the food's own density, from its USDA
+  volume portion (`volume-conversion`: a medium katori of dal is 203 g, of cooked rice 134 g), or as water when the
+  food has none (`density-estimate`), never one weight for every food. `portionBasis` names the katori and its source.
+  A bowl has no standard size: it is the food's own bowl portion when it has one, otherwise one cup of the food
+  (`portionBasis` says "bowl, taken as 1 cup"), never one of its pieces.
 - An add-on without an amount ("with sugar", "with milk") is a spoonful or a splash: at most 15 g for sugars,
   fats and sauces, 60 g for anything else (`portionMethod` `add-on-smallest-portion`, or `add-on-cap` when the
   food has no portion that small).
