@@ -1,0 +1,147 @@
+{
+  "id": 900000035,
+  "name": "Pani puri (hollow puris with potato filling and spiced water)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Hebbar's Kitchen (hebbarskitchen.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://hebbarskitchen.com/pani-puri-recipe-golgappa-recipe/"
+  },
+  "aliases": [
+    "pani puri",
+    "golgappa",
+    "gol gappa",
+    "golgappe",
+    "puchka",
+    "phuchka",
+    "pani poori"
+  ],
+  "notes": "Serves 5. Only the pani drunk is counted: about 120 ml per plate, roughly a third of the 7 cups made, so the pani ingredients are scaled by 0.31. Chaat masala and boondi left out. Assumed: 60 g water to knead the dough and 60 g frying oil absorbed by the puris, 5% weight lost in cooking.",
+  "ingredients": [
+    {
+      "fdcId": 168933,
+      "food": "Semolina, unenriched",
+      "grams": 167
+    },
+    {
+      "fdcId": 168894,
+      "food": "Wheat flour, white, all-purpose, enriched, bleached",
+      "grams": 16
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 41
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 60
+    },
+    {
+      "fdcId": 173475,
+      "food": "Spearmint, fresh",
+      "grams": 2
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 2.5
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 2.5
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 3
+    },
+    {
+      "fdcId": 167763,
+      "food": "Tamarinds, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 0.6
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 1.4
+    },
+    {
+      "fdcId": 167763,
+      "food": "Tamarinds, raw",
+      "grams": 9
+    },
+    {
+      "fdcId": 168833,
+      "food": "Sugars, brown",
+      "grams": 11
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 0.6
+    },
+    {
+      "fdcId": 170931,
+      "food": "Spices, pepper, black",
+      "grams": 0.2
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 1.4
+    },
+    {
+      "fdcId": 170440,
+      "food": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "grams": 450
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 55
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 2
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1
+    },
+    {
+      "fdcId": 170931,
+      "food": "Spices, pepper, black",
+      "grams": 0.6
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 1.3
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 3
+    }
+  ],
+  "water": 660,
+  "cookedGrams": 1421,
+  "portions": [
+    {
+      "label": "1 plate (a fifth of the recipe)",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 284
+    }
+  ]
+}

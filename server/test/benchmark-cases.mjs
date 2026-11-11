@@ -85,6 +85,20 @@ export const CASES = [
   { input: 'skim dahi', food: /nonfat milk, plain/ },
   { input: '100 g bean curd', food: /^Tofu/ },
 
+  // Indian dishes from cited recipes, and common names for INDB dishes
+  { input: '2 vada pav', food: /^Vada pav/, grams: [250, 258] },
+  { input: '1 plate pani puri', food: /^Pani puri/, grams: [280, 290] },
+  { input: '1 plate golgappa', food: /^Pani puri/, grams: [280, 290] },
+  { input: '6 momos', food: /^Veg momos/, grams: [140, 148] },
+  { input: '2 aloo tikki', food: /^Aloo tikki/, grams: [205, 215] },
+  { input: '1 plate misal pav', food: /^Misal pav/, grams: [460, 480] },
+  { input: '1 plate chicken 65', food: /^Chicken 65/, grams: [170, 185] },
+  { input: '1 serving pongal', food: /^Ven pongal/, grams: [320, 335] },
+  { input: '1 dal baati', food: /^Dal baati/, grams: [560, 580] },
+  { input: '1 katori kadai paneer', food: /^Kadhai Paneer$/, grams: [230, 245] },
+  { input: '1 katori malai kofta', food: /^Paneer kofta curry$/, grams: [230, 245] },
+  { input: '1 katori baingan bharta', food: /^Brinjal bhartha/, grams: [230, 245] },
+  { input: '1 glass nimbu pani', food: /^Lemonade$/, grams: [230, 245] },
   // Portions: katori (taken in cups) and bowl
   { input: '1 katori dal', food: /^Dal$/, grams: [235, 245] },
   { input: '1 small katori dal', food: /^Dal$/, grams: [175, 185] },

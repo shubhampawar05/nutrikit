@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { composeRecipe } from '../scripts/recipes.mjs';
+import { recipeAliases } from '../scripts/recipe-aliases.mjs';
 
 const KEYS = ['calories', 'protein', 'fat', 'carbs', 'vitaminD', 'sodium'];
 const CATALOG = new Map([
@@ -54,4 +55,14 @@ test('the build fails on an impossible yield, a bad id or missing parts', () => 
 test('the build fails when calories disagree with protein, carbs and fat', () => {
   const odd = new Map(CATALOG).set(4, { name: 'Odd', n: { calories: 500, protein: 1, fat: 1, carbs: 1 } });
   assert.throws(() => composeRecipe(recipe({ ingredients: [{ fdcId: 4, food: 'Odd', grams: 400 }] }), (id) => odd.get(id), KEYS), /disagree/);
+});
+
+test('every alias for one food is kept, after the food\'s own', () => {
+  const food = { id: 7, name: 'Brinjal bhartha', aliases: 'baingan ka bhartha' };
+  const ref = 'https://en.wikipedia.org/wiki/Baingan_bharta';
+  const out = recipeAliases([
+    { alias: 'baingan bharta', name: 'Brinjal bhartha', reference: ref },
+    { alias: 'bharta', name: 'Brinjal bhartha', reference: ref },
+  ], new Map([['brinjal bhartha', food]]));
+  assert.deepEqual(out.get(7), ['baingan ka bhartha', 'baingan bharta', 'bharta']);
 });

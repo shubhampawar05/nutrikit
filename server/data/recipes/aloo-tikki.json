@@ -1,0 +1,84 @@
+{
+  "id": 900000032,
+  "name": "Aloo tikki (spiced potato patty, pan-fried)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/aloo-tikki-recipe/"
+  },
+  "aliases": [
+    "aloo tikki",
+    "aloo ki tikki",
+    "potato tikki",
+    "alu tikki"
+  ],
+  "notes": "Makes 6. Optional cashews and pea-paneer stuffing left out; garam and chaat masala taken as curry powder. Assumed: half of the 4-6 tbsp pan oil (34 g) is absorbed, 8% weight lost in frying.",
+  "ingredients": [
+    {
+      "fdcId": 170440,
+      "food": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "grams": 575
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 6
+    },
+    {
+      "fdcId": 170924,
+      "food": "Spices, curry powder",
+      "grams": 3
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 1.7
+    },
+    {
+      "fdcId": 2710168,
+      "food": "Ghee, clarified butter",
+      "grams": 13
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 2
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 169698,
+      "food": "Cornstarch",
+      "grams": 16
+    },
+    {
+      "fdcId": 174928,
+      "food": "Bread, crumbs, dry, grated, plain",
+      "grams": 27
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 4.5
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 34
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 632,
+  "portions": [
+    {
+      "label": "1 tikki",
+      "amount": 1,
+      "unit": "piece",
+      "grams": 105
+    }
+  ]
+}

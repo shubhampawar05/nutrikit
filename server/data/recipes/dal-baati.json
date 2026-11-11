@@ -1,0 +1,134 @@
+{
+  "id": 900000037,
+  "name": "Dal baati (baked wheat balls with ghee and mixed dal)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Hebbar's Kitchen (hebbarskitchen.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://hebbarskitchen.com/dal-baati-recipe-dal-bati-churma-recipe/"
+  },
+  "aliases": [
+    "dal baati",
+    "dal bati",
+    "daal baati",
+    "dal baati churma"
+  ],
+  "notes": "Serves 3; churma left out. Chana dal taken as raw chickpeas. Assumed: 120 g water to knead the baati (added to the 947 g in the dal), 60 g ghee for dipping (not given in the recipe), 15% of the weight lost in baking and simmering.",
+  "ingredients": [
+    {
+      "fdcId": 168893,
+      "food": "Wheat flour, whole-grain (Includes foods for USDA's Food Distribution Program)",
+      "grams": 240
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 1.5
+    },
+    {
+      "fdcId": 172804,
+      "food": "Leavening agents, baking powder, double-acting, straight phosphate",
+      "grams": 1.2
+    },
+    {
+      "fdcId": 2710168,
+      "food": "Ghee, clarified butter",
+      "grams": 51
+    },
+    {
+      "fdcId": 2710168,
+      "food": "Ghee, clarified butter",
+      "grams": 60
+    },
+    {
+      "fdcId": 174256,
+      "food": "Mung beans, mature seeds, raw",
+      "grams": 100
+    },
+    {
+      "fdcId": 172420,
+      "food": "Lentils, raw",
+      "grams": 48
+    },
+    {
+      "fdcId": 173756,
+      "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, raw",
+      "grams": 50
+    },
+    {
+      "fdcId": 2710168,
+      "food": "Ghee, clarified butter",
+      "grams": 13
+    },
+    {
+      "fdcId": 170929,
+      "food": "Spices, mustard seed, ground",
+      "grams": 3
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 2
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 110
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 2.5
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 2.5
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 120
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.8
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 1.3
+    },
+    {
+      "fdcId": 170924,
+      "food": "Spices, curry powder",
+      "grams": 0.6
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 6
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 2
+    }
+  ],
+  "water": 1187,
+  "cookedGrams": 1706,
+  "portions": [
+    {
+      "label": "1 serving",
+      "amount": 1,
+      "unit": "serving",
+      "grams": 569
+    }
+  ]
+}
