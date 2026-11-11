@@ -95,8 +95,8 @@ export const CASES = [
   { input: '1 bowl oats', food: /oats.*(prepared|cooked)/i },
 
   // Traps: a confident wrong food is the worst answer
-  { input: '1 cup butter chicken', gap: 'butter chicken (never a cup of butter)' },
-  { input: '1 plate poha', unmatched: true }, // dry flakes are not a plate of cooked poha; no validated recipe yet
+  { input: '1 cup butter chicken', food: /^Butter chicken/ },
+  { input: '1 plate poha', food: /Poha \(flattened rice/ },
   { input: '1 bowl wheat flour', unmatched: true },
   { input: 'poha fruit', food: /^Groundcherries/ },
   { input: 'cape gooseberries', food: /^Groundcherries/ },
@@ -110,19 +110,20 @@ export const CASES = [
   // Misspellings: suggested, never logged
   { input: 'panner', unmatched: true, didYouMean: 'paneer' },
   { input: '1 cup panner', unmatched: true, didYouMean: '1 cup paneer' },
-  { input: 'biriyani', unmatched: true, didYouMean: 'biryani' },
+  { input: 'biriyani', food: /[Bb]iryani/ },
   { input: 'chiken curry', unmatched: true, didYouMean: 'chicken curry' },
 
   // Dishes the catalog doesn't have yet (need licensed recipes)
-  { input: '1 gulab jamun', gap: 'gulab jamun' },
-  { input: '1 glass lassi', gap: 'lassi' },
-  { input: '1 glass chaas', gap: 'chaas (spiced buttermilk)' },
-  { input: '1 masala dosa', gap: 'masala dosa' },
-  { input: '2 aloo parathas', gap: 'aloo paratha' },
-  { input: 'a plate of pav bhaji', gap: 'pav bhaji' },
-  { input: '1 cup kheer', gap: 'kheer' },
-  { input: '1 jalebi', gap: 'jalebi' },
-  { input: '1 dhokla', gap: 'dhokla' },
-  { input: '1 cup halwa', gap: 'halwa' },
-  { input: '1 cup poha', gap: 'cooked poha' },
+  { input: '1 gulab jamun', food: /Gulab Jamun/ },
+  { input: '1 glass lassi', food: /^Lassi, sweet/ },
+  { input: '1 glass chaas', food: /^Lassi.*salted/i },
+  { input: '1 masala dosa', food: /^Dosa, with filling/ },
+  { input: '2 aloo parathas', food: /Potato parantha|paratha/ },
+  { input: 'a plate of pav bhaji', food: /Pav bhaji/ },
+  { input: '1 cup kheer', food: /^Kheer \(rice pudding\)/ },
+  { input: '1 jalebi', food: /^Jalebi/ },
+  { input: '1 rasgulla', food: /^Rasgulla/ },
+  { input: '1 dhokla', food: /^Instant dhokla|Dhokla/ },
+  { input: '1 cup halwa', food: /halwa/i },
+  { input: '1 cup poha', food: /Poha \(flattened rice/ },
 ];

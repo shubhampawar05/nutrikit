@@ -28,9 +28,13 @@ test('same-name collisions keep the record with more label nutrients, newest dat
 });
 
 
-test('the catalog holds USDA foods and CoFID dishes only', () => {
+test('the catalog holds USDA, CoFID, INDB totals and cited recipes', () => {
   const sources = foods().prepare('SELECT DISTINCT source FROM foods ORDER BY 1').all().map((r) => r.source);
-  assert.deepEqual(sources, ['cofid', 'foundation', 'sr_legacy', 'survey']);
+  assert.deepEqual(sources, ['cofid', 'foundation', 'indb', 'recipe', 'sr_legacy', 'survey']);
+  const indb = foods().prepare("SELECT count(*) c FROM foods WHERE source = 'indb'").get().c;
+  assert.ok(indb >= 1000, `${indb} INDB dish totals`);
+  const recipes = foods().prepare("SELECT count(*) c FROM foods WHERE source = 'recipe'").get().c;
+  assert.ok(recipes < 50, `${recipes} cited compose recipes (no bulk USDA proxy dishes)`);
 });
 
 test('CoFID dishes come from the pinned workbook, with ids in their own range and values as converted', () => {

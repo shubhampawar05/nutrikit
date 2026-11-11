@@ -50,7 +50,7 @@ export function createServer(nk: Nutrikit): McpServer {
     inputSchema: {
       query: z.string().min(1).describe('Food name, e.g. "greek yogurt" or "brown rice cooked"'),
       limit: z.number().int().min(1).max(50).optional().describe('Max results (default 10)'),
-      source: z.enum(['survey', 'foundation', 'sr_legacy']).optional().describe('Restrict to one USDA dataset'),
+      source: z.enum(['survey', 'foundation', 'sr_legacy', 'cofid', 'indb', 'recipe']).optional().describe('Restrict to one catalog source'),
     },
     annotations: { title: 'Search foods', ...readOnly },
   }, ({ query, limit, source }) => call(() => nk.searchFoods(query, { limit: limit ?? 10, source })));

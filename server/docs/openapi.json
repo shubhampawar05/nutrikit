@@ -713,7 +713,9 @@
                 "survey",
                 "foundation",
                 "sr_legacy",
-                "cofid"
+                "cofid",
+                "indb",
+                "recipe"
               ]
             },
             "in": "query",

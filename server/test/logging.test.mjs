@@ -68,8 +68,8 @@ test('curd and dahi are plain, unsweetened yogurt and keep a stated fat level', 
 });
 
 test('a word found only in another name in parentheses does not match', () => {
-  assert.equal(searchFoods('poha').results.length, 0, 'poha (flattened rice) is not groundcherries');
-  assert.equal(logText('1 plate poha').items.length, 0);
+  assert.match(searchFoods('poha').results[0]?.name ?? '', /Poha \(flattened rice/, 'cooked poha, not groundcherries');
+  assert.equal(logText('1 plate poha').items.length, 1, 'cooked poha is a plate dish');
   for (const q of ['poha fruit', 'poha berries', 'cape gooseberries', 'groundcherries']) {
     assert.match(searchFoods(q).results[0].name, /^Groundcherries/, q);
   }
@@ -96,7 +96,7 @@ test('plain foods are preferred over prepared forms', () => {
 });
 
 test('a weak partial match is unmatched with suggestions, not logged', () => {
-  const r = logText('1 cup butter paneer');
+  const r = logText('1 cup butter chickpea');
   assert.equal(r.items.length, 0, 'not logged as a cup of butter');
   assert.equal(r.unmatched[0].reason, 'no confident match');
   assert.ok(r.unmatched[0].suggestions.length > 0);
@@ -170,10 +170,13 @@ test('nonsense is unmatched, not guessed', () => {
 });
 
 test('dishes the catalog lacks are unmatched, never logged as another food', () => {
-  for (const phrase of ['2 gulab jamun', '1 glass lassi', '1 cup butter chicken', '1 cup kheer']) {
+  for (const phrase of ['1 cup butter tofu']) {
     const r = logText(phrase);
     assert.equal(r.items.length, 0, `${phrase} is not logged`);
     assert.equal(r.unmatched.length, 1, `${phrase} is listed as unmatched`);
+  }
+  for (const phrase of ['1 jalebi', '1 glass lassi', '1 cup butter chicken', '1 cup poha', 'pav bhaji']) {
+    assert.equal(logText(phrase).items.length, 1, `${phrase} logs a recipe dish`);
   }
 });
 
@@ -191,7 +194,9 @@ test('CoFID dishes are logged by English name or cited alias, without invented p
   for (const [phrase, name] of [
     ['chana masala', /^Curry, chick pea, whole and tomato, Punjabi/], ['1 cup masoor dal', /red\/masoor dahl/],
     ['toor dal', /pigeon pea dahl/], ['khichdi', /^Khichadi/], ['aloo gobi', /^Curry, cauliflower and potato/],
-    ['red kidney bean curry', /^Curry, red kidney bean/], ['chicken korma', /^Curry, chicken korma/],
+    ['red kidney bean curry', /^Curry, red kidney bean/], ['chicken korma', /^Curry, chicken korma/i],
+    ['bhindi masala', /^Curry, bhindi subji/], ['rogan josh', /lamb rogan josh/], ['tandoori chicken', /chicken tandoori/],
+    ['1 masala dosa', /^Dosa, with filling/],
   ]) assert.match(item(phrase).food.name, name, phrase);
   assert.equal(item('100 g rajma').grams, 100);
 });

@@ -1,0 +1,30 @@
+{
+  "id": 900000004,
+  "name": "Poha (flattened rice with onion and peanuts)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Indian Nutrient Databank (ASC484 Poha with curd)",
+    "license": "Ingredient amounts from INDB recipes.xlsx; nutrients composed from USDA (CC0). Confirm INDB redistribution before public deployment.",
+    "url": "https://doi.org/10.1016/j.cdnut.2024.103790"
+  },
+  "aliases": ["poha", "kanda poha", "cooked poha"],
+  "ingredients": [
+    { "fdcId": 168877, "food": "Rice, white, long-grain, regular, raw, enriched", "grams": 150 },
+    { "fdcId": 2709795, "food": "Onions, raw", "grams": 60 },
+    { "fdcId": 2707512, "food": "Peanuts, NFS", "grams": 20 },
+    { "fdcId": 2710180, "food": "Vegetable oil, NFS", "grams": 15 },
+    { "fdcId": 170929, "food": "Spices, mustard seed, ground", "grams": 2 },
+    { "fdcId": 172231, "food": "Spices, turmeric, ground", "grams": 1 },
+    { "fdcId": 170497, "food": "Peppers, hot chili, green, raw", "grams": 5 },
+    { "fdcId": 173468, "food": "Salt, table", "grams": 3 },
+    { "fdcId": 2710258, "food": "Sugar, white, granulated or lump", "grams": 3 },
+    { "fdcId": 2709181, "food": "Lemon juice, 100%, freshly squeezed", "grams": 10 },
+    { "fdcId": 2709782, "food": "Cilantro, raw", "grams": 5 }
+  ],
+  "water": 120,
+  "cookedGrams": 390,
+  "portions": [
+    { "label": "1 cup", "amount": 1, "unit": "cup", "grams": 150 },
+    { "label": "1 plate", "amount": 1, "unit": "plate", "grams": 200 }
+  ]
+}

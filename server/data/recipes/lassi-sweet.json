@@ -1,0 +1,22 @@
+{
+  "id": 900000006,
+  "name": "Lassi, sweet",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Indian Nutrient Databank (ASC021 Sweet Lassi)",
+    "license": "Ingredient amounts from INDB recipes.xlsx; nutrients composed from USDA (CC0). Confirm INDB redistribution before public deployment.",
+    "url": "https://doi.org/10.1016/j.cdnut.2024.103790"
+  },
+  "aliases": ["lassi", "sweet lassi", "meethi lassi"],
+  "ingredients": [
+    { "fdcId": 2705418, "food": "Yogurt, whole milk, plain", "grams": 200 },
+    { "fdcId": 2710258, "food": "Sugar, white, granulated or lump", "grams": 20 },
+    { "fdcId": 170919, "food": "Spices, cardamom", "grams": 0.3 }
+  ],
+  "water": 60,
+  "cookedGrams": 280,
+  "portions": [
+    { "label": "1 glass", "amount": 1, "unit": "glass", "grams": 250 },
+    { "label": "1 cup", "amount": 1, "unit": "cup", "grams": 240 }
+  ]
+}

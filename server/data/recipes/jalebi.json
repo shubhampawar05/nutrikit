@@ -1,0 +1,26 @@
+{
+  "id": 900000020,
+  "name": "Jalebi (fermented batter, fried and soaked in syrup)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Dassana's Veg Recipes (standard home jalebi)",
+    "license": "Ingredient amounts as listed in the cited recipe; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.vegrecipesofindia.com/jalebi-recipe/"
+  },
+  "aliases": ["jalebi", "jaangiri", "imarti"],
+  "ingredients": [
+    { "fdcId": 168894, "food": "Wheat flour, white, all-purpose, enriched, bleached", "grams": 150 },
+    { "fdcId": 171284, "food": "Yogurt, plain, whole milk", "grams": 40 },
+    { "fdcId": 2710258, "food": "Sugar, white, granulated or lump", "grams": 350 },
+    { "fdcId": 2710180, "food": "Vegetable oil, NFS", "grams": 120 },
+    { "fdcId": 170919, "food": "Spices, cardamom", "grams": 1 },
+    { "fdcId": 172231, "food": "Spices, turmeric, ground", "grams": 0.5 },
+    { "fdcId": 173468, "food": "Salt, table", "grams": 1 }
+  ],
+  "water": 220,
+  "cookedGrams": 520,
+  "portions": [
+    { "label": "1 piece", "amount": 1, "unit": "piece", "grams": 50 },
+    { "label": "1 serving (5 pieces)", "amount": 5, "unit": "piece", "grams": 250 }
+  ]
+}

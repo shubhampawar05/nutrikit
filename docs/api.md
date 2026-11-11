@@ -194,3 +194,18 @@ from the UK's *McCance and Widdowson's Composition of Foods Integrated Dataset 2
 - **Rebuilding the catalog** needs the CoFID workbook from
   [gov.uk](https://www.gov.uk/government/publications/composition-of-foods-integrated-dataset-cofid) in
   `server/data/raw/cofid/`; the build checks its SHA-256 and builds without CoFID (with a warning) if it's missing.
+
+### Indian Nutrient Databank (INDB)
+
+When the INDB clone is present under `server/data/raw/indb/` (see
+[server/data/indb/README.md](../server/data/indb/README.md)), `npm run build:db` imports **~1,000** Indian dishes from
+**`INDB.xlsx`** with `source: "indb"` — nutrients **per 100 g as published** in the databank (IFCT-based pipeline), not
+re-summed from USDA proxies. A few dishes that are still missing from INDB stay as cited `source: "recipe"` files
+under `server/data/recipes/`. If `INDB.xlsx` is absent, the build may fall back to composing from `recipes.xlsx` (weaker
+accuracy).
+
+- **Licensing:** INDB’s GitHub repository does not state redistribution terms. Confirm permission with
+  [Anuvaad Solutions](https://www.anuvaad.org.in/indian-nutrient-databank/) before shipping a public product that
+  includes INDB-derived dish names and ingredient lists.
+- **Aliases:** common names (butter chicken, pav bhaji, poha, lassi, gulab jamun…) are in
+  [server/data/aliases/recipes.json](../server/data/aliases/recipes.json) or on the recipe itself.

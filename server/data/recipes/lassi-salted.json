@@ -1,0 +1,22 @@
+{
+  "id": 900000007,
+  "name": "Lassi, salted",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Indian Nutrient Databank (ASC022 Lassi salted)",
+    "license": "Ingredient amounts from INDB recipes.xlsx; nutrients composed from USDA (CC0). Confirm INDB redistribution before public deployment.",
+    "url": "https://doi.org/10.1016/j.cdnut.2024.103790"
+  },
+  "aliases": ["salted lassi", "chaas", "mattha"],
+  "ingredients": [
+    { "fdcId": 2705418, "food": "Yogurt, whole milk, plain", "grams": 200 },
+    { "fdcId": 173468, "food": "Salt, table", "grams": 2 },
+    { "fdcId": 170923, "food": "Spices, cumin seed", "grams": 0.5 }
+  ],
+  "water": 80,
+  "cookedGrams": 280,
+  "portions": [
+    { "label": "1 glass", "amount": 1, "unit": "glass", "grams": 250 },
+    { "label": "1 cup", "amount": 1, "unit": "cup", "grams": 240 }
+  ]
+}
