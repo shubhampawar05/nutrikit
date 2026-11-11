@@ -8,6 +8,7 @@
     "build:db": "node --import tsx scripts/build-db.mjs",
     "build:packaged": "node --import tsx scripts/build-packaged.mjs",
     "audit:data": "node --import tsx scripts/audit-catalog.ts",
+    "benchmark": "node --import tsx scripts/benchmark.ts",
     "migrate": "node --env-file-if-exists=../.env --import tsx src/cli/migrate.ts",
     "migrate:sqlite": "node --env-file-if-exists=../.env --import tsx scripts/migrate-sqlite-to-postgres.mjs",
     "dev": "node --env-file-if-exists=../.env --import tsx --watch src/main.ts",
