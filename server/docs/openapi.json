@@ -292,6 +292,10 @@
                 "didYouMean": {
                   "type": "string",
                   "description": "The phrase respelled, when only the respelling matches a food (\"1 cup panner\" -> \"1 cup paneer\")"
+                },
+                "note": {
+                  "type": "string",
+                  "description": "Why a phrase that matched a food was still not logged, e.g. a plate of a dry, uncooked staple"
                 }
               }
             }

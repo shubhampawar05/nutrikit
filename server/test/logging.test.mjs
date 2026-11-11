@@ -51,10 +51,43 @@ test('category-led names match their food', () => {
 });
 
 test('regional and spelling variants match the right food', () => {
-  assert.match(item('1 cup curd').food.name, /^Yogurt/);
-  assert.match(item('1 cup dahi').food.name, /^Yogurt/);
   assert.match(item('100 g bean curd').food.name, /^Tofu/);
   assert.match(item('1 donut').food.name, /^Doughnut/);
+});
+
+test('curd and dahi are plain, unsweetened yogurt and keep a stated fat level', () => {
+  for (const t of ['1 cup curd', '1 cup dahi', '200 g full fat curd']) {
+    const name = item(t).food.name;
+    assert.match(name, /whole milk/i, t);
+    assert.match(name, /plain/i, t);
+    assert.doesNotMatch(name, /greek|NFS|fruit|sweet/i, `${t}: not Greek, sweetened or the all-yogurt average`);
+  }
+  assert.match(item('200 g low fat curd').food.name, /low fat.*plain|plain.*low fat/i);
+  assert.match(item('skim dahi').food.name, /nonfat.*plain|plain.*nonfat/i);
+  assert.ok(item('1 cup curd').nutrients.calories.amount < 200, 'plain curd, not the 230 kcal sweetened average');
+});
+
+test('a word found only in another name in parentheses does not match', () => {
+  assert.equal(searchFoods('poha').results.length, 0, 'poha (flattened rice) is not groundcherries');
+  assert.equal(logText('1 plate poha').items.length, 0);
+  for (const q of ['poha fruit', 'poha berries', 'cape gooseberries', 'groundcherries']) {
+    assert.match(searchFoods(q).results[0].name, /^Groundcherries/, q);
+  }
+  assert.match(searchFoods('skim milk').results.map((r) => r.name).join('|'), /Milk, fat free \(skim\)/, 'a word in the name itself still matches');
+});
+
+test('a plate or bowl is a cooked dish, never a dry, uncooked staple', () => {
+  const oats = item('1 bowl oats');
+  assert.match(oats.food.name, /prepared|cooked/i, 'cooked oats, not a bowl of raw oats');
+  assert.ok(oats.nutrients.calories.amount < 250);
+  for (const t of ['1 plate flour', '1 bowl dry lentils']) assert.equal(logText(t).items.length, 0, t);
+  const r = logText('1 bowl wheat flour');
+  assert.equal(r.items.length, 0, 'no cooked form: offered back, not logged');
+  assert.match(r.unmatched[0].note, /dry, uncooked/);
+  assert.ok(r.unmatched[0].suggestions.length > 0);
+  assert.equal(item('100 g oats').food.name, 'Oats, raw', 'a stated weight logs the dry food');
+  assert.match(item('1 bowl rice').food.name, /cooked/i, 'a cooked food is still logged');
+  assert.match(item('1 bowl oatmeal').food.name, /^Oatmeal/);
 });
 
 test('plain foods are preferred over prepared forms', () => {

@@ -82,7 +82,14 @@ setup is in [mcp/README.md](../mcp/README.md).
 - A bare everyday word means the everyday food: "tea" is hot black tea, "chai" is hot tea with milk (as drunk in
   India) and "salad" is a green salad, while "iced tea" or "chicken salad" get what they say. Search lists that food
   first and keeps the other matches.
-- Indian English words mean what they mean in India: "curd" and "dahi" are plain yogurt ("bean curd" is still tofu).
+- Indian English words mean what they mean in India: "curd" and "dahi" are plain, unsweetened whole-milk yogurt, and
+  keep a fat level when one is given ("low fat curd", "skim dahi"); "bean curd" is still tofu.
+- A food named only in another name in parentheses is not matched on one word of it: USDA's "Groundcherries,
+  (cape-gooseberries or poha), raw" is not "poha" (flattened rice), but "cape gooseberries" and "poha fruit" still find it.
+- A plate or bowl is a cooked dish, never a dry, uncooked grain, flour or pulse: when the best match is one, the next
+  match that names the phrase and isn't is used ("1 bowl oats" → oats prepared with water, "1 bowl masoor dal" → the
+  dal curry). With none ("1 bowl wheat flour"), the phrase is listed in `unmatched` with a `note` instead of being
+  logged at two to three times the dish's calories. A stated weight ("60 g oats") logs the dry food.
 - Search matches whole words first, then word prefixes ("chick"), then any one word, and says which in `match`
   (`all-words`, `prefix`, `any-word`). When logging, a `prefix` or `any-word` match is used only if the food shares
   more than half of the phrase's words; otherwise the phrase is listed in `unmatched` with `reason`

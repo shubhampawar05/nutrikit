@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { api, ApiError, sentence } from '../../api/client.ts';
-import { CALORIES, ROWS, amountText, labelTexts, valueText, type DemoResult, type LabelRow, type Totals } from './demo.ts';
+import { CALORIES, ROWS, amountText, labelTexts, sourceText, valueText, type DemoResult, type LabelRow, type Totals } from './demo.ts';
 
 const DEFAULT_TEXT = '2 eggs, toast with butter and an orange juice';
 const EXAMPLES = [
@@ -60,13 +60,19 @@ function Items({ view, onRespell }: { view: ItemsView; onRespell: (u: Unmatched)
   if (view.kind === 'limit') return <LimitMessage text={view.text} />;
   const { items, unmatched } = view.result;
   const respellable = unmatched.filter((u) => u.didYouMean);
-  const skipped = unmatched.filter((u) => !u.didYouMean);
-  const suggestions = respellable.map((u) => (
-    <p key={u.text} className="demo-empty demo-respell">
-      Did you mean <button type="button" onClick={() => onRespell(u)}>{u.didYouMean}</button>?
-    </p>
-  ));
-  if (!items.length) return suggestions.length ? <>{suggestions}</> : <p className="demo-empty">No foods recognised — try “a banana and a coffee”.</p>;
+  const plainSkips = unmatched.filter((u) => !u.didYouMean && !u.note);
+  const notes = (
+    <>
+      {respellable.map((u) => (
+        <p key={u.text} className="demo-empty demo-respell">
+          Did you mean <button type="button" onClick={() => onRespell(u)}>{u.didYouMean}</button>?
+        </p>
+      ))}
+      {unmatched.filter((u) => !u.didYouMean && u.note).map((u) => <p key={u.text} className="demo-empty">Skipped “{u.text}”: {u.note}.</p>)}
+      {plainSkips.length > 0 && <p className="demo-empty">Skipped: {plainSkips.map((u) => u.text).join(', ')}</p>}
+    </>
+  );
+  if (!items.length) return unmatched.length ? notes : <p className="demo-empty">No foods recognised — try “a banana and a coffee”.</p>;
   return (
     <>
       {items.map((i, n) => (
@@ -76,8 +82,7 @@ function Items({ view, onRespell }: { view: ItemsView; onRespell: (u: Unmatched)
           <span className="said">{amountText(i)}</span><span className="grams">{i.portionBasis ? `from ${i.portionBasis}` : ''}</span>
         </div>
       ))}
-      {suggestions}
-      {skipped.length > 0 && <p className="demo-empty">Skipped: {skipped.map((u) => u.text).join(', ')}</p>}
+      {notes}
     </>
   );
 }
@@ -185,7 +190,7 @@ export function Demo() {
         </div>
         <NutritionLabel totals={totals} count={count} changed={changed} />
       </div>
-      <div className="demo-foot"><span>{meta}</span><span>USDA FoodData Central</span></div>
+      <div className="demo-foot"><span>{meta}</span><span>{sourceText(view.kind === 'result' ? view.result.items : [])}</span></div>
     </div>
   );
 }

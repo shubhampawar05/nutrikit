@@ -62,7 +62,7 @@ describe('Home', () => {
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('2 slices of pizza and a diet coke');
     // No numbers from the previous meal next to the error.
     expect(screen.queryByText('Egg, whole, cooked')).toBeNull();
-    expect(document.querySelector('.nf-cal .tick')?.textContent).toBe('0');
+    expect(document.querySelector('.nf-cal .tick')?.textContent).toBe('—');
     expect(screen.getByText('0 foods · this meal')).toBeTruthy();
   });
 
@@ -76,7 +76,7 @@ describe('Home', () => {
     await screen.findByText('Egg, whole, cooked');
     fireEvent.click(screen.getByRole('button', { name: 'Log it' }));
     expect(await screen.findByText('The demo accepts up to 200 characters.')).toBeTruthy();
-    expect(document.querySelector('.nf-cal .tick')?.textContent).toBe('0');
+    expect(document.querySelector('.nf-cal .tick')?.textContent).toBe('—');
     expect(screen.getByText('0 foods · this meal')).toBeTruthy();
   });
 
@@ -124,6 +124,39 @@ describe('Home', () => {
     fireEvent.click(suggestion);
     await waitFor(() => expect(bodies[2]).toBe('2 eggs and 1 cup paneer'));
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('2 eggs and 1 cup paneer');
+  });
+
+  it('shows a dash for nutrients no food has, names each food\'s source, and never hides a skipped phrase', async () => {
+    const cofidOnly = {
+      items: [{ input: 'rajma', food: { id: 9, name: 'Curry, red kidney bean', source: 'cofid' }, quantity: 1, unit: 'serving', grams: 100, nutrients: { calories: { amount: 106, unit: 'kcal' } } }],
+      unmatched: [], totals: { calories: { amount: 106, unit: 'kcal', dailyValuePercent: 5 } },
+    };
+    const nothingLogged = {
+      items: [],
+      unmatched: [
+        { text: 'biriyani', didYouMean: 'biryani' },
+        { text: 'panner tikka' },
+        { text: '1 bowl oats', note: '"Oats, raw" is the dry, uncooked food and no cooked dish for it is in the catalog; give a weight to log the dry amount' },
+      ],
+      totals: {},
+    };
+    let calls = 0;
+    vi.stubGlobal('fetch', vi.fn((url: string) => {
+      if (url !== '/portal/api/demo') return Promise.resolve(json({}, 401));
+      calls++;
+      return Promise.resolve(json(calls === 1 ? cofidOnly : nothingLogged));
+    }));
+    renderPage(<Home />);
+    await screen.findByText('Curry, red kidney bean');
+    expect(screen.getByText('UK CoFID 2021')).toBeTruthy(); // not "USDA FoodData Central"
+    const cholesterol = [...document.querySelectorAll('.nf-row')].find((r) => r.textContent?.startsWith('Cholesterol'));
+    expect(cholesterol?.querySelector('.tick')?.textContent).toBe('—'); // unknown, not 0 mg
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'biriyani, panner tikka and 1 bowl oats' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Log it' }));
+    expect(await screen.findByRole('button', { name: 'biryani' })).toBeTruthy();
+    expect(screen.getByText('Skipped: panner tikka')).toBeTruthy();
+    expect(screen.getByText(/Skipped “1 bowl oats”: "Oats, raw" is the dry, uncooked food/)).toBeTruthy();
   });
 
   it('submits immediately and shows a busy, disabled button while a request runs', async () => {
