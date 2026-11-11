@@ -203,25 +203,25 @@ test('a USDA food named exactly what was searched comes before CoFID dishes', ()
   assert.equal(searchFoods('sambar').results[0].source, 'survey');
 });
 
-test('a katori is an ICMR-NIN standard volume weighed through the food\'s own density', () => {
+test('a katori is taken in cups and weighed through the food\'s own density', () => {
   const dal = item('1 katori dal');
   assert.equal(dal.unit, 'katori');
   assert.equal(dal.portionMethod, 'volume-conversion', 'USDA dal: 240 g per cup');
-  assert.equal(Math.round(dal.grams), Math.round(200 * 240 / 236.588), 'medium katori = 200 ml');
-  assert.match(dal.portionBasis, /medium katori \(200 ml, ICMR-NIN Dietary Guidelines 2024, Annexure I C7\)/);
-  assert.equal(Math.round(item('1 small katori dal').grams), Math.round(155 * 240 / 236.588), 'small = 155 ml (C8)');
+  assert.equal(Math.round(dal.grams), 240, 'medium katori = 1 cup');
+  assert.match(dal.portionBasis, /medium katori, taken as 1 cup \(236\.6 ml\)/);
+  assert.equal(Math.round(item('1 small katori dal').grams), 180, 'small = ¾ cup');
   assert.equal(Math.round(item('2 katoris dal').grams), Math.round(2 * dal.grams));
   assert.equal(Math.round(item('half katori dal').grams), Math.round(dal.grams / 2));
   const rice = item('1 large katori rice');
   assert.match(rice.food.name, /cooked/i);
-  assert.match(rice.portionBasis, /360 ml/);
+  assert.match(rice.portionBasis, /large katori, taken as 1½ cups \(354\.9 ml\)/);
   assert.ok(rice.grams > dal.grams / 2 && rice.grams < 300, 'cooked rice is lighter than dal per ml');
 });
 
 test('a katori of a food without density data says it is an estimate', () => {
   const rajma = item('1 katori rajma');
   assert.equal(rajma.portionMethod, 'density-estimate');
-  assert.equal(rajma.grams, 200);
+  assert.equal(Math.round(rajma.grams), 237);
 });
 
 test('a bowl without its own portion is a cup of the food, never one piece, and says so', () => {

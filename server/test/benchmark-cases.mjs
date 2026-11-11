@@ -85,11 +85,11 @@ export const CASES = [
   { input: 'skim dahi', food: /nonfat milk, plain/ },
   { input: '100 g bean curd', food: /^Tofu/ },
 
-  // Portions: katori (ICMR-NIN standard volumes) and bowl
-  { input: '1 katori dal', food: /^Dal$/, grams: [195, 210] },
-  { input: '1 small katori dal', food: /^Dal$/, grams: [150, 165] },
+  // Portions: katori (taken in cups) and bowl
+  { input: '1 katori dal', food: /^Dal$/, grams: [235, 245] },
+  { input: '1 small katori dal', food: /^Dal$/, grams: [175, 185] },
   { input: '1 large katori rice', food: /^Rice, cooked/, grams: [230, 250] },
-  { input: '1 katori curd', food: /^Yogurt, whole milk, plain/, grams: [195, 215] },
+  { input: '1 katori curd', food: /^Yogurt, whole milk, plain/, grams: [240, 250] },
   { input: '1 bowl dal', food: /^Dal$/, grams: [230, 250] },
   { input: '1 bowl chips', food: /chips/i, grams: [15, 40] },
   { input: '1 bowl oats', food: /oats.*(prepared|cooked)/i },

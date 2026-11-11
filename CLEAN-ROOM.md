@@ -24,19 +24,11 @@ designed and written independently. This file records what informed it.
   full set stays local. Only label values that pass consistency checks are kept. Open Food
   Facts' public API and data documentation were read for field meanings; the label checks use US label rounding
   rules (21 CFR 101.9(c)) and Atwater energy factors.
-- **ICMR-NIN Dietary Guidelines for Indians 2024** (nin.res.in), Annexure I (printed page 111): the volumes of its four
-  standard measuring katoris (360, 200, 155 and 115 ml), used as facts with a citation (`server/src/domain/utensils.ts`).
-  Nothing else from the publication is used. Its notice asks for written permission to reproduce its material
-  electronically in a product, so confirm with ICMR-NIN before relying on these values commercially.
 - **Dish-name aliases** (`server/data/aliases/cofid.json`): each maps a common Indian name to a CoFID dish and cites a
   public reference page that uses the name.
 - **Recipes:** the catalog build can compose dishes from USDA foods (`server/scripts/recipes.mjs`), but only from a
   recipe file that names its licensed source; none are shipped. Twenty hand-written recipes were briefly added and
   then removed, so that every value has a verifiable source.
-- **Indian Nutrient Databank (INDB)** (github.com/lindsayjaacks/Indian-Nutrient-Databank-INDB-): its method
-  (composing dishes from ingredients) was read, and its spreadsheets were analysed locally to judge whether a
-  licence would be worth asking for. Nothing from it is in this repository: it has no licence, and it is built on
-  the © ICMR-NIN Indian Food Composition Tables 2017 and two copyrighted cookbooks. IFCT 2017 itself was not used.
 
 ## Inputs deliberately not used
 
