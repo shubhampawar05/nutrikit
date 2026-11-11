@@ -52,7 +52,7 @@ export interface Plan {
 export const PLAYGROUND_KEY_STORE = 'nk-playground-key';
 
 export interface AccountView {
-  account: { id: string; name: string; email: string; createdAt: string };
+  account: { id: string; name: string; email: string; emailVerified?: boolean; createdAt: string };
   /** expiresAt: when a paid 30-day period ends (null = no end). */
   plan: Plan & { id: string; expiresAt: string | null };
   usage: { periodStart: string; used: number; remaining: number | null };
@@ -108,6 +108,10 @@ export const api = {
   signup: (body: { name: string; email: string; password: string }) => portal<AccountView & { firstKey: NewKey }>('POST', '/signup', body),
   login: (body: { email: string; password: string }) => portal<AccountView>('POST', '/login', body),
   logout: () => portal<{ ok: true }>('POST', '/logout'),
+  forgotPassword: (email: string) => portal<{ ok: true }>('POST', '/password/forgot', { email }),
+  resetPassword: (token: string, password: string) => portal<AccountView>('POST', '/password/reset', { token, password }),
+  verifyEmail: (token: string) => portal<{ verified: true; email: string }>('POST', '/email/verify', { token }),
+  sendVerification: () => portal<{ sent: true } | { verified: true }>('POST', '/email/verification'),
   keys: () => portal<{ keys: KeySummary[] }>('GET', '/keys'),
   createKey: (name: string) => portal<NewKey>('POST', '/keys', { name }),
   revokeKey: (id: string) => portal<{ revoked: string }>('DELETE', `/keys/${id}`),

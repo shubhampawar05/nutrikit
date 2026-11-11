@@ -38,3 +38,11 @@ services:
         sync: false
       - key: RAZORPAY_WEBHOOK_SECRET
         sync: false
+      # Verification and password-reset emails, over HTTPS (Render's free plan blocks SMTP ports). Set BREVO_API_KEY
+      # (free, a verified sender address, no domain) or RESEND_API_KEY (a verified domain), plus NUTRIKIT_MAIL_FROM.
+      - key: BREVO_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: NUTRIKIT_MAIL_FROM
+        sync: false

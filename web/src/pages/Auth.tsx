@@ -9,7 +9,7 @@ import { useMe } from '../hooks.ts';
 type Mode = 'signup' | 'login';
 interface AuthFields { name: string; email: string; password: string }
 const FIELD_ORDER: (keyof AuthFields)[] = ['name', 'email', 'password'];
-const PASSWORD_RULE = 'At least 10 characters.';
+export const PASSWORD_RULE = 'At least 10 characters.';
 const LOG_IN_INSTEAD = 'log in instead';
 
 /** Where to go after signing in: `?next=` when it is a same-site path, else the dashboard. */
@@ -28,7 +28,7 @@ export function waitText(seconds: number | undefined): string {
 }
 
 /** An auth page path that keeps the visitor's `?next=` (and, for login, the email they typed). */
-export function authPath(path: '/login' | '/signup', next: string | null, email?: string): string {
+export function authPath(path: '/login' | '/signup' | '/forgot-password', next: string | null, email?: string): string {
   const q = new URLSearchParams();
   if (email) q.set('email', email);
   if (next) q.set('next', next);
@@ -155,6 +155,7 @@ function AuthForm({ mode }: { mode: Mode }) {
               <input id="password" type="password" autoComplete={isLogin ? 'current-password' : 'new-password'} minLength={10} required {...fieldProps('password')} />
               <div className="error" id="password-error">{errorContent('password')}</div>
               {showRule && <span className="small muted" id="password-rule">{PASSWORD_RULE}</span>}
+              {isLogin && <Link className="small" to={authPath('/forgot-password', next, getValues('email'))}>Forgot password?</Link>}
             </div>
             <button className="btn btn-primary" type="submit" style={{ width: '100%' }} disabled={isSubmitting}>
               {isLogin ? 'Log in' : 'Create account'}

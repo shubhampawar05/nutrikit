@@ -5,6 +5,7 @@ import * as auth from '../domain/auth.ts';
 import * as accounts from '../domain/accounts.ts';
 import * as billing from '../domain/billing.ts';
 import { logText } from '../domain/textlog.ts';
+import { publicOrigin } from './spa.ts';
 
 const SESSION_COOKIE = 'nk_session';
 
@@ -40,7 +41,7 @@ export async function portalRoutes(app: FastifyInstance) {
     const plan = account.planDetails;
     const used = await auth.accountUsedThisMonth(sql, account.id);
     return {
-      account: { id: account.id, name: account.name, email: account.email, createdAt: account.createdAt },
+      account: { id: account.id, name: account.name, email: account.email, emailVerified: account.emailVerified, createdAt: account.createdAt },
       plan: { id: account.plan, ...(accounts.publicPlans()[account.plan] ?? { ...plan, rank: 0 }), expiresAt: account.planExpiresAt },
       usage: { periodStart: auth.monthStart(), used, remaining: plan.monthlyTokens == null ? null : Math.max(plan.monthlyTokens - used, 0) },
     };
@@ -91,9 +92,33 @@ export async function portalRoutes(app: FastifyInstance) {
     const account = await accounts.createAccount(sql, jsonBody(req) as { name: string; email: string; password: string }, { ip: req.ip });
     const key = await auth.createKey(sql, { name: 'Default key', accountId: account.id });
     const session = await accounts.createSession(sql, account.id);
+    // A mail outage never fails a signup: the dashboard offers to send the link again.
+    await accounts.sendVerification(sql, account, publicOrigin(req), { ip: req.ip })
+      .catch((err: Error) => req.log.error({ err: err.message }, 'verification email not sent'));
     reply.status(201).header('Set-Cookie', sessionCookie(session.token, session.expires));
     return { ...(await accountView(account)), firstKey: { id: key.id, name: key.name, key: key.key } };
   });
+
+  // Forgotten password: the same answer whether or not the address has an account.
+  app.post('/portal/api/password/forgot', open, async (req) => {
+    await accounts.requestPasswordReset(sql, jsonBody(req).email, publicOrigin(req), { ip: req.ip })
+      .catch((err: Error & { status?: number }) => {
+        if (err.status) throw err; // invalid address or too many requests from this network
+        req.log.error({ err: err.message }, 'password reset email not sent');
+      });
+    return { ok: true };
+  });
+
+  // A reset link sets a new password, ends every other session and signs the user in.
+  app.post('/portal/api/password/reset', open, async (req, reply) => {
+    const body = jsonBody(req);
+    const account = await accounts.resetPassword(sql, body.token, body.password);
+    const session = await accounts.createSession(sql, account.id);
+    reply.header('Set-Cookie', sessionCookie(session.token, session.expires));
+    return accountView(account);
+  });
+
+  app.post('/portal/api/email/verify', open, async (req) => ({ verified: true, ...(await accounts.verifyEmail(sql, jsonBody(req).token)) }));
 
   app.post('/portal/api/login', open, async (req, reply) => {
     const account = await accounts.login(sql, jsonBody(req) as { email: string; password: string }, { ip: req.ip });
@@ -106,6 +131,17 @@ export async function portalRoutes(app: FastifyInstance) {
     await accounts.endSession(sql, cookies(req)[SESSION_COOKIE]);
     reply.header('Set-Cookie', sessionCookie(null));
     return { ok: true };
+  });
+
+  app.post('/portal/api/email/verification', signedIn, async (req) => {
+    if (req.account.emailVerified) return { verified: true };
+    const result = await accounts.sendVerification(sql, req.account, publicOrigin(req), { ip: req.ip }).catch((err: Error & { status?: number }) => {
+      if (err.status) throw err;
+      req.log.error({ err: err.message }, 'verification email not sent');
+      throw new HttpError(503, 'email_unavailable', 'the email could not be sent; try again later');
+    });
+    if (result.retryAfter) throw new HttpError(429, 'too_many_emails', 'a link was sent recently; check your inbox or try again later', { retryAfter: result.retryAfter });
+    return { sent: true };
   });
 
   app.get('/portal/api/me', signedIn, async (req) => ({ ...(await accountView(req.account)), plans: accounts.publicPlans(), billing: billing.billingInfo() }));

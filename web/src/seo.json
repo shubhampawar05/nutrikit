@@ -48,6 +48,21 @@
       "description": "Log in to your Nutrikit developer dashboard to manage API keys and usage.",
       "index": false
     },
+    "/forgot-password": {
+      "title": "Reset your password — Nutrikit",
+      "description": "Get a link to choose a new password for your Nutrikit account.",
+      "index": false
+    },
+    "/reset-password": {
+      "title": "Choose a new password — Nutrikit",
+      "description": "Set a new password for your Nutrikit account.",
+      "index": false
+    },
+    "/verify-email": {
+      "title": "Confirm your email — Nutrikit",
+      "description": "Confirm the email address of your Nutrikit account.",
+      "index": false
+    },
     "/dashboard": {
       "title": "Dashboard — Nutrikit",
       "description": "Manage your Nutrikit API keys, usage and plan.",
