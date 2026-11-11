@@ -14,5 +14,10 @@
   { "alias": "medu vada", "name": "Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada)", "reference": "https://en.wikipedia.org/wiki/Medu_vada" },
   { "alias": "medu vadai", "name": "Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada)", "reference": "https://en.wikipedia.org/wiki/Medu_vada" },
   { "alias": "nimbu pani", "name": "Lemonade", "reference": "https://en.wikipedia.org/wiki/Lemonade" },
-  { "alias": "shikanji", "name": "Lemonade", "reference": "https://en.wikipedia.org/wiki/Lemonade" }
+  { "alias": "shikanji", "name": "Lemonade", "reference": "https://en.wikipedia.org/wiki/Lemonade" },
+  { "alias": "kadai paneer", "name": "Kadhai Paneer", "reference": "https://en.wikipedia.org/wiki/Kadai_paneer" },
+  { "alias": "karahi paneer", "name": "Kadhai Paneer", "reference": "https://en.wikipedia.org/wiki/Kadai_paneer" },
+  { "alias": "kadhai paneer", "name": "Kadhai Paneer", "reference": "https://en.wikipedia.org/wiki/Kadai_paneer" },
+  { "alias": "malai kofta", "name": "Paneer kofta curry", "reference": "https://en.wikipedia.org/wiki/Malai_kofta" },
+  { "alias": "paneer kofta", "name": "Paneer kofta curry", "reference": "https://en.wikipedia.org/wiki/Malai_kofta" }
 ]

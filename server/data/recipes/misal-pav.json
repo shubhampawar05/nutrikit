@@ -1,0 +1,139 @@
+{
+  "id": 900000031,
+  "name": "Misal pav (spiced sprout curry with farsan and pav)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/misal-pav-recipe/"
+  },
+  "aliases": [
+    "misal pav",
+    "misal",
+    "misal paav",
+    "puneri misal"
+  ],
+  "notes": "Serves 4. Mixed sprouts taken as mung bean sprouts, goda masala as curry powder, jaggery as brown sugar, farsan as USDA snack mix. Assumed: 40 g per pav, 15% of the simmering water boils off.",
+  "ingredients": [
+    {
+      "fdcId": 169957,
+      "food": "Mung beans, mature seeds, sprouted, raw",
+      "grams": 250
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 48
+    },
+    {
+      "fdcId": 170929,
+      "food": "Spices, mustard seed, ground",
+      "grams": 2.5
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1.6
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 160
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 10
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 8
+    },
+    {
+      "fdcId": 170170,
+      "food": "Nuts, coconut meat, dried (desiccated), not sweetened",
+      "grams": 10
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 135
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 3
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 11
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.8
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 3.3
+    },
+    {
+      "fdcId": 170924,
+      "food": "Spices, curry powder",
+      "grams": 18
+    },
+    {
+      "fdcId": 168833,
+      "food": "Sugars, brown",
+      "grams": 12
+    },
+    {
+      "fdcId": 167763,
+      "food": "Tamarinds, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 2707654,
+      "food": "Roll, white, soft",
+      "grams": 320
+    },
+    {
+      "fdcId": 2710154,
+      "food": "Butter, NFS",
+      "grams": 28
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 40
+    },
+    {
+      "fdcId": 2709181,
+      "food": "Lemon juice, 100%, freshly squeezed",
+      "grams": 30
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 2
+    },
+    {
+      "fdcId": 2708213,
+      "food": "Snack mix",
+      "grams": 50
+    }
+  ],
+  "water": 1065,
+  "cookedGrams": 1881,
+  "portions": [
+    {
+      "label": "1 plate (with 2 pav)",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 470
+    }
+  ]
+}

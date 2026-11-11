@@ -1,0 +1,132 @@
+{
+  "id": 900000033,
+  "name": "Chicken 65 (spicy deep-fried chicken)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/chicken-65-recipe/"
+  },
+  "aliases": [
+    "chicken 65",
+    "chicken sixty five"
+  ],
+  "notes": "Serves 4, made with boneless chicken breast. Kashmiri chili powder taken as paprika, garam masala as curry powder. Assumed: 60 g of the 1½ cups frying oil absorbed (about 8% of the coated chicken), 25% weight lost in frying.",
+  "ingredients": [
+    {
+      "fdcId": 2646170,
+      "food": "Chicken, breast, boneless, skinless, raw",
+      "grams": 600
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 7.5
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 7.5
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 2
+    },
+    {
+      "fdcId": 171329,
+      "food": "Spices, paprika",
+      "grams": 4
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.8
+    },
+    {
+      "fdcId": 170924,
+      "food": "Spices, curry powder",
+      "grams": 2
+    },
+    {
+      "fdcId": 171284,
+      "food": "Yogurt, plain, whole milk",
+      "grams": 60
+    },
+    {
+      "fdcId": 2709181,
+      "food": "Lemon juice, 100%, freshly squeezed",
+      "grams": 5
+    },
+    {
+      "fdcId": 169698,
+      "food": "Cornstarch",
+      "grams": 32
+    },
+    {
+      "fdcId": 169714,
+      "food": "Rice flour, white, unenriched",
+      "grams": 20
+    },
+    {
+      "fdcId": 172183,
+      "food": "Egg, white, raw, fresh",
+      "grams": 33
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 60
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 27
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 20
+    },
+    {
+      "fdcId": 171329,
+      "food": "Spices, paprika",
+      "grams": 5
+    },
+    {
+      "fdcId": 2710258,
+      "food": "Sugar, white, granulated or lump",
+      "grams": 2
+    },
+    {
+      "fdcId": 2709181,
+      "food": "Lemon juice, 100%, freshly squeezed",
+      "grams": 5
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 1.5
+    },
+    {
+      "fdcId": 170931,
+      "food": "Spices, pepper, black",
+      "grams": 1.2
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 25
+    }
+  ],
+  "water": 30,
+  "cookedGrams": 713,
+  "portions": [
+    {
+      "label": "1 serving",
+      "amount": 1,
+      "unit": "serving",
+      "grams": 178
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "id": 900000030,
+  "name": "Vada pav (potato fritter in a bun with chutneys)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/vada-pav-recipe/"
+  },
+  "aliases": [
+    "vada pav",
+    "wada pav",
+    "vada paav",
+    "batata vada pav"
+  ],
+  "notes": "Makes 8. Midpoints taken for ranges; optional tamarind chutney and peanuts left out. Assumed: 100 g water for the batter, 55 g frying oil absorbed by the vadas (about 10% of their weight), 40 g per pav, 10% weight lost in frying.",
+  "ingredients": [
+    {
+      "fdcId": 170440,
+      "food": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "grams": 350
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 12
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 6
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 7
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 14
+    },
+    {
+      "fdcId": 170929,
+      "food": "Spices, mustard seed, ground",
+      "grams": 1.2
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.8
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 3.8
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 3
+    },
+    {
+      "fdcId": 174288,
+      "food": "Chickpea flour (besan)",
+      "grams": 69
+    },
+    {
+      "fdcId": 169714,
+      "food": "Rice flour, white, unenriched",
+      "grams": 25
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 1.5
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 55
+    },
+    {
+      "fdcId": 2707654,
+      "food": "Roll, white, soft",
+      "grams": 320
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 20
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 4
+    },
+    {
+      "fdcId": 2709181,
+      "food": "Lemon juice, 100%, freshly squeezed",
+      "grams": 7
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 1.5
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 10
+    },
+    {
+      "fdcId": 170170,
+      "food": "Nuts, coconut meat, dried (desiccated), not sweetened",
+      "grams": 60
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 21
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 4
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 2
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 32
+    }
+  ],
+  "water": 100,
+  "cookedGrams": 1018,
+  "portions": [
+    {
+      "label": "1 vada pav",
+      "amount": 1,
+      "unit": "piece",
+      "grams": 127
+    }
+  ]
+}
