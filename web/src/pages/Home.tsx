@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon.tsx';
 import { Demo } from './home/Demo.tsx';
 import { CodeSamples } from './home/CodeSamples.tsx';
 import { BARCODE_BITS } from './home/demo.ts';
+import { PAYMENTS_VISIBLE } from '../features.ts';
 
 export function Home() {
   return (
@@ -139,10 +140,10 @@ export function Home() {
 
       <section className="wrap closing">
         <h2>Ship the nutrition feature <em>this week</em>.</h2>
-        <p className="lead" style={{ margin: '0 auto 28px' }}>Free plan, no card. Upgrade only when your users show up.</p>
+        <p className="lead" style={{ margin: '0 auto 28px' }}>{PAYMENTS_VISIBLE ? 'Free plan, no card. Upgrade only when your users show up.' : 'Free plan, no card.'}</p>
         <div className="cta-row">
           <Link className="btn btn-primary" to="/signup">Create your free account <span className="arrow">→</span></Link>
-          <Link className="btn btn-ghost" to="/pricing">See pricing</Link>
+          {PAYMENTS_VISIBLE ? <Link className="btn btn-ghost" to="/pricing">See pricing</Link> : null}
         </div>
       </section>
     </main>

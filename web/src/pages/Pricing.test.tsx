@@ -3,6 +3,9 @@ import { screen } from '@testing-library/react';
 import { renderPage } from '../test-utils.tsx';
 import { Pricing } from './Pricing.tsx';
 
+// These tests cover the paid-plan screens, which features.ts can hide; they run with payments shown.
+vi.mock('../features.ts', () => ({ PAYMENTS_VISIBLE: true }));
+
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 const plans = {

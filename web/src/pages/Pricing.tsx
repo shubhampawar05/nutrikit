@@ -1,5 +1,6 @@
 // Public pricing page: the server's plans (GET /portal/api/plans), per-endpoint token costs and FAQ.
-import { Link } from 'react-router';
+import { Link, Navigate } from 'react-router';
+import { PAYMENTS_VISIBLE } from '../features.ts';
 import { useQuery } from '@tanstack/react-query';
 import { api, errorText, fmt, fmtPrice, type Plan } from '../api/client.ts';
 import { useMe } from '../hooks.ts';
@@ -61,6 +62,7 @@ function Plans() {
 }
 
 export function Pricing() {
+  if (!PAYMENTS_VISIBLE) return <Navigate to="/" replace />;
   return (
     <main className="wrap">
       <section>

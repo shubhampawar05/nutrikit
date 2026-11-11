@@ -19,12 +19,12 @@ const head = () => ({
 
 describe('page metadata', () => {
   it('applies the title, description, canonical URL and robots rule for the route', async () => {
-    await act(async () => { renderPage(<Routes><Route path="*" element={<Head />} /></Routes>, { path: '/pricing/' }); });
+    await act(async () => { renderPage(<Routes><Route path="*" element={<Head />} /></Routes>, { path: '/docs/' }); });
     expect(head()).toEqual({
-      title: 'Pricing — Nutrikit Nutrition API',
-      description: seo.pages['/pricing'].description,
+      title: 'Documentation — Nutrikit Nutrition API',
+      description: seo.pages['/docs'].description,
       robots: 'index, follow',
-      canonical: `${location.origin}/pricing`,
+      canonical: `${location.origin}/docs`,
     });
   });
 

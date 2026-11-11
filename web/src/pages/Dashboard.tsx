@@ -7,6 +7,7 @@ import { api, ApiError, errorText, fmt, fmtDate, fmtPeriodDate, fmtPrice, PLAYGR
 import { payWithRazorpay } from '../api/razorpay.ts';
 import { useMe } from '../hooks.ts';
 import { waitText } from './Auth.tsx';
+import { PAYMENTS_VISIBLE } from '../features.ts';
 import { useToast } from '../components/Toast.tsx';
 import { CodeBlock } from '../components/CodeBlock.tsx';
 import { UsageChart } from './dashboard/UsageChart.tsx';
@@ -228,7 +229,7 @@ function PlanCard({ me, status, setStatus }: { me: Me; status: string; setStatus
   return (
     <section className="card">
       <h2 style={{ margin: '0 0 12px' }}>Plan</h2>
-      <p style={{ margin: 0 }}><b>{me.plan.name + (current ? ` — ${fmtPrice(current, me.plan.currency)} / 30 days` : current === 0 ? ` — ${fmtPrice(0, me.plan.currency)}` : '')}</b></p>
+      <p style={{ margin: 0 }}><b>{me.plan.name + (!PAYMENTS_VISIBLE ? '' : current ? ` — ${fmtPrice(current, me.plan.currency)} / 30 days` : current === 0 ? ` — ${fmtPrice(0, me.plan.currency)}` : '')}</b></p>
       {paidUntil ? <p className="small muted" style={{ margin: '4px 0 0' }}>Paid until {fmtPeriodDate(paidUntil)} · then the Free plan, unless you extend it.</p> : null}
       <ul className="muted small" style={{ paddingLeft: 18 }}>
         <li>{me.plan.monthlyTokens == null ? 'Custom monthly tokens' : `${fmt(me.plan.monthlyTokens)} tokens / month`}</li>
@@ -241,7 +242,7 @@ function PlanCard({ me, status, setStatus }: { me: Me; status: string; setStatus
           {' '}Payment id <code>{unconfirmed}</code>. If it hasn't switched on by then, contact support with this id.
         </div>
       ) : null}
-      {firstOpen == null ? (
+      {!PAYMENTS_VISIBLE ? null : firstOpen == null ? (
         <p className="small muted" style={{ margin: 0 }}>You're on our highest plan. To change it, contact us.</p>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>

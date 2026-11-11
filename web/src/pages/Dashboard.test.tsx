@@ -7,6 +7,9 @@ import { ToastProvider } from '../components/Toast.tsx';
 import { Dashboard } from './Dashboard.tsx';
 import type { KeySummary, Me } from '../api/client.ts';
 
+// These tests cover the paid-plan screens, which features.ts can hide; they run with payments shown.
+vi.mock('../features.ts', () => ({ PAYMENTS_VISIBLE: true }));
+
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
