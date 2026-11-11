@@ -3,5 +3,16 @@
   { "alias": "murgh makhani", "name": "Butter chicken", "reference": "https://en.wikipedia.org/wiki/Butter_chicken" },
   { "alias": "butter chicken", "name": "Butter chicken", "reference": "https://en.wikipedia.org/wiki/Butter_chicken" },
   { "alias": "rasgulla", "name": "Rasgulla", "reference": "https://en.wikipedia.org/wiki/Rasgulla" },
-  { "alias": "rasgola", "name": "Rasgulla", "reference": "https://en.wikipedia.org/wiki/Rasgulla" }
+  { "alias": "rasgola", "name": "Rasgulla", "reference": "https://en.wikipedia.org/wiki/Rasgulla" },
+  { "alias": "baingan bharta", "name": "Brinjal bhartha (Baingan ka bhartha)", "reference": "https://en.wikipedia.org/wiki/Baingan_bharta" },
+  { "alias": "baingan bhartha", "name": "Brinjal bhartha (Baingan ka bhartha)", "reference": "https://en.wikipedia.org/wiki/Baingan_bharta" },
+  { "alias": "bharta", "name": "Brinjal bhartha (Baingan ka bhartha)", "reference": "https://en.wikipedia.org/wiki/Baingan_bharta" },
+  { "alias": "egg bhurji", "name": "Scrambled egg (Ande ki bhurji)", "reference": "https://en.wikipedia.org/wiki/Egg_bhurji" },
+  { "alias": "anda bhurji", "name": "Scrambled egg (Ande ki bhurji)", "reference": "https://en.wikipedia.org/wiki/Egg_bhurji" },
+  { "alias": "fish fry", "name": "Fried fish (Indian style) (Tali hui machli)", "reference": "https://en.wikipedia.org/wiki/Fried_fish" },
+  { "alias": "machli fry", "name": "Fried fish (Indian style) (Tali hui machli)", "reference": "https://en.wikipedia.org/wiki/Fried_fish" },
+  { "alias": "medu vada", "name": "Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada)", "reference": "https://en.wikipedia.org/wiki/Medu_vada" },
+  { "alias": "medu vadai", "name": "Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada)", "reference": "https://en.wikipedia.org/wiki/Medu_vada" },
+  { "alias": "nimbu pani", "name": "Lemonade", "reference": "https://en.wikipedia.org/wiki/Lemonade" },
+  { "alias": "shikanji", "name": "Lemonade", "reference": "https://en.wikipedia.org/wiki/Lemonade" }
 ]

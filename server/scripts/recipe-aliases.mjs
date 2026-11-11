@@ -11,9 +11,9 @@ export function recipeAliases(entries, foodsByName) {
     if (!food) throw new Error(`${label}: no recipe named "${e.name}" in the catalog`);
     if (seen.has(alias)) throw new Error(`${label}: used for more than one food`);
     seen.add(alias);
-    const prior = Array.isArray(food.aliases)
-      ? food.aliases
-      : food.aliases?.split('|').filter(Boolean) ?? [];
+    // Several aliases can name one food: build on the ones already added here, not just the food's own.
+    const prior = out.get(food.id)
+      ?? (Array.isArray(food.aliases) ? food.aliases : food.aliases?.split('|').filter(Boolean) ?? []);
     const merged = [...new Set([...prior, alias])];
     out.set(food.id, merged);
   }
