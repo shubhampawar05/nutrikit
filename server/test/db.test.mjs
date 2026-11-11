@@ -22,11 +22,12 @@ test('migrations read sslmode=require the libpq way (encrypt, do not verify)', a
   assert.equal(migrationConnection('postgres://u:p@localhost:5433/nutrikit'), 'postgres://u:p@localhost:5433/nutrikit');
 });
 
-test('migration 003 goes down and up again, and backfills allowance counters from usage history', async () => {
+test('migrations 004 and 003 go down and up again, and 003 backfills allowance counters from usage history', async () => {
   const { migrate } = await import('../src/pg.ts');
-  await migrate(process.env.DATABASE_URL, 'down', 1);
-  const [{ exists }] = await sql`SELECT to_regclass('usage_periods') IS NOT NULL AS exists`;
+  await migrate(process.env.DATABASE_URL, 'down', 2); // 004 (email tokens), then 003
+  const [{ exists, tokens }] = await sql`SELECT to_regclass('usage_periods') IS NOT NULL AS exists, to_regclass('email_tokens') IS NOT NULL AS tokens`;
   assert.equal(exists, false);
+  assert.equal(tokens, false);
 
   await sql`INSERT INTO accounts (id, email, name, password_hash) VALUES ('acct_backfill', 'backfill@example.com', 'Backfill', 'x')`;
   await sql`INSERT INTO usage (key_id, account_id, endpoint, tokens, at) VALUES
@@ -44,4 +45,9 @@ test('migration 003 goes down and up again, and backfills allowance counters fro
   assert.equal(rows.filter((r) => r.subject === 'key:key_op').length, 2, 'earlier months get their own rows');
   const [{ cols }] = await sql`SELECT COUNT(*) AS cols FROM information_schema.columns WHERE table_name = 'login_failures' AND column_name = 'ip'`;
   assert.equal(cols, 1);
+  const [{ verified, back }] = await sql`
+    SELECT (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'accounts' AND column_name = 'email_verified_at') AS verified,
+           to_regclass('email_tokens') IS NOT NULL AS back`;
+  assert.equal(verified, 1);
+  assert.equal(back, true);
 });

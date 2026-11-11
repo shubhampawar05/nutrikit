@@ -10,6 +10,7 @@ Besides the API, the server hosts everything other developers need to sign up an
 | `/pricing` | Plans and token costs |
 | `/docs`, `/docs/reference` | Guides and the live API reference |
 | `/signup`, `/login` | Accounts. New accounts start on Free |
+| `/forgot-password`, `/reset-password`, `/verify-email` | Password reset and email confirmation, reached from links in emails |
 | `/dashboard` | Keys, usage charts, upgrades |
 | `/playground` | Try any endpoint in the browser |
 | `/admin` | Operator console (not linked from the site) |
@@ -87,6 +88,11 @@ curl -X POST https://<host>/v1/admin/accounts/acct_…/plan \
 - Portal writes require the `X-Nutrikit-Portal` header (CSRF), and no cross-origin requests are accepted.
 - Failed logins limited to 5 per 15 minutes per email and 20 per client address, across all instances.
 - Signups limited to 5 per hour per client address (`NUTRIKIT_SIGNUP_LIMIT`).
+- Email verification and password reset use one-time links stored only as SHA-256 hashes. A reset link works once,
+  for 1 hour, ends every other session and counts as verifying the address; a verification link works for 7 days.
+  A new link replaces the account's earlier one. "Forgot password" answers the same whether or not an account
+  exists. Emails are capped per address (3 an hour of each kind) and per client address (10 an hour).
+- Verification is not required to use the API yet: the dashboard asks unverified accounts to confirm.
 - Client addresses come from `X-Forwarded-For` only through trusted proxies (`NUTRIKIT_TRUST_PROXY`).
 - Allowances are reserved atomically, so parallel requests can't overspend.
 - Every response: `nosniff`, `Referrer-Policy`, `X-Request-Id`, and HSTS with secure cookies. Pages: a Content
@@ -100,4 +106,5 @@ curl -X POST https://<host>/v1/admin/accounts/acct_…/plan \
 - [ ] Set a fixed `NUTRIKIT_TOKEN_SECRET`
 - [ ] Replace the placeholder plans and prices
 - [ ] Switch Razorpay to live keys and add the webhook
-- [ ] Still to build: email verification, password reset, auto-renewing subscriptions, invoices/GST, self-serve plan changes
+- [ ] Set `BREVO_API_KEY` (free, a verified sender address) or `RESEND_API_KEY` (a verified domain), `NUTRIKIT_MAIL_FROM`, and `NUTRIKIT_PUBLIC_URL`, so verification and reset emails are sent with the right links
+- [ ] Still to build: auto-renewing subscriptions, invoices/GST, self-serve plan changes

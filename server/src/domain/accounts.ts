@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { promisify } from 'node:util';
 import type { Sql, TransactionSql } from 'postgres';
 import { lookup } from './lookup.ts';
+import { mailer } from './mail.ts';
 
 export interface Plan {
   name: string;
@@ -22,6 +23,8 @@ export interface Account {
   /** When the paid period ends; null = no end (Free, or a plan set by an operator). */
   planExpiresAt: Date | null;
   planDetails: Plan;
+  /** The account's email has been confirmed through a link (verification, or a password reset). */
+  emailVerified: boolean;
 }
 
 /** Signup/login input as received (unvalidated request body fields). */
@@ -171,7 +174,8 @@ export const effectivePlan = (sql: Sql | TransactionSql, table = 'accounts') =>
 export async function getAccount(sql: Sql, id: string): Promise<Account | null> {
   const [row] = await sql<Omit<Account, 'planDetails'>[]>`
     SELECT id, email, name, ${effectivePlan(sql)} AS plan, created_at AS "createdAt",
-           CASE WHEN plan_expires_at > now() THEN plan_expires_at END AS "planExpiresAt"
+           CASE WHEN plan_expires_at > now() THEN plan_expires_at END AS "planExpiresAt",
+           email_verified_at IS NOT NULL AS "emailVerified"
     FROM accounts WHERE id = ${id}`;
   return row ? { ...row, planDetails: PLANS[row.plan] || PLANS.free } : null;
 }
@@ -197,6 +201,132 @@ export async function sessionAccount(sql: Sql, token: string | null | undefined)
 
 export async function endSession(sql: Sql, token: string | null | undefined): Promise<void> {
   if (token) await sql`DELETE FROM sessions WHERE id_hash = ${hashId(token)}`;
+}
+
+// ---- Email verification and password reset ----
+// Links carry a random token; only its SHA-256 is stored. A new link replaces the account's earlier unused link of
+// the same kind. Sends are throttled per address (silently for forgotten passwords, so the answer never shows whether
+// an account exists) and per client address.
+const VERIFY_DAYS = 7;
+const RESET_MINUTES = 60;
+const EMAIL_SENDS_PER_HOUR = () => Number(process.env.NUTRIKIT_EMAIL_LIMIT) || 3;
+const EMAIL_IP_SENDS_PER_HOUR = () => Number(process.env.NUTRIKIT_EMAIL_IP_LIMIT) || 10;
+
+const invalidLink = () => fail(400, 'invalid_token', 'this link has expired or was already used');
+
+/** Over the per-address limit -> retry-after seconds; over the per-network limit -> throws 429. */
+async function emailThrottle(sql: Sql, email: string, purpose: string, ip?: string): Promise<number | null> {
+  await sql`DELETE FROM email_sends WHERE at < now() - interval '1 day'`;
+  const [{ byEmail, byIp, oldest }] = await sql<{ byEmail: number; byIp: number; oldest: Date | null }[]>`
+    SELECT COUNT(*) FILTER (WHERE email = ${email} AND purpose = ${purpose}) AS "byEmail",
+           COUNT(*) FILTER (WHERE ${ip ?? null}::inet IS NOT NULL AND ip = ${ip ?? null}::inet) AS "byIp",
+           MIN(at) FILTER (WHERE email = ${email} AND purpose = ${purpose}) AS oldest
+    FROM email_sends WHERE at > now() - interval '1 hour'`;
+  if (byIp >= EMAIL_IP_SENDS_PER_HOUR()) {
+    throw Object.assign(fail(429, 'too_many_emails', 'too many emails requested from your network; try again later'), { retryAfter: 3600 });
+  }
+  if (byEmail >= EMAIL_SENDS_PER_HOUR()) return oldest ? Math.max(1, Math.ceil((oldest.getTime() + 3600e3 - Date.now()) / 1000)) : 3600;
+  return null;
+}
+
+async function issueEmailToken(sql: Sql, accountId: string, email: string, purpose: 'verify' | 'reset', ip?: string): Promise<string> {
+  const token = crypto.randomBytes(32).toString('base64url');
+  const expires = new Date(Date.now() + (purpose === 'verify' ? VERIFY_DAYS * 864e5 : RESET_MINUTES * 6e4));
+  await sql.begin(async (tx) => {
+    await tx`DELETE FROM email_tokens WHERE account_id = ${accountId} AND purpose = ${purpose} AND used_at IS NULL`;
+    await tx`INSERT INTO email_tokens (id_hash, account_id, purpose, email, expires_at) VALUES (${hashId(token)}, ${accountId}, ${purpose}, ${email}, ${expires})`;
+    await tx`INSERT INTO email_sends (email, ip, purpose) VALUES (${email}, ${ip ?? null}, ${purpose})`;
+  });
+  return token;
+}
+
+/**
+ * Email a link that confirms the account's address. `origin` is the site's public origin. Returns `retryAfter` when
+ * this address was sent too many links in the last hour (nothing is sent), and does nothing for a verified account.
+ */
+export async function sendVerification(sql: Sql, account: Account, origin: string, { ip }: Origin = {}): Promise<{ sent: boolean; retryAfter?: number }> {
+  if (account.emailVerified) return { sent: false };
+  const retryAfter = await emailThrottle(sql, account.email, 'verify', ip);
+  if (retryAfter) return { sent: false, retryAfter };
+  const token = await issueEmailToken(sql, account.id, account.email, 'verify', ip);
+  await mailer().send({
+    to: account.email,
+    subject: 'Confirm your email for Nutrikit',
+    text: `Hi ${account.name},\n\nConfirm that this is your email address by opening this link:\n${origin}/verify-email?token=${token}\n\n`
+      + `The link works for ${VERIFY_DAYS} days. If you didn't create a Nutrikit account, you can ignore this email.\n\n— Nutrikit`,
+  });
+  return { sent: true };
+}
+
+/** Confirm an address from its link. A link clicked again after it worked still answers that the email is verified. */
+export async function verifyEmail(sql: Sql, token: unknown): Promise<{ email: string }> {
+  if (typeof token !== 'string' || !token) throw invalidLink();
+  const [row] = await sql<{ accountId: string; email: string; expired: boolean; used: boolean; current: string; verified: boolean }[]>`
+    SELECT t.account_id AS "accountId", t.email, t.expires_at <= now() AS expired, t.used_at IS NOT NULL AS used,
+           a.email AS current, a.email_verified_at IS NOT NULL AS verified
+    FROM email_tokens t JOIN accounts a ON a.id = t.account_id
+    WHERE t.id_hash = ${hashId(token)} AND t.purpose = 'verify'`;
+  if (!row || row.email.toLowerCase() !== row.current.toLowerCase()) throw invalidLink();
+  if (row.used || row.expired) {
+    if (row.verified) return { email: row.current };
+    throw invalidLink();
+  }
+  await sql.begin(async (tx) => {
+    await tx`UPDATE email_tokens SET used_at = now() WHERE id_hash = ${hashId(token)}`;
+    await tx`UPDATE accounts SET email_verified_at = COALESCE(email_verified_at, now()) WHERE id = ${row.accountId}`;
+  });
+  return { email: row.current };
+}
+
+/**
+ * Email a password-reset link if an account uses this address. The caller always answers the same way, so this
+ * never reveals whether the account exists; too many requests for one address are dropped silently.
+ */
+export async function requestPasswordReset(sql: Sql, email: unknown, origin: string, { ip }: Origin = {}): Promise<void> {
+  const address = String(email ?? '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address) || address.length > 254) {
+    throw Object.assign(fail(400, 'invalid_request', 'check the highlighted fields'), { fields: { email: 'Enter a valid email address.' } });
+  }
+  if (await emailThrottle(sql, address, 'reset', ip)) return;
+  const [row] = await sql<{ id: string; email: string }[]>`SELECT id, email FROM accounts WHERE email = ${address}`;
+  if (!row) {
+    await sql`INSERT INTO email_sends (email, ip, purpose) VALUES (${address}, ${ip ?? null}, 'reset')`; // unknown addresses count too
+    return;
+  }
+  const token = await issueEmailToken(sql, row.id, row.email, 'reset', ip);
+  await mailer().send({
+    to: row.email,
+    subject: 'Reset your Nutrikit password',
+    text: `Someone asked to reset the password for ${row.email} on Nutrikit. To choose a new one, open this link:\n${origin}/reset-password?token=${token}\n\n`
+      + `The link works once, for ${RESET_MINUTES} minutes. If you didn't ask, you can ignore this email: your password stays the same.\n\n— Nutrikit`,
+  });
+}
+
+/**
+ * Set a new password from a reset link. Every existing session of the account ends, its failed logins are cleared,
+ * and the address counts as verified (the link reached it). The caller signs the user in.
+ */
+export async function resetPassword(sql: Sql, token: unknown, password: unknown): Promise<Account> {
+  const { password: problem } = validateSignup({ name: 'x', email: 'x@x.co', password });
+  if (problem) throw Object.assign(fail(400, 'invalid_request', 'check the highlighted fields'), { fields: { password: problem } });
+  if (typeof token !== 'string' || !token) throw invalidLink();
+  const hash = await hashPassword(password as string);
+  const accountId = await sql.begin(async (tx) => {
+    const [row] = await tx<{ accountId: string; email: string }[]>`
+      UPDATE email_tokens SET used_at = now()
+      WHERE id_hash = ${hashId(token)} AND purpose = 'reset' AND used_at IS NULL AND expires_at > now()
+      RETURNING account_id AS "accountId", email`;
+    if (!row) return null;
+    await tx`UPDATE accounts SET password_hash = ${hash},
+               email_verified_at = CASE WHEN email = ${row.email} THEN COALESCE(email_verified_at, now()) ELSE email_verified_at END
+             WHERE id = ${row.accountId}`;
+    await tx`DELETE FROM sessions WHERE account_id = ${row.accountId}`;
+    await tx`DELETE FROM email_tokens WHERE account_id = ${row.accountId} AND purpose = 'reset' AND used_at IS NULL`;
+    await tx`DELETE FROM login_failures WHERE email = ${row.email}`;
+    return row.accountId;
+  });
+  if (!accountId) throw invalidLink();
+  return getAccount(sql, accountId) as Promise<Account>;
 }
 
 export async function requestUpgrade(sql: Sql, accountId: string, plan: string, message: unknown): Promise<{ requested: string }> {

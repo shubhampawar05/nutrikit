@@ -370,6 +370,7 @@ details.faq p { margin: 12px 0 0; color: var(--ink-2); max-width: 60ch; }
 .auth-aside .nf { border-radius: 10px; max-width: 280px; box-shadow: 10px 10px 0 var(--tomato); }
 .auth-aside .nf p { color: #000; }
 .auth-aside .nf .nf-note { color: #333; }
+.auth-shell.single { grid-template-columns: 1fr; }
 .auth-main { display: grid; place-items: center; padding: 48px 24px; }
 .auth-card { width: 100%; max-width: 400px; }
 .auth-card h1 { font-size: 2.4rem; }

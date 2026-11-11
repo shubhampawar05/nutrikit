@@ -133,6 +133,29 @@ describe('Dashboard', () => {
     expect(screen.getByRole('option', { name: 'Starter — 100k tokens' })).toBeTruthy();
   });
 
+  it('asks an unverified account to confirm its email and can send a new link', async () => {
+    const unverified: Me = { ...me, account: { ...me.account, emailVerified: false } };
+    let sends = 0;
+    const fetchMock = stubPortal({
+      account: unverified,
+      override: (path, method) => (path === '/email/verification' && method === 'POST'
+        ? (++sends === 1 ? json(200, { sent: true }) : json(429, { error: { code: 'too_many_emails', message: 'slow down' }, retryAfter: 600 }))
+        : undefined),
+    });
+    app();
+    expect(await screen.findByText('Confirm your email.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Send a new link' }));
+    expect(await screen.findByText('A new link is on its way.')).toBeTruthy();
+    expect(calls(fetchMock, '/email/verification', 'POST')).toBe(1);
+  });
+
+  it('shows no email banner for a verified account', async () => {
+    stubPortal({ account: { ...me, account: { ...me.account, emailVerified: true } } });
+    app();
+    await screen.findByRole('heading', { level: 1, name: 'Hi, Ada Labs' });
+    expect(screen.queryByText('Confirm your email.')).toBeNull();
+  });
+
   // ---------------------------------------------------------------- 5.1 new-key safety
 
   it('keeps the signup key on screen across a refresh until it is dismissed', async () => {
