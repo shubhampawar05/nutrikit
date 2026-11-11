@@ -55,6 +55,9 @@ const SYNONYMS: Record<string, string> = lookup({
 // Multi-word phrases rewritten before the word synonyms run.
 const PHRASES: [RegExp, string][] = [
   [/\bbean curd\b/g, 'tofu'],
+  // Sugar-sweetened yogurt, not USDA's "sweetened with low-calorie sweetener" (sugar-free) or frozen yogurt.
+  [/\bsweet(?:ened)? (?:curd|dahi)\b/g, 'whole milk yogurt flavors other than fruit'],
+  [/\bsweet(?:ened)? yogh?urt\b/g, 'yogurt ns as to type of milk flavors other than fruit'],
   [/\bpoha (?:fruit|berry|berries)\b/g, 'groundcherries'], // the Hawaiian fruit, not flattened rice
   [/\b(?:low[- ]?fat|toned) (?:curd|dahi)\b/g, 'low fat milk plain yogurt'],
   [/\b(?:skim(?:med)?|non[- ]?fat|fat[- ]free|double[- ]toned) (?:curd|dahi)\b/g, 'nonfat milk plain yogurt'],
@@ -168,6 +171,10 @@ function score(row: SearchRow, tokens: string[], rawQuery: string) {
   if (qWords.every((t) => nameWords.includes(t))) s += 4;
   // "Beans and white rice" is a combination dish; only prefer it when the query asks for one.
   if (/\b(and|with)\b/.test(head) && !/\b(and|with)\b/.test(rawQuery)) s -= 6;
+  // "Wild rice", "Frozen yogurts", "Peanut butter", "Sweet potato": a leading name that is another word plus the food
+  // searched is a different food, unless that word was searched too ("raw rice" is rice, not wild rice).
+  const headOnly = head.split(/\s+/).map(singular);
+  if (!namesQuery(row, tokens) && headOnly.length > 1 && qWords.includes(headOnly.at(-1)!) && headOnly.slice(0, -1).some((w) => !qWords.includes(w))) s -= 8;
   // A drink is hot unless the query says iced ("green tea" is a cup of green tea, not iced tea).
   if (/\biced\b/.test(name) && !/\b(iced?|cold)\b/.test(rawQuery)) s -= 5;
   if (GENERIC.test(name)) s += 2.5;

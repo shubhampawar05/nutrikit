@@ -90,6 +90,10 @@ setup is in [mcp/README.md](../mcp/README.md).
   first and keeps the other matches.
 - Indian English words mean what they mean in India: "curd" and "dahi" are plain, unsweetened whole-milk yogurt, and
   keep a fat level when one is given ("low fat curd", "skim dahi"); "bean curd" is still tofu.
+- A food whose leading name is another word plus the food searched is a different food unless that word was searched:
+  "raw rice" is white rice, not wild rice; "butter" is not peanut butter; "potato" is not sweet potato.
+- "Sweetened yogurt" is USDA's sugar-sweetened flavored yogurt, never "sweetened with low-calorie sweetener" (sugar-free)
+  or frozen yogurt; "sweet curd" and "sweet dahi" are its whole-milk version.
 - A food named only in another name in parentheses is not matched on one word of it: USDA's "Groundcherries,
   (cape-gooseberries or poha), raw" is not "poha" (flattened rice), but "cape gooseberries" and "poha fruit" still find it.
 - A plate or bowl is a cooked dish, never a dry, uncooked grain, flour or pulse: when the best match is one, the next
