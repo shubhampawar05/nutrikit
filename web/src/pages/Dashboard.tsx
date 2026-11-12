@@ -1,5 +1,5 @@
 // Developer dashboard: account, plan and usage, API keys, upgrades (the legacy portal.js dashboard half).
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -397,6 +397,56 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
 
 // ---------------------------------------------------------------- page
 
+/** "Delete account": the password confirms it; afterwards the visitor is signed out and sent home. */
+function DeleteAccountCard({ me, onDeleted }: { me: Me; onDeleted: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const paidUntil = me.plan.expiresAt && new Date(me.plan.expiresAt) > new Date() ? me.plan.expiresAt : null;
+  const remove = useMutation({
+    mutationFn: () => api.deleteAccount(password),
+    onSuccess: onDeleted,
+    onError: (err) => {
+      if (err instanceof ApiError && err.status === 429 && err.retryAfter) setError(`Too many wrong passwords. Try again ${waitText(err.retryAfter)}.`);
+      else setError(err instanceof ApiError && err.fields?.password ? err.fields.password : errorText(err));
+    },
+  });
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    setError('');
+    remove.mutate();
+  };
+  return (
+    <section className="card" aria-labelledby="delete-account-title" style={{ marginTop: 20 }}>
+      <h2 id="delete-account-title" style={{ margin: '0 0 8px' }}>Delete account</h2>
+      <p className="muted small" style={{ marginTop: 0 }}>
+        Permanently deletes your account, API keys, usage history and sessions. Apps using your keys stop working at once.
+        This cannot be undone. Payment records are kept for tax purposes, without your name or email.
+        See the <Link to="/privacy">privacy policy</Link>.
+      </p>
+      {!open ? (
+        <button className="btn btn-danger btn-sm" type="button" onClick={() => setOpen(true)}>Delete my account…</button>
+      ) : (
+        <form onSubmit={submit} noValidate>
+          {paidUntil ? <p className="form-error">Your {me.plan.name} plan is paid until {fmtDate(paidUntil)}. Deleting the account ends it with no refund.</p> : null}
+          <div className="field">
+            <label htmlFor="delete-password">Enter your password to confirm</label>
+            <input
+              id="delete-password" className="input" type="password" autoComplete="current-password" value={password}
+              onChange={(e) => setPassword(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby={error ? 'delete-error' : undefined}
+            />
+          </div>
+          <p id="delete-error" className="form-error" role="alert" hidden={!error}>{error}</p>
+          <div className="row">
+            <button className="btn btn-danger btn-sm" type="submit" disabled={!password || remove.isPending}>{remove.isPending ? 'Deleting…' : 'Delete my account permanently'}</button>
+            <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setOpen(false); setPassword(''); setError(''); }}>Cancel</button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
+
 function DashboardLoading() {
   return (
     <main className="wrap dash" aria-busy="true">
@@ -435,6 +485,7 @@ export function Dashboard() {
   const me = useMe();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toast = useToast();
   // A new key stays on screen (and in sessionStorage) until dismissed, so a refresh doesn't lose it.
   const [reveal, setRevealState] = useState<Reveal | null>(storedReveal);
   const [upgradeStatus, setUpgradeStatus] = useState('');
@@ -459,9 +510,8 @@ export function Dashboard() {
 
   const account = me.data;
 
-  const logout = async () => {
-    leaving.current = true;
-    await api.logout().catch(() => {});
+  // Forgets everything this browser holds for the account (after logging out or deleting it) and goes home.
+  const leave = (notice?: string) => {
     try {
       sessionStorage.removeItem(PLAYGROUND_KEY_STORE);
       sessionStorage.removeItem(NEW_KEY);
@@ -470,6 +520,18 @@ export function Dashboard() {
     queryClient.setQueryData(['me'], null);
     queryClient.removeQueries({ queryKey: ['keys'] });
     queryClient.removeQueries({ queryKey: ['usage'] });
+    if (notice) toast(notice);
+  };
+
+  const logout = async () => {
+    leaving.current = true;
+    await api.logout().catch(() => {});
+    leave();
+  };
+
+  const onDeleted = () => {
+    leaving.current = true;
+    leave('Your account was deleted');
   };
 
   if (!account) {
@@ -522,6 +584,8 @@ curl "${window.location.origin}/v1/log/text" \\
           Next: <Link to="/docs#access-tokens">use access tokens in apps</Link> · <Link to="/docs/reference">API reference</Link> · <a href="https://www.npmjs.com/package/@nutrikit/sdk" target="_blank" rel="noopener">install the SDK</a> (<code>npm i @nutrikit/sdk</code>)
         </p>
       </section>
+
+      <DeleteAccountCard me={account} onDeleted={onDeleted} />
     </main>
   );
 }

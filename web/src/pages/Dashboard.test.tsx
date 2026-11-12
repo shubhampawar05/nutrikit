@@ -484,4 +484,42 @@ describe('Dashboard', () => {
     expect((screen.getByRole('option', { name: 'Enterprise — custom' }) as HTMLOptionElement).disabled).toBe(false);
     expect((screen.getByLabelText('Need more?') as HTMLSelectElement).value).toBe('enterprise');
   });
+
+  it('deletes the account only with the right password, then signs out and goes home', async () => {
+    sessionStorage.setItem('nk-playground-key', 'nk_saved');
+    const fetchMock = stubPortal({
+      override: (path, method) => {
+        if (path !== '/account/delete' || method !== 'POST') return undefined;
+        const { password } = JSON.parse(String(fetchMock.mock.calls.at(-1)?.[1]?.body)) as { password: string };
+        return password === 'correct horse battery'
+          ? json(200, { deleted: true })
+          : json(400, { error: { code: 'invalid_password', message: 'check the highlighted fields', fields: { password: 'Password is incorrect' } } });
+      },
+    });
+    app();
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete my account…' }));
+    const submit = screen.getByRole('button', { name: 'Delete my account permanently' });
+    expect((submit as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.change(screen.getByLabelText('Enter your password to confirm'), { target: { value: 'wrong password' } });
+    fireEvent.click(submit);
+    expect(await screen.findByText('Password is incorrect')).toBeTruthy();
+    expect(screen.getByLabelText('Enter your password to confirm').getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.change(screen.getByLabelText('Enter your password to confirm'), { target: { value: 'correct horse battery' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Delete my account permanently' }));
+    expect((await screen.findByTestId('where')).textContent).toBe('/');
+    expect(await screen.findByText('Your account was deleted')).toBeTruthy();
+    expect(calls(fetchMock, '/account/delete', 'POST')).toBe(2);
+    expect(sessionStorage.getItem('nk-playground-key')).toBeNull();
+  });
+
+  it('warns that deleting ends a paid plan that is still running', async () => {
+    stubPortal({ account: { ...me, plan: { id: 'starter', ...me.plans.starter!, expiresAt: '2099-01-01T00:00:00Z' } } });
+    app();
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete my account…' }));
+    expect(screen.getByText(/Deleting the account ends it with no refund/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('button', { name: 'Delete my account…' })).toBeTruthy();
+  });
 });

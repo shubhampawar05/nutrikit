@@ -78,7 +78,7 @@ function Footer() {
           </div>
           <div><h4>Product</h4><ul><li><Link to="/#how">How it works</Link></li>{PAYMENTS_VISIBLE ? <li><Link to="/pricing">Pricing</Link></li> : null}<li><Link to="/playground">Playground</Link></li></ul></div>
           <div><h4>Developers</h4><ul><li><Link to="/docs">Documentation</Link></li><li><Link to="/docs/reference">API reference</Link></li><li><a href="/openapi.json">OpenAPI spec</a></li><li><a href="https://www.npmjs.com/package/@nutrikit/sdk" target="_blank" rel="noopener">JavaScript SDK (npm)</a></li><li><a href="https://github.com/shubhampawar05/nutrikit" target="_blank" rel="noopener">GitHub</a></li></ul></div>
-          <div><h4>Account</h4><ul><li><Link to="/signup">Sign up</Link></li><li><Link to="/login">Log in</Link></li><li><Link to="/dashboard">Dashboard</Link></li></ul></div>
+          <div><h4>Account</h4><ul><li><Link to="/signup">Sign up</Link></li><li><Link to="/login">Log in</Link></li><li><Link to="/dashboard">Dashboard</Link></li><li><Link to="/privacy">Privacy</Link></li><li><Link to="/terms">Terms</Link></li></ul></div>
         </div>
         <div className="footer-bottom">
           <span>Food data: USDA FoodData Central (public domain) · Open Food Facts (ODbL)</span>

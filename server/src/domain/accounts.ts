@@ -329,6 +329,31 @@ export async function resetPassword(sql: Sql, token: unknown, password: unknown)
   return getAccount(sql, accountId) as Promise<Account>;
 }
 
+// ---- Account deletion ----
+// The owner deletes their account by confirming their password. Wrong passwords count as failed logins (same
+// per-email limit), so this can't be used to guess a password around the login throttle.
+// Deleted with the account (ON DELETE CASCADE): sessions, API keys, usage rows, email links and upgrade requests.
+// Deleted here: login failures and email sends recorded for its address, and its monthly usage counters.
+// Kept, without the account: payment records (migration 005), for tax and accounting.
+export async function deleteAccount(sql: Sql, accountId: string, password: unknown, { ip }: Origin = {}): Promise<{ email: string }> {
+  const [row] = await sql<{ email: string; password_hash: string }[]>`SELECT email, password_hash FROM accounts WHERE id = ${accountId}`;
+  if (!row) throw fail(404, 'not_found', 'account not found');
+  const [{ recent }] = await sql<{ recent: number }[]>`
+    SELECT COUNT(*)::int AS recent FROM login_failures WHERE email = ${row.email} AND at > now() - interval '15 minutes'`;
+  if (recent >= 5) throw Object.assign(fail(429, 'too_many_attempts', 'too many wrong passwords; try again in 15 minutes'), { retryAfter: 900 });
+  if (typeof password !== 'string' || !password || !(await verifyPassword(password, row.password_hash))) {
+    await sql`INSERT INTO login_failures (email, ip) VALUES (${row.email}, ${ip ?? null})`;
+    throw Object.assign(fail(400, 'invalid_password', 'check the highlighted fields'), { fields: { password: 'Password is incorrect' } });
+  }
+  await sql.begin(async (tx) => {
+    await tx`DELETE FROM usage_periods WHERE subject = ${`acct:${accountId}`}`;
+    await tx`DELETE FROM login_failures WHERE email = ${row.email}`;
+    await tx`DELETE FROM email_sends WHERE email = ${row.email}`;
+    await tx`DELETE FROM accounts WHERE id = ${accountId}`;
+  });
+  return { email: row.email };
+}
+
 export async function requestUpgrade(sql: Sql, accountId: string, plan: string, message: unknown): Promise<{ requested: string }> {
   if (!PLANS[plan] || plan === 'free') throw fail(400, 'invalid_plan', 'choose starter, growth or enterprise');
   await sql`INSERT INTO upgrade_requests (account_id, plan, message) VALUES (${accountId}, ${plan}, ${typeof message === 'string' ? message.slice(0, 1000) : null})`;

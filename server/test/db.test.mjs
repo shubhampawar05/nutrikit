@@ -22,9 +22,9 @@ test('migrations read sslmode=require the libpq way (encrypt, do not verify)', a
   assert.equal(migrationConnection('postgres://u:p@localhost:5433/nutrikit'), 'postgres://u:p@localhost:5433/nutrikit');
 });
 
-test('migrations 004 and 003 go down and up again, and 003 backfills allowance counters from usage history', async () => {
+test('migrations 005, 004 and 003 go down and up again, and 003 backfills allowance counters from usage history', async () => {
   const { migrate } = await import('../src/pg.ts');
-  await migrate(process.env.DATABASE_URL, 'down', 2); // 004 (email tokens), then 003
+  await migrate(process.env.DATABASE_URL, 'down', 3); // 005 (account deletion), 004 (email tokens), then 003
   const [{ exists, tokens }] = await sql`SELECT to_regclass('usage_periods') IS NOT NULL AS exists, to_regclass('email_tokens') IS NOT NULL AS tokens`;
   assert.equal(exists, false);
   assert.equal(tokens, false);

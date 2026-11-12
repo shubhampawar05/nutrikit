@@ -189,7 +189,7 @@ function PaymentsTab() {
             {list.data?.payments.map((p) => (
               <tr key={p.paymentId}>
                 <td>{fmtDate(p.paidAt)}</td>
-                <td>{p.email}<span className="muted small admin-sub">{p.name}</span></td>
+                <td>{p.email ? <>{p.email}<span className="muted small admin-sub">{p.name}</span></> : <span className="muted">Deleted account</span>}</td>
                 <td>{planName(p.plan)}</td>
                 <td>{fmtPrice(p.amount, p.currency)}</td>
                 <td>{fmtDate(p.periodEnd)}</td>

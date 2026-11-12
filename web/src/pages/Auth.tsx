@@ -160,6 +160,11 @@ function AuthForm({ mode }: { mode: Mode }) {
             <button className="btn btn-primary" type="submit" style={{ width: '100%' }} disabled={isSubmitting}>
               {isLogin ? 'Log in' : 'Create account'}
             </button>
+            {!isLogin && (
+              <p className="small muted" style={{ margin: '12px 0 0', textAlign: 'center' }}>
+                By creating an account you agree to the <Link to="/terms">terms of use</Link> and <Link to="/privacy">privacy policy</Link>.
+              </p>
+            )}
           </form>
           <p className="small muted" style={{ margin: '16px 0 0', textAlign: 'center' }}>
             {isLogin

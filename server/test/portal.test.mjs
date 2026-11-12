@@ -265,7 +265,7 @@ test('robots.txt and sitemap.xml list the public pages with absolute URLs', asyn
   assert.match(sitemap.headers.get('content-type'), /application\/xml/);
   const xml = await sitemap.text();
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
-  assert.deepEqual(locs, ['/', '/docs', '/docs/reference', '/playground', '/signup']); // /pricing is hidden while payments are off
+  assert.deepEqual(locs, ['/', '/docs', '/docs/reference', '/playground', '/privacy', '/terms', '/signup']); // /pricing is hidden while payments are off
   assert.doesNotMatch(xml, /dashboard|admin|login/);
 });
 
