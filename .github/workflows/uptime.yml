@@ -1,0 +1,82 @@
+# Uptime: checks the live site's readiness about every 5 minutes and posts to Slack when it goes down and when it
+# recovers (only on a change, so an outage is one message, not one every 5 minutes). See docs/monitoring.md.
+#
+# Needs the repository secret UPTIME_SLACK_WEBHOOK_URL (a Slack or Discord incoming webhook). Optional repository
+# variable UPTIME_URL overrides the address checked. Without the secret, the check still runs and fails on an outage,
+# but nothing is posted.
+#
+# GitHub may start scheduled runs late (often by several minutes) and pauses schedules in a public repository after
+# 60 days without commits; "Run workflow" on the Actions tab starts a check at any time.
+name: Uptime
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: read # to read the previous run's result
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      URL: ${{ vars.UPTIME_URL || 'https://nutrikit.onrender.com/v1/health/ready' }}
+      WEBHOOK: ${{ secrets.UPTIME_SLACK_WEBHOOK_URL }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check readiness
+        id: check
+        # Three tries, 90 s each: a sleeping free Render service takes up to a minute to wake.
+        run: |
+          status=000
+          for attempt in 1 2 3; do
+            rm -f body.txt
+            status=$(curl -s -o body.txt -w '%{http_code}' -m 90 "$URL" || true)
+            [ "$status" = 200 ] && break
+            sleep 20
+          done
+          detail=$(head -c 300 body.txt 2>/dev/null | tr -d '\n' || true)
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          { echo 'detail<<EOF'; echo "${detail:-no response}"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
+          echo "HTTP $status from $URL: ${detail:-no response}"
+
+      - name: Compare with the previous check
+        id: previous
+        run: |
+          previous=$(gh run list -R "$GITHUB_REPOSITORY" --workflow uptime.yml --status completed --limit 1 --json conclusion --jq '.[0].conclusion // "success"')
+          echo "conclusion=$previous" >> "$GITHUB_OUTPUT"
+          echo "Previous check: $previous"
+
+      - name: Post to Slack on a change
+        if: env.WEBHOOK != ''
+        env:
+          STATUS: ${{ steps.check.outputs.status }}
+          DETAIL: ${{ steps.check.outputs.detail }}
+          PREVIOUS: ${{ steps.previous.outputs.conclusion }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$STATUS" != 200 ] && [ "$PREVIOUS" != failure ]; then
+            text=":red_circle: Nutrikit is DOWN: $URL answered HTTP $STATUS (3 tries). Response: $DETAIL. Check: $RUN_URL"
+          elif [ "$STATUS" = 200 ] && [ "$PREVIOUS" = failure ]; then
+            text=":large_green_circle: Nutrikit is back UP: $URL answers 200 again."
+          else
+            echo "No change; nothing posted."; exit 0
+          fi
+          # A Slack problem must not fail the run: the next check reads this run's result as the site's state.
+          if jq -n --arg t "$text" '{text: $t, content: $t}' | curl -s -f -m 15 -X POST -H 'Content-Type: application/json' --data @- "$WEBHOOK" >/dev/null; then
+            echo "Posted: $text"
+          else
+            echo "::warning::Could not post to the Slack webhook"
+          fi
+
+      - name: Fail while the site is down
+        if: steps.check.outputs.status != '200'
+        run: |
+          echo "::error::$URL answered HTTP ${{ steps.check.outputs.status }}"
+          exit 1

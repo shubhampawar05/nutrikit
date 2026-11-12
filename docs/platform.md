@@ -127,6 +127,6 @@ above in one transaction, ends every session, and stops the account's keys at on
 - [ ] Replace the placeholder plans and prices
 - [ ] Switch Razorpay to live keys and add the webhook
 - [ ] Set `BREVO_API_KEY` (free, a verified sender address) or `RESEND_API_KEY` (a verified domain), `NUTRIKIT_MAIL_FROM`, and `NUTRIKIT_PUBLIC_URL`, so verification and reset emails are sent with the right links
-- [ ] Set `NUTRIKIT_ALERT_WEBHOOK_URL` and an uptime monitor on `/v1/health/ready` ([Monitoring](monitoring.md))
-- [ ] Set `CONTACT_EMAIL` (and `OPERATOR` if needed) in `web/src/legal.ts`, and have the privacy policy and terms reviewed for your business
+- [ ] Set `NUTRIKIT_ALERT_WEBHOOK_URL` in Render and the `UPTIME_SLACK_WEBHOOK_URL` repository secret ([Monitoring](monitoring.md))
+- [ ] Set `CONTACT_EMAIL` (and `OPERATOR` if needed) in `web/src/legal.ts`, and have the privacy policy and terms reviewed for your business ([legal review notes](legal-review.md))
 - [ ] Still to build: auto-renewing subscriptions, invoices/GST, self-serve plan changes

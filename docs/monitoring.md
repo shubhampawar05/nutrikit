@@ -5,7 +5,7 @@ Three layers, all free:
 | Layer | What it tells you | Set up |
 |---|---|---|
 | **Alerts** | An unhandled error, a burst of server errors, or a crash, posted to Slack or Discord within seconds | `NUTRIKIT_ALERT_WEBHOOK_URL` |
-| **Uptime** | The site is down or the database is unreachable | An external monitor on `/v1/health/ready` |
+| **Uptime** | The site is down or the database is unreachable | The Uptime GitHub Actions workflow, with the `UPTIME_SLACK_WEBHOOK_URL` secret |
 | **Metrics** | Traffic, error rate, latency per route, memory, event-loop delay | `/admin` → **Health**, or `GET /v1/admin/metrics` |
 
 Request logs (JSON lines on stdout, one per request, with its `requestId`) are covered in
@@ -39,17 +39,33 @@ A webhook that fails or is slow (5 s deadline) never affects the request. The fa
 
 ## 2. Uptime
 
-Metrics and alerts run inside the server, so they can't report that the server itself is down. Use an
-external monitor for that, such as [UptimeRobot](https://uptimerobot.com) or
-[Better Stack](https://betterstack.com/uptime) (both have free plans):
+Metrics and alerts run inside the server, so they can't report that the server itself is down. A GitHub Actions
+workflow, [.github/workflows/uptime.yml](../.github/workflows/uptime.yml), checks from outside instead:
 
-- URL: `https://<your host>/v1/health/ready`
-- Expect: HTTP 200 (it answers 503 when the database doesn't respond within 2 seconds or the food catalog
-  can't be read)
-- Interval: 5 minutes. Send the alerts to the same Slack or Discord channel.
+- About every 5 minutes it requests `https://nutrikit.onrender.com/v1/health/ready`, trying 3 times with a 90-second
+  timeout so a sleeping free Render service has time to wake. That endpoint answers 503 when the database doesn't
+  respond within 2 seconds or the food catalog can't be read, so a database outage counts as down too.
+- It posts to Slack only when the state changes: one ":red_circle: Nutrikit is DOWN" message when the site goes down,
+  and one ":large_green_circle: back UP" message when it recovers.
+- A run fails while the site is down, so the Actions tab shows the outage history.
 
-On Render's free plan, a 5-minute check also stops the service from sleeping. That uses about 744 of the
-plan's 750 free instance hours a month, so it leaves no room for a second free service.
+**Set it up:** add the Slack webhook as a repository secret named `UPTIME_SLACK_WEBHOOK_URL` (GitHub → the repository →
+Settings → Secrets and variables → Actions → New repository secret), or from a terminal:
+
+```bash
+gh secret set UPTIME_SLACK_WEBHOOK_URL
+```
+
+To check another address, set a repository *variable* `UPTIME_URL`. To run a check now: Actions → Uptime → Run workflow.
+
+**Limits:** GitHub can start scheduled runs several minutes late, so an outage may be reported 5–15 minutes after it
+starts. GitHub also pauses schedules in a public repository after 60 days without commits; it emails the owner, and one
+click on the Actions tab turns it back on. For checks every minute from several regions, use a hosted monitor such as
+[UptimeRobot](https://uptimerobot.com) or [Better Stack](https://betterstack.com/uptime) on the same URL.
+
+**On Render's free plan,** a check every 5 minutes also stops the service from sleeping, so visitors never wait for it
+to wake. That uses about 744 of the plan's 750 free instance hours a month, which leaves no room for a second free
+service on the same account.
 
 ## 3. Metrics
 
