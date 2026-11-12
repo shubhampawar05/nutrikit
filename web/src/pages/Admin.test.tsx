@@ -13,6 +13,16 @@ const overview = {
 };
 const accounts = [{ id: 'acct_1', email: 'test11@gmail.com', name: 'Test Co', plan: 'starter', planExpiresAt: '2026-11-29T00:00:00Z', createdAt: '2026-10-30T00:00:00Z', activeKeys: 1, usedThisMonth: 40, totalPaid: 1499, lastPaymentAt: '2026-10-30T11:50:00Z' }];
 const payments = [{ paymentId: 'pay_abc', orderId: 'order_abc', accountId: 'acct_1', email: 'test11@gmail.com', name: 'Test Co', plan: 'starter', amount: 1499, currency: 'INR', periodEnd: '2026-11-29T00:00:00Z', paidAt: '2026-10-30T11:50:00Z' }];
+const metrics = {
+  startedAt: '2026-11-12T00:00:00Z', uptimeSeconds: 7500,
+  process: { rssMb: 182.4, heapUsedMb: 61.2, eventLoopDelayMs: { p50: 10.1, p99: 21.7, max: 40 }, node: 'v24.1.0' },
+  requests: {
+    total: 120, byStatus: { '2xx': 110, '3xx': 0, '4xx': 8, '5xx': 2 },
+    last5Minutes: { requests: 40, serverErrors: 2 }, last60Minutes: { requests: 120, serverErrors: 2 },
+  },
+  routes: [{ route: 'GET /v1/foods/search', count: 100, byStatus: { '2xx': 95, '3xx': 0, '4xx': 3, '5xx': 2 }, p50Ms: 12.3, p95Ms: 48, p99Ms: 90.6 }],
+  alerts: { configured: false, sent: 0, failed: 0, suppressed: 0, lastSentAt: null },
+};
 const keys = [{ id: 'key_1', name: 'Default key', tokenLimit: null, createdAt: '2026-10-30T00:00:00Z', revokedAt: null, lastUsedAt: null, accountId: 'acct_1', email: 'test11@gmail.com', accountName: 'Test Co', usedThisMonth: 40 }];
 
 /** The admin API, accepting only the token "right-token". */
@@ -27,6 +37,7 @@ function stubAdmin() {
     if (path === '/payments') return json(200, { payments });
     if (path === '/keys' && method === 'GET') return json(200, { keys });
     if (path === '/upgrade-requests') return json(200, { requests: [] });
+    if (path === '/metrics') return json(200, metrics);
     if (path === '/keys/key_1' && method === 'DELETE') return json(200, { revoked: 'key_1' });
     if (path === '/accounts/acct_1/plan' && method === 'POST') return json(200, { account: 'acct_1', plan: 'enterprise' });
     return json(404, { error: { code: 'not_found', message: 'not found' } });
@@ -70,6 +81,18 @@ describe('Admin console', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Accounts' }));
     expect(await screen.findByText('acct_1', { exact: false })).toBeTruthy();
+  });
+
+  it('shows server health: uptime, error rate, latency per route, and whether alerts are on', async () => {
+    stubAdmin();
+    renderPage(<Admin />);
+    await signIn();
+    fireEvent.click(await screen.findByRole('tab', { name: 'Health' }));
+    expect(await screen.findByText('2h 5m')).toBeTruthy();
+    expect(screen.getByText('2 server errors (5%)')).toBeTruthy();
+    expect(screen.getByText('GET /v1/foods/search')).toBeTruthy();
+    expect(screen.getByText('91 ms')).toBeTruthy();
+    expect(screen.getByText('Off: set NUTRIKIT_ALERT_WEBHOOK_URL')).toBeTruthy();
   });
 
   it('revokes a key after confirmation', async () => {

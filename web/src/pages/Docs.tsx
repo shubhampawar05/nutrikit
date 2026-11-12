@@ -287,6 +287,7 @@ const product = await nk.lookupBarcode(code);`}</code></CodeBlock>
           <ul>
             <li><b>USDA FoodData Central</b> — SR Legacy, FNDDS survey foods and Foundation Foods. Public domain.</li>
             <li><b>UK CoFID 2021</b> — McCance and Widdowson's Composition of Foods Integrated Dataset (Public Health England): 511 dishes USDA lacks, many South Asian (rajma, chole, dals, khichdi…), with <code>source: "cofid"</code>. Contains public sector information licensed under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">Open Government Licence v3.0</a>. Values are converted to the same definitions as USDA's; CoFID has no household portions, so give grams for an exact amount.</li>
+            <li><b>Indian Nutrient Databank (INDB)</b> — <a href="https://www.anuvaad.org.in/indian-nutrient-databank/">Anuvaad</a>: about 1,000 Indian dishes with nutrients per 100 g as published, with <code>source: "indb"</code>. A few more dishes are composed from cited recipes, with <code>source: "recipe"</code>.</li>
             <li><b>Open Food Facts</b> — packaged products by barcode and by name, © Open Food Facts contributors, ODbL. Only values printed on the label are used, and labels whose values contradict each other are withheld (<code>issues</code> says why). Responses include this attribution; keep it visible in your app.</li>
             <li><b>FDA</b> — daily values for <code>dailyValuePercent</code> (21 CFR 101.9).</li>
           </ul>

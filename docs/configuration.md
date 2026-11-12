@@ -75,6 +75,14 @@ in Brevo) when you have one.
 | `NUTRIKIT_WEB_DIST` | `web/dist` | Built website to serve; without it the server is API-only |
 | `NUTRIKIT_LOG_LEVEL` | `info` | `fatal` … `debug`, or `silent`. Logs are JSON lines on stdout, one per request, with its `requestId` (also sent as `X-Request-Id`); bodies and credentials are never logged |
 
+## Monitoring (optional)
+
+| Variable | Default | What it's for |
+|---|---|---|
+| `NUTRIKIT_ALERT_WEBHOOK_URL` | – | Slack or Discord incoming webhook for unhandled errors, error bursts and crashes. See [Monitoring](monitoring.md) |
+| `NUTRIKIT_ALERT_COOLDOWN_S` | `600` | Seconds before the same alert is sent again |
+| `NUTRIKIT_ALERT_ERROR_BURST` | `10` | Server errors within 5 minutes that raise an alert |
+
 ## Development only
 
 | Variable | What it's for |

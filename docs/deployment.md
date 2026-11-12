@@ -65,6 +65,7 @@ touches the database. `/v1/health/ready` (readiness) answers 503 when the databa
 seconds or the catalog can't be read. Render's `healthCheckPath` stays on `/v1/health`: Render restarts a
 service that fails its check, and restarting the app doesn't fix a database outage, so it would only cause a
 restart loop. Point uptime monitors and load balancers that route between instances at `/v1/health/ready`.
+To get alerted on errors and downtime, follow [Monitoring](monitoring.md).
 
 Every push to `main` deploys automatically. Each start applies pending migrations first.
 

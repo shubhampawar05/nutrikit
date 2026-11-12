@@ -2158,6 +2158,63 @@
         }
       }
     },
+    "/v1/admin/metrics": {
+      "get": {
+        "summary": "Request, latency, memory and alert metrics for this instance (admin)",
+        "description": "Counted in memory since this process started; each instance reports its own. `?format=prometheus` returns the Prometheus text format for a scraper.",
+        "parameters": [
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "json"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "prometheus"
+                  ]
+                }
+              ]
+            },
+            "in": "query",
+            "name": "format",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "OK",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/admin/accounts": {
       "get": {
         "summary": "List accounts with plan, paid-until, keys, usage and payments (admin)",

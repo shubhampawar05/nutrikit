@@ -38,6 +38,20 @@ export async function adminRoutes(fastify: FastifyInstance) {
     schema: { summary: 'Accounts, plans, payments and usage at a glance (admin)', security, response: list('OK') },
   }, async () => overview(sql));
 
+  app.get('/v1/admin/metrics', {
+    schema: {
+      summary: 'Request, latency, memory and alert metrics for this instance (admin)',
+      description: 'Counted in memory since this process started; each instance reports its own. `?format=prometheus` returns the Prometheus text format for a scraper.',
+      security,
+      querystring: Type.Object({ format: Type.Optional(Type.Union([Type.Literal('json'), Type.Literal('prometheus')])) }),
+      response: list('OK'),
+    },
+  }, async (req, reply) => {
+    reply.header('Cache-Control', 'no-store');
+    if (req.query.format === 'prometheus') return reply.type('text/plain; version=0.0.4').send(fastify.monitor.prometheus());
+    return fastify.monitor.snapshot();
+  });
+
   app.get('/v1/admin/accounts', {
     schema: { summary: 'List accounts with plan, paid-until, keys, usage and payments (admin)', description: 'Newest first; at most 200.', security, querystring: search, response: list('OK') },
   }, async (req) => ({ accounts: await listAccounts(sql, req.query.q) }));

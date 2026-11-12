@@ -83,6 +83,7 @@ export function valueText(totals: Totals, row: LabelRow): string {
 
 const SOURCE_NAMES: Record<string, string> = {
   survey: 'USDA FoodData Central', sr_legacy: 'USDA FoodData Central', foundation: 'USDA FoodData Central', cofid: 'UK CoFID 2021',
+  indb: 'Indian Nutrient Databank', recipe: 'Cited recipes',
 };
 
 /** Where the logged foods' values come from, e.g. "USDA FoodData Central · UK CoFID 2021". */
