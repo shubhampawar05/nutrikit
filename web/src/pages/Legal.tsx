@@ -76,9 +76,14 @@ export function Privacy() {
       <p>
         To provide the service you signed up for: running your account and API keys, answering API calls, counting usage
         against your plan, sending account emails, preventing abuse, and fixing problems. We don't use your data for
-        advertising, sell it, or use what you send to the API to train models. We rely on your consent when you create an
-        account, and on our legitimate interest in keeping the service secure. You can withdraw consent at any time by
-        deleting your account.
+        advertising, sell it, or use what you send to the API to train models.
+      </p>
+      <p>
+        Under India's Digital Personal Data Protection Act, we process your data with the consent you give when you create
+        an account. Under the GDPR (for users in the EU or UK), our legal basis is our contract with you to provide the
+        service, and our legitimate interest in keeping it secure. You can withdraw consent at any time, as easily as you
+        gave it, by deleting your account from the dashboard or writing to <Contact />. Withdrawing doesn't affect
+        processing that happened before, and we can no longer provide the service afterwards.
       </p>
 
       <h2 id="share">Who else handles it</h2>
@@ -91,16 +96,22 @@ export function Privacy() {
         <li><b>Razorpay</b>: payment details, if paid plans are offered.</li>
       </ul>
       <p>
-        We disclose data to anyone else only if the law requires it. Because our servers are in the EU, data from users in
-        India and elsewhere is transferred there.
+        We disclose data to anyone else only if the law requires it.
+      </p>
+      <p>
+        <b>Where your data goes:</b> our servers and database are in the EU, so data from users in India and elsewhere is
+        transferred there. OpenAI, Anthropic and Resend process data in the United States, Brevo in the EU, and Razorpay in
+        India. For transfers out of the EU we rely on these providers' standard contractual clauses or an equivalent
+        safeguard recognised under the GDPR.
       </p>
 
       <h2 id="retention">How long we keep it</h2>
       <p>
         Account data, keys and usage records are kept until you delete your account. Security records are deleted
         automatically after the periods above. Payment records are kept as long as tax and accounting law requires, even
-        after an account is deleted, but no longer linked to your name or email. Data may remain in database backups
-        until those backups expire.
+        after an account is deleted, but no longer linked to your name or email. Where a law requires us to keep records
+        of processing for a minimum period, we keep those records for that period only, and use them for nothing else.
+        Data may remain in database backups until those backups expire.
       </p>
 
       <h2 id="rights">Your rights</h2>
@@ -108,11 +119,15 @@ export function Privacy() {
       <ul>
         <li><b>See and correct your data</b>: your name, email, plan, keys and usage are shown in your <Link to="/dashboard">dashboard</Link>. Write to us for anything else or to correct it.</li>
         <li><b>Delete your account</b> yourself, at any time: Dashboard → Delete account. It deletes your account, keys, usage history and sessions at once and cannot be undone.</li>
-        <li><b>Get a copy of your data</b>, or object to how we use it, by writing to <Contact />.</li>
+        <li><b>Get a copy of your data</b>, have it corrected, or object to or restrict how we use it, by writing to <Contact />.</li>
+        <li><b>Nominate someone</b> to exercise these rights for you if you die or become unable to, by writing to us.</li>
       </ul>
+      <h3 id="grievances">Grievances</h3>
       <p>
-        We answer requests within 30 days. If you're unhappy with our answer, you can complain to the Data Protection Board
-        of India or, in the EU or UK, to your data protection authority.
+        For any complaint about how we handle your data, write to our grievance contact at <Contact />. We acknowledge
+        complaints promptly and answer within 30 days. If you're in India and not satisfied with our answer, you can then
+        complain to the Data Protection Board of India. In the EU or UK, you can complain to your data protection authority
+        at any time.
       </p>
 
       <h2 id="children">Children</h2>
