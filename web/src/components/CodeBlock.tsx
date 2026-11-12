@@ -1,12 +1,13 @@
-// A <pre> with a copy button (the legacy pre[data-copy]).
+// A <pre> with a copy button (the legacy pre[data-copy]). `copyText` copies something other than what is shown,
+// e.g. a snippet whose secret is masked on screen.
 import { useRef, useState, type ReactNode } from 'react';
 
-export function CodeBlock({ children, className, lang }: { children: ReactNode; className?: string; lang?: string }) {
+export function CodeBlock({ children, className, lang, copyText }: { children: ReactNode; className?: string; lang?: string; copyText?: string }) {
   const pre = useRef<HTMLPreElement>(null);
   const [label, setLabel] = useState('Copy');
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(pre.current?.innerText ?? '');
+      await navigator.clipboard.writeText(copyText ?? pre.current?.innerText ?? '');
       setLabel('Copied ✓');
     } catch {
       setLabel('Select to copy');

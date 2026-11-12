@@ -7,6 +7,7 @@ import { ADMIN_UNAUTHORIZED, adminApi, adminToken, type AdminAccount, type Admin
 import { TabList, tabIds } from '../components/Tabs.tsx';
 import { useToast } from '../components/Toast.tsx';
 import '../styles/admin.css';
+import { PasswordInput } from '../components/PasswordInput.tsx';
 
 const PLAN_OPTIONS: [string, string][] = [['free', 'Free'], ['starter', 'Starter'], ['growth', 'Growth'], ['enterprise', 'Enterprise']];
 const planName = (id: string) => PLAN_OPTIONS.find(([v]) => v === id)?.[1] ?? id;
@@ -55,7 +56,7 @@ function SignIn({ onSignedIn, notice = '' }: { onSignedIn: () => void; notice?: 
         <p className="muted small" style={{ marginTop: 0 }}>Sign in with the server's <code>NUTRIKIT_ADMIN_TOKEN</code>. It is kept in this tab only.</p>
         <div className="field">
           <label htmlFor="admin-token">Admin token</label>
-          <input id="admin-token" className="input" type="password" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} required />
+          <PasswordInput noun="token" id="admin-token" className="input" autoComplete="off" value={token} onChange={(e) => setToken(e.target.value)} required />
         </div>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <button className="btn btn-primary" type="submit" disabled={busy || !token.trim()} style={{ width: '100%' }}>{busy ? 'Checking…' : 'Sign in'}</button>

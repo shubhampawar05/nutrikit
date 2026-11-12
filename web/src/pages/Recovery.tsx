@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, errorText } from '../api/client.ts';
 import { PASSWORD_RULE, safeNext, waitText } from './Auth.tsx';
+import { PasswordInput } from '../components/PasswordInput.tsx';
 
 function Card({ title, lead, children }: { title: string; lead?: ReactNode; children: ReactNode }) {
   return (
@@ -75,9 +76,9 @@ export function ResetPassword() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [formError, setFormError] = useState<ReactNode>(null);
-  const { register, handleSubmit, setError, clearErrors, formState: { errors, isSubmitting } } = useForm<{ password: string }>({ defaultValues: { password: '' } });
+  const { register, handleSubmit, setError, clearErrors, getValues, formState: { errors, isSubmitting } } = useForm<{ password: string; confirm: string }>({ defaultValues: { password: '', confirm: '' } });
 
-  const onSubmit = async ({ password }: { password: string }) => {
+  const onSubmit = async ({ password }: { password: string; confirm: string }) => {
     setFormError(null);
     try {
       await api.resetPassword(token, password);
@@ -100,10 +101,21 @@ export function ResetPassword() {
       <form noValidate onSubmit={handleSubmit(onSubmit)}>
         <div className={errors.password ? 'field invalid' : 'field'}>
           <label htmlFor="password">New password</label>
-          <input id="password" type="password" autoComplete="new-password" minLength={10} required aria-invalid={errors.password ? true : undefined}
+          <PasswordInput id="password" autoComplete="new-password" minLength={10} required aria-invalid={errors.password ? true : undefined}
             aria-describedby={errors.password ? 'password-error' : 'password-rule'} {...register('password', { onChange: () => clearErrors('password') })} />
           <div className="error" id="password-error">{errors.password?.message}</div>
           {!errors.password && <span className="small muted" id="password-rule">{PASSWORD_RULE}</span>}
+        </div>
+        {/* A typo here locks the person out again, so the new password is typed twice (checked before sending). */}
+        <div className={errors.confirm ? 'field invalid' : 'field'}>
+          <label htmlFor="confirm">Confirm new password</label>
+          <PasswordInput noun="confirm password" id="confirm" autoComplete="new-password" required aria-invalid={errors.confirm ? true : undefined}
+            aria-describedby={errors.confirm ? 'confirm-error' : undefined}
+            {...register('confirm', {
+              onChange: () => clearErrors('confirm'),
+              validate: (v) => v === getValues('password') || "Passwords don't match.",
+            })} />
+          <div className="error" id="confirm-error">{errors.confirm?.message}</div>
         </div>
         <button className="btn btn-primary" type="submit" style={{ width: '100%' }} disabled={isSubmitting}>Set password and log in</button>
       </form>

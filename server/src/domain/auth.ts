@@ -148,6 +148,21 @@ export async function revokeKey(sql: Sql, id: string, accountId?: string): Promi
   return r.count > 0;
 }
 
+/**
+ * Replaces an active key with a fresh one under the same name and token limit, in one transaction: the old key stops
+ * working as the new one is issued, so this works even when the account is at its plan's key limit.
+ * Returns null when the key is not this account's or is already revoked.
+ */
+export async function regenerateKey(sql: Sql, id: string, accountId: string): Promise<NewKey | null> {
+  return sql.begin(async (tx) => {
+    const [old] = await tx<{ name: string; tokenLimit: number | null }[]>`UPDATE api_keys SET revoked_at = now()
+      WHERE id = ${id} AND account_id = ${accountId} AND revoked_at IS NULL
+      RETURNING name, token_limit AS "tokenLimit"`;
+    if (!old) return null;
+    return createKey(tx as unknown as Sql, { name: old.name, tokenLimit: old.tokenLimit, accountId });
+  });
+}
+
 // ---------------------------------------------------------------- access tokens
 
 // The signing secret never changes once created, so it is read from the database once per pool.

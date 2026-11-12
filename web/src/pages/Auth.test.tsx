@@ -75,6 +75,13 @@ describe('Signup', () => {
     expect(screen.getByLabelText('Password').getAttribute('autocomplete')).toBe('new-password');
     expect(screen.getByText('At least 10 characters.')).toBeTruthy();
     expect(screen.getByLabelText('Password').getAttribute('aria-describedby')).toBe('password-rule');
+    // Show/hide: the button flips the field between hidden and plain text, and says which it will do next.
+    const password = screen.getByLabelText('Password') as HTMLInputElement;
+    expect(password.type).toBe('password');
+    fireEvent.click(screen.getByRole('button', { name: 'Show password' }));
+    expect(password.type).toBe('text');
+    fireEvent.click(screen.getByRole('button', { name: 'Hide password' }));
+    expect(password.type).toBe('password');
     expect(screen.getByRole('link', { name: 'Log in' }).getAttribute('href')).toBe('/login');
     expect(screen.getByRole('link', { name: 'terms of use' }).getAttribute('href')).toBe('/terms');
     expect(screen.getByRole('link', { name: 'privacy policy' }).getAttribute('href')).toBe('/privacy');
@@ -86,6 +93,7 @@ describe('Signup', () => {
     fireEvent.change(screen.getByLabelText('Name or company'), { target: { value: 'Ada' } });
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ada@example.com' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'correct horse' } });
+    fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'correct horse' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
     const link = await screen.findByRole('link', { name: 'log in instead' });
@@ -94,6 +102,32 @@ describe('Signup', () => {
     fireEvent.click(link);
     expect(await screen.findByRole('heading', { level: 1, name: 'Welcome back' })).toBeTruthy();
     expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe('ada@example.com');
+  });
+
+  it('checks the confirm password before sending, and never sends it', async () => {
+    const fetchMock = stubPortal(() => json(500, {}));
+    app('/signup');
+    fireEvent.change(screen.getByLabelText('Name or company'), { target: { value: 'Ada' } });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ada@example.com' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'correct horse battery' } });
+    fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'correct horse batery' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    expect(await screen.findByText("Passwords don't match.")).toBeTruthy();
+    expect(screen.getByLabelText('Confirm password').getAttribute('aria-invalid')).toBe('true');
+    const signups = () => fetchMock.mock.calls.filter(([u]) => String(u).endsWith('/signup'));
+    expect(signups()).toHaveLength(0);
+
+    fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'correct horse battery' } });
+    expect(screen.queryByText("Passwords don't match.")).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    await waitFor(() => expect(signups()).toHaveLength(1));
+    expect(JSON.parse(String(signups()[0]![1]?.body))).toEqual({ name: 'Ada', email: 'ada@example.com', password: 'correct horse battery' });
+  });
+
+  it('has no confirm field on login', () => {
+    stubPortal(() => json(500, {}));
+    app('/login');
+    expect(screen.queryByLabelText('Confirm password')).toBeNull();
   });
 
   it('keeps ?next= on the "Log in" link', () => {
@@ -110,6 +144,7 @@ describe('Signup', () => {
     fireEvent.change(screen.getByLabelText('Name or company'), { target: { value: 'Ada' } });
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'nope' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'short' } });
+    fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'short' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 
     const emailError = await screen.findByText('enter a valid email');

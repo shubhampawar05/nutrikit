@@ -1,5 +1,6 @@
 // Developer dashboard: account, plan and usage, API keys, upgrades (the legacy portal.js dashboard half).
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { flushSync } from 'react-dom';
 import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -12,6 +13,8 @@ import { useToast } from '../components/Toast.tsx';
 import { CodeBlock } from '../components/CodeBlock.tsx';
 import { UsageChart } from './dashboard/UsageChart.tsx';
 import '../styles/dashboard.css';
+import { PasswordInput } from '../components/PasswordInput.tsx';
+import { Icon } from '../components/Icon.tsx';
 
 /** sessionStorage: the newly created key, kept until the developer dismisses it (survives a refresh). */
 const NEW_KEY = 'nutrikit-new-key';
@@ -42,15 +45,30 @@ function ErrorRetry({ error, onRetry }: { error: unknown; onRetry: () => void })
 
 // ---------------------------------------------------------------- one-time key reveal
 
+/** "nk_Ab3d••••••••••••wXyz": enough to recognise the key, not enough to use it. */
+const snippet = (key: string) => `export NUTRIKIT_KEY=${key}
+curl "${window.location.origin}/v1/log/text" \\
+  -H "Authorization: Bearer $NUTRIKIT_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"text": "a bowl of oatmeal with blueberries and a coffee"}'`;
+
+function maskKey(key: string): string {
+  const head = key.indexOf('_') + 5;
+  return key.length <= head + 4 ? '•'.repeat(key.length) : `${key.slice(0, head)}${'•'.repeat(12)}${key.slice(-4)}`;
+}
+
 function KeyReveal({ reveal, onDismiss }: { reveal: Reveal; onDismiss: () => void }) {
   const heading = useRef<HTMLHeadingElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
   const [manual, setManual] = useState(false);
+  // The key is masked until asked for, so it isn't exposed on a shared or recorded screen; Copy works either way.
+  const [shown, setShown] = useState(false);
   // A new key is not read aloud: focus moves to the heading instead (the toast region says "New key created").
   useEffect(() => {
     setCopied(false);
     setManual(false);
+    setShown(false);
     heading.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
     heading.current?.focus({ preventScroll: true });
   }, [reveal.key]);
@@ -61,6 +79,8 @@ function KeyReveal({ reveal, onDismiss }: { reveal: Reveal; onDismiss: () => voi
       setCopied(true);
       setManual(false);
     } catch {
+      // Manual copy needs the real characters on screen.
+      flushSync(() => setShown(true));
       input.current?.focus();
       input.current?.select();
       setManual(true);
@@ -73,21 +93,35 @@ function KeyReveal({ reveal, onDismiss }: { reveal: Reveal; onDismiss: () => voi
   return (
     <div className="key-reveal">
       <h2 className="key-reveal-title" tabIndex={-1} ref={heading}>{reveal.title}</h2>
-      <input
-        ref={input}
-        className="key-reveal-key"
-        readOnly
-        value={reveal.key}
-        aria-label="New API key"
-        onFocus={(e) => e.currentTarget.select()}
-        onCopy={() => setCopied(true)}
-      />
+      <div className="key-reveal-field">
+        <input
+          ref={input}
+          className="key-reveal-key"
+          id="new-key"
+          readOnly
+          value={shown ? reveal.key : maskKey(reveal.key)}
+          aria-label={shown ? 'New API key' : 'New API key, hidden'}
+          onFocus={(e) => { if (shown) e.currentTarget.select(); }}
+          onCopy={(e) => { if (!shown) { e.preventDefault(); void copy(); } else setCopied(true); }}
+        />
+        <button
+          type="button"
+          className="pw-toggle"
+          aria-label={shown ? 'Hide key' : 'Show key'}
+          title={shown ? 'Hide key' : 'Show key'}
+          aria-controls="new-key"
+          aria-pressed={shown}
+          onClick={() => setShown((v) => !v)}
+        >
+          <Icon name={shown ? 'eye-off' : 'eye'} />
+        </button>
+      </div>
       <div className="row">
-        <button className="btn btn-primary btn-sm" type="button" onClick={copy}>{copied ? 'Copied ✓' : 'Copy key'}</button>
+        <button className="btn btn-primary btn-sm" type="button" onClick={copy}><Icon name={copied ? 'check' : 'copy'} />{copied ? 'Copied' : 'Copy key'}</button>
         <button className="btn btn-ghost btn-sm" type="button" onClick={dismiss}>I've saved it</button>
       </div>
       {manual ? <p className="small" style={{ margin: '8px 0 0' }}>Couldn't copy automatically. The key is selected: copy it manually (Ctrl+C or ⌘C).</p> : null}
-      <p className="small" style={{ margin: '8px 0 0' }}>This is the only time the full key is shown. Store it somewhere safe, like your server's environment variables.</p>
+      <p className="small" style={{ margin: '8px 0 0' }}>This is the only time you can copy this key. Store it somewhere safe, like your server's environment variables. Lost it? Choose Regenerate next to the key below.</p>
     </div>
   );
 }
@@ -318,6 +352,27 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
     },
   });
 
+  const regenerate = useMutation({
+    mutationFn: (id: string) => api.regenerateKey(id),
+    onSuccess: (key) => {
+      onCreated({ key: key.key, title: `New key for “${key.name}”` });
+      toast('Key regenerated. The old one no longer works');
+    },
+    onError: (err) => toast(errorText(err)),
+    onSettled: async (_data, _err, id) => {
+      await queryClient.invalidateQueries({ queryKey: ['keys'] });
+      settle(id);
+    },
+  });
+
+  const onRegenerate = (id: string, name: string) => {
+    if (revoking.current.has(id)) return;
+    if (!window.confirm(`Regenerate “${name}”? You'll get a new key to copy, and the current one (and its access tokens) stops working immediately.`)) return;
+    revoking.current.add(id);
+    setPendingIds(new Set(revoking.current));
+    regenerate.mutate(id);
+  };
+
   const onRevoke = (id: string, name: string) => {
     if (revoking.current.has(id)) return;
     if (!window.confirm(`Revoke “${name}”? Apps using it (and its access tokens) stop working immediately.`)) return;
@@ -355,8 +410,8 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
       ) : !list?.length ? (
         <p className="muted" style={{ margin: 0 }}>No keys yet. Name one above and choose Create key to start calling the API.</p>
       ) : (
-        <div className="table-scroll">
-          <table className="data">
+        <div className="table-scroll keys-scroll">
+          <table className="data keys-table">
             <thead>
               <tr>
                 <th scope="col">Name</th><th scope="col">Created</th><th scope="col">Last used</th><th scope="col">Tokens this month</th>
@@ -366,23 +421,35 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
             <tbody>
               {list.map((k) => (
                 <tr key={k.id}>
-                  <td>{k.name} <span className="muted small">{k.id}</span></td>
-                  <td>{fmtDate(k.createdAt)}</td>
-                  <td>{k.lastUsedAt ? fmtDate(k.lastUsedAt) : <span className="muted">never</span>}</td>
-                  <td>{fmt(k.usedThisMonth)}</td>
-                  <td>
+                  <td className="key-name">{k.name} <span className="muted small">{k.id}</span></td>
+                  <td data-label="Created">{fmtDate(k.createdAt)}</td>
+                  <td data-label="Last used">{k.lastUsedAt ? fmtDate(k.lastUsedAt) : <span className="muted">never</span>}</td>
+                  <td data-label="Tokens this month">{fmt(k.usedThisMonth)}</td>
+                  <td className="key-cell-actions">
                     {k.revokedAt
                       ? <span className="badge">revoked</span>
                       : (
-                        <button
-                          className="btn btn-danger btn-sm"
-                          type="button"
-                          aria-label={`Revoke ${k.name}`}
-                          disabled={pendingIds.has(k.id)}
-                          onClick={() => onRevoke(k.id, k.name)}
-                        >
-                          Revoke
-                        </button>
+                        <div className="key-actions">
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            type="button"
+                            aria-label={`Regenerate ${k.name}`}
+                            title="Lost this key? Get a new one in its place"
+                            disabled={pendingIds.has(k.id)}
+                            onClick={() => onRegenerate(k.id, k.name)}
+                          >
+                            <Icon name="refresh" />Regenerate
+                          </button>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            type="button"
+                            aria-label={`Revoke ${k.name}`}
+                            disabled={pendingIds.has(k.id)}
+                            onClick={() => onRevoke(k.id, k.name)}
+                          >
+                            Revoke
+                          </button>
+                        </div>
                       )}
                   </td>
                 </tr>
@@ -431,8 +498,8 @@ function DeleteAccountCard({ me, onDeleted }: { me: Me; onDeleted: () => void })
           {paidUntil ? <p className="form-error">Your {me.plan.name} plan is paid until {fmtDate(paidUntil)}. Deleting the account ends it with no refund.</p> : null}
           <div className="field">
             <label htmlFor="delete-password">Enter your password to confirm</label>
-            <input
-              id="delete-password" className="input" type="password" autoComplete="current-password" value={password}
+            <PasswordInput
+              id="delete-password" className="input" autoComplete="current-password" value={password}
               onChange={(e) => setPassword(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby={error ? 'delete-error' : undefined}
             />
           </div>
@@ -573,12 +640,9 @@ export function Dashboard() {
 
       <section className="card">
         <h2 style={{ margin: '0 0 12px' }}>Make your first request</h2>
-        <CodeBlock>
-          <code>{`export NUTRIKIT_KEY=${reveal?.key ?? 'nk_your_key'}
-curl "${window.location.origin}/v1/log/text" \\
-  -H "Authorization: Bearer $NUTRIKIT_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{"text": "a bowl of oatmeal with blueberries and a coffee"}'`}</code>
+        {/* The snippet shows the new key masked like the reveal box; its Copy button copies the real key. */}
+        <CodeBlock copyText={snippet(reveal?.key ?? 'nk_your_key')}>
+          <code>{snippet(reveal ? maskKey(reveal.key) : 'nk_your_key')}</code>
         </CodeBlock>
         <p className="small muted" style={{ margin: 0 }}>
           Next: <Link to="/docs#access-tokens">use access tokens in apps</Link> · <Link to="/docs/reference">API reference</Link> · <a href="https://www.npmjs.com/package/@nutrikit/sdk" target="_blank" rel="noopener">install the SDK</a> (<code>npm i @nutrikit/sdk</code>)
