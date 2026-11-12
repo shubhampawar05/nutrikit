@@ -174,6 +174,15 @@ export async function portalRoutes(app: FastifyInstance) {
     return { revoked: id };
   });
 
+  // Keys are stored only as hashes, so a lost key can't be shown again: this swaps it for a new one instead.
+  app.post('/portal/api/keys/:id(^key_[a-f0-9]+$)/regenerate', signedIn, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const key = await auth.regenerateKey(sql, id, req.account.id);
+    if (!key) throw new HttpError(404, 'not_found', 'key not found or already revoked');
+    reply.status(201);
+    return { id: key.id, name: key.name, key: key.key, replaced: id };
+  });
+
   app.get('/portal/api/usage', signedIn, async (req) => {
     const days = intParam((req.query as Record<string, unknown>).days, 30, 1, 90);
     const key = { id: null, accountId: req.account.id, tokenLimit: req.account.planDetails.monthlyTokens } as unknown as auth.KeyContext;

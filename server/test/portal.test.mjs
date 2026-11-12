@@ -122,6 +122,24 @@ test('keys: create, plan limit, revoke', async () => {
   assert.equal((await other.call('DELETE', `/portal/api/keys/${body.firstKey.id}`)).status, 404);
 });
 
+test('keys: regenerate swaps a key for a new one, even at the plan limit', async () => {
+  const b = browser();
+  const { body } = await b.call('POST', '/portal/api/signup', { name: 'Rotate Co', email: email(), password: 'correct horse battery' });
+  await b.call('POST', '/portal/api/keys', { name: 'Android' }); // free plan: now at its 2-key limit
+  const fresh = await b.call('POST', `/portal/api/keys/${body.firstKey.id}/regenerate`);
+  assert.equal(fresh.status, 201);
+  assert.match(fresh.body.key, /^nk_/);
+  assert.notEqual(fresh.body.id, body.firstKey.id);
+  assert.equal(fresh.body.replaced, body.firstKey.id);
+  assert.equal(fresh.body.name, body.firstKey.name, 'keeps the old name');
+  assert.equal((await bearer(body.firstKey.key, '/v1/usage')).status, 401, 'the old key stops working');
+  assert.equal((await bearer(fresh.body.key, '/v1/usage')).status, 200);
+  assert.equal((await b.call('POST', `/portal/api/keys/${body.firstKey.id}/regenerate`)).status, 404, 'a revoked key cannot be regenerated');
+  const other = browser();
+  await other.call('POST', '/portal/api/signup', { name: 'Other', email: email(), password: 'correct horse battery' });
+  assert.equal((await other.call('POST', `/portal/api/keys/${fresh.body.id}/regenerate`)).status, 404, 'nor another account\'s key');
+});
+
 test('the plan allowance is shared by all keys and enforced', async () => {
   const b = browser();
   const { body } = await b.call('POST', '/portal/api/signup', { name: 'Quota Co', email: email(), password: 'correct horse battery' });

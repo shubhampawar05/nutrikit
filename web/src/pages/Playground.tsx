@@ -14,6 +14,7 @@ import {
   type Endpoint, type Field, type RawValues, type Result,
 } from './playground/endpoints.ts';
 import { JsonText, Preview, PreviewBoundary } from './playground/previews.tsx';
+import { PasswordInput } from '../components/PasswordInput.tsx';
 
 const KEY_STORE = PLAYGROUND_KEY_STORE;
 const store = {
@@ -488,7 +489,7 @@ export function Playground() {
               <>
                 <form className="pg-keyform" onSubmit={onKeySubmit} key={authView}>
                   <label className="sr-only" htmlFor="pg-key">API key or access token</label>
-                  <input ref={keyInput} className="input" id="pg-key" type="password" autoComplete="off" placeholder="Paste nk_… or nkat_…" defaultValue={savedKey} />
+                  <PasswordInput noun="key" ref={keyInput} className="input" id="pg-key" autoComplete="off" placeholder="Paste nk_… or nkat_…" defaultValue={savedKey} />
                   <button className="btn btn-primary btn-sm" type="submit">Use key</button>
                 </form>
                 {me.data ? (

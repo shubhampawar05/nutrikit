@@ -169,7 +169,10 @@ pre code { background: none; border: 0; padding: 0; font-size: .84rem; }
 .demo-item .said { font-size: .8rem; color: var(--muted); font-family: var(--mono); }
 .demo-item .food { font-weight: 600; font-size: .95rem; line-height: 1.3; }
 .demo-item .kcal { font: 600 .95rem/1.3 var(--mono); text-align: right; }
-.demo-item .grams { font-size: .78rem; color: var(--muted); text-align: right; font-family: var(--mono); }
+.demo-item .grams { font-size: .78rem; color: var(--muted); font-family: var(--mono); grid-column: 1 / -1; }
+/* The quote and the portion basis get the full row, so the kcal column stays as narrow as its number. */
+.demo-item > .said:first-child { grid-column: 1 / -1; }
+.demo-item > span:empty { display: none; }
 .demo-empty { color: var(--muted); font-size: .92rem; padding-top: 30px; }
 .demo-respell button { font: inherit; color: var(--tomato); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .demo-respell button:hover, .demo-respell button:focus-visible { color: var(--tomato-ink); }
@@ -208,7 +211,7 @@ section.block { padding: 96px 0; }
 .mode span { color: var(--muted); font-size: .88rem; line-height: 1.45; display: block; }
 .mode code { font-size: .74rem; }
 @media (max-width: 960px) { .modes { grid-template-columns: repeat(2, 1fr); } .mode { border-bottom: 1px solid var(--rule); } .mode:nth-child(2n) { border-right: 0; } }
-@media (max-width: 520px) { .modes { grid-template-columns: 1fr; } .mode { border-right: 0; } }
+@media (max-width: 520px) { .mode { padding: 18px 14px 20px; } .mode .icon { margin-bottom: 10px; } .mode:last-child { grid-column: 1 / -1; } }
 
 /* bento */
 .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
@@ -312,7 +315,7 @@ table.data { width: 100%; border-collapse: collapse; font-size: .95rem; }
 table.data th, table.data td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
 table.data tr:last-child td { border-bottom: 0; }
 table.data th { color: var(--muted); font: 600 .72rem/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
-.table-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 14px; background: var(--card); }
+.table-scroll { position: relative; overflow-x: auto; border: 1px solid var(--rule); border-radius: 14px; background: var(--card); } /* relative: an absolutely positioned .sr-only label inside can't widen the page */
 details.faq { border-bottom: 1px solid var(--rule); padding: 18px 0; }
 details.faq summary { cursor: pointer; font: 500 1.2rem/1.3 var(--serif); list-style: none; display: flex; justify-content: space-between; gap: 16px; }
 details.faq summary::after { content: "+"; font-family: var(--sans); color: var(--tomato); font-size: 1.4rem; line-height: 1; transition: transform .2s; }
@@ -364,7 +367,7 @@ details.faq p { margin: 12px 0 0; color: var(--ink-2); max-width: 60ch; }
 
 /* forms & portal */
 .auth-shell { min-height: calc(100vh - 68px); display: grid; grid-template-columns: 1fr 1fr; }
-.auth-aside { background: var(--night); color: var(--night-text); padding: 64px 56px; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; }
+.auth-aside { background: var(--night); color: var(--night-text); padding: 64px 56px; display: flex; flex-direction: column; justify-content: center; gap: 48px; }
 .auth-aside h2 { color: var(--night-text); font-size: clamp(2rem, 3.5vw, 2.8rem); }
 .auth-aside p { color: var(--night-muted); }
 .auth-aside .nf { border-radius: 10px; max-width: 280px; box-shadow: 10px 10px 0 var(--tomato); }
@@ -374,7 +377,9 @@ details.faq p { margin: 12px 0 0; color: var(--ink-2); max-width: 60ch; }
 .auth-main { display: grid; place-items: center; padding: 48px 24px; }
 .auth-card { width: 100%; max-width: 400px; }
 .auth-card h1 { font-size: 2.4rem; }
-@media (max-width: 860px) { .auth-shell { grid-template-columns: 1fr; } .auth-aside { display: none; } }
+/* The dark panel runs straight into the footer instead of leaving a strip of paper between them. */
+body:has(.auth-shell:not(.single)) .site-footer { margin-top: 0; }
+@media (max-width: 860px) { .auth-shell { grid-template-columns: 1fr; } .auth-aside { display: none; } body:has(.auth-shell) .site-footer { margin-top: 96px; } }
 .field { display: grid; gap: 7px; margin-bottom: 18px; }
 .field label { font-weight: 600; font-size: .88rem; }
 .field input, .field select, .field textarea, .input { width: 100%; min-height: 46px; padding: 10px 14px; border: 1.5px solid var(--rule); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; transition: border-color .15s; }
@@ -387,7 +392,7 @@ details.faq p { margin: 12px 0 0; color: var(--ink-2); max-width: 60ch; }
 .dash { padding: 40px 24px 0; }
 .dash-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: flex-end; padding-bottom: 28px; margin-bottom: 28px; border-bottom: 1.5px solid var(--ink); }
 .dash-head h1 { font-size: clamp(2rem, 4vw, 3rem); margin: 0 0 6px; }
-.dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+.dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; align-items: start; }
 .dash-grid > *, .hero-grid > *, .dev > * { min-width: 0; } /* let wide tables/code scroll instead of stretching the grid */
 @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
 .card h2 { font: 600 .74rem/1 var(--mono) !important; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
@@ -425,9 +430,10 @@ details.faq p { margin: 12px 0 0; color: var(--ink-2); max-width: 60ch; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 kbd { font: 600 .72rem/1 var(--mono); padding: 2px 6px; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 5px; background: var(--card); }
 .pg { padding-top: 36px; }
-.pg-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 24px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1.5px solid var(--ink); }
+.pg-head { display: flex; flex-direction: column; align-items: stretch; gap: 20px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1.5px solid var(--ink); }
 .pg-head h1 { font-size: clamp(2.2rem, 4.5vw, 3.4rem); margin: 0; }
-.pg-auth { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: flex-end; }
+/* Key / sign-in state sits in its own bar under the title. */
+.pg-auth { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 14px; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; }
 .pg-keyform { display: flex; gap: 8px; }
 .pg-keyform .input { width: 280px; min-height: 36px; padding: 6px 12px; font-family: var(--mono); font-size: .85rem; }
 .pg-chip { display: inline-flex; align-items: center; gap: 6px; font: 600 .74rem/1 var(--mono); padding: 7px 11px; border-radius: 999px; background: var(--paper-2); border: 1px solid var(--rule); color: var(--ink-2); white-space: nowrap; }
@@ -532,7 +538,6 @@ kbd { font: 600 .72rem/1 var(--mono); padding: 2px 6px; border: 1px solid var(--
 @media (max-width: 760px) {
   .pg-layout { grid-template-columns: minmax(0, 1fr); }
   .pg-response { position: static; max-height: none; }
-  .pg-auth { justify-content: flex-start; }
   .pg-keyform { width: 100%; }
   .pg-keyform .input { width: auto; flex: 1; min-width: 0; }
   .pg-panel { padding: 18px; }
@@ -576,3 +581,39 @@ kbd { font: 600 .72rem/1 var(--mono); padding: 2px 6px; border: 1px solid var(--
 .legal ul { padding-left: 1.2em; }
 .legal li + li { margin-top: 6px; }
 .legal .lead { max-width: none; margin-bottom: 8px; }
+
+/* Show/hide for passwords, tokens and keys (components/PasswordInput.tsx, the dashboard's new-key reveal). */
+.pw-wrap, .key-reveal-field { position: relative; display: block; width: 100%; }
+.pw-wrap > input, .key-reveal-field > input { width: 100%; padding-right: 48px; }
+.pw-toggle { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink-2); cursor: pointer; }
+.pw-toggle:hover { color: var(--ink); background: var(--paper-2); }
+.pw-toggle:focus-visible { outline: 2px solid var(--tomato); outline-offset: 0; color: var(--ink); }
+.pw-toggle .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pg-keyform .pw-wrap { width: 280px; }
+.pg-keyform .pw-wrap > .input { width: 100%; }
+@media (max-width: 760px) { .pg-keyform .pw-wrap { width: auto; flex: 1; min-width: 0; } }
+.key-reveal-field { margin: 10px 0 14px; }
+.key-reveal-field > .key-reveal-key { margin: 0; }
+/* The reveal box is always white-on-ink, so its toggle keeps dark colours in dark mode too. */
+.key-reveal-field .pw-toggle { color: #5b5750; }
+.key-reveal-field .pw-toggle:hover { color: #161513; background: #efe8da; }
+.key-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: nowrap; }
+.key-actions .btn .icon, .key-reveal .btn .icon { width: 15px; height: 15px; stroke-width: 2; }
+
+/* Dashboard key list: on phones each key becomes a small card, so Regenerate and Revoke stay on screen
+   instead of hiding off the right edge of a sideways-scrolling table. */
+@media (max-width: 640px) {
+  .keys-scroll { overflow: visible; border: 0; background: none; }
+  .keys-table, .keys-table tbody, .keys-table tr, .keys-table td { display: block; }
+  .keys-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .keys-table tr { border: 1px solid var(--rule); border-radius: 14px; background: var(--card); padding: 14px 16px; }
+  .keys-table tr + tr { margin-top: 10px; }
+  table.keys-table td { border: 0; padding: 4px 0; }
+  .keys-table td.key-name { font-weight: 600; padding-bottom: 8px; }
+  .keys-table td.key-name .small { display: block; font-weight: 400; }
+  .keys-table td[data-label] { display: flex; justify-content: space-between; gap: 12px; }
+  .keys-table td[data-label]::before { content: attr(data-label); color: var(--muted); font-size: .85rem; }
+  .keys-table td.key-cell-actions { padding-top: 12px; }
+  .keys-table .key-actions { justify-content: stretch; }
+  .keys-table .key-actions .btn { flex: 1; }
+}

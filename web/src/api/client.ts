@@ -115,6 +115,7 @@ export const api = {
   keys: () => portal<{ keys: KeySummary[] }>('GET', '/keys'),
   createKey: (name: string) => portal<NewKey>('POST', '/keys', { name }),
   revokeKey: (id: string) => portal<{ revoked: string }>('DELETE', `/keys/${id}`),
+  regenerateKey: (id: string) => portal<NewKey & { replaced: string }>('POST', `/keys/${id}/regenerate`),
   usage: (days = 30) => portal<{ series: UsageDay[]; month: UsageMonth }>('GET', `/usage?days=${days}`),
   playgroundToken: () => portal<AccessToken>('POST', '/playground-token'),
   requestUpgrade: (plan: string, message?: string) => portal<{ requested: string }>('POST', '/upgrade', { plan, message }),

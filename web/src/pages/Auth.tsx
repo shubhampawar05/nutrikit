@@ -5,9 +5,12 @@ import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, errorText } from '../api/client.ts';
 import { useMe } from '../hooks.ts';
+import { PasswordInput } from '../components/PasswordInput.tsx';
 
 type Mode = 'signup' | 'login';
 interface AuthFields { name: string; email: string; password: string }
+// The signup form also asks for the password twice; only AuthFields go to the server.
+type FormFields = AuthFields & { confirm: string };
 const FIELD_ORDER: (keyof AuthFields)[] = ['name', 'email', 'password'];
 export const PASSWORD_RULE = 'At least 10 characters.';
 const LOG_IN_INSTEAD = 'log in instead';
@@ -53,9 +56,9 @@ function AuthForm({ mode }: { mode: Mode }) {
   const submitted = useRef(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { register, handleSubmit, setError, clearErrors, setFocus, getValues, formState: { errors, isSubmitting } } = useForm<AuthFields>({
+  const { register, handleSubmit, setError, clearErrors, setFocus, getValues, formState: { errors, isSubmitting } } = useForm<FormFields>({
     // "log in instead" links here with the email filled in.
-    defaultValues: { name: '', email: params.get('email') ?? '', password: '' },
+    defaultValues: { name: '', email: params.get('email') ?? '', password: '', confirm: '' },
   });
 
   // Already signed in? Go straight to the target.
@@ -63,14 +66,14 @@ function AuthForm({ mode }: { mode: Mode }) {
     if (me.data && !submitted.current) navigate(target, { replace: true });
   }, [me.data, navigate, target]);
 
-  const onSubmit = async (data: AuthFields) => {
+  const onSubmit = async (data: FormFields) => {
     setFormError(null);
     clearErrors();
     try {
       if (isLogin) {
         await api.login({ email: data.email, password: data.password });
       } else {
-        const res = await api.signup(data);
+        const res = await api.signup({ name: data.name, email: data.email, password: data.password });
         // The first key is shown once on the dashboard, then forgotten.
         if (res.firstKey) sessionStorage.setItem('nutrikit-new-key', JSON.stringify(res.firstKey));
       }
@@ -152,11 +155,20 @@ function AuthForm({ mode }: { mode: Mode }) {
             </div>
             <div className={fieldClass('password')}>
               <label htmlFor="password">Password</label>
-              <input id="password" type="password" autoComplete={isLogin ? 'current-password' : 'new-password'} minLength={10} required {...fieldProps('password')} />
+              <PasswordInput id="password" autoComplete={isLogin ? 'current-password' : 'new-password'} minLength={10} required {...fieldProps('password')} />
               <div className="error" id="password-error">{errorContent('password')}</div>
               {showRule && <span className="small muted" id="password-rule">{PASSWORD_RULE}</span>}
               {isLogin && <Link className="small" to={authPath('/forgot-password', next, getValues('email'))}>Forgot password?</Link>}
             </div>
+            {!isLogin && (
+              <div className={errors.confirm ? 'field invalid' : 'field'}>
+                <label htmlFor="confirm">Confirm password</label>
+                <PasswordInput noun="confirm password" id="confirm" autoComplete="new-password" required aria-invalid={errors.confirm ? true : undefined}
+                  aria-describedby={errors.confirm ? 'confirm-error' : undefined}
+                  {...register('confirm', { onChange: () => clearErrors('confirm'), validate: (v) => v === getValues('password') || "Passwords don't match." })} />
+                <div className="error" id="confirm-error">{errors.confirm?.message}</div>
+              </div>
+            )}
             <button className="btn btn-primary" type="submit" style={{ width: '100%' }} disabled={isSubmitting}>
               {isLogin ? 'Log in' : 'Create account'}
             </button>

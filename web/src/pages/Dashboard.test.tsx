@@ -81,6 +81,12 @@ function stubPortal({ signedIn = true, maxKeys = 2, account = me, initialKeys = 
       keys = [...keys, { id: 'key_b', name, createdAt: '2026-10-30T00:00:00Z', lastUsedAt: null, revokedAt: null, usedThisMonth: 0 }];
       return json(201, { id: 'key_b', name, key: 'nk_live_brand_new_secret' });
     }
+    const regen = /^\/keys\/(.+)\/regenerate$/.exec(path);
+    if (regen && method === 'POST') {
+      const old = keys.find((k) => k.id === regen[1])!;
+      keys = [{ ...old, id: 'key_r', createdAt: '2026-10-30T00:00:00Z', lastUsedAt: null, usedThisMonth: 0 }, ...keys.map((k) => (k.id === regen[1] ? { ...k, revokedAt: '2026-10-30T00:00:00Z' } : k))];
+      return json(201, { id: 'key_r', name: old.name, key: 'nk_live_regenerated_key', replaced: regen[1] });
+    }
     const revoke = /^\/keys\/(.+)$/.exec(path);
     if (revoke && method === 'DELETE') {
       keys = keys.map((k) => (k.id === revoke[1] ? { ...k, revokedAt: '2026-10-30T00:00:00Z' } : k));
@@ -161,20 +167,30 @@ describe('Dashboard', () => {
 
   // ---------------------------------------------------------------- 5.1 new-key safety
 
+  const MASKED_FIRST = 'nk_live' + '•'.repeat(12) + 'irst';
+  const MASKED_NEW = 'nk_live' + '•'.repeat(12) + 'cret';
+
+
   it('keeps the signup key on screen across a refresh until it is dismissed', async () => {
     sessionStorage.setItem('nutrikit-new-key', JSON.stringify({ id: 'key_a', name: 'Default', key: 'nk_live_first' }));
     stubPortal();
     const first = app();
     expect(await screen.findByRole('heading', { name: 'Welcome! Here is your first API key' })).toBeTruthy();
+    // Masked until asked for: recognisable, not usable.
+    expect(screen.getByDisplayValue(MASKED_FIRST)).toBeTruthy();
+    expect(screen.queryByDisplayValue('nk_live_first')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Show key' }));
     expect(screen.getByDisplayValue('nk_live_first')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Hide key' }));
+    expect(screen.getByDisplayValue(MASKED_FIRST)).toBeTruthy();
     first.unmount();
 
     app(); // a refresh in the same tab
-    expect(await screen.findByDisplayValue('nk_live_first')).toBeTruthy();
+    expect(await screen.findByDisplayValue(MASKED_FIRST)).toBeTruthy();
     expect(sessionStorage.getItem('nutrikit-new-key')).not.toBeNull();
     vi.stubGlobal('confirm', vi.fn(() => true));
     fireEvent.click(screen.getByRole('button', { name: "I've saved it" }));
-    expect(screen.queryByDisplayValue('nk_live_first')).toBeNull();
+    expect(screen.queryByDisplayValue(MASKED_FIRST)).toBeNull();
     expect(sessionStorage.getItem('nutrikit-new-key')).toBeNull();
   });
 
@@ -186,7 +202,7 @@ describe('Dashboard', () => {
     app();
     fireEvent.click(await screen.findByRole('button', { name: "I've saved it" }));
     expect(confirm).toHaveBeenCalledTimes(1);
-    expect(screen.getByDisplayValue('nk_live_first')).toBeTruthy();
+    expect(screen.getByDisplayValue(MASKED_FIRST)).toBeTruthy();
     expect(sessionStorage.getItem('nutrikit-new-key')).not.toBeNull();
   });
 
@@ -198,11 +214,12 @@ describe('Dashboard', () => {
     vi.stubGlobal('confirm', confirm);
     app();
     fireEvent.click(await screen.findByRole('button', { name: 'Copy key' }));
-    await screen.findByRole('button', { name: 'Copied ✓' });
+    await screen.findByRole('button', { name: 'Copied' });
+    // Copy works without unmasking: the clipboard gets the real key.
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('nk_live_first');
     fireEvent.click(screen.getByRole('button', { name: "I've saved it" }));
     expect(confirm).not.toHaveBeenCalled();
-    expect(screen.queryByDisplayValue('nk_live_first')).toBeNull();
+    expect(screen.queryByDisplayValue(MASKED_FIRST)).toBeNull();
   });
 
   it('selects the key and says to copy it manually when the clipboard is blocked', async () => {
@@ -228,11 +245,17 @@ describe('Dashboard', () => {
     const heading = await screen.findByRole('heading', { name: 'New key “iOS app” created' });
     await waitFor(() => expect(document.activeElement).toBe(heading));
     expect(heading.closest('[role="status"]')).toBeNull();
-    expect(screen.getByDisplayValue('nk_live_brand_new_secret').closest('[role="status"]')).toBeNull();
+    expect(screen.getByDisplayValue(MASKED_NEW).closest('[role="status"]')).toBeNull();
+    expect(screen.queryByDisplayValue('nk_live_brand_new_secret')).toBeNull();
     expect(await screen.findByText('New key created')).toBeTruthy();
     expect(within(screen.getByText('New key created').closest('[role="status"]') as HTMLElement).queryByText(/nk_live/)).toBeNull();
     expect(sessionStorage.getItem('nutrikit-new-key')).toContain('nk_live_brand_new_secret');
-    expect(screen.getByText(/export NUTRIKIT_KEY=nk_live_brand_new_secret/)).toBeTruthy();
+    // The snippet masks the key too, but its Copy button copies the real one.
+    expect(screen.getByText((t) => t.includes(`export NUTRIKIT_KEY=${MASKED_NEW}`))).toBeTruthy();
+    expect(screen.queryByText(/nk_live_brand_new_secret/)).toBeNull();
+    stubClipboard(async () => {});
+    fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('export NUTRIKIT_KEY=nk_live_brand_new_secret')));
 
     expect(await screen.findByText('iOS app')).toBeTruthy();
     expect((screen.getByLabelText('New key name') as HTMLInputElement).value).toBe('');
@@ -243,7 +266,7 @@ describe('Dashboard', () => {
 
     vi.stubGlobal('confirm', vi.fn(() => true));
     fireEvent.click(screen.getByRole('button', { name: "I've saved it" }));
-    expect(screen.queryByDisplayValue('nk_live_brand_new_secret')).toBeNull();
+    expect(screen.queryByDisplayValue(MASKED_NEW)).toBeNull();
     expect(screen.getByText(/export NUTRIKIT_KEY=nk_your_key/)).toBeTruthy();
   });
 
@@ -337,6 +360,29 @@ describe('Dashboard', () => {
     await screen.findByText('Key revoked');
     expect(calls(fetchMock, '/keys/key_a', 'DELETE')).toBe(1);
     expect(screen.getAllByText('Key revoked')).toHaveLength(1);
+  });
+
+  it('regenerates a key after confirmation and reveals the new one masked', async () => {
+    const fetchMock = stubPortal();
+    const confirm = vi.fn(() => true);
+    vi.stubGlobal('confirm', confirm);
+    app();
+    await screen.findByText('Default');
+    fireEvent.click(screen.getByRole('button', { name: 'Regenerate Default' }));
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining('stops working immediately'));
+    expect(await screen.findByRole('heading', { name: 'New key for “Default”' })).toBeTruthy();
+    expect(screen.getByDisplayValue('nk_live' + '•'.repeat(12) + '_key')).toBeTruthy();
+    expect(calls(fetchMock, `/keys/${defaultKey.id}/regenerate`, 'POST')).toBe(1);
+    expect(await screen.findByText('Key regenerated. The old one no longer works')).toBeTruthy();
+  });
+
+  it('does not regenerate when the confirmation is declined', async () => {
+    const fetchMock = stubPortal();
+    vi.stubGlobal('confirm', vi.fn(() => false));
+    app();
+    await screen.findByText('Default');
+    fireEvent.click(screen.getByRole('button', { name: 'Regenerate Default' }));
+    expect(calls(fetchMock, `/keys/${defaultKey.id}/regenerate`, 'POST')).toBe(0);
   });
 
   it('does not revoke when the confirmation is declined', async () => {

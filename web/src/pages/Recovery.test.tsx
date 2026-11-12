@@ -74,15 +74,28 @@ describe('account recovery', () => {
     const calls = stub({ '/password/reset': () => json(200, { account: { id: 'acc_1' } }) });
     app('/reset-password?token=abc123');
     fireEvent.change(screen.getByLabelText('New password'), { target: { value: 'a brand new passphrase' } });
+    fireEvent.change(screen.getByLabelText('Confirm new password'), { target: { value: 'a brand new passphrase' } });
     fireEvent.click(screen.getByRole('button', { name: 'Set password and log in' }));
     await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/dashboard'));
     expect(calls[0]).toEqual({ path: '/password/reset', body: { token: 'abc123', password: 'a brand new passphrase' } });
+  });
+
+  it('does not send the new password when the confirmation does not match', async () => {
+    const calls = stub({ '/password/reset': () => json(200, { account: { id: 'acc_1' } }) });
+    app('/reset-password?token=abc123');
+    fireEvent.change(screen.getByLabelText('New password'), { target: { value: 'a brand new passphrase' } });
+    fireEvent.change(screen.getByLabelText('Confirm new password'), { target: { value: 'a brand new passphrse' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Set password and log in' }));
+    expect(await screen.findByText("Passwords don't match.")).toBeTruthy();
+    expect(screen.getByLabelText('Confirm new password').getAttribute('aria-invalid')).toBe('true');
+    expect(calls).toEqual([]);
   });
 
   it('explains an expired reset link and offers a new one', async () => {
     stub({ '/password/reset': () => fail(400, 'invalid_token') });
     app('/reset-password?token=old');
     fireEvent.change(screen.getByLabelText('New password'), { target: { value: 'a brand new passphrase' } });
+    fireEvent.change(screen.getByLabelText('Confirm new password'), { target: { value: 'a brand new passphrase' } });
     fireEvent.click(screen.getByRole('button', { name: 'Set password and log in' }));
     expect(await screen.findByText(/This link has expired or was already used\./)).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Get a new link' }).getAttribute('href')).toBe('/forgot-password');
