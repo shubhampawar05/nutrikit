@@ -11,7 +11,8 @@ Besides the API, the server hosts everything other developers need to sign up an
 | `/docs`, `/docs/reference` | Guides and the live API reference |
 | `/signup`, `/login` | Accounts. New accounts start on Free |
 | `/forgot-password`, `/reset-password`, `/verify-email` | Password reset and email confirmation, reached from links in emails |
-| `/dashboard` | Keys, usage charts, upgrades |
+| `/dashboard` | Keys, usage charts, upgrades, and deleting the account |
+| `/privacy`, `/terms` | Privacy policy and terms of use ([web/src/pages/Legal.tsx](../web/src/pages/Legal.tsx)); operator name and contact address in [web/src/legal.ts](../web/src/legal.ts) |
 | `/playground` | Try any endpoint in the browser |
 | `/admin` | Operator console (not linked from the site) |
 
@@ -101,6 +102,24 @@ curl -X POST https://<host>/v1/admin/accounts/acct_…/plan \
 - Calls to AI providers (60 s), Razorpay (15 s) and Open Food Facts (8 s) have deadlines.
 - JSON request logs never contain bodies, keys, tokens, cookies or passwords.
 
+## Personal data and account deletion
+
+The privacy policy (`/privacy`) describes what the server stores. Keep it in step when that changes:
+
+| Data | Where | Kept |
+|---|---|---|
+| Name, email, password hash, plan, email confirmed | `accounts` | Until the account is deleted |
+| Sessions, API keys (hashes), usage rows, email links, upgrade requests | `sessions`, `api_keys`, `usage`, `email_tokens`, `upgrade_requests` | Deleted with the account (`ON DELETE CASCADE`) |
+| Monthly usage counters | `usage_periods` | Deleted with the account |
+| Sign-up IPs / failed logins (email, IP) / email sends | `signup_attempts` / `login_failures` / `email_sends` | 1 hour / 15 minutes / 1 day, and deleted with the account |
+| Payments (ids, plan, amount) | `payments` | Kept for accounting; the account link is cleared on deletion |
+| Content sent to the API (text, photos, barcodes) | Not stored; photos and AI text go to OpenAI or Anthropic | – |
+
+**Deleting an account:** Dashboard → Delete account, which calls `POST /portal/api/account/delete` with the
+account's password. Wrong passwords count as failed logins (5 per 15 minutes per email). Deletion removes everything
+above in one transaction, ends every session, and stops the account's keys at once. A running paid plan ends with it
+(the dashboard warns first). The address can sign up again afterwards.
+
 ## Before a public launch
 
 - [ ] Serve over HTTPS with `NUTRIKIT_SECURE_COOKIES=1`
@@ -109,4 +128,5 @@ curl -X POST https://<host>/v1/admin/accounts/acct_…/plan \
 - [ ] Switch Razorpay to live keys and add the webhook
 - [ ] Set `BREVO_API_KEY` (free, a verified sender address) or `RESEND_API_KEY` (a verified domain), `NUTRIKIT_MAIL_FROM`, and `NUTRIKIT_PUBLIC_URL`, so verification and reset emails are sent with the right links
 - [ ] Set `NUTRIKIT_ALERT_WEBHOOK_URL` and an uptime monitor on `/v1/health/ready` ([Monitoring](monitoring.md))
+- [ ] Set `CONTACT_EMAIL` (and `OPERATOR` if needed) in `web/src/legal.ts`, and have the privacy policy and terms reviewed for your business
 - [ ] Still to build: auto-renewing subscriptions, invoices/GST, self-serve plan changes

@@ -121,6 +121,8 @@ export const api = {
   createOrder: (plan: string) => portal<NewOrder>('POST', '/billing/order', { plan }),
   verifyPayment: (response: RazorpayPaymentResponse) => portal<AccountView>('POST', '/billing/verify', response),
   demo: <T>(text: string) => portal<T>('POST', '/demo', { text }),
+  /** Deletes the signed-in account (after re-entering its password) and ends the session. */
+  deleteAccount: (password: string) => portal<{ deleted: true }>('POST', '/account/delete', { password }),
 };
 
 /** A price such as "₹1,499" (no paise for whole amounts). */

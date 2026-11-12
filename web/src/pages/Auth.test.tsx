@@ -76,6 +76,8 @@ describe('Signup', () => {
     expect(screen.getByText('At least 10 characters.')).toBeTruthy();
     expect(screen.getByLabelText('Password').getAttribute('aria-describedby')).toBe('password-rule');
     expect(screen.getByRole('link', { name: 'Log in' }).getAttribute('href')).toBe('/login');
+    expect(screen.getByRole('link', { name: 'terms of use' }).getAttribute('href')).toBe('/terms');
+    expect(screen.getByRole('link', { name: 'privacy policy' }).getAttribute('href')).toBe('/privacy');
   });
 
   it('links "log in instead" to login with the email filled in, keeping next', async () => {

@@ -144,6 +144,14 @@ export async function portalRoutes(app: FastifyInstance) {
     return { sent: true };
   });
 
+  // Deletes the signed-in account after re-entering the password, and signs out.
+  app.post('/portal/api/account/delete', signedIn, async (req, reply) => {
+    await accounts.deleteAccount(sql, req.account.id, jsonBody(req).password, { ip: req.ip });
+    req.log.info({ accountId: req.account.id }, 'account deleted');
+    reply.header('Set-Cookie', sessionCookie(null));
+    return { deleted: true };
+  });
+
   app.get('/portal/api/me', signedIn, async (req) => ({ ...(await accountView(req.account)), plans: accounts.publicPlans(), billing: billing.billingInfo() }));
 
   app.get('/portal/api/keys', signedIn, async (req) => ({ keys: (await auth.listKeys(sql, req.account.id) as KeyRow[]).map(publicKey) }));

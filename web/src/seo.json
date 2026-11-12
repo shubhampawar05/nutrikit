@@ -37,6 +37,18 @@
       "index": true,
       "priority": 0.6
     },
+    "/privacy": {
+      "title": "Privacy policy — Nutrikit",
+      "description": "What Nutrikit collects, why, who else handles it, how long it is kept, and how to see or delete your data.",
+      "index": true,
+      "priority": 0.3
+    },
+    "/terms": {
+      "title": "Terms of use — Nutrikit",
+      "description": "The terms for using the Nutrikit website, developer dashboard and nutrition API: accounts, acceptable use, data licences and liability.",
+      "index": true,
+      "priority": 0.3
+    },
     "/signup": {
       "title": "Sign up — Nutrikit",
       "description": "Create a free Nutrikit account and get a nutrition API key in 30 seconds. 2,000 free tokens a month, no card needed.",

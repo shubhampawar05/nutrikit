@@ -566,3 +566,13 @@ kbd { font: 600 .72rem/1 var(--mono); padding: 2px 6px; border: 1px solid var(--
 .plan-skeleton i:last-child { width: 70%; }
 @keyframes plan-pulse { from { opacity: .45; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .plan-skeleton i { animation: none; } }
+
+/* Privacy policy and terms (pages/Legal.tsx): one readable column. */
+.legal { max-width: 46rem; padding-top: 64px; padding-bottom: 96px; }
+.legal h1 { margin: 0 0 6px; }
+.legal h2 { margin: 40px 0 10px; font-size: 1.3rem; }
+.legal h3 { margin: 22px 0 6px; font-size: 1.02rem; }
+.legal p, .legal li { line-height: 1.65; }
+.legal ul { padding-left: 1.2em; }
+.legal li + li { margin-top: 6px; }
+.legal .lead { max-width: none; margin-bottom: 8px; }

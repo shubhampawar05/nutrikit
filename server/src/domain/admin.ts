@@ -74,9 +74,10 @@ export async function listAccounts(sql: Sql, q?: string): Promise<AdminAccount[]
 export interface AdminPayment {
   paymentId: string;
   orderId: string;
-  accountId: string;
-  email: string;
-  name: string;
+  /** Null once the paying account was deleted: the payment record is kept for accounting. */
+  accountId: string | null;
+  email: string | null;
+  name: string | null;
   plan: string;
   amount: number;
   currency: string;
@@ -89,7 +90,7 @@ export async function listPayments(sql: Sql, q?: string): Promise<AdminPayment[]
   const rows = await sql<AdminPayment[]>`
     SELECT p.payment_id AS "paymentId", p.order_id AS "orderId", p.account_id AS "accountId", a.email, a.name,
            p.plan, p.amount / 100.0 AS amount, p.currency, p.period_end AS "periodEnd", p.created_at AS "paidAt"
-    FROM payments p JOIN accounts a ON a.id = p.account_id
+    FROM payments p LEFT JOIN accounts a ON a.id = p.account_id
     WHERE ${pattern === null ? sql`TRUE` : sql`(a.email ILIKE ${pattern} OR a.name ILIKE ${pattern})`}
     ORDER BY p.created_at DESC
     LIMIT ${LIMIT}`;

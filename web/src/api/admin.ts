@@ -46,7 +46,8 @@ export interface AdminAccount {
 }
 
 export interface AdminPayment {
-  paymentId: string; orderId: string; accountId: string; email: string; name: string;
+  /** accountId, email and name are null once the paying account was deleted (the payment is kept). */
+  paymentId: string; orderId: string; accountId: string | null; email: string | null; name: string | null;
   plan: string; amount: number; currency: string; periodEnd: string; paidAt: string;
 }
 

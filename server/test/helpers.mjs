@@ -37,6 +37,8 @@ process.env.NUTRIKIT_ADMIN_TOKEN = 'test-admin-token';
 delete process.env.NUTRIKIT_AUTH;
 delete process.env.ANTHROPIC_API_KEY;
 delete process.env.OPENAI_API_KEY;
+// Tests make requests fail on purpose: never post those alerts to a real chat webhook from .env.
+delete process.env.NUTRIKIT_ALERT_WEBHOOK_URL;
 
 const adminUrl = process.env.TEST_DATABASE_URL || 'postgres://nutrikit:nutrikit@localhost:5433/postgres';
 const dbName = `nutrikit_test_${crypto.randomBytes(6).toString('hex')}`;
