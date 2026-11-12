@@ -14,7 +14,9 @@ test('sign up → dashboard → create key → playground food search', async ({
   // The dashboard shows the first key once, in a read-only field. Dismissing a key that was never copied asks
   // to confirm first; accept it.
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByText(email)).toBeVisible();
+  // The email shows in the account header and in the "Confirm your email" banner of a new, unverified account.
+  await expect(page.getByText(email).first()).toBeVisible();
+  await expect(page.getByText('Confirm your email.')).toBeVisible();
   const reveal = page.locator('.key-reveal');
   await expect(reveal.locator('.key-reveal-key')).toHaveValue(/^nk_/);
   page.once('dialog', (dialog) => dialog.accept());

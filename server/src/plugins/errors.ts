@@ -2,6 +2,7 @@
 // Unknown paths are 404 not_found; a /v1 path that exists with another method is 405 method_not_allowed.
 import type { FastifyInstance, FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { HttpError } from '../http.ts';
+import { alertUnhandled, isUnhandled } from './monitoring.ts';
 
 interface AppError extends Partial<FastifyError> {
   status?: number;
@@ -86,7 +87,10 @@ export function errorHandling(app: FastifyInstance, { fallback }: ErrorHandlingO
       code = 'payload_too_large';
       message = `request body exceeds ${req.routeOptions.bodyLimit} bytes`;
     }
-    if (status >= 500 && status !== 501 && status !== 502 && status !== 503 && status !== 504) req.log.error({ err }, 'unhandled error');
+    if (isUnhandled(status)) {
+      req.log.error({ err }, 'unhandled error');
+      if (app.monitor) alertUnhandled(app.monitor, req, status, err as Error);
+    }
     else if (err.logDetail) req.log.warn({ code, detail: err.logDetail }, err.message);
     if (err.retryAfter) reply.header('Retry-After', String(err.retryAfter));
     const error: { code: string; message: string; fields?: Record<string, string> } = {

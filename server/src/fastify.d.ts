@@ -2,11 +2,13 @@
 import type { Sql } from 'postgres';
 import type { KeyContext } from './domain/auth.ts';
 import type { Account } from './domain/accounts.ts';
+import type { Monitor } from './plugins/monitoring.ts';
 
 declare module 'fastify' {
   interface FastifyInstance {
     sql: Sql;
     routeTable: { method: string; url: string; hidden: boolean }[];
+    monitor: Monitor;
   }
   interface FastifyRequest {
     key: KeyContext;

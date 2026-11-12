@@ -293,7 +293,7 @@ test('OpenAPI spec documents every API route', async () => {
   assert.equal(spec.openapi, '3.1.0');
   const documented = new Set(Object.entries(spec.paths).flatMap(([p, ops]) => Object.keys(ops).map((m) => `${m.toUpperCase()} ${p}`)));
   const api = app.routeTable.filter((r) => r.url.startsWith('/v1/') && r.method !== 'HEAD' && !r.hidden);
-  assert.equal(api.length, 24, 'all /v1 routes are registered');
+  assert.equal(api.length, 25, 'all /v1 routes are registered');
   for (const r of api) {
     const p = r.url.replace(/:(\w+)(\([^/]*\))?/g, '{$1}');
     assert.ok(documented.has(`${r.method} ${p}`), `${r.method} ${p} missing from openapi.json`);

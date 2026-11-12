@@ -8,14 +8,14 @@ A self-hostable nutrition API, with a website, a developer portal, a JavaScript 
 **Try it:** [nutrikit.onrender.com](https://nutrikit.onrender.com) (free API key) ·
 [Docs](https://nutrikit.onrender.com/docs) · [SDK on npm](https://www.npmjs.com/package/@nutrikit/sdk)
 
-- **Search 13,000+ foods** and get up to 33 nutrients for any portion ("2 medium", "1.5 cups")
+- **Search 14,000+ foods** and get up to 33 nutrients for any portion ("2 medium", "1.5 cups")
 - **Log meals** from text, voice or a photo
 - **Scan** barcodes and nutrition labels
 - **Generate meal plans** for 6 diets
 - **Sell access** with API keys, usage metering and Razorpay payments
 
-Built on open data (USDA, UK CoFID, Open Food Facts). AI features (photos, labels) use Claude or OpenAI and are optional.
-This is a clean-room build. [CLEAN-ROOM.md](CLEAN-ROOM.md) records what it was and wasn't derived from.
+Built on open data (USDA, UK CoFID, the Indian Nutrient Databank, Open Food Facts). AI features (photos, labels) use
+Claude or OpenAI and are optional.
 
 ## Quick start
 
@@ -90,12 +90,15 @@ The full API reference is served at `/docs/reference`.
 | [Developer platform](docs/platform.md) | Understand accounts, plans, the admin console and security |
 | [Payments](docs/payments.md) | Set up Razorpay, in test mode or live |
 | [Testing](docs/testing.md) | Run and understand the test suites |
+| [Monitoring](docs/monitoring.md) | Get alerted on errors and downtime, and read live metrics |
 
 ## Data and attribution
 
 - **USDA FoodData Central**: public domain (CC0).
 - **UK CoFID 2021** (McCance and Widdowson's, Public Health England): dishes USDA lacks. Contains public sector
   information licensed under the Open Government Licence v3.0.
+- **Indian Nutrient Databank (INDB)**, [Anuvaad](https://www.anuvaad.org.in/indian-nutrient-databank/): about 1,000
+  Indian dishes, per 100 g as published. See [server/data/indb/README.md](server/data/indb/README.md).
 - **Open Food Facts**: © Open Food Facts contributors, [ODbL](https://opendatacommons.org/licenses/odbl/1-0/).
 - Daily values: FDA, 21 CFR 101.9.
 

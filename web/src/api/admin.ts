@@ -60,6 +60,22 @@ export interface UpgradeRequest {
   accountId: string; email: string; name: string; currentPlan: string;
 }
 
+export interface RouteMetrics {
+  route: string; count: number; byStatus: Record<'2xx' | '3xx' | '4xx' | '5xx', number>;
+  p50Ms: number | null; p95Ms: number | null; p99Ms: number | null;
+}
+
+export interface Metrics {
+  startedAt: string; uptimeSeconds: number;
+  process: { rssMb: number; heapUsedMb: number; eventLoopDelayMs: { p50: number | null; p99: number | null; max: number | null }; node: string };
+  requests: {
+    total: number; byStatus: Record<'2xx' | '3xx' | '4xx' | '5xx', number>;
+    last5Minutes: { requests: number; serverErrors: number }; last60Minutes: { requests: number; serverErrors: number };
+  };
+  routes: RouteMetrics[];
+  alerts: { configured: boolean; sent: number; failed: number; suppressed: number; lastSentAt: string | null };
+}
+
 export const adminApi = {
   /** Checks a token by loading the overview with it. */
   signIn: (token: string) => admin<Overview>('GET', '/overview', undefined, token),
@@ -68,6 +84,7 @@ export const adminApi = {
   payments: (q?: string) => admin<{ payments: AdminPayment[] }>('GET', `/payments${qs(q)}`),
   keys: (q?: string) => admin<{ keys: AdminKey[] }>('GET', `/keys${qs(q)}`),
   requests: () => admin<{ requests: UpgradeRequest[] }>('GET', '/upgrade-requests'),
+  metrics: () => admin<Metrics>('GET', '/metrics'),
   revokeKey: (id: string) => admin<{ revoked: string }>('DELETE', `/keys/${id}`),
   setPlan: (accountId: string, plan: string) => admin<{ account: string; plan: string }>('POST', `/accounts/${accountId}/plan`, { plan }),
 };

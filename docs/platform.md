@@ -67,12 +67,13 @@ Open `/admin` and sign in with `NUTRIKIT_ADMIN_TOKEN`. The token stays in that b
 | Tab | What you can do |
 |---|---|
 | Overview | Accounts per plan, revenue, active keys, tokens this month |
+| Health | Uptime, error rate, latency per route, memory, alert status ([Monitoring](monitoring.md)) |
 | Payments | Every Razorpay payment; search by email |
 | Accounts | Plans, usage, total paid; **change an account's plan** |
 | Keys | Every key with its owner; **revoke** a key |
 | Requests | Upgrade requests (Enterprise, or when payments are off) |
 
-The same is available over the admin API (`/v1/admin/overview`, `/accounts`, `/payments`, `/keys`), e.g.:
+The same is available over the admin API (`/v1/admin/overview`, `/metrics`, `/accounts`, `/payments`, `/keys`), e.g.:
 
 ```bash
 curl -X POST https://<host>/v1/admin/accounts/acct_…/plan \
@@ -107,4 +108,5 @@ curl -X POST https://<host>/v1/admin/accounts/acct_…/plan \
 - [ ] Replace the placeholder plans and prices
 - [ ] Switch Razorpay to live keys and add the webhook
 - [ ] Set `BREVO_API_KEY` (free, a verified sender address) or `RESEND_API_KEY` (a verified domain), `NUTRIKIT_MAIL_FROM`, and `NUTRIKIT_PUBLIC_URL`, so verification and reset emails are sent with the right links
+- [ ] Set `NUTRIKIT_ALERT_WEBHOOK_URL` and an uptime monitor on `/v1/health/ready` ([Monitoring](monitoring.md))
 - [ ] Still to build: auto-renewing subscriptions, invoices/GST, self-serve plan changes

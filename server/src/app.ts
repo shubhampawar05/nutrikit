@@ -7,6 +7,7 @@ import { createSql } from './pg.ts';
 import { HttpError, IMAGE_TYPES, MAX_JSON, contentType } from './http.ts';
 import { errorHandling } from './plugins/errors.ts';
 import { metering } from './plugins/metering.ts';
+import { monitoring } from './plugins/monitoring.ts';
 import { registerSchemas } from './schemas.ts';
 import { v1Routes } from './routes/v1.ts';
 import { adminRoutes } from './routes/admin.ts';
@@ -25,6 +26,8 @@ export interface AppOptions {
   logStream?: Writable;
   /** Log level (default: NUTRIKIT_LOG_LEVEL, else info). */
   logLevel?: string;
+  /** Where alerts are posted (default: NUTRIKIT_ALERT_WEBHOOK_URL); see plugins/monitoring.ts. */
+  alertWebhookUrl?: string;
 }
 
 // The public API is callable cross-origin with bearer credentials; the cookie-based portal is not.
@@ -151,6 +154,7 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
 
   const webDist = opts.webDist || process.env.NUTRIKIT_WEB_DIST || DEFAULT_WEB_DIST;
   const shell = appShell(webDist);
+  monitoring(app, { alertWebhookUrl: opts.alertWebhookUrl });
   errorHandling(app, { fallback: (req, reply) => (shell && wantsApp(req) ? shell(req, reply) : false) });
   metering(app);
 
