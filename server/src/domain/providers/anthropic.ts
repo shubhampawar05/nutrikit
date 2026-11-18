@@ -90,8 +90,8 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
       return { ...out, usage };
     },
 
-    async estimateFoods({ foods }) {
-      const { data: out, usage } = await call<FoodEstimatesOutput>(ESTIMATE_SYSTEM, [{ type: 'text', text: estimateMessage(foods) }], FOOD_ESTIMATES_SCHEMA);
+    async estimateFoods({ foods, candidates }) {
+      const { data: out, usage } = await call<FoodEstimatesOutput>(ESTIMATE_SYSTEM, [{ type: 'text', text: estimateMessage(foods, candidates) }], FOOD_ESTIMATES_SCHEMA);
       return { foods: out.foods, usage };
     },
   };

@@ -136,6 +136,8 @@ When a call uses AI (`ai: true`, or a photo), a missing food is estimated by the
 - **Approve** an estimate you've checked: from then on every caller logging that food gets it, rule-based logging
   included, without an AI call.
 - **Reject** a wrong one: it stops being used and the food isn't estimated again; it stays unmatched.
+- An estimate shown as **Same as** a catalog food means the AI judged them the same dish and that food is logged
+  with its own values; adding the request's words as its alias makes the match permanent.
 - Once the catalog covers the food (an alias in `server/data/aliases/recipes.json` or a cited recipe in
   `server/data/recipes/`, then `npm run build:db`), mark it **Resolved**. **Ignore** text that isn't a food.
 
@@ -144,6 +146,26 @@ curl https://<host>/v1/admin/food-requests?status=open -H "Authorization: Bearer
 curl -X PATCH https://<host>/v1/admin/food-requests/12 -H "Authorization: Bearer $NUTRIKIT_ADMIN_TOKEN" \
   -H "Content-Type: application/json" -d '{"estimateStatus": "approved"}'
 ```
+
+### Measuring AI estimates
+
+`npm run eval:estimates -w server -- --label <name>` asks the configured AI provider to estimate 100 INDB dishes as if
+the catalog lacked them, through the same code logging uses, and scores the answers against INDB's published values
+(results in `server/data/eval/<name>.json`). Run it before and after changing the prompt, model or method. Two
+identical runs differ by about 3-4 points, and INDB is one home recipe per dish (often lighter than typical), so
+compare large differences only.
+
+| Run (gpt-5-mini) | Median calorie error | Within 20% | Notes |
+|---|---|---|---|
+| `baseline` | 30.7% | 35% | estimates only |
+| `validated` | 34% | 30% | + arithmetic checks; none failed in this run |
+| `near-match` | 35.8% | 28% | + catalog matches: 11 dishes matched at 20% median error, vs 38% for estimated ones |
+| `recipe` (not kept) | 38.7% | 30% | AI's ingredients composed from USDA values: 34.5% vs the AI's own 32.6% on the same 54 dishes |
+
+Against our cited recipes (`--source recipe`, 28 dishes) the AI's own figures were 17.4% off at the median and
+the composed recipes 20.1%. Both methods' errors correlate at 0.98-0.99, because both come from the model's idea of
+the recipe, so composing from ingredients was dropped; it also made answers long enough to time out. The AI is much
+closer to typical recipes (about 17%) than to INDB's lighter home recipes (about 33%).
 
 ## Security in place
 

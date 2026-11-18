@@ -360,6 +360,15 @@ function EstimateSummary({ r }: { r: FoodRequest }) {
   if (!e) return <span className="muted">none yet</span>;
   const [cls, label] = ESTIMATE_BADGE[r.estimateStatus as keyof typeof ESTIMATE_BADGE] ?? ['', r.estimateStatus];
   const n = e.per100g;
+  if (e.sameAs) {
+    return (
+      <>
+        <span className={`badge ${cls}`}>{label}</span> Same as <b>{e.sameAs.name}</b>
+        <span className="muted small admin-sub">Logged with this catalog food's own values. Consider adding “{r.phrase}” as its alias.</span>
+        <span className="muted small admin-sub">Used {fmt(r.estimateUses)} {r.estimateUses === 1 ? 'time' : 'times'} · {e.provider}{e.model ? ` ${e.model}` : ''}</span>
+      </>
+    );
+  }
   return (
     <>
       <span className={`badge ${cls}`}>{label}</span> {e.name}

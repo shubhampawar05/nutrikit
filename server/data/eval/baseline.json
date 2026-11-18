@@ -1,0 +1,2320 @@
+{
+  "summary": {
+    "label": "baseline",
+    "provider": "openai",
+    "model": "gpt-5-mini",
+    "at": "2026-11-18T11:07:09.374Z",
+    "dishes": 100,
+    "estimated": 94,
+    "notEstimated": 6,
+    "calories": {
+      "medianError": "30.7%",
+      "meanError": "47.9%",
+      "within20": "35.1%",
+      "over50": 31
+    },
+    "macroMeanErrorGrams": {
+      "protein": 2.5,
+      "carbs": 10,
+      "fat": 8.7
+    },
+    "usage": {
+      "inputTokens": 11780,
+      "outputTokens": 63808
+    }
+  },
+  "rows": [
+    {
+      "id": 878590720,
+      "query": "Hot tea (Garam Chai)",
+      "name": "Indian masala tea (Garam chai) with milk and sugar",
+      "confidence": "medium",
+      "truth": {
+        "calories": 16.144,
+        "protein": 0.388,
+        "carbs": 2.582,
+        "fat": 0.532
+      },
+      "estimate": {
+        "calories": 43,
+        "protein": 1.3,
+        "carbs": 6,
+        "fat": 1.5
+      },
+      "calorieError": 1.663528245787909,
+      "macroError": {
+        "protein": 0.912,
+        "carbs": 3.418,
+        "fat": 0.968
+      }
+    },
+    {
+      "id": 878590751,
+      "query": "Coco pine cooler",
+      "name": "Coconut–pineapple cooler (coconut + pineapple juice drink)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 32.749,
+        "protein": 0.555,
+        "carbs": 5.718,
+        "fat": 1
+      },
+      "estimate": {
+        "calories": 60,
+        "protein": 0.6,
+        "carbs": 8.8,
+        "fat": 2.5
+      },
+      "calorieError": 0.8321170112064489,
+      "macroError": {
+        "protein": 0.04499999999999993,
+        "carbs": 3.0820000000000007,
+        "fat": 1.5
+      }
+    },
+    {
+      "id": 878590783,
+      "query": "Lassi (salted)",
+      "name": "Salted lassi (yogurt drink with water and salt)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 18.845,
+        "protein": 1.355,
+        "carbs": 1.856,
+        "fat": 0.719
+      },
+      "estimate": {
+        "calories": 63,
+        "protein": 3.3,
+        "carbs": 5,
+        "fat": 3.3
+      },
+      "calorieError": 2.3430618201114357,
+      "macroError": {
+        "protein": 1.9449999999999998,
+        "carbs": 3.144,
+        "fat": 2.581
+      }
+    },
+    {
+      "id": 878590814,
+      "query": "Vegetarian club sandwich",
+      "name": "Vegetarian club sandwich (multi-layer sandwich with mayo, vegetables, cheese)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 198.329,
+        "protein": 5.451,
+        "carbs": 19.684,
+        "fat": 11.329
+      },
+      "estimate": {
+        "calories": 262,
+        "protein": 9,
+        "carbs": 25,
+        "fat": 14
+      },
+      "calorieError": 0.32103726636044144,
+      "macroError": {
+        "protein": 3.5490000000000004,
+        "carbs": 5.315999999999999,
+        "fat": 2.6709999999999994
+      }
+    },
+    {
+      "id": 878590845,
+      "query": "Paneer pea sandwich (toasted) (Paneer matar ka sandwich)",
+      "name": "Paneer-matar toasted sandwich (paneer and peas filling, butter-toasted)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 249.556,
+        "protein": 12.4,
+        "carbs": 24.052,
+        "fat": 11.976
+      },
+      "estimate": {
+        "calories": 225,
+        "protein": 9,
+        "carbs": 18,
+        "fat": 13
+      },
+      "calorieError": 0.09839875619099525,
+      "macroError": {
+        "protein": 3.4000000000000004,
+        "carbs": 6.052,
+        "fat": 1.0239999999999991
+      }
+    },
+    {
+      "id": 878590877,
+      "query": "Wheat flakes",
+      "name": "Wheat flakes (bran/wheat breakfast flakes), dry",
+      "confidence": "high",
+      "truth": {
+        "calories": 112.44,
+        "protein": 3.617,
+        "carbs": 15.569,
+        "fat": 3.991
+      },
+      "estimate": {
+        "calories": 355,
+        "protein": 10,
+        "carbs": 73,
+        "fat": 2.5
+      },
+      "calorieError": 2.15723941657773,
+      "macroError": {
+        "protein": 6.383,
+        "carbs": 57.431,
+        "fat": 1.491
+      }
+    },
+    {
+      "id": 878590908,
+      "query": "Pancake",
+      "name": "American-style pancake (plain, cooked)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 203.356,
+        "protein": 5.682,
+        "carbs": 20.49,
+        "fat": 10.817
+      },
+      "estimate": {
+        "calories": 228,
+        "protein": 6,
+        "carbs": 33,
+        "fat": 8
+      },
+      "calorieError": 0.12118649068628418,
+      "macroError": {
+        "protein": 0.3179999999999996,
+        "carbs": 12.510000000000002,
+        "fat": 2.817
+      }
+    },
+    {
+      "id": 878590939,
+      "query": "White sauce (thick)",
+      "name": "White sauce (thick béchamel)",
+      "confidence": "high",
+      "truth": {
+        "calories": 209.694,
+        "protein": 3.431,
+        "carbs": 10.241,
+        "fat": 17.19
+      },
+      "estimate": {
+        "calories": 161,
+        "protein": 3.5,
+        "carbs": 12,
+        "fat": 11
+      },
+      "calorieError": 0.2322145602640037,
+      "macroError": {
+        "protein": 0.06899999999999995,
+        "carbs": 1.7590000000000003,
+        "fat": 6.190000000000001
+      }
+    },
+    {
+      "id": 878590971,
+      "query": "Cream of spinach soup",
+      "name": "Cream of spinach soup (home-style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 100.538,
+        "protein": 5.214,
+        "carbs": 3.446,
+        "fat": 13.31
+      },
+      "estimate": {
+        "calories": 75,
+        "protein": 2.5,
+        "carbs": 6,
+        "fat": 4.5
+      },
+      "calorieError": 0.2540134078656826,
+      "macroError": {
+        "protein": 2.7140000000000004,
+        "carbs": 2.554,
+        "fat": 8.81
+      }
+    },
+    {
+      "id": 878591002,
+      "query": "Cold cucumber soup (Thanda kheere ka soup)",
+      "name": "Cold cucumber soup (yogurt‑based, Indian style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 48.03,
+        "protein": 2.988,
+        "carbs": 4.581,
+        "fat": 1.991
+      },
+      "estimate": {
+        "calories": 53,
+        "protein": 3,
+        "carbs": 4.5,
+        "fat": 2.5
+      },
+      "calorieError": 0.10347699354570057,
+      "macroError": {
+        "protein": 0.01200000000000001,
+        "carbs": 0.0810000000000004,
+        "fat": 0.5089999999999999
+      }
+    },
+    {
+      "id": 878591684,
+      "query": "Keema parantha/paratha",
+      "name": "Keema paratha (minced meat stuffed flatbread)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 238.086,
+        "protein": 9.406,
+        "carbs": 18.356,
+        "fat": 13.91
+      },
+      "estimate": {
+        "calories": 327,
+        "protein": 10,
+        "carbs": 29,
+        "fat": 19
+      },
+      "calorieError": 0.3734532899876514,
+      "macroError": {
+        "protein": 0.5939999999999994,
+        "carbs": 10.643999999999998,
+        "fat": 5.09
+      }
+    },
+    {
+      "id": 878591715,
+      "query": "Plain pulao",
+      "name": "Plain pulao (rice cooked with mild spices and oil/ghee)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 140.208,
+        "protein": 2.339,
+        "carbs": 21.816,
+        "fat": 4.622
+      },
+      "estimate": {
+        "calories": 160,
+        "protein": 3,
+        "carbs": 28,
+        "fat": 4
+      },
+      "calorieError": 0.1411617026132603,
+      "macroError": {
+        "protein": 0.661,
+        "carbs": 6.184000000000001,
+        "fat": 0.6219999999999999
+      }
+    },
+    {
+      "id": 878591746,
+      "query": "Lemon rice (Pulihora, Elumichai sadam, Chitranna)",
+      "name": "Lemon rice (Pulihora / Elumichai sadam / Chitranna)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 176.303,
+        "protein": 4.256,
+        "carbs": 21.622,
+        "fat": 7.88
+      },
+      "estimate": {
+        "calories": 165,
+        "protein": 3,
+        "carbs": 27,
+        "fat": 5
+      },
+      "calorieError": 0.06411121761966612,
+      "macroError": {
+        "protein": 1.2560000000000002,
+        "carbs": 5.378,
+        "fat": 2.88
+      }
+    },
+    {
+      "id": 878591777,
+      "query": "Vegetable chowmein",
+      "name": "Vegetable chowmein (stir-fried noodles with mixed vegetables and sauce)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 129.714,
+        "protein": 3.067,
+        "carbs": 15.444,
+        "fat": 6.359
+      },
+      "estimate": {
+        "calories": 157,
+        "protein": 4,
+        "carbs": 24,
+        "fat": 5
+      },
+      "calorieError": 0.210355088887861,
+      "macroError": {
+        "protein": 0.9329999999999998,
+        "carbs": 8.556,
+        "fat": 1.359
+      }
+    },
+    {
+      "id": 878591810,
+      "query": "Masala dosa",
+      "name": "Masala dosa (fermented rice/urad crepe with potato masala, with chutneys)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 164.585,
+        "protein": 3.288,
+        "carbs": 19.567,
+        "fat": 7.84
+      },
+      "estimate": {
+        "calories": 160,
+        "protein": 4.5,
+        "carbs": 22,
+        "fat": 6
+      },
+      "calorieError": 0.027857945742321644,
+      "macroError": {
+        "protein": 1.2120000000000002,
+        "carbs": 2.433,
+        "fat": 1.8399999999999999
+      }
+    },
+    {
+      "id": 878591841,
+      "query": "Whole moong (Moong ki dal)",
+      "name": "Whole moong dal (home-style cooked, with tempering)",
+      "confidence": "high",
+      "truth": {
+        "calories": 53.699,
+        "protein": 2.249,
+        "carbs": 5.219,
+        "fat": 2.564
+      },
+      "estimate": {
+        "calories": 134,
+        "protein": 7.5,
+        "carbs": 18,
+        "fat": 3.5
+      },
+      "calorieError": 1.4953909756233823,
+      "macroError": {
+        "protein": 5.2509999999999994,
+        "carbs": 12.780999999999999,
+        "fat": 0.9359999999999999
+      }
+    },
+    {
+      "id": 878591873,
+      "query": "Sambar",
+      "name": "Sambar (tamarind-lentil vegetable stew, home-style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 96.918,
+        "protein": 3.35,
+        "carbs": 10.568,
+        "fat": 4.383
+      },
+      "estimate": {
+        "calories": 78,
+        "protein": 3.5,
+        "carbs": 8,
+        "fat": 3.5
+      },
+      "calorieError": 0.1951959388348914,
+      "macroError": {
+        "protein": 0.1499999999999999,
+        "carbs": 2.5679999999999996,
+        "fat": 0.883
+      }
+    },
+    {
+      "id": 878591905,
+      "query": "Dry potato (Sookhe aloo)",
+      "name": "Sookhe aloo (dry spiced potatoes, home-style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 103.146,
+        "protein": 1.62,
+        "carbs": 14.378,
+        "fat": 4.182
+      },
+      "estimate": {
+        "calories": 150,
+        "protein": 2,
+        "carbs": 22,
+        "fat": 6
+      },
+      "calorieError": 0.45424931650282124,
+      "macroError": {
+        "protein": 0.3799999999999999,
+        "carbs": 7.622,
+        "fat": 1.8179999999999996
+      }
+    },
+    {
+      "id": 878591937,
+      "query": "Stuffed tomatoes (Bharwa tamatar)",
+      "name": "Bharwa tamatar (stuffed tomatoes, home-style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 93.348,
+        "protein": 3.282,
+        "carbs": 6.19,
+        "fat": 6.06
+      },
+      "estimate": {
+        "calories": 87,
+        "protein": 1.5,
+        "carbs": 9,
+        "fat": 5
+      },
+      "calorieError": 0.06800359943437459,
+      "macroError": {
+        "protein": 1.782,
+        "carbs": 2.8099999999999996,
+        "fat": 1.0599999999999996
+      }
+    },
+    {
+      "id": 878591968,
+      "query": "Spinach kofta curry (Palak kofta curry)",
+      "name": "Palak kofta curry (spinach gravy with fried koftas, home-style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 571.776,
+        "protein": 1.086,
+        "carbs": 3.565,
+        "fat": 61.492
+      },
+      "estimate": {
+        "calories": 166,
+        "protein": 6,
+        "carbs": 13,
+        "fat": 10
+      },
+      "calorieError": 0.7096765166778598,
+      "macroError": {
+        "protein": 4.914,
+        "carbs": 9.435,
+        "fat": 51.492
+      }
+    },
+    {
+      "id": 878592650,
+      "query": "Cauliflower musallam (Phoolgobhi musallam)",
+      "truth": 58.827,
+      "estimate": null
+    },
+    {
+      "id": 878592681,
+      "query": "Avial",
+      "truth": 124.559,
+      "estimate": null
+    },
+    {
+      "id": 878592712,
+      "query": "Pea keema curry (Matar keema ki sabzi)",
+      "truth": 133.003,
+      "estimate": null
+    },
+    {
+      "id": 878592766,
+      "query": "Tandoori chicken",
+      "truth": 145.199,
+      "estimate": null
+    },
+    {
+      "id": 878592797,
+      "query": "Fish tikka",
+      "truth": 117.331,
+      "estimate": null
+    },
+    {
+      "id": 878592828,
+      "query": "Mixed vegetable salad with curd sauce",
+      "name": "Mixed vegetable salad with curd (yogurt) sauce",
+      "confidence": "medium",
+      "truth": {
+        "calories": 60.281,
+        "protein": 4.23,
+        "carbs": 7.034,
+        "fat": 1.501
+      },
+      "estimate": {
+        "calories": 50,
+        "protein": 1.5,
+        "carbs": 4,
+        "fat": 3
+      },
+      "calorieError": 0.17055125163816126,
+      "macroError": {
+        "protein": 2.7300000000000004,
+        "carbs": 3.034,
+        "fat": 1.499
+      }
+    },
+    {
+      "id": 878592861,
+      "query": "Cucumber raita (Kheere ka raita)",
+      "name": "Cucumber raita (yogurt and cucumber)",
+      "confidence": "high",
+      "truth": {
+        "calories": 59.125,
+        "protein": 4.037,
+        "carbs": 6.35,
+        "fat": 2.076
+      },
+      "estimate": {
+        "calories": 52,
+        "protein": 2.64,
+        "carbs": 4.4,
+        "fat": 2.64
+      },
+      "calorieError": 0.12050739957716702,
+      "macroError": {
+        "protein": 1.3969999999999998,
+        "carbs": 1.9499999999999993,
+        "fat": 0.5640000000000001
+      }
+    },
+    {
+      "id": 878592892,
+      "query": "Makhana kheer",
+      "name": "Makhana kheer (foxnut pudding with milk, sugar and ghee)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 107.849,
+        "protein": 3.31,
+        "carbs": 12.879,
+        "fat": 5.004
+      },
+      "estimate": {
+        "calories": 163,
+        "protein": 3.39,
+        "carbs": 24.67,
+        "fat": 5.63
+      },
+      "calorieError": 0.5113723817559735,
+      "macroError": {
+        "protein": 0.08000000000000007,
+        "carbs": 11.791000000000002,
+        "fat": 0.6260000000000003
+      }
+    },
+    {
+      "id": 878592924,
+      "query": "Shahi suji halwa",
+      "name": "Shahi suji halwa (semolina halwa with ghee, sugar and milk)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 382.344,
+        "protein": 3.48,
+        "carbs": 44.437,
+        "fat": 21.725
+      },
+      "estimate": {
+        "calories": 333,
+        "protein": 4.19,
+        "carbs": 45.37,
+        "fat": 14.95
+      },
+      "calorieError": 0.12905655639947272,
+      "macroError": {
+        "protein": 0.7100000000000004,
+        "carbs": 0.9329999999999998,
+        "fat": 6.775000000000002
+      }
+    },
+    {
+      "id": 878593607,
+      "query": "Mango ice cream",
+      "name": "Mango ice cream (home-style, milk/cream, mango and sugar)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 125.686,
+        "protein": 3.403,
+        "carbs": 11.135,
+        "fat": 7.618
+      },
+      "estimate": {
+        "calories": 204,
+        "protein": 1.84,
+        "carbs": 25.52,
+        "fat": 10.56
+      },
+      "calorieError": 0.6230924685326925,
+      "macroError": {
+        "protein": 1.563,
+        "carbs": 14.385,
+        "fat": 2.942
+      }
+    },
+    {
+      "id": 878593639,
+      "query": "Mango mousse",
+      "name": "Mango mousse (home-style, whipped cream and mango pulp)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 124.976,
+        "protein": 3.207,
+        "carbs": 9.14,
+        "fat": 8.466
+      },
+      "estimate": {
+        "calories": 204.2,
+        "protein": 1.1,
+        "carbs": 18,
+        "fat": 14.2
+      },
+      "calorieError": 0.633913711432595,
+      "macroError": {
+        "protein": 2.1069999999999998,
+        "carbs": 8.86,
+        "fat": 5.734
+      }
+    },
+    {
+      "id": 878593670,
+      "query": "Bread and butter pudding",
+      "name": "Bread and butter pudding (home-style with milk/egg custard, butter, sugar, raisins)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 167.941,
+        "protein": 5.587,
+        "carbs": 19.628,
+        "fat": 7.876
+      },
+      "estimate": {
+        "calories": 175,
+        "protein": 5,
+        "carbs": 23,
+        "fat": 7
+      },
+      "calorieError": 0.04203261859819816,
+      "macroError": {
+        "protein": 0.5869999999999997,
+        "carbs": 3.372,
+        "fat": 0.8760000000000003
+      }
+    },
+    {
+      "id": 878593701,
+      "query": "Coconut burfi (Nariyal ki burfi)",
+      "name": "Coconut burfi (Nariyal ki burfi, grated coconut with sugar and ghee/milk solids)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 467.635,
+        "protein": 8.811,
+        "carbs": 32.152,
+        "fat": 34.626
+      },
+      "estimate": {
+        "calories": 434.2,
+        "protein": 2.5,
+        "carbs": 39,
+        "fat": 29.8
+      },
+      "calorieError": 0.07149807007602084,
+      "macroError": {
+        "protein": 6.311,
+        "carbs": 6.847999999999999,
+        "fat": 4.825999999999997
+      }
+    },
+    {
+      "id": 878593732,
+      "query": "Milk cake",
+      "name": "Milk cake (Indian milk-based sweet; reduced milk solids with sugar)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 127.408,
+        "protein": 3.013,
+        "carbs": 9.129,
+        "fat": 8.927
+      },
+      "estimate": {
+        "calories": 358,
+        "protein": 8,
+        "carbs": 41,
+        "fat": 18
+      },
+      "calorieError": 1.8098706517644103,
+      "macroError": {
+        "protein": 4.987,
+        "carbs": 31.871000000000002,
+        "fat": 9.073
+      }
+    },
+    {
+      "id": 878593763,
+      "query": "Methi pakora/pakoda (Methi ke pakode)",
+      "name": "Methi pakora (fenugreek leaf fritters, besan batter, deep-fried)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 713.252,
+        "protein": 2.062,
+        "carbs": 4.684,
+        "fat": 76.39
+      },
+      "estimate": {
+        "calories": 300,
+        "protein": 8,
+        "carbs": 22,
+        "fat": 20
+      },
+      "calorieError": 0.579391295082243,
+      "macroError": {
+        "protein": 5.938000000000001,
+        "carbs": 17.316,
+        "fat": 56.39
+      }
+    },
+    {
+      "id": 878593794,
+      "query": "Vegetable cutlet",
+      "name": "Vegetable cutlet (potato & mixed veg, breadcrumb-coated, shallow-fried)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 665.454,
+        "protein": 1.247,
+        "carbs": 4.685,
+        "fat": 71.327
+      },
+      "estimate": {
+        "calories": 225,
+        "protein": 3.5,
+        "carbs": 28,
+        "fat": 11
+      },
+      "calorieError": 0.661884968758171,
+      "macroError": {
+        "protein": 2.253,
+        "carbs": 23.315,
+        "fat": 60.327
+      }
+    },
+    {
+      "id": 878593827,
+      "query": "Masala vada",
+      "name": "Masala vada / paruppu vadai (spiced chana-dal fritter, deep-fried)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 826.025,
+        "protein": 1.686,
+        "carbs": 4.062,
+        "fat": 89.155
+      },
+      "estimate": {
+        "calories": 428,
+        "protein": 13,
+        "carbs": 40,
+        "fat": 24
+      },
+      "calorieError": 0.4818558760328077,
+      "macroError": {
+        "protein": 11.314,
+        "carbs": 35.938,
+        "fat": 65.155
+      }
+    },
+    {
+      "id": 878593858,
+      "query": "Curd dip",
+      "name": "Curd dip (yogurt-based dip with herbs/spices, as served)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 79.954,
+        "protein": 5.044,
+        "carbs": 7.948,
+        "fat": 3.359
+      },
+      "estimate": {
+        "calories": 79,
+        "protein": 3.5,
+        "carbs": 5,
+        "fat": 5
+      },
+      "calorieError": 0.011931860819971404,
+      "macroError": {
+        "protein": 1.5439999999999996,
+        "carbs": 2.9480000000000004,
+        "fat": 1.641
+      }
+    },
+    {
+      "id": 878594566,
+      "query": "Apple cinnamon pie",
+      "name": "Apple cinnamon pie (home-style, with pastry crust)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 258.734,
+        "protein": 3.351,
+        "carbs": 33.678,
+        "fat": 12.205
+      },
+      "estimate": {
+        "calories": 269,
+        "protein": 2,
+        "carbs": 36,
+        "fat": 13
+      },
+      "calorieError": 0.03967781582629272,
+      "macroError": {
+        "protein": 1.351,
+        "carbs": 2.3220000000000027,
+        "fat": 0.7949999999999999
+      }
+    },
+    {
+      "id": 878594597,
+      "query": "Hot cheese souffle",
+      "name": "Cheese soufflé (single-serving, hot)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 177.097,
+        "protein": 9.183,
+        "carbs": 5.406,
+        "fat": 13.23
+      },
+      "estimate": {
+        "calories": 230,
+        "protein": 10,
+        "carbs": 7,
+        "fat": 18
+      },
+      "calorieError": 0.2987232985313133,
+      "macroError": {
+        "protein": 0.8170000000000002,
+        "carbs": 1.5940000000000003,
+        "fat": 4.77
+      }
+    },
+    {
+      "id": 878594628,
+      "query": "Banana cake (Kele ka cake)",
+      "name": "Banana cake (home-style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 389.514,
+        "protein": 5.772,
+        "carbs": 39.996,
+        "fat": 23.314
+      },
+      "estimate": {
+        "calories": 332,
+        "protein": 4,
+        "carbs": 52,
+        "fat": 12
+      },
+      "calorieError": 0.14765579671077295,
+      "macroError": {
+        "protein": 1.7720000000000002,
+        "carbs": 12.003999999999998,
+        "fat": 11.314
+      }
+    },
+    {
+      "id": 878594659,
+      "query": "Pineapple cake",
+      "name": "Pineapple cake (home-style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 195.572,
+        "protein": 5.013,
+        "carbs": 23.509,
+        "fat": 9.344
+      },
+      "estimate": {
+        "calories": 329,
+        "protein": 3.5,
+        "carbs": 54,
+        "fat": 11
+      },
+      "calorieError": 0.6822449021332296,
+      "macroError": {
+        "protein": 1.513,
+        "carbs": 30.491,
+        "fat": 1.6560000000000006
+      }
+    },
+    {
+      "id": 878594691,
+      "query": "Sweet and salty biscuit (Meethay aur namkeen biscuit)",
+      "name": "Sweet-and-salty biscuit (homestyle)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 407.957,
+        "protein": 6.153,
+        "carbs": 45.087,
+        "fat": 22.385
+      },
+      "estimate": {
+        "calories": 462,
+        "protein": 6,
+        "carbs": 60,
+        "fat": 22
+      },
+      "calorieError": 0.1324722948742147,
+      "macroError": {
+        "protein": 0.15299999999999958,
+        "carbs": 14.912999999999997,
+        "fat": 0.38500000000000156
+      }
+    },
+    {
+      "id": 878594722,
+      "query": "Melting moments",
+      "name": "Melting moments (buttery sandwich/shortbread cookie)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 437.911,
+        "protein": 5.713,
+        "carbs": 55.835,
+        "fat": 21.779
+      },
+      "estimate": {
+        "calories": 526,
+        "protein": 4,
+        "carbs": 60,
+        "fat": 30
+      },
+      "calorieError": 0.20115731278730153,
+      "macroError": {
+        "protein": 1.713,
+        "carbs": 4.164999999999999,
+        "fat": 8.221
+      }
+    },
+    {
+      "id": 878594753,
+      "query": "Sweet poori (Meethi poori)",
+      "name": "Meethi poori (sweet fried flatbread)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 782.746,
+        "protein": 2.118,
+        "carbs": 14.263,
+        "fat": 79.631
+      },
+      "estimate": {
+        "calories": 450,
+        "protein": 5,
+        "carbs": 58,
+        "fat": 22
+      },
+      "calorieError": 0.42510086285972715,
+      "macroError": {
+        "protein": 2.882,
+        "carbs": 43.737,
+        "fat": 57.631
+      }
+    },
+    {
+      "id": 878594784,
+      "query": "Dhokla",
+      "name": "Dhokla (steamed gram flour cake)",
+      "confidence": "high",
+      "truth": {
+        "calories": 216.485,
+        "protein": 13.448,
+        "carbs": 30.684,
+        "fat": 5.283
+      },
+      "estimate": {
+        "calories": 158,
+        "protein": 6,
+        "carbs": 20,
+        "fat": 6
+      },
+      "calorieError": 0.2701572857241842,
+      "macroError": {
+        "protein": 7.448,
+        "carbs": 10.684000000000001,
+        "fat": 0.7169999999999996
+      }
+    },
+    {
+      "id": 878594818,
+      "query": "Vegetable khichdi/khichri",
+      "name": "Vegetable khichdi (rice and lentils cooked with vegetables and ghee)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 143.165,
+        "protein": 5.611,
+        "carbs": 19.573,
+        "fat": 4.526
+      },
+      "estimate": {
+        "calories": 128,
+        "protein": 4,
+        "carbs": 19,
+        "fat": 4
+      },
+      "calorieError": 0.10592672790137249,
+      "macroError": {
+        "protein": 1.6109999999999998,
+        "carbs": 0.5730000000000004,
+        "fat": 0.5259999999999998
+      }
+    },
+    {
+      "id": 878594851,
+      "query": "Apple jam (Seb ka murabba)",
+      "name": "Apple jam / Seb ka murabba (apple preserved in sugar syrup)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 188.79,
+        "protein": 0.145,
+        "carbs": 48.555,
+        "fat": 0.32
+      },
+      "estimate": {
+        "calories": 264,
+        "protein": 0.5,
+        "carbs": 65,
+        "fat": 0.2
+      },
+      "calorieError": 0.39837915143810587,
+      "macroError": {
+        "protein": 0.355,
+        "carbs": 16.445,
+        "fat": 0.12
+      }
+    },
+    {
+      "id": 878595556,
+      "query": "Sweet lemon pickle (Neembu ka meetha achaar)",
+      "name": "Sweet lemon pickle (Neembu ka meetha achaar)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 69.542,
+        "protein": 1.22,
+        "carbs": 16.87,
+        "fat": 0.208
+      },
+      "estimate": {
+        "calories": 205,
+        "protein": 0.6,
+        "carbs": 35,
+        "fat": 7
+      },
+      "calorieError": 1.9478588478904835,
+      "macroError": {
+        "protein": 0.62,
+        "carbs": 18.13,
+        "fat": 6.792
+      }
+    },
+    {
+      "id": 893120481,
+      "query": "Jowar dosa",
+      "name": "Jowar dosa (sorghum flour pancake)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 294.347,
+        "protein": 8.504,
+        "carbs": 40.532,
+        "fat": 10.276
+      },
+      "estimate": {
+        "calories": 162,
+        "protein": 4,
+        "carbs": 23,
+        "fat": 6
+      },
+      "calorieError": 0.44962917916608625,
+      "macroError": {
+        "protein": 4.504,
+        "carbs": 17.531999999999996,
+        "fat": 4.276
+      }
+    },
+    {
+      "id": 893120536,
+      "query": "Garlic soup",
+      "name": "Garlic soup (home-style, broth with garlic and olive oil)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 194.858,
+        "protein": 2.384,
+        "carbs": 6.985,
+        "fat": 17.619
+      },
+      "estimate": {
+        "calories": 50,
+        "protein": 1.2,
+        "carbs": 4.5,
+        "fat": 3
+      },
+      "calorieError": 0.7434028882570898,
+      "macroError": {
+        "protein": 1.184,
+        "carbs": 2.4850000000000003,
+        "fat": 14.619
+      }
+    },
+    {
+      "id": 893120567,
+      "query": "Ham and Bean soup",
+      "name": "Ham and bean soup (home-style, with ham, white beans and vegetables)",
+      "confidence": "high",
+      "truth": {
+        "calories": 96.042,
+        "protein": 10.607,
+        "carbs": 4.177,
+        "fat": 4.151
+      },
+      "estimate": {
+        "calories": 71,
+        "protein": 4.5,
+        "carbs": 7.5,
+        "fat": 2.5
+      },
+      "calorieError": 0.2607400928760334,
+      "macroError": {
+        "protein": 6.106999999999999,
+        "carbs": 3.3230000000000004,
+        "fat": 1.6509999999999998
+      }
+    },
+    {
+      "id": 893120598,
+      "query": "Jackfruit fritters (Ponsa mulik/Kathal ka pakora)",
+      "name": "Jackfruit fritters (Kathal ka pakora / deep-fried battered jackfruit)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 597.788,
+        "protein": 2.341,
+        "carbs": 24.002,
+        "fat": 54.406
+      },
+      "estimate": {
+        "calories": 317,
+        "protein": 5.5,
+        "carbs": 31,
+        "fat": 19
+      },
+      "calorieError": 0.4697116703580534,
+      "macroError": {
+        "protein": 3.159,
+        "carbs": 6.998000000000001,
+        "fat": 35.406
+      }
+    },
+    {
+      "id": 893120631,
+      "query": "Buckwheat pancake (Khura)",
+      "name": "Khura (buckwheat pancake, pan-fried with small oil)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 263.298,
+        "protein": 2.907,
+        "carbs": 27.277,
+        "fat": 16.433
+      },
+      "estimate": {
+        "calories": 195,
+        "protein": 6,
+        "carbs": 28,
+        "fat": 6.5
+      },
+      "calorieError": 0.25939429847549167,
+      "macroError": {
+        "protein": 3.093,
+        "carbs": 0.722999999999999,
+        "fat": 9.933
+      }
+    },
+    {
+      "id": 893121313,
+      "query": "Tamarind chutney (Chintapandu pachadi/Puli chutney)",
+      "name": "Tamarind chutney (sweet-sour, tamarind with sugar/jaggery and spices)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 109.148,
+        "protein": 0.878,
+        "carbs": 25.066,
+        "fat": 0.484
+      },
+      "estimate": {
+        "calories": 264,
+        "protein": 0.5,
+        "carbs": 65,
+        "fat": 0.2
+      },
+      "calorieError": 1.41873419577088,
+      "macroError": {
+        "protein": 0.378,
+        "carbs": 39.934,
+        "fat": 0.284
+      }
+    },
+    {
+      "id": 893121344,
+      "query": "Chicken salad",
+      "name": "Chicken salad (mayo-based, with celery)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 338.194,
+        "protein": 15.328,
+        "carbs": 1.303,
+        "fat": 30.257
+      },
+      "estimate": {
+        "calories": 225,
+        "protein": 12,
+        "carbs": 6,
+        "fat": 17
+      },
+      "calorieError": 0.334701384412497,
+      "macroError": {
+        "protein": 3.3279999999999994,
+        "carbs": 4.697,
+        "fat": 13.257000000000001
+      }
+    },
+    {
+      "id": 893121376,
+      "query": "Cabbage manchurian (Pattagobhi manchurian)",
+      "name": "Cabbage Manchurian (fried cabbage fritters in Manchurian sauce)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 224.263,
+        "protein": 0.636,
+        "carbs": 4.849,
+        "fat": 22.485
+      },
+      "estimate": {
+        "calories": 192,
+        "protein": 3,
+        "carbs": 18,
+        "fat": 12
+      },
+      "calorieError": 0.1438623401987845,
+      "macroError": {
+        "protein": 2.364,
+        "carbs": 13.151,
+        "fat": 10.485
+      }
+    },
+    {
+      "id": 893121407,
+      "query": "Chicken manchurian",
+      "name": "Chicken Manchurian (fried chicken pieces in Manchurian sauce)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 142.338,
+        "protein": 9.534,
+        "carbs": 6.063,
+        "fat": 11.958
+      },
+      "estimate": {
+        "calories": 221,
+        "protein": 14,
+        "carbs": 12,
+        "fat": 13
+      },
+      "calorieError": 0.5526423021259257,
+      "macroError": {
+        "protein": 4.465999999999999,
+        "carbs": 5.937,
+        "fat": 1.0419999999999998
+      }
+    },
+    {
+      "id": 893121438,
+      "query": "Pickled mustard greens",
+      "name": "Pickled mustard greens (preserved, drained)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 13.121,
+        "protein": 1.509,
+        "carbs": 1.051,
+        "fat": 0.223
+      },
+      "estimate": {
+        "calories": 20,
+        "protein": 1.5,
+        "carbs": 2.5,
+        "fat": 0.3
+      },
+      "calorieError": 0.5242740644767929,
+      "macroError": {
+        "protein": 0.008999999999999897,
+        "carbs": 1.449,
+        "fat": 0.07699999999999999
+      }
+    },
+    {
+      "id": 893121469,
+      "query": "Tutti fruitti biscuit",
+      "name": "Tutti frutti biscuit (sweet cookie with candied fruit pieces)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 420.782,
+        "protein": 5.206,
+        "carbs": 53.122,
+        "fat": 17.898
+      },
+      "estimate": {
+        "calories": 480,
+        "protein": 5,
+        "carbs": 70,
+        "fat": 20
+      },
+      "calorieError": 0.14073320626832903,
+      "macroError": {
+        "protein": 0.2060000000000004,
+        "carbs": 16.878,
+        "fat": 2.1020000000000003
+      }
+    },
+    {
+      "id": 893121501,
+      "query": "Sweet potato biscuit (Shakarkand ke biscuit)",
+      "name": "Sweet potato biscuit (Shakarkand ke biscuit)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 296.398,
+        "protein": 5.135,
+        "carbs": 38.133,
+        "fat": 13.308
+      },
+      "estimate": {
+        "calories": 240,
+        "protein": 4,
+        "carbs": 38,
+        "fat": 8
+      },
+      "calorieError": 0.19027793709809115,
+      "macroError": {
+        "protein": 1.1349999999999998,
+        "carbs": 0.13300000000000267,
+        "fat": 5.308
+      }
+    },
+    {
+      "id": 893121532,
+      "query": "Sweetened yogurt (Shrikhand)",
+      "name": "Shrikhand (sweetened strained yogurt)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 107.177,
+        "protein": 5.274,
+        "carbs": 16.016,
+        "fat": 2.894
+      },
+      "estimate": {
+        "calories": 218,
+        "protein": 3.5,
+        "carbs": 24,
+        "fat": 12
+      },
+      "calorieError": 1.034018492773636,
+      "macroError": {
+        "protein": 1.774,
+        "carbs": 7.984000000000002,
+        "fat": 9.106
+      }
+    },
+    {
+      "id": 893121563,
+      "query": "Kesari bath",
+      "name": "Kesari bath (sweet semolina / sooji pudding)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 244.569,
+        "protein": 2.395,
+        "carbs": 31.383,
+        "fat": 12.585
+      },
+      "estimate": {
+        "calories": 246,
+        "protein": 3.5,
+        "carbs": 40,
+        "fat": 8
+      },
+      "calorieError": 0.005851109502839737,
+      "macroError": {
+        "protein": 1.105,
+        "carbs": 8.617,
+        "fat": 4.585000000000001
+      }
+    },
+    {
+      "id": 893121594,
+      "query": "Apple and honey sorbet (Seb aur shehad ka sharbat)",
+      "name": "Apple and honey sorbet (Seb aur shehad)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 121.297,
+        "protein": 0.153,
+        "carbs": 30.742,
+        "fat": 0.289
+      },
+      "estimate": {
+        "calories": 87,
+        "protein": 0.3,
+        "carbs": 21,
+        "fat": 0.2
+      },
+      "calorieError": 0.2827522527350223,
+      "macroError": {
+        "protein": 0.147,
+        "carbs": 9.742,
+        "fat": 0.08899999999999997
+      }
+    },
+    {
+      "id": 895601412,
+      "query": "Hot chocolate",
+      "name": "Hot chocolate (made with whole milk, cocoa and sugar)",
+      "confidence": "high",
+      "truth": {
+        "calories": 90.006,
+        "protein": 3.429,
+        "carbs": 9.018,
+        "fat": 4.611
+      },
+      "estimate": {
+        "calories": 96,
+        "protein": 3,
+        "carbs": 13,
+        "fat": 3.5
+      },
+      "calorieError": 0.06659556029598027,
+      "macroError": {
+        "protein": 0.4289999999999998,
+        "carbs": 3.9819999999999993,
+        "fat": 1.1109999999999998
+      }
+    },
+    {
+      "id": 895601479,
+      "query": "Vermicelli porridge (Semiya/Seviyan porridge)",
+      "name": "Seviyan / Semiya kheer (sweet vermicelli porridge, milk-based)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 78.398,
+        "protein": 2.497,
+        "carbs": 10.565,
+        "fat": 2.983
+      },
+      "estimate": {
+        "calories": 127,
+        "protein": 3.5,
+        "carbs": 18,
+        "fat": 4.5
+      },
+      "calorieError": 0.6199392841654124,
+      "macroError": {
+        "protein": 1.0030000000000001,
+        "carbs": 7.4350000000000005,
+        "fat": 1.517
+      }
+    },
+    {
+      "id": 895601537,
+      "query": "Indian style egg bhujia (Anda bhujia (Indian style))",
+      "name": "Anda bhurji (Indian-style spiced scrambled eggs)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 102.834,
+        "protein": 6.097,
+        "carbs": 3.762,
+        "fat": 7.02
+      },
+      "estimate": {
+        "calories": 172,
+        "protein": 11,
+        "carbs": 5,
+        "fat": 12
+      },
+      "calorieError": 0.6725985568975241,
+      "macroError": {
+        "protein": 4.903,
+        "carbs": 1.238,
+        "fat": 4.98
+      }
+    },
+    {
+      "id": 895601572,
+      "query": "Consomme au julienne",
+      "name": "Consommé au julienne (clarified consommé with julienne vegetables)",
+      "confidence": "high",
+      "truth": {
+        "calories": 27.763,
+        "protein": 12.493,
+        "carbs": 1.491,
+        "fat": 10.658
+      },
+      "estimate": {
+        "calories": 16,
+        "protein": 1.7,
+        "carbs": 1.4,
+        "fat": 0.4
+      },
+      "calorieError": 0.4236934048914023,
+      "macroError": {
+        "protein": 10.793000000000001,
+        "carbs": 0.09100000000000019,
+        "fat": 10.258
+      }
+    },
+    {
+      "id": 895601635,
+      "query": "Almond soup (Badam ka soup)",
+      "name": "Badam ka soup (milk and ground-almond soup, mildly sweet)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 78.651,
+        "protein": 10.131,
+        "carbs": 3.683,
+        "fat": 13.799
+      },
+      "estimate": {
+        "calories": 155,
+        "protein": 5.5,
+        "carbs": 13,
+        "fat": 9
+      },
+      "calorieError": 0.9707314592312877,
+      "macroError": {
+        "protein": 4.631,
+        "carbs": 9.317,
+        "fat": 4.7989999999999995
+      }
+    },
+    {
+      "id": 895602376,
+      "query": "Bathua poori",
+      "name": "Bathua poori (deep-fried wheat flatbread with bathua greens)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 598.794,
+        "protein": 2.353,
+        "carbs": 13.852,
+        "fat": 59.137
+      },
+      "estimate": {
+        "calories": 360,
+        "protein": 7.5,
+        "carbs": 42,
+        "fat": 18
+      },
+      "calorieError": 0.3987915710578262,
+      "macroError": {
+        "protein": 5.147,
+        "carbs": 28.148,
+        "fat": 41.137
+      }
+    },
+    {
+      "id": 895602437,
+      "query": "Kashmiri 'tahar'",
+      "truth": 98.207,
+      "estimate": null
+    },
+    {
+      "id": 895602473,
+      "query": "Plain dosa",
+      "name": "Plain dosa (fermented rice and urad dal crepe)",
+      "confidence": "high",
+      "truth": {
+        "calories": 380.906,
+        "protein": 10.336,
+        "carbs": 64.079,
+        "fat": 8.431
+      },
+      "estimate": {
+        "calories": 163,
+        "protein": 5,
+        "carbs": 20,
+        "fat": 7
+      },
+      "calorieError": 0.5720728998755599,
+      "macroError": {
+        "protein": 5.336,
+        "carbs": 44.07899999999999,
+        "fat": 1.4309999999999992
+      }
+    },
+    {
+      "id": 895602528,
+      "query": "Lasagne with meat sauce",
+      "name": "Lasagne with meat sauce (baked pasta with meat ragù and cheese)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 63.376,
+        "protein": 2.902,
+        "carbs": 5.383,
+        "fat": 3.435
+      },
+      "estimate": {
+        "calories": 164,
+        "protein": 7,
+        "carbs": 16,
+        "fat": 8
+      },
+      "calorieError": 1.5877303711184043,
+      "macroError": {
+        "protein": 4.098,
+        "carbs": 10.617,
+        "fat": 4.5649999999999995
+      }
+    },
+    {
+      "id": 895602559,
+      "query": "Urad special dehusked",
+      "name": "Urad dal, dehusked (cooked, boiled)",
+      "confidence": "high",
+      "truth": {
+        "calories": 69.435,
+        "protein": 3.14,
+        "carbs": 8.862,
+        "fat": 2.169
+      },
+      "estimate": {
+        "calories": 116,
+        "protein": 7.7,
+        "carbs": 20,
+        "fat": 0.6
+      },
+      "calorieError": 0.6706272052999207,
+      "macroError": {
+        "protein": 4.5600000000000005,
+        "carbs": 11.138,
+        "fat": 1.569
+      }
+    },
+    {
+      "id": 895602624,
+      "query": "Mutton korma",
+      "name": "Mutton korma (braised mutton in creamy yogurt/nut sauce)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 115.639,
+        "protein": 7.092,
+        "carbs": 2.532,
+        "fat": 8.535
+      },
+      "estimate": {
+        "calories": 242,
+        "protein": 15,
+        "carbs": 5,
+        "fat": 18
+      },
+      "calorieError": 1.0927195842233157,
+      "macroError": {
+        "protein": 7.908,
+        "carbs": 2.468,
+        "fat": 9.465
+      }
+    },
+    {
+      "id": 895603309,
+      "query": "Vegetable yakhni",
+      "name": "Vegetable yakhni (yogurt-based vegetable curry/broth)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 406.058,
+        "protein": 1.175,
+        "carbs": 1.94,
+        "fat": 43.796
+      },
+      "estimate": {
+        "calories": 77,
+        "protein": 2.5,
+        "carbs": 6.5,
+        "fat": 4.5
+      },
+      "calorieError": 0.8103719173123052,
+      "macroError": {
+        "protein": 1.325,
+        "carbs": 4.5600000000000005,
+        "fat": 39.296
+      }
+    },
+    {
+      "id": 895603366,
+      "query": "Chicken korma",
+      "name": "Chicken korma (creamy, nut-based curry)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 147.958,
+        "protein": 9.831,
+        "carbs": 5.43,
+        "fat": 9.674
+      },
+      "estimate": {
+        "calories": 202,
+        "protein": 8.5,
+        "carbs": 6,
+        "fat": 16
+      },
+      "calorieError": 0.36525230132875547,
+      "macroError": {
+        "protein": 1.3309999999999995,
+        "carbs": 0.5700000000000003,
+        "fat": 6.3260000000000005
+      }
+    },
+    {
+      "id": 895603426,
+      "query": "Egg curry (Anda curry)",
+      "name": "Egg curry (Anda curry, eggs in tomato-onion gravy)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 117.521,
+        "protein": 5.383,
+        "carbs": 4.033,
+        "fat": 8.809
+      },
+      "estimate": {
+        "calories": 127,
+        "protein": 6.5,
+        "carbs": 6,
+        "fat": 8.5
+      },
+      "calorieError": 0.08065792496660171,
+      "macroError": {
+        "protein": 1.117,
+        "carbs": 1.9669999999999996,
+        "fat": 0.3089999999999993
+      }
+    },
+    {
+      "id": 895603490,
+      "query": "Cabbage rolls (curry) ((Pattagobhi rolls)(curry))",
+      "name": "Cabbage rolls in curry (pattagobhi rolls, stuffed cabbage leaves in gravy)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 124.627,
+        "protein": 5.76,
+        "carbs": 7.032,
+        "fat": 8.168
+      },
+      "estimate": {
+        "calories": 118,
+        "protein": 2,
+        "carbs": 14,
+        "fat": 6
+      },
+      "calorieError": 0.053174673224903074,
+      "macroError": {
+        "protein": 3.76,
+        "carbs": 6.968,
+        "fat": 2.1679999999999993
+      }
+    },
+    {
+      "id": 895603525,
+      "query": "Cauliflower, pea and potato bhujia (Phoolgobhi, matar aur aloo bhujia)",
+      "name": "Cauliflower, pea and potato bhujia (dry spiced stir-fry)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 95.667,
+        "protein": 2.754,
+        "carbs": 8.234,
+        "fat": 5.541
+      },
+      "estimate": {
+        "calories": 124,
+        "protein": 3,
+        "carbs": 10,
+        "fat": 8
+      },
+      "calorieError": 0.2961627311403096,
+      "macroError": {
+        "protein": 0.246,
+        "carbs": 1.766,
+        "fat": 2.4589999999999996
+      }
+    },
+    {
+      "id": 895603559,
+      "query": "Potato nests",
+      "name": "Potato nests (deep-fried shredded potato appetizer)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 111.617,
+        "protein": 5.706,
+        "carbs": 11.049,
+        "fat": 4.765
+      },
+      "estimate": {
+        "calories": 308,
+        "protein": 3,
+        "carbs": 38,
+        "fat": 16
+      },
+      "calorieError": 1.7594362865871684,
+      "macroError": {
+        "protein": 2.7060000000000004,
+        "carbs": 26.951,
+        "fat": 11.235
+      }
+    },
+    {
+      "id": 895604266,
+      "query": "Cucumber and yogurt salad (Kheere aur dahi ka salad)",
+      "name": "Cucumber and yogurt salad (Kheere aur dahi ka salad)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 36.126,
+        "protein": 2.091,
+        "carbs": 4.724,
+        "fat": 0.927
+      },
+      "estimate": {
+        "calories": 31,
+        "protein": 1.5,
+        "carbs": 3.9,
+        "fat": 1.1
+      },
+      "calorieError": 0.1418922659580357,
+      "macroError": {
+        "protein": 0.5910000000000002,
+        "carbs": 0.8240000000000003,
+        "fat": 0.17300000000000004
+      }
+    },
+    {
+      "id": 895604325,
+      "query": "Mint and peanut raita (Pudinay aur moongfali ka raita)",
+      "name": "Mint and peanut raita (Pudinay aur moongfali ka raita)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 112.047,
+        "protein": 7.046,
+        "carbs": 7.311,
+        "fat": 6.192
+      },
+      "estimate": {
+        "calories": 170,
+        "protein": 8,
+        "carbs": 7.1,
+        "fat": 12.2
+      },
+      "calorieError": 0.5172204521316948,
+      "macroError": {
+        "protein": 0.9539999999999997,
+        "carbs": 0.2110000000000003,
+        "fat": 6.007999999999999
+      }
+    },
+    {
+      "id": 895604364,
+      "query": "Apple kheer (Seb ki kheer)",
+      "name": "Apple kheer (Seb ki kheer) — milk-based apple dessert",
+      "confidence": "medium",
+      "truth": {
+        "calories": 81.295,
+        "protein": 2.137,
+        "carbs": 11.345,
+        "fat": 3.18
+      },
+      "estimate": {
+        "calories": 95,
+        "protein": 2.2,
+        "carbs": 16.6,
+        "fat": 2.2
+      },
+      "calorieError": 0.16858355372409126,
+      "macroError": {
+        "protein": 0.06300000000000017,
+        "carbs": 5.255000000000001,
+        "fat": 0.98
+      }
+    },
+    {
+      "id": 895604423,
+      "query": "Coffee pear alaska",
+      "name": "Coffee Pear Alaska (Baked Alaska variant with coffee ice cream and pear compote)",
+      "confidence": "low",
+      "truth": {
+        "calories": 203.989,
+        "protein": 2.883,
+        "carbs": 19.363,
+        "fat": 13.215
+      },
+      "estimate": {
+        "calories": 238,
+        "protein": 3,
+        "carbs": 34,
+        "fat": 10
+      },
+      "calorieError": 0.16672957855570641,
+      "macroError": {
+        "protein": 0.11699999999999999,
+        "carbs": 14.637,
+        "fat": 3.215
+      }
+    },
+    {
+      "id": 895604455,
+      "query": "Cold lemon souffle",
+      "name": "Cold lemon soufflé (chilled lemon mousse-style soufflé)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 169.865,
+        "protein": 5.894,
+        "carbs": 15.625,
+        "fat": 9.781
+      },
+      "estimate": {
+        "calories": 222,
+        "protein": 4,
+        "carbs": 21,
+        "fat": 13.5
+      },
+      "calorieError": 0.3069202013363553,
+      "macroError": {
+        "protein": 1.8940000000000001,
+        "carbs": 5.375,
+        "fat": 3.7189999999999994
+      }
+    },
+    {
+      "id": 895604513,
+      "query": "Hot lemon souffle",
+      "name": "Hot lemon soufflé (baked individual soufflé)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 155.25,
+        "protein": 5.288,
+        "carbs": 16.311,
+        "fat": 7.934
+      },
+      "estimate": {
+        "calories": 183,
+        "protein": 5.5,
+        "carbs": 20,
+        "fat": 9
+      },
+      "calorieError": 0.178743961352657,
+      "macroError": {
+        "protein": 0.21199999999999974,
+        "carbs": 3.689,
+        "fat": 1.0659999999999998
+      }
+    },
+    {
+      "id": 895605225,
+      "query": "Semolina burfi (Suji/Rava burfi)",
+      "name": "Semolina burfi (Suji/Rava burfi)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 348.671,
+        "protein": 3.467,
+        "carbs": 47.099,
+        "fat": 16.864
+      },
+      "estimate": {
+        "calories": 436,
+        "protein": 6,
+        "carbs": 58,
+        "fat": 20
+      },
+      "calorieError": 0.25046247035170693,
+      "macroError": {
+        "protein": 2.533,
+        "carbs": 10.901000000000003,
+        "fat": 3.1359999999999992
+      }
+    },
+    {
+      "id": 895605287,
+      "query": "Fish pakora/pakoda",
+      "name": "Fish pakora/pakoda (battered & deep-fried fish fritters)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 577.025,
+        "protein": 5.973,
+        "carbs": 4.552,
+        "fat": 59.522
+      },
+      "estimate": {
+        "calories": 266,
+        "protein": 14,
+        "carbs": 12,
+        "fat": 18
+      },
+      "calorieError": 0.5390147740565833,
+      "macroError": {
+        "protein": 8.027000000000001,
+        "carbs": 7.448,
+        "fat": 41.522
+      }
+    },
+    {
+      "id": 895605348,
+      "query": "Instant dhokla",
+      "name": "Instant dhokla (steamed fermented chickpea/gram-flour cake from mix)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 207.112,
+        "protein": 7.665,
+        "carbs": 24.111,
+        "fat": 9.373
+      },
+      "estimate": {
+        "calories": 150,
+        "protein": 6,
+        "carbs": 18,
+        "fat": 6
+      },
+      "calorieError": 0.27575418131252655,
+      "macroError": {
+        "protein": 1.665,
+        "carbs": 6.111000000000001,
+        "fat": 3.3729999999999993
+      }
+    },
+    {
+      "id": 895605381,
+      "query": "Curd vegetable dip",
+      "name": "Curd (yogurt) vegetable dip (home-style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 56.207,
+        "protein": 3.882,
+        "carbs": 6.036,
+        "fat": 1.943
+      },
+      "estimate": {
+        "calories": 81,
+        "protein": 4,
+        "carbs": 5,
+        "fat": 5
+      },
+      "calorieError": 0.4411016421442169,
+      "macroError": {
+        "protein": 0.11799999999999988,
+        "carbs": 1.0359999999999996,
+        "fat": 3.057
+      }
+    },
+    {
+      "id": 895605416,
+      "query": "Ribbon sandwich",
+      "name": "Ribbon sandwich (cucumber ribbons with cream cheese on white bread)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 239.264,
+        "protein": 6.263,
+        "carbs": 24.76,
+        "fat": 13.371
+      },
+      "estimate": {
+        "calories": 209,
+        "protein": 7,
+        "carbs": 25,
+        "fat": 9
+      },
+      "calorieError": 0.12648789621505954,
+      "macroError": {
+        "protein": 0.7370000000000001,
+        "carbs": 0.23999999999999844,
+        "fat": 4.371
+      }
+    },
+    {
+      "id": 895605472,
+      "query": "Jam filling",
+      "name": "Fruit jam filling (typical sugar-preserved jam)",
+      "confidence": "high",
+      "truth": {
+        "calories": 184.615,
+        "protein": 0,
+        "carbs": 46.154,
+        "fat": 0
+      },
+      "estimate": {
+        "calories": 267,
+        "protein": 0.4,
+        "carbs": 66,
+        "fat": 0.1
+      },
+      "calorieError": 0.4462530130271104,
+      "macroError": {
+        "protein": 0.4,
+        "carbs": 19.845999999999997,
+        "fat": 0.1
+      }
+    },
+    {
+      "id": 895605511,
+      "query": "Chocolate glace icing",
+      "name": "Chocolate glacé icing (sweet glossy chocolate icing)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 436.292,
+        "protein": 3.217,
+        "carbs": 62.434,
+        "fat": 20.796
+      },
+      "estimate": {
+        "calories": 394,
+        "protein": 1.5,
+        "carbs": 70,
+        "fat": 12
+      },
+      "calorieError": 0.09693508017566212,
+      "macroError": {
+        "protein": 1.717,
+        "carbs": 7.5660000000000025,
+        "fat": 8.796
+      }
+    },
+    {
+      "id": 895606217,
+      "query": "Christmas star biscuit",
+      "name": "Christmas star biscuit (sugar/shortbread-style cookie)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 392.029,
+        "protein": 3.54,
+        "carbs": 74.543,
+        "fat": 10.036
+      },
+      "estimate": {
+        "calories": 502,
+        "protein": 6,
+        "carbs": 70,
+        "fat": 22
+      },
+      "calorieError": 0.2805175127350273,
+      "macroError": {
+        "protein": 2.46,
+        "carbs": 4.543000000000006,
+        "fat": 11.964
+      }
+    },
+    {
+      "id": 895606254,
+      "query": "Fruit puree tart",
+      "name": "Fruit puree tart (shortcrust pastry with fruit puree filling)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 286.502,
+        "protein": 3.347,
+        "carbs": 30.417,
+        "fat": 16.827
+      },
+      "estimate": {
+        "calories": 322,
+        "protein": 4,
+        "carbs": 36,
+        "fat": 18
+      },
+      "calorieError": 0.12390140382964164,
+      "macroError": {
+        "protein": 0.653,
+        "carbs": 5.582999999999998,
+        "fat": 1.1729999999999983
+      }
+    },
+    {
+      "id": 895606313,
+      "query": "Paneer patties",
+      "name": "Paneer patties (spiced paneer cutlet, pan-fried/breadcrumb-coated)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 338.582,
+        "protein": 7.598,
+        "carbs": 22.795,
+        "fat": 23.956
+      },
+      "estimate": {
+        "calories": 250,
+        "protein": 12,
+        "carbs": 10,
+        "fat": 18
+      },
+      "calorieError": 0.26162643022960463,
+      "macroError": {
+        "protein": 4.402,
+        "carbs": 12.795000000000002,
+        "fat": 5.9559999999999995
+      }
+    },
+    {
+      "id": 895606345,
+      "query": "Lentils and semolina porridge (Dal suji porridge/daliya)",
+      "name": "Dal suji porridge (lentils and semolina porridge, home-style)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 117.289,
+        "protein": 3.262,
+        "carbs": 23.191,
+        "fat": 1.062
+      },
+      "estimate": {
+        "calories": 117.5,
+        "protein": 4.5,
+        "carbs": 17,
+        "fat": 3.5
+      },
+      "calorieError": 0.0017989751809632491,
+      "macroError": {
+        "protein": 1.238,
+        "carbs": 6.190999999999999,
+        "fat": 2.4379999999999997
+      }
+    },
+    {
+      "id": 895606377,
+      "query": "Fermented bengal gram vada (Khameerikrit/Ufna hua channa dal ka vada)",
+      "name": "Fermented chana dal vada (deep-fried fermented bengal gram fritter)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 657.573,
+        "protein": 4.051,
+        "carbs": 8.682,
+        "fat": 67.186
+      },
+      "estimate": {
+        "calories": 336,
+        "protein": 14,
+        "carbs": 25,
+        "fat": 20
+      },
+      "calorieError": 0.4890301152875802,
+      "macroError": {
+        "protein": 9.949,
+        "carbs": 16.317999999999998,
+        "fat": 47.18600000000001
+      }
+    },
+    {
+      "id": 895606410,
+      "query": "Sprouts upma",
+      "name": "Sprouts upma (upma made with sprouted legumes and semolina/vegetables)",
+      "confidence": "medium",
+      "truth": {
+        "calories": 316.246,
+        "protein": 9.502,
+        "carbs": 44.955,
+        "fat": 10.438
+      },
+      "estimate": {
+        "calories": 130,
+        "protein": 5,
+        "carbs": 14,
+        "fat": 6
+      },
+      "calorieError": 0.5889276069894955,
+      "macroError": {
+        "protein": 4.502000000000001,
+        "carbs": 30.955,
+        "fat": 4.438000000000001
+      }
+    }
+  ]
+}
