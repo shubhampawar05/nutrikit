@@ -5,13 +5,14 @@
 // X-Tokens-Charged / X-Tokens-Remaining. Test-key calls also carry X-Nutrikit-Mode: test. On failure: release the reservation, charging only AI tokens the
 // provider reported before failing (refusal, truncation), and say so in X-Tokens-Charged.
 // Handlers may return { costKey, body, usage } to pick the cost themselves (cost 'dynamic', which reserves the
-// most expensive variant).
+// most expensive variant). A failure's AI tokens are recorded under the error's `costKey` when it names the
+// variant that failed; otherwise under the route's cost (a dynamic route: its dearest variant, the only one that
+// calls the AI).
 import type { FastifyInstance, FastifyReply, FastifyRequest, onErrorHookHandler, onRequestHookHandler, RouteHandlerMethod } from 'fastify';
 import { HttpError } from '../http.ts';
-import { COSTS, aiTokens, authenticate, rateLimit, reserve, settle, type Reservation } from '../domain/auth.ts';
+import { COSTS, aiTokens, authenticate, rateLimit, reserve, settle, type CostKey, type Reservation } from '../domain/auth.ts';
 import type { AIUsage } from '../domain/types.ts';
 
-type CostKey = keyof typeof COSTS;
 interface Dynamic { costKey: CostKey; body: unknown; usage?: AIUsage }
 
 const isDynamic = (r: unknown): r is Dynamic => typeof r === 'object' && r !== null && 'costKey' in r;
@@ -46,8 +47,10 @@ export function metering(app: FastifyInstance) {
       const reservation = pending.get(req);
       if (!reservation) return;
       pending.delete(req);
-      const tokens = aiTokens((err as { usage?: AIUsage }).usage);
-      const bill = await settle(app.sql, req.key, reservation, reserveKey, tokens);
+      const { usage, costKey } = err as { usage?: AIUsage; costKey?: unknown };
+      const tokens = aiTokens(usage);
+      const charged = typeof costKey === 'string' && Object.hasOwn(COSTS, costKey) ? costKey : reserveKey;
+      const bill = await settle(app.sql, req.key, reservation, charged, tokens);
       if (tokens > 0) chargeHeaders(reply, bill);
     };
     route.onError = [...[route.onError ?? []].flat(), release];

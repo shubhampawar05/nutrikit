@@ -48,10 +48,11 @@ test('unknown email and wrong password look the same', async () => {
 });
 
 test('password hashing does not block other requests', async () => {
-  const address = email('busy');
-  await createUser(sql, { name: 'Busy', email: address, password: 'correct horse battery' });
+  // Four people, five logins each: in-flight attempts count toward the per-email limit of 5 (see the parallel test below).
+  const addresses = Array.from({ length: 4 }, () => email('busy'));
+  for (const address of addresses) await createUser(sql, { name: 'Busy', email: address, password: 'correct horse battery' });
   const started = Date.now();
-  const logins = Array.from({ length: 20 }, () => login(sql, { email: address, password: 'correct horse battery' }));
+  const logins = Array.from({ length: 20 }, (_, i) => login(sql, { email: addresses[i % 4], password: 'correct horse battery' }));
   const health = (async () => { await new Promise((r) => setTimeout(r, 5)); const t = Date.now(); await fetch(`${base}/v1/health`); return Date.now() - t; })();
   const [healthMs] = await Promise.all([health, ...logins]);
   const loginsMs = Date.now() - started;
@@ -99,4 +100,27 @@ test('the per-email limit still applies from many addresses', async () => {
   const res = await post('/portal/api/login', { email: address, password: 'correct horse battery' }, '192.0.2.99');
   assert.equal(res.status, 429);
   assert.equal(res.headers.get('retry-after'), '900');
+});
+
+test('parallel wrong guesses cannot exceed the per-email limit', async () => {
+  const address = email('parallel');
+  await createUser(sql, { name: 'Parallel', email: address, password: 'correct horse battery' });
+  const results = await Promise.all(Array.from({ length: 15 }, (_, i) => post('/portal/api/login', { email: address, password: `guess ${i} guess` }, `198.51.100.${100 + i}`)));
+  const statuses = results.map((r) => r.status);
+  assert.equal(statuses.filter((s) => s === 401).length, 5, `checked passwords: ${statuses}`);
+  assert.equal(statuses.filter((s) => s === 429).length, 10);
+  // A correct password afterwards still waits, and a correct one clears the count once the window passes.
+  assert.equal((await post('/portal/api/login', { email: address, password: 'correct horse battery' }, '198.51.100.200')).status, 429);
+  await sql`UPDATE login_failures SET at = at - interval '16 minutes' WHERE email = ${address}`;
+  assert.equal((await post('/portal/api/login', { email: address, password: 'correct horse battery' }, '198.51.100.200')).status, 200);
+  assert.equal((await sql`SELECT COUNT(*)::int AS n FROM login_failures WHERE email = ${address}`)[0].n, 0);
+});
+
+test('parallel signups from one address cannot exceed the limit', async () => {
+  await withLimits({ NUTRIKIT_SIGNUP_LIMIT: '3' }, async () => {
+    const results = await Promise.all(Array.from({ length: 8 }, () => signup('203.0.113.70')));
+    const statuses = results.map((r) => r.status);
+    assert.equal(statuses.filter((s) => s === 201).length, 3, `statuses: ${statuses}`);
+    assert.equal(statuses.filter((s) => s === 429).length, 5);
+  });
 });

@@ -1,7 +1,9 @@
 // Builds data/foods.db from USDA FoodData Central CSV releases (public domain, CC0) and the dishes of UK CoFID 2021
 // (Crown copyright, Open Government Licence v3.0).
 //
-//   node scripts/build-db.mjs            (expects the extracted releases and the CoFID workbook under data/raw/)
+//   node scripts/build-db.mjs [--out <file>]   (expects the extracted releases and the CoFID workbook under data/raw/)
+//
+// Writes <out>.tmp and renames it over <out> (default data/foods.db) only when the build succeeds.
 //
 // Datasets: SR Legacy (generic foods), FNDDS survey foods (dishes "as eaten"),
 // Foundation Foods (recent analytical data), CoFID dishes (see scripts/cofid.mjs). Values are stored per 100 g.
@@ -21,7 +23,10 @@ import { recipeAliases } from './recipe-aliases.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const RAW = path.join(ROOT, 'data/raw');
-const OUT = path.join(ROOT, 'data/foods.db');
+const outAt = process.argv.indexOf('--out');
+if (outAt >= 0 && !process.argv[outAt + 1]) throw new Error('usage: build-db.mjs [--out <file>]');
+const OUT = outAt >= 0 ? path.resolve(process.argv[outAt + 1]) : path.join(ROOT, 'data/foods.db');
+const TMP = `${OUT}.tmp`;
 const RECIPES = path.join(ROOT, 'data/recipes');
 const COFID_FILE = path.join(RAW, 'cofid', COFID_SOURCE.file);
 const COFID_ALIASES = path.join(ROOT, 'data/aliases/cofid.json');
@@ -61,17 +66,28 @@ function readCsv(file) {
   return data.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ''])));
 }
 
+// Every USDA release needs these files; the category table is food_category (SR, Foundation) or
+// wweia_food_category (survey), so those two are optional.
+const REQUIRED_CSV = ['food', 'food_nutrient', 'nutrient', 'food_portion', 'measure_unit'];
+const missing = DATASETS.flatMap((ds) => REQUIRED_CSV.map((name) => path.join(RAW, ds.dir, `${name}.csv`)))
+  .filter((file) => !fs.existsSync(file));
+if (missing.length) {
+  throw new Error(`USDA FoodData Central files missing (extract the CSV releases under ${RAW}):\n  ${missing.join('\n  ')}`);
+}
+
 const csv = (dir, name) => {
   const file = path.join(RAW, dir, `${name}.csv`);
-  return fs.existsSync(file) ? readCsv(file) : [];
+  if (fs.existsSync(file)) return readCsv(file);
+  if (REQUIRED_CSV.includes(name)) throw new Error(`missing ${file}`);
+  return [];
 };
 
 // Which catalog key each FDC nutrient id feeds, with its priority (lower wins).
 const NUTRIENT_SLOTS = new Map();
 for (const n of NUTRIENTS) n.fdc.forEach((id, priority) => NUTRIENT_SLOTS.set(id, { key: n.key, priority }));
 
-fs.rmSync(OUT, { force: true });
-const db = new DatabaseSync(OUT);
+fs.rmSync(TMP, { force: true });
+const db = new DatabaseSync(TMP);
 db.exec(`
   PRAGMA journal_mode = OFF;
   PRAGMA synchronous = OFF;
@@ -110,20 +126,16 @@ const normUnit = (u) => {
 };
 
 // Same-name foods across datasets: keep the record with values for more Nutrition Facts label nutrients; on a
-// tie, the newest data (Foundation, then survey, then SR Legacy). Two records are different samples, so their
-// values are never mixed into one food.
+// tie, the newest data (Foundation, then survey, then SR Legacy), then CoFID, then INDB totals (which therefore
+// replace a same-name USDA or CoFID row only when they cover more label nutrients). Two records are different
+// samples, so their values are never mixed into one food. Recipes never compete: addRecipe() refuses a name already
+// in the catalog; they rank last so the order stays total.
 const LABEL_KEYS = ['calories', 'protein', 'fat', 'carbs', 'fiber', 'sugar', 'saturatedFat', 'cholesterol', 'sodium', 'potassium', 'calcium', 'iron', 'vitaminD'];
-const SOURCE_RANK = { foundation: 0, survey: 1, sr_legacy: 2, cofid: 3, indb: 4 };
+const SOURCE_RANK = { foundation: 0, survey: 1, sr_legacy: 2, cofid: 3, indb: 4, recipe: 5 };
 const labelCoverage = (f) => LABEL_KEYS.filter((k) => f.n[k] != null).length;
 const better = (a, b) => {
   const ka = labelCoverage(a), kb = labelCoverage(b);
   return ka !== kb ? ka > kb : SOURCE_RANK[a.source] < SOURCE_RANK[b.source];
-};
-/** INDB published totals replace USDA-composed or generic rows with the same name. */
-const preferIndb = (indb, prev) => {
-  if (prev.source === 'indb') return better(indb, prev);
-  if (prev.source === 'recipe') return true;
-  return better(indb, prev);
 };
 
 const counts = {};
@@ -223,7 +235,7 @@ if (useIndbTotals) {
     const key = f.name.toLowerCase();
     const prev = kept.get(key);
     if (prev) collisions++;
-    if (!prev || preferIndb(f, prev)) {
+    if (!prev || better(f, prev)) {
       kept.set(key, f);
       merged++;
     }
@@ -267,11 +279,12 @@ const addRecipe = (recipe, { strict }) => {
     if (strict) throw new Error(`recipe ${recipe.file}: id or name already in the catalog`);
     return false;
   }
-  byId.set(r.id, { ...r, n: r.nutrients });
-  kept.set(r.name.toLowerCase(), r);
+  // Keep the recipe's own aliases on the catalog entry: recipeAliases() below builds reviewed aliases on top of them.
   const aliasList = [...(recipe.aliases ?? [])];
-  const aliases = aliasList.length ? aliasList.join('|') : null;
-  insertFood.run(r.id, r.name, 'recipe', r.category, JSON.stringify(r.nutrients), aliases);
+  const food = { ...r, aliases: aliasList };
+  byId.set(r.id, { ...food, n: r.nutrients });
+  kept.set(r.name.toLowerCase(), food);
+  insertFood.run(r.id, r.name, 'recipe', r.category, JSON.stringify(r.nutrients), aliasList.length ? aliasList.join('|') : null);
   for (const p of r.portions) insertPortion.run(r.id, p.seq, p.label, p.amount, p.unit, p.grams);
   counts.recipe = (counts.recipe ?? 0) + 1;
   return true;
@@ -322,4 +335,6 @@ db.exec('COMMIT');
 db.exec('VACUUM');
 
 const totals = db.prepare('SELECT (SELECT count(*) FROM foods) foods, (SELECT count(*) FROM portions) portions').get();
+db.close();
+fs.renameSync(TMP, OUT);
 console.log('foods by source', counts, '| totals', { ...totals }, '|', (fs.statSync(OUT).size / 1e6).toFixed(1), 'MB');

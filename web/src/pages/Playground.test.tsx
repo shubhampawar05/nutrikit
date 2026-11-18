@@ -1,13 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { renderPage } from '../test-utils.tsx';
+import { Nutrikit } from '../sdk.ts';
 import { Playground } from './Playground.tsx';
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...headers } });
 
 const ME = {
-  account: { id: 'a1', name: 'Ada', email: 'ada@example.com', createdAt: '2026-01-01' },
+  user: { id: 'u1', name: 'Ada', email: 'ada@example.com', emailVerified: true, createdAt: '2026-01-01' },
   plan: { id: 'free', name: 'Free', monthlyTokens: 10000, ratePerMinute: 60, price: 0, currency: 'INR', maxKeys: 3, expiresAt: null },
   usage: { periodStart: '2026-10-01', used: 0, remaining: 10000 },
   plans: {},
@@ -167,6 +168,61 @@ describe('Playground', () => {
     release(json(SEARCH, 200, { 'X-Tokens-Charged': '1' }));
     await screen.findByText('Yogurt, Greek, plain');
     expect(v1Calls()).toHaveLength(1);
+  });
+
+  it('drops a slow reply from the endpoint that was left, and allows sending at once', async () => {
+    let release: (r: Response) => void = () => {};
+    stubFetch(async (url) => (url.includes('/v1/foods/search') ? new Promise<Response>((res) => { release = res; }) : json(LOG, 200)));
+    renderPage(<Playground />, { path: '/playground#search' });
+    await screen.findByText(/Signed in/);
+    fireEvent.click(screen.getByRole('button', { name: /Send request/ }));
+    await screen.findByRole('button', { name: /Sending/ });
+
+    fireEvent.click(screen.getByRole('link', { name: 'Log from text' }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Log from text' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Send request/ })).toBeTruthy();
+
+    release(json(SEARCH, 200));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(screen.queryByText('Yogurt, Greek, plain')).toBeNull();
+    expect(screen.getByText('Send the request to see the result.')).toBeTruthy();
+  });
+
+  it('shows why renewing an expired session token failed, not a network error', async () => {
+    let minted = 0;
+    stubFetch(
+      () => json({ error: { code: 'token_expired', message: 'access token expired' } }, 401),
+      true,
+      () => (++minted === 1 ? json(TOKEN) : json({ error: { code: 'unauthorized', message: 'please log in' } }, 401)),
+    );
+    renderPage(<Playground />, { path: '/playground#search' });
+    await screen.findByText(/Signed in/);
+    fireEvent.click(screen.getByRole('button', { name: /Send request/ }));
+
+    expect(await screen.findByText('401 · unauthorized')).toBeTruthy();
+    expect(screen.getByText('Please log in.')).toBeTruthy();
+    expect(screen.queryByText(/Could not reach the API/)).toBeNull();
+    expect(minted).toBe(2);
+  });
+
+  it('turns the camera off when the page is left mid-scan', async () => {
+    const stop = vi.fn();
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop }] })) },
+    });
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    const scan = vi.spyOn(Nutrikit, 'scanBarcode').mockReturnValue(new Promise<string>(() => {}));
+    stubFetch(() => json({}), false);
+    const { unmount } = renderPage(<Playground />, { path: '/playground#barcode' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Scan' }));
+    await waitFor(() => expect(scan).toHaveBeenCalled());
+    expect(stop).not.toHaveBeenCalled();
+
+    unmount();
+    expect(stop).toHaveBeenCalled();
+    vi.restoreAllMocks();
+    Reflect.deleteProperty(navigator, 'mediaDevices');
   });
 
   // ---------------------------------------------------------------- 6.3 guidance

@@ -5,7 +5,7 @@ import { Type, type TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { HttpError, bad, jsonBody, readImage, imageFromJson, IMAGE_BODY_LIMIT, type ImageInput } from '../http.ts';
 import { ok, errors, cost } from '../schemas.ts';
 import { foods, getFood } from '../domain/db.ts';
-import { searchFoods } from '../domain/search.ts';
+import { RANKED_MATCHES, searchFoods } from '../domain/search.ts';
 import { NUTRIENTS, scaleNutrients, sumNutrients } from '../domain/nutrients.ts';
 import { resolvePortion } from '../domain/units.ts';
 import { resolvePhrase, type LoggedItem, type Unmatched } from '../domain/textlog.ts';
@@ -14,10 +14,9 @@ import { COUNTRIES, searchPackaged } from '../domain/packaged.ts';
 import { parseLabelText, LABEL_WARNINGS } from '../domain/label.ts';
 import { generateMealPlan, DIETS } from '../domain/mealplan.ts';
 import { sampleProvider } from '../domain/providers/sample.ts';
-import { getProvider, type AIProvider, type AICapability, type MealRecognition, type LabelReading, type AIFoodItem } from '../domain/providers/index.ts';
+import { addUsage, getProvider, withUsage, type AIProvider, type AICapability, type MealRecognition, type LabelReading, type AIFoodItem } from '../domain/providers/index.ts';
 import { COSTS, usageSummary, issueAccessToken } from '../domain/auth.ts';
 import { coverUnknowns, logTextWithRequests, recordMisses, type Unknown } from '../domain/foodrequests.ts';
-import type { AIUsage } from '../domain/types.ts';
 import type { Sql } from 'postgres';
 
 const DISFLUENCIES = /\b(um+|uh+|erm|hmm+|like|you know|i mean|basically|actually)\b[,]?\s*/gi;
@@ -44,17 +43,24 @@ async function requireProvider<C extends AICapability>(capability: C, req: Fasti
   return provider as AIProvider & Required<Pick<AIProvider, C>>;
 }
 
-const addUsage = (a: AIUsage, b: AIUsage | null): AIUsage => (b ? { inputTokens: a.inputTokens + b.inputTokens, outputTokens: a.outputTokens + b.outputTokens } : a);
-
 /** Live calls count what the catalog missed and keep AI estimates; test-key calls do neither, so they stay repeatable. */
 const isLive = (req: FastifyRequest) => req.key?.mode !== 'test';
 
 /**
  * Resolves the provider's items against the catalog. A food the catalog lacks is counted as a food request and,
  * when the provider can estimate foods, logged from an estimate (source "ai-estimate", low confidence).
+ * A failure after the provider answered still charges its tokens (plugins/metering.ts reads `err.usage`).
  */
 async function aiItems(sql: Sql, req: FastifyRequest, provider: AIProvider, run: () => Promise<MealRecognition>) {
   const out = await run();
+  try {
+    return await resolveAiItems(sql, req, provider, out);
+  } catch (err) {
+    throw withUsage(err, out.usage);
+  }
+}
+
+async function resolveAiItems(sql: Sql, req: FastifyRequest, provider: AIProvider, out: MealRecognition) {
   type Item = LoggedItem & { recognition: { label: string; confidence: AIFoodItem['confidence'] } };
   // Resolve each AI item on its own so its recognition stays with it when an earlier item is unmatched.
   const slots: (Item | null)[] = [];
@@ -172,7 +178,7 @@ export async function v1Routes(fastify: FastifyInstance) {
       querystring: Type.Object({
         q: nonBlank(),
         limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50, default: 10 })),
-        offset: Type.Optional(Type.Integer({ minimum: 0, maximum: 1000, default: 0 })),
+        offset: Type.Optional(Type.Integer({ minimum: 0, maximum: RANKED_MATCHES - 1, default: 0, description: `Results are the best ${RANKED_MATCHES} matches; \`total\` counts them` })),
         source: Type.Optional(Type.String({ enum: ['survey', 'foundation', 'sr_legacy', 'cofid', 'indb', 'recipe'] })),
       }),
       response: { ...ok({ $ref: 'SearchResult#' }), ...errors(400, 401, 429) },
@@ -352,11 +358,11 @@ export async function v1Routes(fastify: FastifyInstance) {
       summary: 'Generate a meal plan', description: cost('mealPlan'),
       body: Type.Object({
         calories: Type.Optional(Type.Number({ minimum: 1000, maximum: 5000, default: 2000 })),
-        proteinGrams: Type.Optional(Type.Integer()),
+        proteinGrams: Type.Optional(Type.Integer({ minimum: 0, maximum: 1000 })),
         diet: Type.Optional(Type.String({ enum: DIETS })),
         meals: Type.Optional(Type.Array(Type.String({ enum: MEALS }))),
         days: Type.Optional(Type.Integer({ minimum: 1, maximum: 7 })),
-        exclude: Type.Optional(Type.Array(Type.String())),
+        exclude: Type.Optional(Type.Array(Type.String({ maxLength: 100 }), { maxItems: 50 })),
         seed: Type.Optional(Type.Integer({ description: 'Same seed + inputs reproduces the plan' })),
       }),
       response: { ...ok({ type: 'object' }), ...errors(400, 401, 429) },

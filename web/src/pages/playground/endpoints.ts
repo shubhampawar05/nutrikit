@@ -5,7 +5,7 @@ import type {
 import type { Nutrikit } from '../../sdk.ts';
 import type { IconName } from '../../components/Icon.tsx';
 
-export type FieldType = 'textarea' | 'checkbox' | 'select' | 'image' | 'text' | 'number';
+type FieldType = 'textarea' | 'checkbox' | 'select' | 'image' | 'text' | 'number';
 
 export interface Field {
   name: string;
@@ -31,7 +31,7 @@ export type RawValues = Record<string, string | boolean>;
 /** Converted values, as the legacy values() produced them. */
 export type Values = Record<string, string | number | boolean | undefined>;
 
-export interface Built {
+interface Built {
   pathParams?: Record<string, string | number | undefined>;
   query?: Record<string, string | number | undefined>;
   body?: Record<string, unknown>;
@@ -177,7 +177,7 @@ export function convert(ep: Endpoint, raw: RawValues, images: Record<string, str
   return v;
 }
 
-export interface Req { method: string; path: string; body?: Record<string, unknown> }
+interface Req { method: string; path: string; body?: Record<string, unknown> }
 
 export function buildRequest(ep: Endpoint, v: Values): Req {
   const r = ep.build(v);
@@ -193,7 +193,8 @@ export function curlFor(req: Req, origin: string): string {
   const lines = [`curl${req.method === 'GET' ? '' : ` -X ${req.method}`} "${origin}${req.path}"`, '  -H "Authorization: Bearer $NUTRIKIT_KEY"'];
   if (req.body) {
     const shown: unknown = JSON.parse(JSON.stringify(req.body, (k: string, x: unknown) => (k === 'image' && typeof x === 'string' && x.length > 60 ? `${x.slice(0, 40)}…(base64 image)` : x)));
-    lines.push('  -H "Content-Type: application/json"', `  -d '${JSON.stringify(shown)}'`);
+    // Single-quoted for the shell: each ' in the JSON closes the quote, adds an escaped quote and reopens it.
+    lines.push('  -H "Content-Type: application/json"', `  -d '${JSON.stringify(shown).replace(/'/g, "'\\''")}'`);
   }
   return lines.join(' \\\n');
 }

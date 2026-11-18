@@ -44,8 +44,8 @@ export interface SearchResult {
 // Everyday words -> the wording USDA uses.
 const SYNONYMS: Record<string, string> = lookup({
   soda: 'soft drink', pop: 'soft drink', fries: 'french fries', chips: 'potato chips', ketchup: 'catsup',
-  oatmeal: 'oatmeal', yoghurt: 'yogurt', hamburger: 'hamburger', burger: 'hamburger', pb: 'peanut butter',
-  oj: 'orange juice', coffee: 'coffee', espresso: 'coffee espresso', latte: 'coffee latte', tofu: 'tofu',
+  yoghurt: 'yogurt', burger: 'hamburger', pb: 'peanut butter',
+  oj: 'orange juice', espresso: 'coffee espresso', latte: 'coffee latte',
   toast: 'bread toasted', aubergine: 'eggplant', courgette: 'zucchini', prawns: 'shrimp', prawn: 'shrimp', mince: 'ground beef',
   donut: 'doughnut', donuts: 'doughnut',
   // Indian English: curd and dahi are plain, unsweetened yogurt, whole milk unless a fat level is given (PHRASES keeps
@@ -66,11 +66,12 @@ const PHRASES: [RegExp, string][] = [
   [/\bmasala chai\b/g, 'chai'],
   [/\bmasala dosa\b|\bdosa masala\b/g, 'dosa with filling'], // FNDDS stuffed dosa, not plain crepe
   [/\b(?:\d+\s+)?(?:cup|cups|plate|bowl|glass)\s+butter chicken\b/g, 'butter chicken'],
-  [/\bbutter chicken\b/g, 'butter chicken'],
   [/\b(?:\d+\s+)?(?:cup|cups|plate|bowl)\s+poha\b|\bpoha\b/g, 'poha'],
   [/\b(?:\d+\s+)?(?:cup|cups|plate|bowl)\s+khichdi\b|\bkhichdi\b|\bkhichri\b/g, 'khichdi'],
   [/\bpav bhaji\b/g, 'pav bhaji'],
-  [/\bboiled egg\b/g, 'egg whole boiled'],
+  // Cooked eggs keep their cooking ("2 scrambled eggs"); only bare eggs are whole raw eggs, as weighed.
+  [/\b(?:\d+\s+)?(fried|scrambled|poached|deviled|cooked|baked)\s+eggs\b/g, '$1 egg'],
+  [/\b(?:\d+\s+)?(?:(?:hard|soft)[- ])?boiled eggs?\b/g, 'egg whole boiled'],
   [/\b(?:\d+\s+)?eggs\b/g, 'egg whole raw'],
 ];
 
@@ -124,7 +125,7 @@ const FORMS = /\b(crumbs|sticks|croutons|stuffing|dressing|mix|batter|dough|flou
 const SPECIALTY = /\b(glutinous|sticky|meatless|imitation|vegetarian|vegan|plant-based|whole wheat|gluten-free|stuffed|reduced fat|low fat|lowfat|fat free|nonfat|light|diet|sugar free|from frozen|with fruit|low sodium|reduced sodium|coated|breaded|battered|made with butter|made with margarine|made with oil|fat added)\b/i;
 const NICHE =/\b(baby food|infant formula|toddler|puree for|dehydrated|freeze-dried|powder|canned, drained solids|alaska native|frozen dinner)\b/i;
 
-export function normalizeQuery(q: unknown): string {
+function normalizeQuery(q: unknown): string {
   let s = String(q || '').toLowerCase();
   for (const [pattern, replacement] of PHRASES) s = s.replace(pattern, replacement);
   return s
@@ -251,7 +252,7 @@ function knownWord(word: string): boolean {
  * The query with each word the catalog doesn't know replaced by the closest one it does ("panner tikka" ->
  * "paneer tikka"), or null when every word is known or has no close match.
  */
-export function correctSpelling(query: string): string | null {
+function correctSpelling(query: string): string | null {
   let changed = false;
   const words = String(query || '').toLowerCase().split(/\s+/).filter(Boolean).map((w) => {
     const word = w.replace(/[^a-z]/g, '');
@@ -290,6 +291,12 @@ export function searchFoods(query: string | null | undefined, opts: SearchOption
   return fixed.match === 'all-words' || fixed.match === 'prefix' ? { ...fixed, didYouMean: respelled } : asTyped;
 }
 
+/**
+ * How many full-text matches are ranked per search. `total` counts the distinct foods among them, so paging past it
+ * (the API caps `offset` below this) never finds more.
+ */
+export const RANKED_MATCHES = 400;
+
 function searchOnce(query: string | null | undefined, { limit = 10, offset = 0, source }: SearchOptions = {}): SearchResult {
   const q = normalizeQuery(query);
   if (!q) return { query: q, total: 0, results: [] };
@@ -298,7 +305,7 @@ function searchOnce(query: string | null | undefined, { limit = 10, offset = 0, 
     SELECT f.id, f.name, f.source, f.category, f.aliases, bm25(foods_fts, 10.0, 1.0, 10.0) AS rank
     FROM foods_fts JOIN foods f ON f.id = foods_fts.rowid
     WHERE foods_fts MATCH ? ${source ? 'AND f.source = ?' : ''}
-    ORDER BY rank LIMIT 400`);
+    ORDER BY rank LIMIT ${RANKED_MATCHES}`);
   // Whole words before prefixes, so "chole" never reaches "cholesterol" while a whole-word match exists, and
   // partial typing ("chick") still finds chicken. Any single word only when no food has them all.
   const passes: [SearchMatch, 'AND' | 'OR', boolean][] = [['all-words', 'AND', false], ['prefix', 'AND', true]];

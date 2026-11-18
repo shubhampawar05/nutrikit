@@ -1,6 +1,6 @@
 // Free-text meal logging: "2 eggs, a slice of whole wheat toast and a cup of coffee with milk"
 // -> matched foods with portions and nutrients. Rule-based; the AI provider can supply the
-// item split instead (see providers/), and both paths share resolveItems().
+// item split instead (see providers/), and both paths resolve each phrase with resolvePhrase().
 import { getFood } from './db.ts';
 import { searchFoods, wordCoverage } from './search.ts';
 import { canonicalUnit, parseQuantity, resolvePortion } from './units.ts';
@@ -122,9 +122,51 @@ export function splitMealText(text: string): { meal: string | null; items: Parse
       r = r.slice(0, trailing.index).trim();
     }
     if (!r) continue;
+    const joiner = i > 0 ? parts[i - 1].trim().toLowerCase() : '';
+    const prev = items.at(-1);
+    // "mac and cheese", "beans and rice": an amountless phrase after "and"/"with" that makes a dish named in the
+    // catalog with the phrase before it is part of that dish, not a second food.
+    if (prev && quantity == null && !unit && /^(and|with|&)$/.test(joiner) && namesDish(`${prev.food} ${joiner} ${r}`)) {
+      prev.text = `${prev.text} ${joiner} ${s}`;
+      prev.food = `${prev.food} ${joiner} ${r}`;
+      continue;
+    }
     items.push({ text: s, food: r, quantity, unit, addOn });
   }
   return { meal: meal ? MEALS[meal] : null, items };
+}
+
+const CONNECTORS = new Set(['and', 'with', 'or', '&']);
+const wordsOf = (s: string) => s.toLowerCase().split(/[^a-z0-9']+/).filter((w) => w && !CONNECTORS.has(w)).map((w) => w.replace(/(?<=..)(es|s)$/, ''));
+
+/**
+ * Whether the catalog's best match for a joined phrase ("mac and cheese") is a dish named by it: the food's leading
+ * name joins its parts with "and"/"with" too, and, alternatives ("or noodles") aside, names exactly the phrase's
+ * words in the same order (a short word may be its start: "mac" -> "Macaroni"). "Macaroni or noodles with cheese"
+ * and "Beans and rice" qualify; "Salad dressing" (no joiner: it is the add-on), "Chicken curry with rice" (another
+ * dish) and "Bread and butter pudding" (a pudding) don't. Memoized: the catalog doesn't change while running.
+ */
+function namesDish(phrase: string): boolean {
+  const key = phrase.toLowerCase();
+  let known = dishCache.get(key);
+  if (known === undefined) {
+    if (dishCache.size >= 1000) dishCache.clear();
+    dishCache.set(key, (known = matchesDish(phrase)));
+  }
+  return known;
+}
+const dishCache = new Map<string, boolean>();
+
+function matchesDish(phrase: string): boolean {
+  const found = searchFoods(phrase, { limit: 1 });
+  const top = found.results[0];
+  if (!top || found.match !== 'all-words' || found.didYouMean) return false;
+  const name = top.name.replace(/\([^)]*\)/g, ' ').split(',')[0].toLowerCase();
+  if (!/\s(and|with|&)\s/.test(name)) return false;
+  const words = wordsOf(phrase);
+  const head = wordsOf(name.replace(/\s+or\s+[a-z0-9'-]+/g, ' '));
+  const same = (h: string, w: string) => h === w || (w.length >= 3 && h.startsWith(w));
+  return words.length > 1 && head.length === words.length && words.every((w, i) => same(head[i], w));
 }
 
 // Unquantified add-ons ("with sugar", "with milk") are a spoonful or a splash, never a cup: rich add-ons
@@ -132,7 +174,7 @@ export function splitMealText(text: string): { meal: string | null; items: Parse
 // portion of at least 3 g is used (1 tsp sugar, 1 fl oz milk); without one, the cap itself in grams.
 const RICH_ADD_ON = /\b(sugar|syrup|honey|jam|jelly|marmalade|butter|ghee|margarine|oil|mayonnaise|cream|dressing|sauce|ketchup|catsup|chutney)\b/i;
 
-export function addOnPortion(food: Pick<Food, 'name' | 'portions'>): ResolvedPortion {
+function addOnPortion(food: Pick<Food, 'name' | 'portions'>): ResolvedPortion {
   const cap = RICH_ADD_ON.test(food.name) ? 15 : 60;
   const fits = food.portions
     .map((p) => ({ p, each: p.grams / p.amount }))
@@ -140,6 +182,11 @@ export function addOnPortion(food: Pick<Food, 'name' | 'portions'>): ResolvedPor
     .sort((a, b) => b.each - a.each)[0];
   if (fits) return { grams: fits.each, quantity: 1, unit: fits.p.unit || 'serving', portion: fits.p.label, method: 'add-on-smallest-portion' };
   return { grams: cap, quantity: cap, unit: 'g', portion: null, method: 'add-on-cap' };
+}
+
+/** A portion whose weight was given outright (an AI's grams), with the amount it was described as. */
+export function providedPortion(grams: number, amount: { quantity?: number | null; unit?: string | null }): ResolvedPortion {
+  return { grams, quantity: amount.quantity ?? 1, unit: amount.unit || 'serving', portion: null, method: 'provided-grams' };
 }
 
 /**
@@ -177,7 +224,7 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
   }
   let portion: ResolvedPortion;
   if (ph.grams) {
-    portion = { grams: ph.grams, quantity: ph.quantity ?? 1, unit: ph.unit || 'serving', portion: null, method: 'provided-grams' };
+    portion = providedPortion(ph.grams, ph);
   } else if (ph.addOn && ph.quantity == null && !ph.unit) {
     portion = addOnPortion(best);
   } else {
@@ -201,7 +248,7 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
 }
 
 /** Turn parsed phrases into logged items, unmatched phrases and meal totals. */
-export function resolveItems(phrases: Phrase[], opts: { alternatives?: number } = {}): ResolvedItems {
+function resolveItems(phrases: Phrase[], opts: { alternatives?: number } = {}): ResolvedItems {
   const items: LoggedItem[] = [];
   const unmatched: Unmatched[] = [];
   for (const ph of phrases) {

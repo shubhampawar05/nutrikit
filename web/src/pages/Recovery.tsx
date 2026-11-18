@@ -6,20 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, errorText } from '../api/client.ts';
 import { PASSWORD_RULE, safeNext, waitText } from './Auth.tsx';
 import { PasswordInput } from '../components/PasswordInput.tsx';
-
-function Card({ title, lead, children }: { title: string; lead?: ReactNode; children: ReactNode }) {
-  return (
-    <main className="auth-shell single">
-      <div className="auth-main">
-        <div className="auth-card">
-          <h1>{title}</h1>
-          {lead ? <p className="muted">{lead}</p> : null}
-          {children}
-        </div>
-      </div>
-    </main>
-  );
-}
+import { AuthCard as Card } from '../components/AuthCard.tsx';
 
 const BAD_LINK = 'This link has expired or was already used.';
 

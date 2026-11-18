@@ -1,25 +1,13 @@
 // /invite?token=…: what a team invitation offers, and accepting it. Someone without a login signs up (or logs in)
 // first and comes back here; the invitation only works for the email it was sent to.
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, ApiError, errorText, fmtDate, type Me } from '../api/client.ts';
-import { useMe } from '../hooks.ts';
+import { api, ApiError, errorText, fmtDate } from '../api/client.ts';
+import { forgetAccount, useMe, useTeamChanged } from '../hooks.ts';
+import { AuthCard as Card } from '../components/AuthCard.tsx';
 import { authPath } from './Auth.tsx';
 import { ROLE_NAMES } from './dashboard/Team.tsx';
-
-function Card({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <main className="auth-shell single">
-      <div className="auth-main">
-        <div className="auth-card">
-          <h1>{title}</h1>
-          {children}
-        </div>
-      </div>
-    </main>
-  );
-}
 
 export function Invite() {
   const [params] = useSearchParams();
@@ -27,6 +15,7 @@ export function Invite() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const me = useMe();
+  const teamChanged = useTeamChanged();
   const [error, setError] = useState('');
   const invitation = useQuery({
     queryKey: ['invitation', token],
@@ -37,15 +26,14 @@ export function Invite() {
   const accept = useMutation({
     mutationFn: () => api.acceptInvitation(token),
     onSuccess: (view) => {
-      queryClient.setQueryData<Me>(['me'], (old) => (old ? { ...old, ...view } : old));
-      for (const key of ['keys', 'usage', 'members']) void queryClient.invalidateQueries({ queryKey: [key] });
+      teamChanged(view);
       navigate('/dashboard');
     },
     onError: (err) => setError(errorText(err)),
   });
   const logout = useMutation({
     mutationFn: () => api.logout(),
-    onSettled: () => queryClient.setQueryData(['me'], null),
+    onSettled: () => forgetAccount(queryClient),
   });
 
   if (!token || (invitation.isError && invitation.error instanceof ApiError && invitation.error.status < 500)) {
@@ -61,6 +49,15 @@ export function Invite() {
       <Card title="Team invitation">
         <p className="form-error" role="alert">{errorText(invitation.error)}</p>
         <button className="btn btn-ghost btn-sm" type="button" onClick={() => invitation.refetch()}>Retry</button>
+      </Card>
+    );
+  }
+  // Couldn't tell whether anyone is signed in: don't ask a signed-in person to sign up.
+  if (me.isError) {
+    return (
+      <Card title="Team invitation">
+        <p className="form-error" role="alert">{errorText(me.error)}</p>
+        <button className="btn btn-ghost btn-sm" type="button" onClick={() => me.refetch()}>Retry</button>
       </Card>
     );
   }

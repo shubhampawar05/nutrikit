@@ -4,8 +4,8 @@
 // keys only). A team always keeps at least one owner. Invitations are emailed links; only a SHA-256 of the link's
 // token is stored, and a link works once, for 7 days, for a signed-in user with the invited email.
 import crypto from 'node:crypto';
-import type { Sql } from 'postgres';
-import { PLANS, effectivePlan, fail, hashId, isEmail, type Account, type Role, type User } from './accounts.ts';
+import type { Sql, TransactionSql } from 'postgres';
+import { PLANS, ROLES, effectivePlan, fail, hashId, isEmail, type Account, type Role, type User } from './accounts.ts';
 import { mailer } from './mail.ts';
 
 const INVITE_DAYS = 7;
@@ -60,7 +60,7 @@ export async function listInvitations(sql: Sql, accountId: string): Promise<Invi
 }
 
 /** Members plus pending invitations, optionally ignoring invitations to one email (being replaced). */
-async function seatsTaken(sql: Sql, accountId: string, exceptEmail: string | null = null): Promise<number> {
+async function seatsTaken(sql: Sql | TransactionSql, accountId: string, exceptEmail: string | null = null): Promise<number> {
   const [{ n }] = await sql<{ n: number }[]>`
     SELECT (SELECT COUNT(*) FROM memberships WHERE account_id = ${accountId})
          + (SELECT COUNT(*) FROM invitations WHERE account_id = ${accountId} AND accepted_at IS NULL AND expires_at > now()
@@ -85,14 +85,16 @@ export async function invite(sql: Sql, args: { account: Account; inviter: User; 
   const [member] = await sql`SELECT 1 FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.account_id = ${account.id} AND u.email = ${email}`;
   if (member) throw Object.assign(fail(409, 'already_member', 'this person is already in the team'), { fields: { email: 'Already a member of this team.' } });
   const limit = account.planDetails.maxMembers;
-  if (await seatsTaken(sql, account.id, email) >= limit) {
-    throw fail(403, 'member_limit', `your ${account.planDetails.name} plan allows ${limit} people, pending invitations included; remove someone or revoke an invitation first`);
-  }
+  const full = () => fail(403, 'member_limit', `your ${account.planDetails.name} plan allows ${limit} people, pending invitations included; remove someone or revoke an invitation first`);
+  if (await seatsTaken(sql, account.id, email) >= limit) throw full(); // answer before throttling
   await throttleInvites(sql, account.id, email);
 
   const token = crypto.randomBytes(32).toString('base64url');
   const expires = new Date(Date.now() + INVITE_DAYS * 864e5);
   await sql.begin(async (tx) => {
+    // Counted again under the team's lock, so parallel invitations can't take more seats than the plan has.
+    await lockTeam(tx, account.id);
+    if (await seatsTaken(tx, account.id, email) >= limit) throw full();
     await tx`DELETE FROM invitations WHERE account_id = ${account.id} AND email = ${email} AND accepted_at IS NULL`;
     await tx`INSERT INTO invitations (id_hash, account_id, email, role, invited_by, expires_at)
       VALUES (${hashId(token)}, ${account.id}, ${email}, ${role}, ${inviter.id}, ${expires})`;
@@ -176,20 +178,37 @@ export async function acceptInvitation(sql: Sql, token: unknown, user: User): Pr
   });
 }
 
-/** Locks the team's memberships and returns them, for changes that must keep an owner. */
-async function lockedMembers(tx: Sql, accountId: string) {
-  return tx<{ userId: string; role: Role }[]>`
-    SELECT user_id AS "userId", role FROM memberships WHERE account_id = ${accountId} ORDER BY user_id FOR UPDATE`;
+/**
+ * Locks the team row. Everything that counts a team's members, owners, seats or keys before changing them takes
+ * this lock first (here, accounts.deleteAccount, auth.createTeamKey), so the count holds until the change commits.
+ */
+async function lockTeam(tx: TransactionSql, accountId: string) {
+  await tx`SELECT 1 FROM accounts WHERE id = ${accountId} FOR UPDATE`;
+}
+
+/** Locks the team and returns its members, for changes that must keep an owner. */
+async function lockedMembers(tx: TransactionSql, accountId: string) {
+  await lockTeam(tx, accountId);
+  return tx<{ userId: string; role: Role }[]>`SELECT user_id AS "userId", role FROM memberships WHERE account_id = ${accountId}`;
+}
+
+/** The actor's role as it is now (their session's may be stale), or a 403 once they are no longer allowed. */
+function currentRole(members: { userId: string; role: Role }[], actor: { userId: string }): Role {
+  const role = members.find((m) => m.userId === actor.userId)?.role;
+  if (!role) throw forbidden('you are no longer a member of this team');
+  return role;
 }
 
 /** Changes a member's role. Only owners make, demote or change owners; admins manage admins and developers. */
-export async function changeRole(sql: Sql, accountId: string, actorRole: Role, targetUserId: string, role: unknown): Promise<void> {
-  if (!can.manageMembers(actorRole)) throw forbidden();
-  if (!['owner', 'admin', 'developer'].includes(role as string)) {
+export async function changeRole(sql: Sql, accountId: string, actor: { userId: string; role: Role }, targetUserId: string, role: unknown): Promise<void> {
+  if (!can.manageMembers(actor.role)) throw forbidden();
+  if (!ROLES.includes(role as Role)) {
     throw Object.assign(fail(400, 'invalid_request', 'check the highlighted fields'), { fields: { role: 'Choose owner, admin or developer.' } });
   }
   await sql.begin(async (tx) => {
-    const members = await lockedMembers(tx as unknown as Sql, accountId);
+    const members = await lockedMembers(tx, accountId);
+    const actorRole = currentRole(members, actor);
+    if (!can.manageMembers(actorRole)) throw forbidden();
     const target = members.find((m) => m.userId === targetUserId);
     if (!target) throw fail(404, 'not_found', 'member not found');
     if ((target.role === 'owner' || role === 'owner') && actorRole !== 'owner') throw forbidden('only an owner can make or change owners');
@@ -203,10 +222,12 @@ export async function removeMember(sql: Sql, accountId: string, actor: { userId:
   const leaving = actor.userId === targetUserId;
   if (!leaving && !can.manageMembers(actor.role)) throw forbidden();
   await sql.begin(async (tx) => {
-    const members = await lockedMembers(tx as unknown as Sql, accountId);
+    const members = await lockedMembers(tx, accountId);
+    const actorRole = leaving ? actor.role : currentRole(members, actor);
+    if (!leaving && !can.manageMembers(actorRole)) throw forbidden();
     const target = members.find((m) => m.userId === targetUserId);
     if (!target) throw fail(404, 'not_found', 'member not found');
-    if (!leaving && target.role === 'owner' && actor.role !== 'owner') throw forbidden('only an owner can remove an owner');
+    if (!leaving && target.role === 'owner' && actorRole !== 'owner') throw forbidden('only an owner can remove an owner');
     if (target.role === 'owner' && members.filter((m) => m.role === 'owner').length === 1) throw lastOwner();
     await tx`DELETE FROM memberships WHERE account_id = ${accountId} AND user_id = ${targetUserId}`;
   });

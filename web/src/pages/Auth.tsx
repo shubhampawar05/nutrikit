@@ -3,7 +3,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
-import { api, ApiError, errorText } from '../api/client.ts';
+import { api, ApiError, errorText, NEW_KEY_STORE } from '../api/client.ts';
+import { tabStore } from '../storage.ts';
 import { useMe } from '../hooks.ts';
 import { PasswordInput } from '../components/PasswordInput.tsx';
 
@@ -74,8 +75,8 @@ function AuthForm({ mode }: { mode: Mode }) {
         await api.login({ email: data.email, password: data.password });
       } else {
         const res = await api.signup({ name: data.name, email: data.email, password: data.password });
-        // The first key is shown once on the dashboard, then forgotten.
-        if (res.firstKey) sessionStorage.setItem('nutrikit-new-key', JSON.stringify({ ...res.firstKey, teamId: res.team?.id }));
+        // The first key is shown once on the dashboard, then forgotten. Blocked storage only loses that reveal.
+        if (res.firstKey) tabStore.set(NEW_KEY_STORE, JSON.stringify({ ...res.firstKey, teamId: res.team?.id }));
       }
       submitted.current = true;
       await queryClient.invalidateQueries({ queryKey: ['me'] });

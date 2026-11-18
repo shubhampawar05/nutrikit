@@ -140,6 +140,8 @@ When a call uses AI (`ai: true`, or a photo), a missing food is estimated by the
   with its own values; adding the request's words as its alias makes the match permanent.
 - Once the catalog covers the food (an alias in `server/data/aliases/recipes.json` or a cited recipe in
   `server/data/recipes/`, then `npm run build:db`), mark it **Resolved**. **Ignore** text that isn't a food.
+  Check a new recipe file against the current catalog first, without rebuilding it:
+  `npm run check:recipe -w server -- data/recipes/<dish>.json` prints its nutrients per 100 g and per portion.
 
 ```bash
 curl https://<host>/v1/admin/food-requests?status=open -H "Authorization: Bearer $NUTRIKIT_ADMIN_TOKEN"
@@ -151,7 +153,8 @@ curl -X PATCH https://<host>/v1/admin/food-requests/12 -H "Authorization: Bearer
 
 `npm run eval:estimates -w server -- --label <name>` asks the configured AI provider to estimate 100 INDB dishes as if
 the catalog lacked them, through the same code logging uses, and scores the answers against INDB's published values
-(results in `server/data/eval/<name>.json`). Run it before and after changing the prompt, model or method. Two
+(results in `server/data/eval/<name>.json`; only `baseline.json` is committed, so record a run's numbers in the table
+below). Run it before and after changing the prompt, model or method. Two
 identical runs differ by about 3-4 points, and INDB is one home recipe per dish (often lighter than typical), so
 compare large differences only.
 

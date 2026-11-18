@@ -11,7 +11,6 @@ const json = (status: number, body: unknown) =>
 
 const plan = { name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, maxMembers: 5, rank: 0 };
 const meAs = (role: Role, email = 'dev@acme.test'): Me => ({
-  account: { id: 'usr_2', name: 'Dee', email, createdAt: '2026-10-01T00:00:00Z' },
   user: { id: 'usr_2', name: 'Dee', email, emailVerified: true, createdAt: '2026-10-01T00:00:00Z' },
   team: { id: 'acct_acme', name: 'Acme Health', role, createdAt: '2026-10-01T00:00:00Z' },
   teams: [{ id: 'acct_acme', name: 'Acme Health', role, plan: 'free' }, { id: 'acct_own', name: 'Dee', role: 'owner', plan: 'free' }],
@@ -163,6 +162,31 @@ describe('Invite page', () => {
     expect(await screen.findByText(/this invitation is for/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Join Acme Health' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Log out' })).toBeTruthy();
+  });
+
+  it('signed in with another email: logging out forgets the keys kept in the tab', async () => {
+    sessionStorage.setItem('nk-playground-key', 'nk_live_pasted');
+    sessionStorage.setItem('nutrikit-new-key', JSON.stringify({ key: 'nk_live_new' }));
+    stub(meAs('owner', 'someone@else.test'), (path, method) => {
+      if (path === '/logout' && method === 'POST') return json(200, { ok: true });
+      return path.startsWith('/invitations/') ? json(200, preview) : undefined;
+    });
+    invite();
+    fireEvent.click(await screen.findByRole('button', { name: 'Log out' }));
+    expect(await screen.findByRole('link', { name: 'Create an account' })).toBeTruthy();
+    expect(sessionStorage.getItem('nk-playground-key')).toBeNull();
+    expect(sessionStorage.getItem('nutrikit-new-key')).toBeNull();
+  });
+
+  it('a server error while checking the sign-in shows an error, not "sign up or log in"', async () => {
+    stub(null, (path) => {
+      if (path === '/me') return json(503, { error: { code: 'unavailable', message: 'database unavailable' } });
+      return path.startsWith('/invitations/') ? json(200, preview) : undefined;
+    });
+    invite();
+    expect((await screen.findByRole('alert')).textContent).toBe('Database unavailable.');
+    expect(screen.queryByRole('link', { name: 'Create an account' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy();
   });
 
   it('an expired or used link says so', async () => {

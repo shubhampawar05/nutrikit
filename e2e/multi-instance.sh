@@ -14,8 +14,8 @@ cleanup() {
 trap cleanup EXIT
 docker compose exec -T postgres psql -q -U nutrikit -d postgres -c "CREATE DATABASE $DB"
 docker run --rm --network "$NET" -e DATABASE_URL="$URL" nutrikit:local node dist/cli/migrate.js
-docker run -d --name "nk-multi-a-$$" --network "$NET" -p 8797:8787 -e DATABASE_URL="$URL" -e NUTRIKIT_TOKEN_SECRET="$SECRET" nutrikit:local >/dev/null
-docker run -d --name "nk-multi-b-$$" --network "$NET" -p 8798:8787 -e DATABASE_URL="$URL" -e NUTRIKIT_TOKEN_SECRET="$SECRET" nutrikit:local >/dev/null
+docker run -d --name "nk-multi-a-$$" --network "$NET" -p 8797:8787 -e DATABASE_URL="$URL" -e NUTRIKIT_TOKEN_SECRET="$SECRET" -e NUTRIKIT_PUBLIC_URL=http://127.0.0.1:8797 nutrikit:local >/dev/null
+docker run -d --name "nk-multi-b-$$" --network "$NET" -p 8798:8787 -e DATABASE_URL="$URL" -e NUTRIKIT_TOKEN_SECRET="$SECRET" -e NUTRIKIT_PUBLIC_URL=http://127.0.0.1:8798 nutrikit:local >/dev/null
 for port in 8797 8798; do
   i=0; until curl -sf "http://127.0.0.1:$port/v1/health" >/dev/null; do i=$((i + 1)); [ $i -gt 50 ] && exit 1; sleep 0.2; done
 done

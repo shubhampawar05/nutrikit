@@ -56,7 +56,8 @@ and carry `X-Nutrikit-Mode: test`. `GET /v1/usage` says which (`mode`). See [Dev
   charged; retry.
 - Every response carries `X-Request-Id`. Send your own (letters, digits, `-`, `_`, `.`, up to 128) to trace a call
   through the server logs; quote it when reporting a problem.
-- The SDK retries `429`, `502` and `503` (not quota errors) and throws `NutrikitError` with `status`, `code` and `retryAfter`.
+- The SDK retries `429`, `502`, `503` (not quota errors) and failed connections, and throws `NutrikitError` with
+  `status`, `code` and `retryAfter`. No response at all is `status` `0` with `code` `network_error` or `timeout`.
 
 ## SDK
 

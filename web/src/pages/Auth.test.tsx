@@ -8,7 +8,7 @@ const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 const me = {
-  account: { id: 'acc_1', name: 'Ada', email: 'ada@example.com', createdAt: '2026-10-01T00:00:00Z' },
+  user: { id: 'usr_1', name: 'Ada', email: 'ada@example.com', emailVerified: true, createdAt: '2026-10-01T00:00:00Z' },
   plan: { id: 'free', name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, expiresAt: null },
   usage: { periodStart: '2026-10-01T00:00:00Z', used: 0, remaining: 2000 },
   plans: {},
@@ -213,6 +213,19 @@ describe('Signup', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect((await screen.findByTestId('where')).textContent).toBe('/dashboard');
     expect(JSON.parse(sessionStorage.getItem('nutrikit-new-key') ?? '{}').key).toBe('nk_live_secret');
+  });
+
+  it('still signs up and goes to the dashboard when storage is blocked', async () => {
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new DOMException('blocked', 'SecurityError'); });
+    try {
+      stubPortal(() => json(201, { ...me, firstKey: { id: 'key_1', name: 'Default', key: 'nk_live_secret' } }));
+      app('/signup');
+      fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+      expect((await screen.findByTestId('where')).textContent).toBe('/dashboard');
+      expect(setItem).toHaveBeenCalled();
+    } finally {
+      setItem.mockRestore();
+    }
   });
 });
 

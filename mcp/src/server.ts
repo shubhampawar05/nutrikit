@@ -1,6 +1,7 @@
 // MCP tools over the Nutrikit SDK. Each tool is a thin wrapper around one SDK call; results are
 // returned as JSON text (and as structuredContent) so any MCP client can read them.
 
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -29,6 +30,8 @@ function fail(err: unknown): CallToolResult {
   const hint = e.code === 'quota_exceeded' ? ' The monthly token allowance is used up.'
     : e.status === 401 ? ' Check NUTRIKIT_API_KEY.'
     : e.code === 'ai_provider_unavailable' ? ' This needs ANTHROPIC_API_KEY or OPENAI_API_KEY set on the Nutrikit server.'
+    : e.code === 'network_error' ? ' Is the Nutrikit server running? Check NUTRIKIT_BASE_URL.'
+    : e.code === 'timeout' ? ' The Nutrikit server did not answer in time.'
     : '';
   return { isError: true, content: [{ type: 'text', text: `Nutrikit error${code}: ${e.message}.${hint}` }] };
 }
@@ -37,12 +40,15 @@ async function call(fn: () => Promise<unknown>): Promise<CallToolResult> {
   try { return ok(await fn()); } catch (err) { return fail(err); }
 }
 
+// src/ and dist/ both sit one level below the package root.
+const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
+
 const readOnly = { readOnlyHint: true, openWorldHint: false } as const;
 const diets = ['omnivore', 'vegetarian', 'vegan', 'pescatarian', 'dairy-free', 'gluten-free'] as const;
 const meals = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
 
 export function createServer(nk: Nutrikit): McpServer {
-  const server = new McpServer({ name: 'nutrikit', version: '0.1.0' });
+  const server = new McpServer({ name: 'nutrikit', version });
 
   server.registerTool('search_foods', {
     title: 'Search foods',
@@ -95,7 +101,10 @@ export function createServer(nk: Nutrikit): McpServer {
   server.registerTool('lookup_barcode', {
     title: 'Look up a barcode',
     description: 'Packaged-food details and nutrients for an EAN/UPC barcode, from Open Food Facts.',
-    inputSchema: { barcode: z.string().regex(/^\d{6,14}$/).describe('EAN-8, EAN-13, UPC-A or UPC-E digits') },
+    inputSchema: {
+      barcode: z.string().regex(/^(\d{8}|\d{12}|\d{13}|\d{14})$/)
+        .describe('EAN-8, UPC-A (12), EAN-13 or GTIN-14 digits, check digit included'),
+    },
     annotations: { title: 'Look up a barcode', readOnlyHint: true, openWorldHint: true },
   }, ({ barcode }) => call(() => nk.lookupBarcode(barcode)));
 
@@ -122,7 +131,7 @@ export function createServer(nk: Nutrikit): McpServer {
       proteinGrams: z.number().int().min(20).max(400).optional(),
       diet: z.enum(diets).optional(),
       meals: z.array(z.enum(meals)).optional().describe('Meals per day (default breakfast, lunch, dinner)'),
-      days: z.number().int().min(1).max(14).optional(),
+      days: z.number().int().min(1).max(7).optional().describe('Number of days, 1-7 (default 1)'),
       exclude: z.array(z.string()).optional().describe('Foods or ingredients to avoid, e.g. ["peanut", "mushroom"]'),
       seed: z.number().int().optional().describe('Reuse a seed to get the same plan again'),
     },

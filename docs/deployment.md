@@ -42,7 +42,8 @@ Render dashboard → **New → Blueprint** → pick this repository. It reads [r
 |---|---|
 | `DATABASE_URL` | The string from step 1 |
 | `NUTRIKIT_TOKEN_SECRET`, `NUTRIKIT_ADMIN_TOKEN` | The values from step 2 |
-| `OPENAI_API_KEY` | Optional: photo and label features |
+| `NUTRIKIT_PUBLIC_URL` | Required: the service's address, e.g. `https://nutrikit.onrender.com` (links in emails) |
+| `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` | Optional: photo and label features |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | Optional: leave empty to run without payments |
 
 Creating the service by hand (**New → Web Service**) instead? Pick **Docker** as the language, set
@@ -90,7 +91,7 @@ docker build -f docker/Dockerfile -t nutrikit .
 docker run --rm -e DATABASE_URL=… nutrikit node dist/cli/migrate.js
 
 # 2. Start
-docker run -d -p 8787:8787 -e DATABASE_URL=… -e NUTRIKIT_TOKEN_SECRET=… nutrikit
+docker run -d -p 8787:8787 -e DATABASE_URL=… -e NUTRIKIT_TOKEN_SECRET=… -e NUTRIKIT_PUBLIC_URL=https://… nutrikit
 ```
 
 - Make step 1 the platform's *release* or *pre-deploy* command.
@@ -111,7 +112,10 @@ Redeploy the previous image. Migrations only add things within a release. To und
 
 Point `DATABASE_URL` at an empty database and run `npm run migrate:sqlite -- path/to/app.db` before the
 first start. It copies every table in one transaction, refuses to write into tables that already have rows,
-and never modifies the SQLite file.
+and never modifies the SQLite file. Each old account becomes a team owned by a user with the same login (and the
+same email verification, where the old store recorded it). It then rebuilds the monthly allowance counters from
+the copied usage history, so accounts keep what they had already used this month; if that last step fails, run
+`npm run usage:reconcile -- YYYY-MM` for the current month.
 
 ## TLS note
 

@@ -121,3 +121,40 @@ test('a provider that never answers is abandoned at the deadline with 504 ai_tim
     delete process.env.NUTRIKIT_AI_TIMEOUT_MS;
   }
 });
+
+test('a Retry-After longer than the deadline is not waited for', async () => {
+  process.env.NUTRIKIT_AI_TIMEOUT_MS = '500';
+  try {
+    const start = requests.length;
+    reply = () => ({ status: 429, body: { error: { message: 'slow down' } }, headers: { 'retry-after': '30' } });
+    const started = Date.now();
+    await assert.rejects(provider.parseMeal({ text: 'x' }), { status: 503, message: /rate limited/ });
+    assert.ok(Date.now() - started < 400, `took ${Date.now() - started} ms`);
+    assert.equal(requests.length - start, 1);
+  } finally {
+    delete process.env.NUTRIKIT_AI_TIMEOUT_MS;
+  }
+});
+
+test('a wait between retries ends when the deadline does', async () => {
+  // The caller's shared deadline (100 ms) ends during the 1 s wait the server asked for: the call ends then, as a timeout.
+  reply = () => ({ status: 500, body: { error: { message: 'oops' } }, headers: { 'retry-after': '1' } });
+  const started = Date.now();
+  await assert.rejects(provider.estimateFoods({ foods: ['dal'], signal: AbortSignal.timeout(100) }), (err) => err.status === 504 && err.code === 'ai_timeout');
+  assert.ok(Date.now() - started < 600, `took ${Date.now() - started} ms`);
+});
+
+test('a shared deadline with little time left is measured as such: a longer Retry-After is answered at once', async () => {
+  // The second estimate attempt shares the first one's deadline; only 300 ms of the 60 s remain.
+  const { aiDeadline } = await import('../src/domain/providers/index.ts');
+  const signal = Object.assign(aiDeadline(), { endsAt: Date.now() + 300 });
+  reply = () => ({ status: 429, body: { error: { message: 'slow down' } }, headers: { 'retry-after': '1' } });
+  const started = Date.now();
+  await assert.rejects(provider.estimateFoods({ foods: ['dal'], signal }), { status: 503, message: /rate limited/ });
+  assert.ok(Date.now() - started < 250, `took ${Date.now() - started} ms`);
+});
+
+test('an answer that is not JSON is a 502 that still carries its usage', async () => {
+  reply = () => ({ status: 200, body: { choices: [{ finish_reason: 'stop', message: { content: 'Sure! Here is rice.', refusal: null } }], usage: { prompt_tokens: 9, completion_tokens: 4 } } });
+  await assert.rejects(provider.parseMeal({ text: 'x' }), (err) => err.status === 502 && /malformed/.test(err.message) && err.usage?.inputTokens === 9);
+});

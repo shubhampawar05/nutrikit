@@ -57,12 +57,24 @@ export class Nutrikit {
     const url = new URL(this.baseUrl + path);
     for (const [k, v] of Object.entries(query || {})) if (v != null) url.searchParams.set(k, String(v));
     for (let attempt = 0; ; attempt++) {
-      const res = await this.fetch(url, {
-        method,
-        headers: { Authorization: `Bearer ${this.apiKey}`, ...(body ? { 'Content-Type': 'application/json' } : {}) },
-        body: body ? JSON.stringify(body) : undefined,
-        signal: AbortSignal.timeout(this.timeoutMs),
-      });
+      let res;
+      try {
+        res = await this.fetch(url, {
+          method,
+          headers: { Authorization: `Bearer ${this.apiKey}`, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+          body: body ? JSON.stringify(body) : undefined,
+          signal: AbortSignal.timeout(this.timeoutMs),
+        });
+      } catch (cause) {
+        // No response at all. A timeout is not retried: the server may still be working on the call.
+        const timedOut = cause?.name === 'TimeoutError';
+        const err = new NutrikitError(0, timedOut ? 'timeout' : 'network_error',
+          timedOut ? `no response within ${this.timeoutMs} ms` : `could not reach ${this.baseUrl}: ${cause?.message || cause}`);
+        err.cause = cause;
+        if (timedOut || attempt >= this.maxRetries) throw err;
+        await sleep(500 * 2 ** attempt);
+        continue;
+      }
       const charged = res.headers.get('x-tokens-charged');
       if (charged != null) this.lastUsage = { charged: Number(charged), remaining: res.headers.has('x-tokens-remaining') ? Number(res.headers.get('x-tokens-remaining')) : null };
       const data = await res.json().catch(() => ({}));
@@ -76,7 +88,7 @@ export class Nutrikit {
   }
 
   // ---- food database
-  /** @param {string} q @param {{limit?: number, offset?: number, source?: 'survey'|'foundation'|'sr_legacy'}} [opts] */
+  /** @param {string} q @param {{limit?: number, offset?: number, source?: 'survey'|'foundation'|'sr_legacy'|'cofid'|'indb'|'recipe'}} [opts] */
   searchFoods(q, opts = {}) { return this.request('GET', '/v1/foods/search', { query: { q, ...opts } }); }
   getFood(id) { return this.request('GET', `/v1/foods/${encodeURIComponent(id)}`); }
   /** @param {number} id @param {{quantity?: number, unit?: string, grams?: number}} [portion] */
@@ -95,6 +107,11 @@ export class Nutrikit {
 
   // ---- packaged foods
   lookupBarcode(code) { return this.request('GET', `/v1/barcodes/${encodeURIComponent(String(code).trim())}`); }
+  /**
+   * Search packaged foods by name or brand (servers with a local Open Food Facts export; 503 otherwise).
+   * @param {string} q @param {{limit?: number, offset?: number, country?: 'in'|'us'}} [opts]
+   */
+  searchBarcodes(q, opts = {}) { return this.request('GET', '/v1/barcodes/search', { query: { q, ...opts } }); }
   /** @param {{text?: string, image?: Blob|ArrayBuffer|Uint8Array|string, mediaType?: string}} input */
   async parseLabel(input) {
     if (input.text != null) return this.request('POST', '/v1/labels/parse', { body: { text: input.text } });

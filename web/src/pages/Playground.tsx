@@ -1,54 +1,23 @@
 // API playground: pick an endpoint, fill the form, send, inspect the result.
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { Nutrikit, NutrikitError } from '../sdk.ts';
-import { api, ApiError, PLAYGROUND_KEY_STORE, errorText, sentence } from '../api/client.ts';
+import { Nutrikit } from '../sdk.ts';
+import { errorText, sentence } from '../api/client.ts';
 import { useMe } from '../hooks.ts';
 import { CodeBlock } from '../components/CodeBlock.tsx';
 import { Icon } from '../components/Icon.tsx';
 import { TabList, tabIds } from '../components/Tabs.tsx';
 import { useToast } from '../components/Toast.tsx';
-import {
-  ENDPOINTS, HINTS, buildRequest, convert, curlFor, defaultHints, defaults, findEndpoint, fmtN,
-  type Endpoint, type Field, type RawValues, type Result,
-} from './playground/endpoints.ts';
+import { ENDPOINTS, HINTS, defaultHints, defaults, findEndpoint, fmtN, type Endpoint, type Field, type RawValues } from './playground/endpoints.ts';
 import { JsonText, Preview, PreviewBoundary } from './playground/previews.tsx';
+import { usePlaygroundAuth, type AuthView } from './playground/usePlaygroundAuth.ts';
+import { useSend, type ErrorBody, type View } from './playground/useSend.ts';
 import { PasswordInput } from '../components/PasswordInput.tsx';
 import { Select } from '../components/Select.tsx';
 
-const KEY_STORE = PLAYGROUND_KEY_STORE;
-const store = {
-  get: (k: string) => { try { return sessionStorage.getItem(k); } catch { return null; } },
-  set: (k: string, v: string | null) => { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch { /* storage blocked */ } },
-};
-
-type AuthView = 'checking' | 'session' | 'no-key' | 'anonymous' | 'manual';
-type View = 'preview' | 'json' | 'curl';
-interface ErrorBody { error?: { code?: string; message?: string } }
-interface Meta { status: number; statusText: string; ok: boolean; ms: number; charged: string | null; remaining: string | null }
-type Out =
-  | { kind: 'empty' }
-  | { kind: 'error'; status: number; body: ErrorBody }
-  | { kind: 'result'; result: Result; offset: number }
-  /** A 2xx whose body can't be previewed: the JSON tab still has it. */
-  | { kind: 'unpreviewable'; status: number };
-/** The credential requests are sent with: the session token, or a pasted key (null when nothing is pasted). */
-interface Credential { mode: 'session' | 'manual'; value: string | null }
 const VIEWS: { id: View; label: string }[] = [{ id: 'preview', label: 'Preview' }, { id: 'json', label: 'JSON' }, { id: 'curl', label: 'cURL' }];
 const VIEW_PREFIX = 'pg-view';
-interface Captured { status: number; statusText: string; ok: boolean; charged: string | null; remaining: string | null; body: unknown }
-
-const errorBody = (body: unknown): ErrorBody => {
-  if (typeof body !== 'object' || body === null || !('error' in body)) return {};
-  const e: unknown = body.error;
-  if (typeof e !== 'object' || e === null) return {};
-  const code = 'code' in e && typeof e.code === 'string' ? e.code : undefined;
-  const message = 'message' in e && typeof e.message === 'string' ? e.message : undefined;
-  return { error: { code, message } };
-};
-
-const NETWORK: ErrorBody = { error: { code: 'network', message: 'Could not reach the API.' } };
 
 function ErrorBox({ status, body, authView }: { status: number; body: ErrorBody; authView: AuthView }) {
   const e = body.error || {};
@@ -97,79 +66,24 @@ export function Playground() {
   const [listening, setListening] = useState(false);
   const [scanning, setScanning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  // The camera in use while scanning; stopped when the scan ends or the page is left mid-scan.
+  const cameraRef = useRef<MediaStream | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      cameraRef.current?.getTracks().forEach((t) => t.stop());
+      cameraRef.current = null;
+    };
+  }, []);
   const currentIdRef = useRef(initial.id);
 
-  // ------------------------------------------------------------ response state
-  const [busy, setBusy] = useState(false);
-  const [meta, setMeta] = useState<Meta | 'sending' | null>(null);
-  const [out, setOut] = useState<Out>({ kind: 'empty' });
-  const [json, setJson] = useState<string | null>(null);
-  const [curl, setCurl] = useState(() => curlFor(buildRequest(initial, convert(initial, defaults(initial), {})), window.location.origin));
-  const [view, setView] = useState<View>('preview');
-  const inflight = useRef(0);
-  // Set synchronously when a send starts, so repeated shortcuts in one tick can't slip past `busy`.
-  const busyRef = useRef(false);
-
-  // ------------------------------------------------------------ credentials
-  const auth = useRef<Credential>({ mode: 'session', value: null });
-  const [authView, setAuthView] = useState<AuthView>('checking');
-  const authViewRef = useRef<AuthView>('checking');
-  useEffect(() => { authViewRef.current = authView; }, [authView]);
-  const [switching, setSwitching] = useState(false);
-  const [authLabel, setAuthLabel] = useState('');
-  const [savedKey, setSavedKey] = useState('');
-  const keyInput = useRef<HTMLInputElement>(null);
-
-  const mintSessionToken = useCallback(async () => {
-    const data = await api.playgroundToken();
-    auth.current = { value: data.access_token, mode: 'session' };
-    setAuthLabel(data.key.name);
-    return data;
-  }, []);
-
-  /** The key form (anonymous / manual): a key saved earlier in this tab is used right away. The session token is
-   * dropped, so nothing is ever sent with it while the form is shown. */
-  const showKeyForm = useCallback((state: 'anonymous' | 'manual') => {
-    const saved = store.get(KEY_STORE);
-    auth.current = { mode: 'manual', value: saved || null };
-    setSavedKey(saved || '');
-    authViewRef.current = state;
-    setAuthView(state);
-  }, []);
-
-  /** "Use my account": back from a pasted key to a fresh session token, without a reload. */
-  const backToAccount = () => {
-    setSwitching(true);
-    mintSessionToken().then(
-      () => setAuthView('session'),
-      (err: unknown) => {
-        if (err instanceof ApiError && err.code === 'no_active_key') setAuthView('no-key');
-        else toast(errorText(err));
-      },
-    ).finally(() => setSwitching(false));
-  };
-
-  const authStarted = useRef(false);
-  useEffect(() => {
-    if (me.isPending || authStarted.current) return;
-    authStarted.current = true;
-    if (!me.data) { showKeyForm('anonymous'); return; }
-    mintSessionToken().then(
-      () => setAuthView('session'),
-      (err: unknown) => {
-        if (err instanceof ApiError && err.code === 'no_active_key') setAuthView('no-key');
-        else showKeyForm('anonymous');
-      },
-    );
-  }, [me.isPending, me.data, mintSessionToken, showKeyForm]);
-
-  const onKeySubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const v = (keyInput.current?.value ?? '').trim();
-    auth.current = { mode: 'manual', value: v || null };
-    store.set(KEY_STORE, v || null);
-    toast(v ? 'Key saved for this tab' : 'Key cleared');
-  };
+  // ------------------------------------------------------------ credentials and sending
+  const { auth, authView, authViewRef, switching, authLabel, savedKey, keyInput, mintSessionToken, showKeyForm, backToAccount, onKeySubmit } =
+    usePlaygroundAuth({ isPending: me.isPending, signedIn: Boolean(me.data) });
+  const { busy, busyRef, meta, out, json, curl, view, setView, send, reset } =
+    useSend({ auth, authViewRef, signedIn: Boolean(me.data), mintSessionToken, initial });
 
   // ------------------------------------------------------------ selecting an endpoint
   const select = useCallback((id: string) => {
@@ -181,99 +95,16 @@ export function Playground() {
     setHints(defaultHints(ep));
     setImages({});
     setDragOver(null);
-    // resetResponse()
-    setMeta(null);
-    setOut({ kind: 'empty' });
-    setJson(null);
-    setCurl(curlFor(buildRequest(ep, convert(ep, v, {})), window.location.origin));
+    reset(ep, v);
     if (location.hash.slice(1) !== ep.id) navigate({ hash: ep.id }, { replace: true });
     return { ep, v };
-  }, [location.hash, navigate]);
+  }, [location.hash, navigate, reset]);
 
   // Boot from the hash, and follow later hash changes (back/forward, edited URL).
   useEffect(() => {
     const h = location.hash.slice(1);
     if (h !== currentIdRef.current) select(h);
   }, [location.hash]);
-
-  // ------------------------------------------------------------ sending
-  const showError = useCallback((status: number, body: ErrorBody) => {
-    setOut({ kind: 'error', status, body });
-    if (!status) setMeta(null);
-    setView('preview');
-  }, []);
-
-  const send = useCallback(async (ep: Endpoint, raw: RawValues, imgs: Record<string, string>) => {
-    if (busyRef.current) return; // one request at a time
-    const v = convert(ep, raw, imgs);
-    const req = buildRequest(ep, v);
-    setCurl(curlFor(req, window.location.origin));
-    if (!auth.current.value) {
-      const view = authViewRef.current;
-      const message = view === 'no-key' ? 'Your account has no active API key yet.'
-        : view === 'manual' || (view === 'anonymous' && me.data) ? 'Paste an API key above to send requests.'
-          : 'Add an API key above (or log in) to send requests.';
-      showError(0, { error: { code: 'no_key', message } });
-      return;
-    }
-    const mine = ++inflight.current;
-    busyRef.current = true;
-    setBusy(true);
-    setMeta('sending');
-
-    // The SDK hides status, statusText and the raw error body, so a fetch wrapper records the last response.
-    const cap: { last: Captured | null } = { last: null };
-    const capture: typeof fetch = async (input, init) => {
-      cap.last = null;
-      const res = await fetch(input, init);
-      cap.last = {
-        status: res.status, statusText: res.statusText, ok: res.ok,
-        charged: res.headers.get('x-tokens-charged'), remaining: res.headers.get('x-tokens-remaining'),
-        body: await res.clone().json().catch(() => ({})),
-      };
-      return res;
-    };
-    // maxRetries 0: the legacy page showed a 429 straight away instead of retrying.
-    const attempt = async (): Promise<Result | null> => {
-      const nk = new Nutrikit({ apiKey: auth.current.value ?? '', baseUrl: window.location.origin, fetch: capture, maxRetries: 0 });
-      try {
-        return await ep.call(nk, v);
-      } catch (err) {
-        if (err instanceof NutrikitError && cap.last) return null; // an HTTP error: shown from the captured response
-        throw err;
-      }
-    };
-
-    const t0 = performance.now();
-    const record = (c: Captured) => {
-      setMeta({ status: c.status, statusText: c.statusText, ok: c.ok, ms: Math.round(performance.now() - t0), charged: c.charged, remaining: c.remaining });
-      setJson(JSON.stringify(c.body, null, 2));
-    };
-    try {
-      let result = await attempt();
-      // Session tokens last an hour; renew transparently once.
-      if (!result && cap.last?.status === 401 && errorBody(cap.last.body).error?.code === 'token_expired' && auth.current.mode === 'session') {
-        await mintSessionToken();
-        result = await attempt();
-      }
-      if (mine !== inflight.current) return;
-      const c = cap.last;
-      if (!c) throw new Error('no response');
-      record(c);
-      if (!c.ok || !result) { showError(c.status, errorBody(c.body)); return; }
-      const offset = Number(new URLSearchParams(req.path.split('?')[1] ?? '').get('offset') || 0);
-      setOut({ kind: 'result', result, offset });
-      setView('preview');
-    } catch {
-      if (mine !== inflight.current) return;
-      // A 2xx arrived but the SDK couldn't read it: that's a display problem, not a network one.
-      const c = cap.last;
-      if (c?.ok) { record(c); setOut({ kind: 'unpreviewable', status: c.status }); setView('preview'); }
-      else showError(0, NETWORK);
-    } finally {
-      if (mine === inflight.current) { busyRef.current = false; setBusy(false); }
-    }
-  }, [me.data, mintSessionToken, showError]);
 
   // Latest state for handlers that outlive a render (Ctrl+Enter, speech, camera).
   const latest = useRef({ current, vals, images });
@@ -344,6 +175,8 @@ export function Playground() {
     try {
       if (!video) throw new Error('Camera unavailable');
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      if (!mountedRef.current) return; // left the page while the camera was starting
+      cameraRef.current = stream;
       video.srcObject = stream;
       await video.play();
       const code = await Nutrikit.scanBarcode(video);
@@ -356,6 +189,7 @@ export function Playground() {
       toast(errorText(err, 'Camera unavailable'));
     } finally {
       stream?.getTracks().forEach((t) => t.stop());
+      if (cameraRef.current === stream) cameraRef.current = null;
       setScanning(false);
     }
   };

@@ -1,8 +1,8 @@
-// OpenAI-backed provider: the same three capabilities as the Claude provider, through the Chat
+// OpenAI-backed provider: the same five capabilities as the Claude provider, through the Chat
 // Completions API with strict JSON-schema outputs. Uses fetch, so it needs no SDK; OPENAI_BASE_URL
 // points it at any OpenAI-compatible endpoint (Azure OpenAI, OpenRouter, a local Ollama, …).
 import type { AIUsage } from '../types.ts';
-import { aiDeadline, aiTimeout, type AIProvider } from './index.ts';
+import { aiDeadline, aiTimeout, timeLeft, type AIProvider } from './index.ts';
 import { ADVICE_SCHEMA, ADVICE_SYSTEM, ESTIMATE_SYSTEM, FOOD_ESTIMATES_SCHEMA, FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, adviceMessage, estimateMessage, type AdviceOutput, type FoodEstimatesOutput, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
 
 const MODEL = process.env.NUTRIKIT_OPENAI_MODEL || 'gpt-5-mini';
@@ -16,7 +16,15 @@ interface ChatCompletion {
   usage?: { prompt_tokens: number; completion_tokens: number };
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** Waits `ms`, or rejects with the deadline's timeout as soon as `signal` aborts. */
+function sleep(ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) return Promise.reject(aiTimeout());
+  return new Promise((resolve, reject) => {
+    const done = () => { clearTimeout(timer); reject(aiTimeout()); };
+    const timer = setTimeout(() => { signal.removeEventListener('abort', done); resolve(); }, ms);
+    signal.addEventListener('abort', done, { once: true });
+  });
+}
 const fail = (message: string, status: number, usage?: AIUsage) => Object.assign(new Error(message), { status, usage });
 
 export async function createOpenAIProvider(): Promise<AIProvider> {
@@ -24,25 +32,28 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
   if (!apiKey) throw new Error('NUTRIKIT_AI_PROVIDER=openai needs OPENAI_API_KEY');
 
   // T is the shape `schema` describes; strict structured outputs guarantee the JSON matches it.
-  async function call<T>(name: string, system: string, content: ContentPart[], schema: object): Promise<{ data: T; usage: AIUsage }> {
-    const response = await request({
+  async function call<T>(name: string, system: string, content: ContentPart[], schema: object, deadline?: AbortSignal): Promise<{ data: T; usage: AIUsage }> {
+    const response = await request(deadline ?? aiDeadline(), {
       model: MODEL,
       max_completion_tokens: 16000,
       response_format: { type: 'json_schema', json_schema: { name, strict: true, schema } },
       messages: [{ role: 'system', content: system }, { role: 'user', content }],
     });
     const usage: AIUsage = { inputTokens: response.usage?.prompt_tokens ?? 0, outputTokens: response.usage?.completion_tokens ?? 0 };
-    const choice = response.choices[0];
+    const choice = response.choices?.[0];
     if (choice?.message.refusal) throw fail('the AI provider declined this request', 422, usage);
     if (choice?.finish_reason === 'length') throw fail('the AI provider response was truncated', 502, usage);
     if (!choice?.message.content) throw fail('the AI provider returned no content', 502, usage);
-    return { data: JSON.parse(choice.message.content), usage };
+    try {
+      return { data: JSON.parse(choice.message.content), usage };
+    } catch {
+      throw fail('the AI provider returned malformed output', 502, usage);
+    }
   }
 
   // Retries rate limits, 5xx and connection errors, like the Anthropic SDK does for the Claude provider,
-  // all within one deadline.
-  async function request(body: object): Promise<ChatCompletion> {
-    const signal = aiDeadline();
+  // all within one deadline: a wait between attempts ends when the deadline does.
+  async function request(signal: AbortSignal, body: object): Promise<ChatCompletion> {
     for (let attempt = 0; ; attempt++) {
       let res: Response;
       try {
@@ -54,7 +65,7 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
         });
       } catch {
         if (signal.aborted) throw aiTimeout();
-        if (attempt < MAX_RETRIES) { await sleep(500 * 2 ** attempt); continue; }
+        if (attempt < MAX_RETRIES) { await sleep(500 * 2 ** attempt, signal); continue; }
         throw fail('AI provider error (connection)', 502);
       }
       if (res.ok) {
@@ -62,13 +73,15 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
           return await (res.json() as Promise<ChatCompletion>);
         } catch (err) {
           if (signal.aborted) throw aiTimeout();
-          throw err;
+          throw fail(`AI provider error (unreadable response: ${(err as Error).message})`, 502);
         }
       }
       const detail = ((await res.json().catch(() => null)) as { error?: { message?: string } } | null)?.error?.message ?? res.statusText;
-      if ((res.status === 429 || res.status >= 500) && attempt < MAX_RETRIES) {
-        const retryAfter = Number(res.headers.get('retry-after'));
-        await sleep(retryAfter > 0 ? retryAfter * 1000 : 500 * 2 ** attempt);
+      const retryAfter = Number(res.headers.get('retry-after'));
+      const wait = retryAfter > 0 ? retryAfter * 1000 : 500 * 2 ** attempt;
+      // A Retry-After the deadline can't cover is not waited for: the error below is answered now.
+      if ((res.status === 429 || res.status >= 500) && attempt < MAX_RETRIES && wait < timeLeft(signal)) {
+        await sleep(wait, signal);
         continue;
       }
       if (res.status === 400) throw fail(`AI provider rejected the input: ${detail}`, 422);
@@ -105,8 +118,8 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
       return { ...out, usage };
     },
 
-    async estimateFoods({ foods, candidates }) {
-      const { data: out, usage } = await call<FoodEstimatesOutput>('food_estimates', ESTIMATE_SYSTEM, [{ type: 'text', text: estimateMessage(foods, candidates) }], FOOD_ESTIMATES_SCHEMA);
+    async estimateFoods({ foods, candidates, signal }) {
+      const { data: out, usage } = await call<FoodEstimatesOutput>('food_estimates', ESTIMATE_SYSTEM, [{ type: 'text', text: estimateMessage(foods, candidates) }], FOOD_ESTIMATES_SCHEMA, signal);
       return { foods: out.foods, usage };
     },
   };

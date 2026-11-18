@@ -36,7 +36,7 @@ function browser() {
 async function signUp(addr = email()) {
   const b = browser();
   const { body } = await b.call('POST', '/portal/api/signup', { name: 'Delete Co', email: addr, password: PASSWORD });
-  return { b, addr, accountId: body.account.id, key: body.firstKey.key };
+  return { b, addr, accountId: body.team.id, key: body.firstKey.key };
 }
 
 const count = async (query) => Number((await query)[0].n);
@@ -111,4 +111,30 @@ test('wrong passwords count as failed logins, so deletion cannot be used to gues
   assert.equal(locked.status, 429);
   assert.equal(locked.headers.get('retry-after'), '900');
   assert.equal((await b.call('GET', '/portal/api/me')).status, 200, 'not deleted');
+});
+
+test('expired sessions, links, invitations, throttle rows and idle rate windows are pruned; live ones stay', async () => {
+  const { pruneExpired, signup: createUser } = await import('../src/domain/accounts.ts');
+  const { user, account } = await createUser(sql, { name: 'Pruned', email: `prune-${Date.now()}@example.com`, password: 'correct horse battery' });
+  const tag = Date.now().toString(16);
+  await sql`INSERT INTO sessions (id_hash, user_id, account_id, expires_at) VALUES
+    (${`old-${tag}`}, ${user.id}, ${account.id}, now() - interval '1 minute'), (${`new-${tag}`}, ${user.id}, ${account.id}, now() + interval '1 day')`;
+  await sql`INSERT INTO email_tokens (id_hash, user_id, purpose, email, expires_at, used_at) VALUES
+    (${`old-${tag}`}, ${user.id}, 'reset', ${user.email}, now() - interval '2 days', now() - interval '2 days'),
+    (${`new-${tag}`}, ${user.id}, 'verify', ${user.email}, now() + interval '1 day', now())`;
+  await sql`INSERT INTO invitations (id_hash, account_id, email, role, invited_by, expires_at) VALUES
+    (${`old-${tag}`}, ${account.id}, 'gone@example.com', 'developer', ${user.id}, now() - interval '2 days'),
+    (${`new-${tag}`}, ${account.id}, 'soon@example.com', 'developer', ${user.id}, now() + interval '1 day')`;
+  await sql`INSERT INTO rate_windows (bucket, window_start, count) VALUES
+    (${`demo:old-${tag}`}, now() - interval '2 hours', 3), (${`demo:new-${tag}`}, now(), 3)`;
+  await sql`INSERT INTO login_failures (email, at) VALUES (${user.email}, now() - interval '1 hour')`;
+
+  const counts = await pruneExpired(sql);
+  for (const table of ['sessions', 'email_tokens', 'invitations', 'rate_windows', 'login_failures']) assert.ok(counts[table] >= 1, table);
+  const left = async (table, column, values) => (await sql`SELECT ${sql(column)} AS v FROM ${sql(table)} WHERE ${sql(column)} IN ${sql(values)}`).map((r) => r.v);
+  assert.deepEqual(await left('sessions', 'id_hash', [`old-${tag}`, `new-${tag}`]), [`new-${tag}`]);
+  assert.deepEqual(await left('email_tokens', 'id_hash', [`old-${tag}`, `new-${tag}`]), [`new-${tag}`]);
+  assert.deepEqual(await left('invitations', 'id_hash', [`old-${tag}`, `new-${tag}`]), [`new-${tag}`]);
+  assert.deepEqual(await left('rate_windows', 'bucket', [`demo:old-${tag}`, `demo:new-${tag}`]), [`demo:new-${tag}`]);
+  assert.equal((await sql`SELECT COUNT(*)::int AS n FROM login_failures WHERE email = ${user.email}`)[0].n, 0);
 });

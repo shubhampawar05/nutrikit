@@ -707,12 +707,13 @@
             "schema": {
               "type": "integer",
               "minimum": 0,
-              "maximum": 1000,
+              "maximum": 399,
               "default": 0
             },
             "in": "query",
             "name": "offset",
-            "required": false
+            "required": false,
+            "description": "Results are the best 400 matches; `total` counts them"
           },
           {
             "schema": {
@@ -1806,7 +1807,9 @@
                     "default": 2000
                   },
                   "proteinGrams": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000
                   },
                   "diet": {
                     "type": "string",
@@ -1839,8 +1842,10 @@
                   "exclude": {
                     "type": "array",
                     "items": {
-                      "type": "string"
-                    }
+                      "type": "string",
+                      "maxLength": 100
+                    },
+                    "maxItems": 50
                   },
                   "seed": {
                     "type": "integer",

@@ -2,10 +2,13 @@
 //   node scripts/migrate-sqlite-to-postgres.mjs [path/to/app.db]
 // Applies pending migrations, then copies every table in foreign-key order inside one transaction
 // and prints source and target row counts. The target tables must be empty; the SQLite file is only read.
+// Last, it rebuilds the monthly allowance counters (usage_periods) from the copied usage history: migrations ran
+// against an empty database, so without this every migrated account would start the month with a fresh allowance.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { createSql, closeAll, migrate } from '../src/pg.ts';
+import { reconcileUsage } from '../src/domain/auth.ts';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const source = path.resolve(process.argv[2] || path.join(ROOT, 'data/app.db'));
@@ -18,8 +21,12 @@ const userOf = (accountId) => (accountId ? `usr_${String(accountId).replace(/^ac
 const TABLES = {
   accounts: { from: 'accounts', read: ['id', 'name', 'plan', 'created_at'] },
   users: {
-    from: 'accounts', read: ['id', 'email', 'name', 'password_hash', 'created_at'],
-    map: (r) => ({ id: userOf(r.id), email: r.email, name: r.name, password_hash: r.password_hash, created_at: r.created_at }),
+    // email_verified_at exists only in stores from after email verification; older ones copy as unverified.
+    from: 'accounts', read: ['id', 'email', 'name', 'password_hash', 'email_verified_at', 'created_at'],
+    map: (r) => ({
+      id: userOf(r.id), email: r.email, name: r.name, password_hash: r.password_hash,
+      email_verified_at: r.email_verified_at, created_at: r.created_at,
+    }),
   },
   memberships: {
     from: 'accounts', read: ['id', 'created_at'],
@@ -82,6 +89,10 @@ try {
       counts.push({ table, source: rows.length, target: copied });
     }
   });
+  // Same rebuild as `npm run usage:reconcile <month>`, for every month with usage.
+  const months = await sql`SELECT DISTINCT to_char(at AT TIME ZONE 'UTC', 'YYYY-MM') AS month FROM usage ORDER BY 1`;
+  for (const { month } of months) await reconcileUsage(sql, month);
+  console.log(`rebuilt usage counters for ${months.length} month(s)`);
 } finally {
   await closeAll();
 }

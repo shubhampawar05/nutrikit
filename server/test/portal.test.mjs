@@ -144,7 +144,7 @@ test('the plan allowance is shared by all keys and enforced', async () => {
   const b = browser();
   const { body } = await b.call('POST', '/portal/api/signup', { name: 'Quota Co', email: email(), password: 'correct horse battery' });
   const k2 = (await b.call('POST', '/portal/api/keys', { name: 'second' })).body.key;
-  const accountId = body.account.id;
+  const accountId = body.team.id;
   await seedUsage({ keyId: body.firstKey.id, accountId, tokens: 1999 });
   assert.equal((await bearer(k2, '/v1/foods/search?q=egg')).status, 200, 'last token');
   const over = await bearer(body.firstKey.key, '/v1/foods/search?q=egg');
@@ -200,15 +200,15 @@ test('upgrade requests are recorded', async () => {
   assert.equal((await b.call('POST', '/portal/api/upgrade', { plan: 'free' })).status, 400);
   const r = await b.call('POST', '/portal/api/upgrade', { plan: 'growth', message: '50k MAU' });
   assert.equal(r.status, 201);
-  const [row] = await sql`SELECT plan, message FROM upgrade_requests WHERE account_id = ${body.account.id}`;
+  const [row] = await sql`SELECT plan, message FROM upgrade_requests WHERE account_id = ${body.team.id}`;
   assert.deepEqual({ ...row }, { plan: 'growth', message: '50k MAU' });
   const admin = { Authorization: 'Bearer test-admin-token', 'Content-Type': 'application/json' };
   const list = await (await fetch(`${base}/v1/admin/upgrade-requests`, { headers: admin })).json();
-  assert.ok(list.requests.some((x) => x.accountId === body.account.id && x.requestedPlan === 'growth' && x.currentPlan === 'free'));
-  const set = await fetch(`${base}/v1/admin/accounts/${body.account.id}/plan`, { method: 'POST', headers: admin, body: JSON.stringify({ plan: 'growth' }) });
+  assert.ok(list.requests.some((x) => x.accountId === body.team.id && x.requestedPlan === 'growth' && x.currentPlan === 'free'));
+  const set = await fetch(`${base}/v1/admin/accounts/${body.team.id}/plan`, { method: 'POST', headers: admin, body: JSON.stringify({ plan: 'growth' }) });
   assert.equal(set.status, 200);
   assert.equal((await b.call('GET', '/portal/api/me')).body.plan.id, 'growth');
-  assert.equal((await fetch(`${base}/v1/admin/accounts/${body.account.id}/plan`, { method: 'POST', headers: admin, body: JSON.stringify({ plan: 'platinum' }) })).status, 400);
+  assert.equal((await fetch(`${base}/v1/admin/accounts/${body.team.id}/plan`, { method: 'POST', headers: admin, body: JSON.stringify({ plan: 'platinum' }) })).status, 400);
   assert.equal((await fetch(`${base}/v1/admin/upgrade-requests`)).status, 401);
 });
 
@@ -244,13 +244,13 @@ test('pages carry their own title, description, canonical URL and robots rule', 
     const res = await fetch(base + path, { headers: { Accept: 'text/html', ...headers } });
     return { status: res.status, html: await res.text() };
   };
-  const docs = await page('/docs/', { 'X-Forwarded-Proto': 'https' });
+  const docs = await page('/docs/');
   assert.match(docs.html, /<title>Documentation — Nutrikit Nutrition API<\/title>/);
   assert.match(docs.html, /<meta name="description" content="Quick start, authentication and guides/);
   assert.equal(docs.html.match(/<meta name="description"/g).length, 1, 'one description');
-  assert.match(docs.html, new RegExp(`<link rel="canonical" href="https://${new URL(base).host}/docs">`));
+  assert.match(docs.html, new RegExp(`<link rel="canonical" href="http://${new URL(base).host}/docs">`));
   assert.match(docs.html, /<meta name="robots" content="index, follow">/);
-  assert.match(docs.html, /<meta property="og:image" content="https:\/\/[^"]+\/og-image.png">/);
+  assert.match(docs.html, /<meta property="og:image" content="http:\/\/[^"]+\/og-image.png">/);
   assert.match(docs.html, /<meta name="twitter:card" content="summary_large_image">/);
   // Pricing is hidden while payments are off (web/src/features.ts): kept out of search results.
   assert.match((await page('/pricing')).html, /<meta name="robots" content="noindex, follow">/);
@@ -334,4 +334,53 @@ test('the plans are public, cacheable, and only the display fields', async () =>
   assert.equal(plans.enterprise.price, null);
   // Other portal responses stay uncacheable.
   assert.equal((await fetch(`${base}/portal/api/me`)).headers.get('cache-control'), 'no-store');
+});
+
+test('production refuses to start without NUTRIKIT_PUBLIC_URL; email links never trust a forwarded protocol from an untrusted client', async () => {
+  const { configProblems } = await import('../src/app.ts');
+  assert.deepEqual(configProblems({ NODE_ENV: 'development' }), []);
+  const problems = configProblems({ NODE_ENV: 'production', NUTRIKIT_TOKEN_SECRET: 'x' });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /NUTRIKIT_PUBLIC_URL is required/);
+  assert.deepEqual(configProblems({ NODE_ENV: 'production', NUTRIKIT_TOKEN_SECRET: 'x', NUTRIKIT_PUBLIC_URL: 'https://nutrikit.example' }), []);
+
+  const { sentMail } = await import('./helpers.mjs');
+  const forgot = (url, headers = {}) => fetch(`${url}/portal/api/password/forgot`, {
+    method: 'POST', headers: { 'X-Nutrikit-Portal': '1', 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ email: address }),
+  });
+  const address = email();
+  assert.equal((await browser().call('POST', '/portal/api/signup', { name: 'Origin', email: address, password: 'correct horse battery' })).status, 201);
+  await forgot(base, { 'X-Forwarded-Proto': 'https' });
+  assert.match(sentMail.at(-1).text, new RegExp(`http://${new URL(base).host}/reset-password`), 'no proxy is trusted');
+
+  const proxied = await buildApp({ trustProxy: 1 });
+  await proxied.listen({ port: 0, host: '127.0.0.1' });
+  try {
+    const url = `http://127.0.0.1:${proxied.server.address().port}`;
+    await forgot(url, { 'X-Forwarded-Proto': 'https' });
+    assert.match(sentMail.at(-1).text, /https:\/\/127\.0\.0\.1:\d+\/reset-password/, 'behind a trusted proxy');
+  } finally {
+    await proxied.close();
+  }
+});
+
+test('a malformed cookie from elsewhere does not break the portal', async () => {
+  const signup = await fetch(`${base}/portal/api/signup`, {
+    method: 'POST', headers: { 'X-Nutrikit-Portal': '1', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Cookie', email: email(), password: 'correct horse battery' }),
+  });
+  const session = signup.headers.get('set-cookie').split(';')[0];
+  const me = await fetch(`${base}/portal/api/me`, { headers: { Cookie: `junk=%E0%A4%A; ${session}; other=%` } });
+  assert.equal(me.status, 200, 'the bad cookies are skipped, the session still counts');
+  assert.equal((await fetch(`${base}/portal/api/me`, { headers: { Cookie: 'junk=%E0%A4%A' } })).status, 401);
+});
+
+test('parallel key creation cannot exceed the plan limit', async () => {
+  const b = browser();
+  assert.equal((await b.call('POST', '/portal/api/signup', { name: 'Keys', email: email(), password: 'correct horse battery' })).status, 201);
+  const results = await Promise.all(Array.from({ length: 6 }, (_, i) => b.call('POST', '/portal/api/keys', { name: `k${i}` })));
+  const statuses = results.map((r) => r.status);
+  // Free allows 2 live keys; signup made one.
+  assert.equal(statuses.filter((s) => s === 201).length, 1, `statuses: ${statuses}`);
+  assert.ok(results.filter((r) => r.status === 403).every((r) => r.body.error.code === 'key_limit'));
 });

@@ -147,3 +147,27 @@ test('usage:reconcile rebuilds a corrupted month from the usage history', async 
   assert.equal((await call(k.key, '/v1/foods/search?q=egg')).headers.get('x-tokens-remaining'), '976');
   await assert.rejects(reconcileUsage(sql, '2026-13'), /YYYY-MM/);
 });
+
+test('a failed call records its AI tokens under the variant that failed, when the error names it', async () => {
+  const extra = await buildApp();
+  const failing = (costKey) => async () => {
+    throw Object.assign(new Error('the AI refused'), { status: 422, code: 'ai_refused', usage: { inputTokens: 2500, outputTokens: 0 }, ...(costKey ? { costKey } : {}) });
+  };
+  extra.post('/v1/test-dynamic-named', { config: { cost: 'dynamic' }, schema: { hide: true } }, failing('labelText'));
+  extra.post('/v1/test-dynamic-unnamed', { config: { cost: 'dynamic' }, schema: { hide: true } }, failing());
+  extra.post('/v1/test-static', { config: { cost: 'logText' }, schema: { hide: true } }, failing('not-a-cost-key'));
+  await extra.ready();
+  try {
+    const k = await keyWith(1000);
+    for (const path of ['/v1/test-dynamic-named', '/v1/test-dynamic-unnamed', '/v1/test-static']) {
+      const res = await extra.inject({ method: 'POST', url: path, headers: { Authorization: `Bearer ${k.key}`, 'Content-Type': 'application/json' }, payload: '{}' });
+      assert.equal(res.statusCode, 422, path);
+      assert.equal(res.headers['x-tokens-charged'], '3', path);
+    }
+    const rows = await sql`SELECT endpoint, tokens FROM usage WHERE key_id = ${k.id} ORDER BY id`;
+    assert.deepEqual(rows.map((r) => [r.endpoint, r.tokens]), [['labelText', 3], ['labelImage', 3], ['logText', 3]]);
+    assert.equal(await counter(k.id), 9);
+  } finally {
+    await extra.close();
+  }
+});

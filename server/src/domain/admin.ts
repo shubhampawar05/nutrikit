@@ -3,10 +3,9 @@
 // An account is a team; its `email` is its first owner's. Live figures leave test keys out.
 import type { Sql } from 'postgres';
 import { effectivePlan, ownerEmail } from './accounts.ts';
-import { monthStart } from './auth.ts';
+import { monthStart, usageMode } from './auth.ts';
 
 const LIMIT = 200;
-const liveUsage = (sql: Sql) => sql`key_id NOT IN (SELECT id FROM api_keys WHERE mode = 'test')`;
 /** The team `a` has a member whose email matches. */
 const memberEmailLike = (sql: Sql, pattern: string) =>
   sql`EXISTS (SELECT 1 FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.account_id = a.id AND u.email ILIKE ${pattern})`;
@@ -29,7 +28,7 @@ export async function overview(sql: Sql): Promise<Overview> {
            (SELECT COUNT(*) FROM accounts WHERE plan_expires_at > now()) AS active_paid,
            (SELECT COUNT(*) FROM api_keys WHERE revoked_at IS NULL AND mode = 'live') AS active_keys,
            (SELECT COUNT(*) FROM upgrade_requests) AS requests,
-           (SELECT COALESCE(SUM(tokens), 0) FROM usage WHERE at >= ${monthStart()} AND ${liveUsage(sql)}) AS tokens`;
+           (SELECT COALESCE(SUM(tokens), 0) FROM usage WHERE at >= ${monthStart()} AND ${usageMode(sql, 'live')}) AS tokens`;
   const [paid] = await sql<{ count: number; revenue: number; recent_count: number; recent_revenue: number }[]>`
     SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS revenue,
            COUNT(*) FILTER (WHERE created_at > now() - interval '30 days') AS recent_count,
@@ -68,8 +67,8 @@ export async function listAccounts(sql: Sql, q?: string): Promise<AdminAccount[]
            (SELECT COUNT(*)::int FROM memberships m WHERE m.account_id = a.id) AS members,
            CASE WHEN a.plan_expires_at > now() THEN a.plan_expires_at END AS "planExpiresAt",
            a.created_at AS "createdAt",
-           (SELECT COUNT(*) FROM api_keys k WHERE k.account_id = a.id AND k.revoked_at IS NULL AND k.mode = 'live') AS "activeKeys",
-           (SELECT COALESCE(SUM(u.tokens), 0) FROM usage u WHERE u.account_id = a.id AND u.at >= ${monthStart()} AND ${liveUsage(sql)}) AS "usedThisMonth",
+           (SELECT COUNT(*)::int FROM api_keys k WHERE k.account_id = a.id AND k.revoked_at IS NULL AND k.mode = 'live') AS "activeKeys",
+           (SELECT COALESCE(SUM(u.tokens), 0) FROM usage u WHERE u.account_id = a.id AND u.at >= ${monthStart()} AND ${usageMode(sql, 'live')}) AS "usedThisMonth",
            (SELECT COALESCE(SUM(p.amount), 0) FROM payments p WHERE p.account_id = a.id) / 100.0 AS "totalPaid",
            (SELECT MAX(p.created_at) FROM payments p WHERE p.account_id = a.id) AS "lastPaymentAt"
     FROM accounts a
@@ -91,13 +90,15 @@ export interface AdminPayment {
   currency: string;
   periodEnd: Date;
   paidAt: Date;
+  /** Why the payment left the plan unchanged (see billing.applyPayment); null when it was applied as bought. */
+  note: string | null;
 }
 
 export async function listPayments(sql: Sql, q?: string): Promise<AdminPayment[]> {
   const pattern = like(q);
   const rows = await sql<AdminPayment[]>`
     SELECT p.payment_id AS "paymentId", p.order_id AS "orderId", p.account_id AS "accountId", ${ownerEmail(sql, 'a')} AS email, a.name,
-           p.plan, p.amount / 100.0 AS amount, p.currency, p.period_end AS "periodEnd", p.created_at AS "paidAt"
+           p.plan, p.amount / 100.0 AS amount, p.currency, p.period_end AS "periodEnd", p.created_at AS "paidAt", p.note
     FROM payments p LEFT JOIN accounts a ON a.id = p.account_id
     WHERE ${pattern === null ? sql`TRUE` : sql`(${memberEmailLike(sql, pattern)} OR a.name ILIKE ${pattern})`}
     ORDER BY p.created_at DESC

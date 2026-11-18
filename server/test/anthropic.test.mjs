@@ -23,3 +23,26 @@ test('a hung Messages API call answers 504 ai_timeout within the deadline, retri
   assert.ok(Date.now() - started < 2000, `took ${Date.now() - started} ms`);
   assert.ok(requests >= 1);
 });
+
+test('an answer that is not JSON is a 502 that still carries its usage', async () => {
+  const answering = http.createServer((req, res) => {
+    req.resume();
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({
+      id: 'msg_1', type: 'message', role: 'assistant', model: 'claude-test', stop_reason: 'end_turn', stop_sequence: null,
+      content: [{ type: 'text', text: 'Here is your meal: rice.' }], usage: { input_tokens: 11, output_tokens: 6 },
+    }));
+  });
+  await new Promise((r) => answering.listen(0, '127.0.0.1', r));
+  const hung = process.env.ANTHROPIC_BASE_URL;
+  process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${answering.address().port}`;
+  try {
+    const { createAnthropicProvider } = await import('../src/domain/providers/anthropic.ts');
+    const p = await createAnthropicProvider();
+    await assert.rejects(p.parseMeal({ text: 'rice' }), (err) => err.status === 502 && /malformed/.test(err.message) && err.usage?.inputTokens === 11 && err.usage?.outputTokens === 6);
+  } finally {
+    process.env.ANTHROPIC_BASE_URL = hung;
+    answering.closeAllConnections();
+    answering.close();
+  }
+});

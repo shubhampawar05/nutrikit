@@ -17,7 +17,7 @@
 import crypto from 'node:crypto';
 import type { IncomingHttpHeaders } from 'node:http';
 import type { Fragment, Sql } from 'postgres';
-import { PLANS, effectivePlan } from './accounts.ts';
+import { PLANS, effectivePlan, fail } from './accounts.ts';
 import type { AIUsage } from './types.ts';
 
 /** The authenticated caller: an API key (directly or via an access token), or the auth-off dev key. */
@@ -32,7 +32,7 @@ export interface KeyContext {
 }
 
 export type KeyMode = 'live' | 'test';
-export const KEY_MODES: readonly KeyMode[] = ['live', 'test'];
+const KEY_MODES: readonly KeyMode[] = ['live', 'test'];
 
 export interface NewKey {
   id: string;
@@ -116,7 +116,7 @@ export const COSTS = {
 
 export type CostKey = keyof typeof COSTS;
 
-export const ACCESS_TOKEN_TTL = 3600;
+const ACCESS_TOKEN_TTL = 3600;
 const DEFAULT_RATE = Number(process.env.NUTRIKIT_RATE_LIMIT || 120);
 const TEST_TOKENS = () => Number(process.env.NUTRIKIT_TEST_TOKENS) || 5_000;
 const TEST_RATE = () => Number(process.env.NUTRIKIT_TEST_RATE_LIMIT) || 30;
@@ -131,7 +131,7 @@ export const monthStart = () => {
 // ---------------------------------------------------------------- keys
 
 export async function createKey(sql: Sql, { name, tokenLimit = null, accountId = null, mode = 'live', createdBy = null }: { name?: string | null; tokenLimit?: number | null; accountId?: string | null; mode?: KeyMode; createdBy?: string | null }): Promise<NewKey> {
-  if (!KEY_MODES.includes(mode)) throw Object.assign(new Error('mode must be live or test'), { status: 400, code: 'invalid_request' });
+  if (!KEY_MODES.includes(mode)) throw fail(400, 'invalid_request', 'mode must be live or test');
   const id = `key_${crypto.randomBytes(6).toString('hex')}`;
   const key = `nk_${mode}_${crypto.randomBytes(32).toString('base64url')}`;
   await sql`INSERT INTO api_keys (id, key_hash, name, token_limit, account_id, mode, created_by)
@@ -156,9 +156,17 @@ export async function newestActiveKey(sql: Sql, accountId: string, mode?: KeyMod
   return row ? { ...row } : null;
 }
 
-export async function activeKeyCount(sql: Sql, accountId: string, mode: KeyMode = 'live'): Promise<number> {
-  const [{ n }] = await sql<{ n: number }[]>`SELECT COUNT(*) AS n FROM api_keys WHERE account_id = ${accountId} AND mode = ${mode} AND revoked_at IS NULL`;
-  return n;
+/**
+ * Creates a key for a team unless it already has `max` active keys of that mode (then null). The count and the
+ * insert share a lock on the team, so parallel requests can't overshoot.
+ */
+export async function createTeamKey(sql: Sql, args: { name: string; accountId: string; mode: KeyMode; createdBy: string }, max: number): Promise<NewKey | null> {
+  return sql.begin(async (tx) => {
+    await tx`SELECT 1 FROM accounts WHERE id = ${args.accountId} FOR UPDATE`;
+    const [{ n }] = await tx<{ n: number }[]>`
+      SELECT COUNT(*)::int AS n FROM api_keys WHERE account_id = ${args.accountId} AND mode = ${args.mode} AND revoked_at IS NULL`;
+    return n >= max ? null : createKey(tx as unknown as Sql, args);
+  });
 }
 
 /** The mode of one of the account's active keys, or null when it isn't theirs or is revoked. */
@@ -262,7 +270,7 @@ export async function authenticate(sql: Sql, headers: IncomingHttpHeaders): Prom
   if (!credential) return null;
   if (credential.startsWith('nkat_')) {
     const t = await verifyAccessToken(sql, credential);
-    if (t?.expired) throw Object.assign(new Error('access token expired; request a new one from POST /v1/auth/token'), { status: 401, code: 'token_expired' });
+    if (t?.expired) throw fail(401, 'token_expired', 'access token expired; request a new one from POST /v1/auth/token');
     if (!t) return null;
     const [row] = await activeKeys(sql, sql`k.id = ${t.kid}`);
     return row ? keyContext(row, 'access_token') : null;
@@ -294,7 +302,7 @@ const subjectOf = (key: Pick<KeyContext, 'id' | 'accountId'> & { mode?: KeyMode 
   : (key.accountId ? `acct:${key.accountId}` : `key:${key.id}`);
 
 /** Usage rows of one mode (test rows are told apart by their key's mode). */
-const usageMode = (sql: Sql, mode: KeyMode) => mode === 'test'
+export const usageMode = (sql: Sql, mode: KeyMode) => mode === 'test'
   ? sql`key_id IN (SELECT id FROM api_keys WHERE mode = 'test')`
   : sql`key_id NOT IN (SELECT id FROM api_keys WHERE mode = 'test')`;
 const periodOf = (iso = monthStart()) => iso.slice(0, 10);
@@ -323,9 +331,9 @@ export async function accountUsedThisMonth(sql: Sql, accountId: string, mode: Ke
 export async function reserve(sql: Sql, key: KeyContext, cost: number): Promise<Reservation> {
   const subject = subjectOf(key);
   const period = periodOf();
-  const exhausted = () => Object.assign(new Error(key.mode === 'test'
+  const exhausted = () => fail(429, 'quota_exceeded', key.mode === 'test'
     ? `monthly test allowance exhausted (${key.tokenLimit} tokens); it resets next month and live keys are unaffected`
-    : `monthly token allowance exhausted (${key.tokenLimit} tokens); upgrade your plan or wait for the next month`), { status: 429, code: 'quota_exceeded' });
+    : `monthly token allowance exhausted (${key.tokenLimit} tokens); upgrade your plan or wait for the next month`);
   if (cost <= 0) return { subject, period, reserved: 0, used: null };
   if (key.tokenLimit != null && cost > key.tokenLimit) throw exhausted();
   const [row] = await sql<{ used: number }[]>`
@@ -421,7 +429,7 @@ export async function hitRateLimit(sql: Sql, bucket: string, limit: number): Pro
       count        = CASE WHEN w.window_start <= clock_timestamp() - interval '1 minute' THEN 1 ELSE w.count + 1 END
     RETURNING count, EXTRACT(EPOCH FROM (w.window_start + interval '1 minute' - clock_timestamp())) AS left`;
   if (w.count > limit) {
-    throw Object.assign(new Error('rate limit exceeded'), { status: 429, code: 'rate_limited', retryAfter: Math.max(1, Math.ceil(Number(w.left))) });
+    throw Object.assign(fail(429, 'rate_limited', 'rate limit exceeded'), { retryAfter: Math.max(1, Math.ceil(Number(w.left))) });
   }
 }
 

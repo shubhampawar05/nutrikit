@@ -206,10 +206,15 @@ describe('Admin console', () => {
     expect(overview.getAttribute('tabindex')).toBe('0');
     expect(within(list).getByRole('tab', { name: 'Keys' }).getAttribute('tabindex')).toBe('-1');
     expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(overview.id);
+    // Only the selected tab's panel is rendered, so only that tab points at a panel.
+    expect(overview.getAttribute('aria-controls')).toBe(screen.getByRole('tabpanel').id);
+    expect(within(list).getByRole('tab', { name: 'Keys' }).hasAttribute('aria-controls')).toBe(false);
 
     fireEvent.keyDown(overview, { key: 'End' });
     const lastTab = screen.getByRole('tab', { name: 'Missing foods' });
     expect(lastTab.getAttribute('aria-selected')).toBe('true');
+    expect(lastTab.id).toBe('admin-tab-missing-foods');
+    expect(screen.getByRole('tabpanel').id).toBe('admin-panel-missing-foods');
     fireEvent.keyDown(lastTab, { key: 'ArrowLeft' });
     const requestsTab = screen.getByRole('tab', { name: 'Requests' });
     expect(requestsTab.getAttribute('aria-selected')).toBe('true');

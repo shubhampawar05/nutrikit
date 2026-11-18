@@ -61,3 +61,21 @@ test('website pages get a strict Content Security Policy; API responses do not n
   }
   assert.equal((await fetch(`${base}/v1/health`)).headers.get('content-security-policy'), null);
 });
+
+test('server failures never expose a library error code (Postgres, Node); the API\'s own codes still show', async () => {
+  const app = await buildApp();
+  apps.push(app);
+  const thrower = (err) => async () => { throw err; };
+  app.get('/v1/test-pg', { schema: { hide: true } }, thrower(Object.assign(new Error('duplicate key value violates unique constraint "users_email_key"'), { code: '23505' })));
+  app.get('/v1/test-net', { schema: { hide: true } }, thrower(Object.assign(new Error('connect ECONNREFUSED 10.0.0.5:5432'), { code: 'ECONNREFUSED' })));
+  app.get('/v1/test-domain', { schema: { hide: true } }, thrower(Object.assign(new Error('the payment provider did not respond'), { status: 502, code: 'billing_error' })));
+  await app.ready();
+  for (const url of ['/v1/test-pg', '/v1/test-net']) {
+    const res = await app.inject({ url });
+    assert.equal(res.statusCode, 500, url);
+    assert.deepEqual(res.json(), { error: { code: 'internal_error', message: 'internal server error' } }, url);
+  }
+  const domain = await app.inject({ url: '/v1/test-domain' });
+  assert.equal(domain.statusCode, 502);
+  assert.equal(domain.json().error.code, 'billing_error');
+});

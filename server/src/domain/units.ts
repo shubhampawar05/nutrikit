@@ -16,14 +16,12 @@ const MASS: Record<string, number> = lookup({ g: 1, gram: 1, grams: 1, gr: 1, kg
 const VOLUME: Record<string, number> = lookup({ cup: 1, cups: 1, c: 1, tbsp: 1 / 16, tablespoon: 1 / 16, tablespoons: 1 / 16, tbs: 1 / 16, tsp: 1 / 48, teaspoon: 1 / 48, teaspoons: 1 / 48, 'fl oz': 1 / 8, ml: 1 / 236.588, milliliter: 1 / 236.588, milliliters: 1 / 236.588, l: 4.22675, liter: 4.22675, liters: 4.22675, pint: 2, pints: 2, glass: 1, glasses: 1, mug: 1.5, mugs: 1.5 });
 const COUNT: Record<string, string> = lookup({ slice: 'slice', slices: 'slice', piece: 'piece', pieces: 'piece', serving: 'serving', servings: 'serving', small: 'small', medium: 'medium', large: 'large', extra: 'extra', bowl: 'bowl', bowls: 'bowl', can: 'can', cans: 'can', bottle: 'bottle', bottles: 'bottle', bar: 'bar', bars: 'bar', scoop: 'scoop', scoops: 'scoop', handful: 'handful', handfuls: 'handful', stick: 'stick', sticks: 'stick', strip: 'strip', strips: 'strip', fillet: 'fillet', fillets: 'fillet', patty: 'patty', patties: 'patty', link: 'link', links: 'link', packet: 'packet', packets: 'packet', package: 'package', container: 'container', plate: 'plate', plates: 'plate', sandwich: 'sandwich', wedge: 'wedge', wedges: 'wedge', clove: 'clove', cloves: 'clove', leaf: 'leaf', leaves: 'leaf', jar: 'jar' });
 
-export const UNIT_WORDS = [...Object.keys(MASS), ...Object.keys(VOLUME), ...Object.keys(COUNT), 'katori', 'katoris'];
-
 export type CanonicalUnit =
   | { kind: 'mass'; unit: string; grams: number }
   | { kind: 'volume'; unit: string; cups: number; basis?: string } // basis: an Indian measure's volume and source
   | { kind: 'count'; unit: string };
 
-/** Canonical unit: { kind: 'mass'|'volume'|'count', unit, factor? } or null. */
+/** A unit word as a mass (with grams), a volume (with US cups) or a count unit; null when it is not a unit. */
 export function canonicalUnit(word: string | null | undefined): CanonicalUnit | null {
   if (!word) return null;
   const w = word.toLowerCase().replace(/\.$/, '');
@@ -49,6 +47,9 @@ export function parseQuantity(text: string): { value: number | null; rest: strin
     else if (UNICODE_FRACTIONS[m[1]]) value = UNICODE_FRACTIONS[m[1]];
     else value = Number(m[1]) + (m[2] ? UNICODE_FRACTIONS[m[2]] : 0);
     s = s.slice(m[0].length).trim();
+    // "1/0 cup", "0/0 cup": not a usable amount, so none is given (the number is still dropped from the text). An
+    // explicit zero ("0 eggs") stays zero rather than becoming the default single portion.
+    if (!Number.isFinite(value)) value = null;
   } else {
     const w = s.match(/^([a-z]+)\b/i);
     if (w && WORD_NUMBERS[w[1].toLowerCase()] !== undefined) {
@@ -72,13 +73,23 @@ const SIZE_DOWN = /\b(small|mini|miniature|thin|snack[- ]size|bite[- ]size|fun s
 const LIQUID = /\b(juice|milk|coffee|tea|soda|soft drink|beverage|water|beer|wine|smoothie|shake|drink|lemonade|kombucha)\b/i;
 const singular = (w: string) => (w.endsWith('es') && w.length > 4 ? w.slice(0, -2) : w.endsWith('s') && w.length > 3 ? w.slice(0, -1) : w);
 
-/**
- * Resolve a quantity + unit for a food into grams.
- * @param {{name: string, portions: {label: string, amount: number, unit: string|null, grams: number}[]}} food
- * @param {number|null} quantity
- * @param {string|null} unitWord
- * @returns {{grams: number, quantity: number, unit: string, portion: string|null, method: string}}
- */
+// Foods eaten by the spoonful: fats, oils, spreads, sweeteners and condiments, by catalog category (USDA survey and
+// SR Legacy) or, for sources whose category says little ("Catsup" is a vegetable product, INDB has none), by the
+// last word of the name's head ("Olive oil", "Syrups, maple"; not "Butter chicken" or "Sugar cookies").
+const SPOONFUL_CATEGORY = /^(butter and animal fats|fats and oils|salad dressings and vegetable oils|margarine|mayonnaise|sugars and honey|jams, syrups, toppings|mustard and other condiments|soy-based condiments|tomato-based condiments|cream cheese, sour cream, whipped cream)$/i;
+const SPOONFUL_HEAD = new Set(['butter', 'ghee', 'margarine', 'oil', 'lard', 'shortening', 'honey', 'sugar', 'jaggery', 'syrup',
+  'jam', 'jelly', 'marmalade', 'ketchup', 'catsup', 'mayonnaise', 'mayo', 'mustard', 'chutney', 'dressing']);
+// Granular sweeteners are taken by the teaspoon, everything else by the tablespoon.
+const BY_TEASPOON = /^(sugars?|jaggery|gur)\b/i;
+
+/** The spoon a food is measured in when no unit is given ('tbsp' or 'tsp'), or null for foods not eaten by the spoonful. */
+function spoonful(food: PortionFood): 'tbsp' | 'tsp' | null {
+  const head = headSegments(food.name).at(-1)!;
+  const last = singular(head.split(/\s+/).at(-1)!);
+  if (!SPOONFUL_CATEGORY.test(food.category ?? '') && !SPOONFUL_HEAD.has(last)) return null;
+  return BY_TEASPOON.test(head) ? 'tsp' : 'tbsp';
+}
+
 export interface PortionFood {
   name: string;
   category?: string | null;
@@ -114,6 +125,10 @@ function volumePortion(portions: Portion[], q: number, unitName: string, cups: n
   return { grams: q * cups * 236.588, quantity: q, unit: unitName, portion: label(), method: 'density-estimate' };
 }
 
+/**
+ * Resolve a quantity + unit for a food into grams: a mass, a volume (through the food's density), a household
+ * portion ("slice", "medium"), or with no unit a typical portion of the food (a spoonful for fats and condiments).
+ */
 export function resolvePortion(food: PortionFood, quantity: number | null | undefined, unitWord: string | null | undefined): ResolvedPortion {
   const q = quantity ?? 1;
   const unit = canonicalUnit(unitWord);
@@ -132,6 +147,13 @@ export function resolvePortion(food: PortionFood, quantity: number | null | unde
     return { grams: q * (oz ? perUnit(oz) : 28.35), quantity: q, unit: 'handful', portion: oz?.label || null, method: 'estimate-1oz' };
   }
   if (unit?.kind === 'volume') return volumePortion(portions, q, unit.unit, unit.cups, unit.basis);
+  // "butter", "honey", "2 ketchup": a spread, fat, sweetener or condiment named without a unit is a spoonful, not
+  // its catalog default (often 1 cup: 224 g of butter).
+  const spoon = !unit && spoonful(food);
+  if (spoon) {
+    const p = volumePortion(portions, q, spoon, VOLUME_PORTIONS[spoon]);
+    return { ...p, method: p.method === 'portion' ? 'spoonful' : `spoonful-${p.method}` };
+  }
   if (unit?.kind === 'count') {
     const wanted = unit.unit;
     // A "slice" of pizza is listed as a "piece" and vice versa.

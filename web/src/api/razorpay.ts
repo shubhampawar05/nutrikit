@@ -1,7 +1,7 @@
 // Razorpay Checkout (https://checkout.razorpay.com/v1/checkout.js), loaded only when a payment starts.
 import type { RazorpayPaymentResponse } from './client.ts';
 
-export interface CheckoutOptions {
+interface CheckoutOptions {
   key: string;
   order_id: string;
   amount?: number;
@@ -24,14 +24,16 @@ declare global {
 const SRC = 'https://checkout.razorpay.com/v1/checkout.js';
 let loading: Promise<RazorpayConstructor> | null = null;
 
-export function loadRazorpay(): Promise<RazorpayConstructor> {
+function loadRazorpay(): Promise<RazorpayConstructor> {
   if (window.Razorpay) return Promise.resolve(window.Razorpay);
   loading ??= new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = SRC;
     script.async = true;
-    script.onload = () => (window.Razorpay ? resolve(window.Razorpay) : reject(new Error('Razorpay Checkout did not load')));
-    script.onerror = () => { loading = null; reject(new Error('Could not load Razorpay Checkout; check your connection and try again')); };
+    // Either failure clears `loading`, so the next payment attempt loads the script again.
+    const fail = (message: string) => { loading = null; script.remove(); reject(new Error(message)); };
+    script.onload = () => (window.Razorpay ? resolve(window.Razorpay) : fail('Razorpay Checkout did not load'));
+    script.onerror = () => fail('Could not load Razorpay Checkout; check your connection and try again');
     document.head.append(script);
   });
   return loading;

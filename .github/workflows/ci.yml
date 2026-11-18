@@ -42,6 +42,11 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
+      - name: OpenAPI spec is up to date
+        run: |
+          npm run openapi
+          git diff --exit-code server/docs/openapi.json || { echo "::error::server/docs/openapi.json is stale: run npm run openapi and commit it"; exit 1; }
+      - run: npm run build -w mcp
       - run: npm run test:unit
 
   e2e:

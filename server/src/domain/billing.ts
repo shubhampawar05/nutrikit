@@ -1,19 +1,20 @@
 // Self-serve paid plans through one-time Razorpay payments (Orders, INR), with no SDK dependency.
 // Each payment unlocks Starter or Growth for 30 days; paying again extends the same plan or moves up to a
 // dearer one. There is no auto-renewal: when the period ends the account reads as Free (accounts.effectivePlan).
+// A payment never moves a team down or puts an end date on a plan that has none (one an operator set): such a
+// payment is recorded with a note for operators and the plan is kept.
 //
 //   createOrder -> Razorpay Checkout in the browser -> verifyPayment (signed response) -> applyPayment
 //   An `order.paid` webhook applies payments whose browser confirmation never arrived. Each payment applies once.
 // Use test-mode keys (rzp_test_...) while developing; Razorpay's test cards and UPI ids complete payments.
 import crypto from 'node:crypto';
+import type { FastifyInstance } from 'fastify';
 import type { Sql } from 'postgres';
-import { PLANS, CURRENCY, effectivePlan, planRank } from './accounts.ts';
-import type { Account, DomainError } from './accounts.ts';
+import { PLANS, CURRENCY, effectivePlan, fail, planRank } from './accounts.ts';
+import type { Account } from './accounts.ts';
 
 const API = () => process.env.RAZORPAY_API_BASE || 'https://api.razorpay.com';
-export const PERIOD_DAYS = 30;
-
-const fail = (status: number, code: string, message: string): DomainError => Object.assign(new Error(message), { status, code });
+const PERIOD_DAYS = 30;
 
 // The few Razorpay response fields we read (external JSON; anything may be missing).
 interface RazorpayEntity {
@@ -32,8 +33,8 @@ export interface RazorpayEvent {
   payload?: { order?: { entity?: RazorpayEntity }; payment?: { entity?: RazorpayEntity } };
 }
 
-export type BillingEventResult =
-  | { applied: 'payment'; accountId: string; plan: string }
+type BillingEventResult =
+  | { applied: 'payment'; accountId: string; plan: string; note?: string }
   | { applied: null };
 
 export interface BillingInfo {
@@ -102,6 +103,10 @@ export async function createOrder(account: Account, plan: string): Promise<NewOr
       ? `your ${account.planDetails.name} plan runs until ${account.planExpiresAt.toISOString().slice(0, 10)}; you can extend it or choose a plan after it ends`
       : `you're on the ${account.planDetails.name} plan, which includes everything in ${details.name}; contact us to change plans`);
   }
+  // Nor does it put an end date on a plan without one (Free aside): paying for it again would only shorten it.
+  if (plan === account.plan && !account.planExpiresAt) {
+    throw fail(409, 'plan_active', `your ${account.planDetails.name} plan has no end date; there is nothing to extend`);
+  }
   const amount = paise(details.price);
   const order = await razorpay('POST', '/orders', {
     amount,
@@ -126,7 +131,7 @@ export interface PaymentResponse { razorpay_payment_id?: unknown; razorpay_order
  * Checks the signed response Razorpay Checkout hands the browser after a successful payment, confirms the order
  * belongs to this account, and applies the payment.
  */
-export async function verifyPayment(sql: Sql, account: Account, response: PaymentResponse): Promise<void> {
+export async function verifyPayment(sql: Sql, account: Account, response: PaymentResponse): Promise<{ note: string | null }> {
   if (!billingInfo().enabled) throw fail(501, 'billing_disabled', 'online payment is not configured on this server');
   const { razorpay_payment_id: paymentId, razorpay_order_id: orderId, razorpay_signature: signature } = response;
   if (typeof paymentId !== 'string' || typeof orderId !== 'string' || typeof signature !== 'string') {
@@ -137,14 +142,16 @@ export async function verifyPayment(sql: Sql, account: Account, response: Paymen
   }
   const order = await razorpay('GET', `/orders/${encodeURIComponent(orderId)}`);
   if (order.notes?.account_id !== account.id) throw fail(400, 'invalid_payment', 'this payment does not belong to your account');
-  await applyPayment(sql, paymentId, order);
+  return { note: (await applyPayment(sql, paymentId, order))?.note ?? null };
 }
 
 /**
  * Grants the order's plan for one period, once per payment: the same plan still running is extended by 30 days;
- * otherwise the plan starts now and runs 30 days. Returns false when the payment was already applied.
+ * otherwise the plan starts now and runs 30 days. The plan is kept, and the payment recorded with a note, when the
+ * team is on a dearer plan or already has this one with no end date (an order made before an operator changed the
+ * plan, or a second order paid after a dearer one). Returns null when the payment was already applied.
  */
-async function applyPayment(sql: Sql, paymentId: string, order: RazorpayEntity): Promise<boolean> {
+async function applyPayment(sql: Sql, paymentId: string, order: RazorpayEntity): Promise<{ note: string | null } | null> {
   const accountId = order.notes?.account_id;
   const plan = order.notes?.plan;
   if (!order.id || !accountId || !plan || plan === 'free' || PLANS[plan]?.price == null) {
@@ -154,19 +161,25 @@ async function applyPayment(sql: Sql, paymentId: string, order: RazorpayEntity):
   const amount = order.amount ?? paise(PLANS[plan]!.price!);
   const currency = order.currency ?? CURRENCY;
   return sql.begin(async (tx) => {
-    const [account] = await tx<{ plan: string; plan_expires_at: Date | null }[]>`
-      SELECT ${effectivePlan(tx)} AS plan, plan_expires_at FROM accounts WHERE id = ${accountId} FOR UPDATE`;
+    const [account] = await tx<{ plan: string; expires: Date | null }[]>`
+      SELECT ${effectivePlan(tx)} AS plan, CASE WHEN plan_expires_at > now() THEN plan_expires_at END AS expires
+      FROM accounts WHERE id = ${accountId} FOR UPDATE`;
     if (!account) throw fail(400, 'invalid_payment', 'the account for this payment no longer exists');
-    const running = account.plan === plan && account.plan_expires_at !== null && account.plan_expires_at > new Date();
-    const start = running ? account.plan_expires_at! : new Date();
-    const periodEnd = new Date(start.getTime() + PERIOD_DAYS * 864e5);
+    const current = PLANS[account.plan]?.name ?? account.plan;
+    const keep = planRank(plan) < planRank(account.plan)
+      ? `not applied: the team was on the dearer ${current} plan`
+      : plan === account.plan && !account.expires
+        ? `not applied: the team's ${current} plan has no end date`
+        : null;
+    const start = !keep && account.plan === plan && account.expires ? account.expires : new Date();
+    const periodEnd = keep ? account.expires ?? new Date() : new Date(start.getTime() + PERIOD_DAYS * 864e5);
     const inserted = await tx`
-      INSERT INTO payments (payment_id, order_id, account_id, plan, amount, currency, period_end)
-      VALUES (${paymentId}, ${orderId}, ${accountId}, ${plan}, ${amount}, ${currency}, ${periodEnd})
+      INSERT INTO payments (payment_id, order_id, account_id, plan, amount, currency, period_end, note)
+      VALUES (${paymentId}, ${orderId}, ${accountId}, ${plan}, ${amount}, ${currency}, ${periodEnd}, ${keep})
       ON CONFLICT (payment_id) DO NOTHING`;
-    if (inserted.count === 0) return false; // already applied (browser and webhook both arrived, or a replay)
-    await tx`UPDATE accounts SET plan = ${plan}, plan_expires_at = ${periodEnd} WHERE id = ${accountId}`;
-    return true;
+    if (inserted.count === 0) return null; // already applied (browser and webhook both arrived, or a replay)
+    if (!keep) await tx`UPDATE accounts SET plan = ${plan}, plan_expires_at = ${periodEnd} WHERE id = ${accountId}`;
+    return { note: keep };
   });
 }
 
@@ -191,5 +204,15 @@ export async function applyEvent(sql: Sql, event: RazorpayEvent): Promise<Billin
   const [exists] = await sql`SELECT 1 FROM accounts WHERE id = ${accountId}`;
   if (!exists) return { applied: null };
   const applied = await applyPayment(sql, payment.id, order);
-  return applied ? { applied: 'payment', accountId, plan: order.notes!.plan! } : { applied: null };
+  if (!applied) return { applied: null };
+  return { applied: 'payment', accountId, plan: order.notes!.plan!, ...(applied.note ? { note: applied.note } : {}) };
+}
+
+/**
+ * A payment that was taken but left the plan unchanged needs an operator (most likely a refund): it is logged and
+ * sent as an alert, besides the note on the payment the admin console shows.
+ */
+export function paymentKept(app: FastifyInstance, accountId: string, note: string): void {
+  app.log.warn({ accountId, note }, 'payment recorded without changing the plan');
+  void app.monitor.alert('payment_kept', 'A payment was recorded without changing the plan', { team: accountId, note }, `payment_kept:${accountId}:${note}`);
 }

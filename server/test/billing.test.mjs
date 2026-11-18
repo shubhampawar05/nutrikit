@@ -61,7 +61,7 @@ async function signup() {
     return { status: res.status, body: await res.json() };
   };
   const { body } = await call('POST', '/portal/api/signup', { name: 'Pay Co', email: `pay-${crypto.randomUUID()}@example.com`, password: 'correct horse battery' });
-  return { call, accountId: body.account.id };
+  return { call, accountId: body.team.id };
 }
 
 // What Razorpay Checkout hands the browser after a successful payment.
@@ -78,6 +78,7 @@ async function pay(user, plan) {
   const response = paymentResponse(order.body.orderId);
   const verified = await user.call('POST', '/portal/api/billing/verify', response);
   assert.equal(verified.status, 200, JSON.stringify(verified.body));
+  assert.deepEqual(verified.body.payment, { applied: true, note: null });
   return { ...verified.body, response, orderId: order.body.orderId };
 }
 
@@ -276,6 +277,56 @@ test('a payment never moves an account to a cheaper plan, even one an operator s
 
   const starter = await signup();
   await setPlan(starter, 'starter');
-  assert.equal((await order(starter, 'starter')).status, 201, 'extending the same plan');
+  // An operator-set plan has no end date: buying it again would only give it one.
+  const same = await order(starter, 'starter');
+  assert.equal(same.status, 409, 'buying a plan the team has with no end date');
+  assert.equal(same.body.error.code, 'plan_active');
   assert.equal((await order(starter, 'growth')).status, 201, 'moving up');
+});
+
+// Orders made before the plan changed can still be paid: the payment is recorded but never shortens or lowers the plan.
+const setPlanAdmin = (user, plan) => fetch(`${base}/v1/admin/accounts/${user.accountId}/plan`, {
+  method: 'POST', headers: { Authorization: 'Bearer test-admin-token', 'Content-Type': 'application/json' }, body: JSON.stringify({ plan }),
+});
+
+test('paying an old order for the same plan an operator has since set keeps it without an end date', async () => {
+  const user = await signup();
+  const { body } = await user.call('POST', '/portal/api/billing/order', { plan: 'starter' });
+  await setPlanAdmin(user, 'starter');
+  const paid = await user.call('POST', '/portal/api/billing/verify', paymentResponse(body.orderId));
+  assert.equal(paid.status, 200, JSON.stringify(paid.body));
+  assert.equal(paid.body.plan.id, 'starter');
+  assert.equal(paid.body.plan.expiresAt, null, 'the plan keeps no end date');
+  const [payment] = await sql`SELECT note FROM payments WHERE order_id = ${body.orderId}`;
+  assert.match(payment.note, /no end date/);
+  // The webhook path behaves the same.
+  const { body: second } = await (async () => {
+    const u = await signup();
+    const o = await u.call('POST', '/portal/api/billing/order', { plan: 'growth' });
+    await setPlanAdmin(u, 'growth');
+    const r = await (await webhook(orderPaid(o.body.orderId, `pay_${crypto.randomBytes(6).toString('hex')}`))).json();
+    assert.equal(r.applied, 'payment');
+    assert.match(r.note, /no end date/);
+    return { body: (await u.call('GET', '/portal/api/me')).body };
+  })();
+  assert.equal(second.plan.id, 'growth');
+  assert.equal(second.plan.expiresAt, null);
+});
+
+test('paying a cheaper order after a dearer one keeps the dearer plan and records the payment', async () => {
+  const user = await signup();
+  const { body: cheap } = await user.call('POST', '/portal/api/billing/order', { plan: 'starter' });
+  const growth = await pay(user, 'growth');
+  const paid = await user.call('POST', '/portal/api/billing/verify', paymentResponse(cheap.orderId));
+  assert.equal(paid.status, 200, JSON.stringify(paid.body));
+  assert.equal(paid.body.plan.id, 'growth');
+  assert.equal(paid.body.plan.expiresAt, growth.plan.expiresAt, 'the running period is unchanged');
+  assert.equal(paid.body.payment.applied, false, 'the payer is told the plan did not change');
+  assert.match(paid.body.payment.note, /dearer Growth plan/);
+  const [payment] = await sql`SELECT plan, note FROM payments WHERE order_id = ${cheap.orderId}`;
+  assert.equal(payment.plan, 'starter');
+  assert.match(payment.note, /dearer Growth plan/);
+  const admin = await (await fetch(`${base}/v1/admin/payments`, { headers: { Authorization: 'Bearer test-admin-token' } })).json();
+  const listed = (admin.payments ?? admin).find((p) => p.orderId === cheap.orderId);
+  assert.match(listed.note, /not applied/, 'operators see why');
 });

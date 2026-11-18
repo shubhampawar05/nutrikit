@@ -19,7 +19,7 @@ const SDK: Record<string, [string, string]> = {
 // Website pages: scripts only from this site and Razorpay Checkout (loaded when a payment starts), whose
 // window is a frame; styles allow inline (React style attributes, the Checkout overlay); product images come
 // from Open Food Facts. nosniff and Referrer-Policy are set on every response in app.ts.
-export const CONTENT_SECURITY_POLICY = [
+const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "script-src 'self' https://checkout.razorpay.com",
   'frame-src https://api.razorpay.com https://checkout.razorpay.com',
@@ -71,11 +71,14 @@ const normalizePath = (pathname: string) => pathname.replace(/\/+$/, '') || '/';
 
 const escapeHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
-/** The site's public origin: NUTRIKIT_PUBLIC_URL, or the request's own (hosts such as Render set X-Forwarded-Proto). */
+/**
+ * The site's public origin: NUTRIKIT_PUBLIC_URL (required in production, see app.configProblems), or for local
+ * development the request's own. Host headers are the client's to choose, so email links never rely on them in
+ * production; X-Forwarded-Proto counts only from a trusted proxy (req.protocol reads it when trustProxy is on).
+ */
 export function publicOrigin(req: FastifyRequest) {
   if (process.env.NUTRIKIT_PUBLIC_URL) return process.env.NUTRIKIT_PUBLIC_URL.replace(/\/+$/, '');
-  const proto = String(req.headers['x-forwarded-proto'] || req.protocol).split(',')[0]!.trim();
-  return `${proto}://${req.headers.host}`;
+  return `${req.protocol}://${req.headers.host}`;
 }
 
 /** index.html with this page's head tags, and whether the page exists. */

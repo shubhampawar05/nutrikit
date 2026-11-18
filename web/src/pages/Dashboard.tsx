@@ -1,36 +1,27 @@
 // Developer dashboard: the team in use (switcher, members), plan and usage, live and test API keys, upgrades.
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { flushSync } from 'react-dom';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useForm } from 'react-hook-form';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, ApiError, can, errorText, fmt, fmtDate, fmtPeriodDate, fmtPrice, PLAYGROUND_KEY_STORE, sentence, type KeyMode, type Me } from '../api/client.ts';
-import { payWithRazorpay } from '../api/razorpay.ts';
-import { useMe } from '../hooks.ts';
-import { waitText } from './Auth.tsx';
-import { PAYMENTS_VISIBLE } from '../features.ts';
+import { useQueryClient } from '@tanstack/react-query';
+import { api, NEW_KEY_STORE } from '../api/client.ts';
+import { forgetAccount, useMe } from '../hooks.ts';
+import { tabStore } from '../storage.ts';
 import { useToast } from '../components/Toast.tsx';
 import { CodeBlock } from '../components/CodeBlock.tsx';
-import { UsageChart } from './dashboard/UsageChart.tsx';
-import { MembersCard, ROLE_NAMES, TeamSwitcher } from './dashboard/Team.tsx';
-import '../styles/dashboard.css';
-import { PasswordInput } from '../components/PasswordInput.tsx';
-import { Icon } from '../components/Icon.tsx';
 import { ErrorRetry } from '../components/ErrorRetry.tsx';
-import { Select } from '../components/Select.tsx';
+import { MembersCard, ROLE_NAMES, TeamSwitcher } from './dashboard/Team.tsx';
+import { KeyReveal, maskKey, type Reveal } from './dashboard/KeyReveal.tsx';
+import { UsageCard } from './dashboard/UsageCard.tsx';
+import { PlanCard } from './dashboard/PlanCard.tsx';
+import { KeysCard } from './dashboard/KeysCard.tsx';
+import { DeleteAccountCard } from './dashboard/DeleteAccountCard.tsx';
+import { VerifyBanner } from './dashboard/VerifyBanner.tsx';
+import '../styles/dashboard.css';
 
-/** sessionStorage: the newly created key, kept until the developer dismisses it (survives a refresh). */
-const NEW_KEY = 'nutrikit-new-key';
 const WELCOME = 'Welcome! Here is your first API key';
-/** After a payment the browser couldn't confirm, reload the account this long after (the webhook applies it). */
-const VERIFY_RETRY_MS = [5_000, 30_000];
-
-/** A key shown once. `teamId`: the team it belongs to; it is only shown while that team is in use. */
-interface Reveal { key: string; title: string; teamId?: string }
 
 function storedReveal(): Reveal | null {
   try {
-    const parsed = JSON.parse(sessionStorage.getItem(NEW_KEY) ?? 'null') as { key?: unknown; title?: unknown; teamId?: unknown } | null;
+    const parsed = JSON.parse(tabStore.get(NEW_KEY_STORE) ?? 'null') as { key?: unknown; title?: unknown; teamId?: unknown } | null;
     if (parsed && typeof parsed.key === 'string') {
       return { key: parsed.key, title: typeof parsed.title === 'string' ? parsed.title : WELCOME, teamId: typeof parsed.teamId === 'string' ? parsed.teamId : undefined };
     }
@@ -38,499 +29,12 @@ function storedReveal(): Reveal | null {
   return null;
 }
 
-// ---------------------------------------------------------------- one-time key reveal
-
-/** "nk_Ab3d••••••••••••wXyz": enough to recognise the key, not enough to use it. */
+/** The quick-start request, using `key`. */
 const snippet = (key: string) => `export NUTRIKIT_KEY=${key}
 curl "${window.location.origin}/v1/log/text" \\
   -H "Authorization: Bearer $NUTRIKIT_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"text": "a bowl of oatmeal with blueberries and a coffee"}'`;
-
-function maskKey(key: string): string {
-  const head = key.indexOf('_') + 5;
-  return key.length <= head + 4 ? '•'.repeat(key.length) : `${key.slice(0, head)}${'•'.repeat(12)}${key.slice(-4)}`;
-}
-
-function KeyReveal({ reveal, onDismiss }: { reveal: Reveal; onDismiss: () => void }) {
-  const heading = useRef<HTMLHeadingElement>(null);
-  const input = useRef<HTMLInputElement>(null);
-  const [copied, setCopied] = useState(false);
-  const [manual, setManual] = useState(false);
-  // The key is masked until asked for, so it isn't exposed on a shared or recorded screen; Copy works either way.
-  const [shown, setShown] = useState(false);
-  // A new key is not read aloud: focus moves to the heading instead (the toast region says "New key created").
-  useEffect(() => {
-    setCopied(false);
-    setManual(false);
-    setShown(false);
-    heading.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-    heading.current?.focus({ preventScroll: true });
-  }, [reveal.key]);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(reveal.key);
-      setCopied(true);
-      setManual(false);
-    } catch {
-      // Manual copy needs the real characters on screen.
-      flushSync(() => setShown(true));
-      input.current?.focus();
-      input.current?.select();
-      setManual(true);
-    }
-  };
-  const dismiss = () => {
-    if (!copied && !window.confirm("You haven't copied this key. It won't be shown again. Dismiss it anyway?")) return;
-    onDismiss();
-  };
-  return (
-    <div className="key-reveal">
-      <h2 className="key-reveal-title" tabIndex={-1} ref={heading}>{reveal.title}</h2>
-      <div className="key-reveal-field">
-        <input
-          ref={input}
-          className="key-reveal-key"
-          id="new-key"
-          readOnly
-          value={shown ? reveal.key : maskKey(reveal.key)}
-          aria-label={shown ? 'New API key' : 'New API key, hidden'}
-          onFocus={(e) => { if (shown) e.currentTarget.select(); }}
-          onCopy={(e) => { if (!shown) { e.preventDefault(); void copy(); } else setCopied(true); }}
-        />
-        <button
-          type="button"
-          className="pw-toggle"
-          aria-label={shown ? 'Hide key' : 'Show key'}
-          title={shown ? 'Hide key' : 'Show key'}
-          aria-controls="new-key"
-          aria-pressed={shown}
-          onClick={() => setShown((v) => !v)}
-        >
-          <Icon name={shown ? 'eye-off' : 'eye'} />
-        </button>
-      </div>
-      <div className="row">
-        <button className="btn btn-primary btn-sm" type="button" onClick={copy}><Icon name={copied ? 'check' : 'copy'} />{copied ? 'Copied' : 'Copy key'}</button>
-        <button className="btn btn-ghost btn-sm" type="button" onClick={dismiss}>I've saved it</button>
-      </div>
-      {manual ? <p className="small" style={{ margin: '8px 0 0' }}>Couldn't copy automatically. The key is selected: copy it manually (Ctrl+C or ⌘C).</p> : null}
-      <p className="small" style={{ margin: '8px 0 0' }}>This is the only time you can copy this key. Store it somewhere safe, like your server's environment variables. Lost it? Choose Regenerate next to the key below.</p>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------- usage this month
-
-function UsageCard({ me }: { me: Me }) {
-  const usage = useQuery({ queryKey: ['usage', me.team.id, 30], queryFn: () => api.usage(30) });
-  const used = me.usage.used;
-  const limit = me.plan.monthlyTokens;
-  const pct = limit ? Math.min(100, (used / limit) * 100) : 0;
-  const reset = new Date(me.usage.periodStart);
-  reset.setUTCMonth(reset.getUTCMonth() + 1);
-  return (
-    <section className="card">
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <h2 style={{ margin: '0 0 12px' }}>Live usage this month</h2>
-        <span className="small muted">Resets {fmtPeriodDate(reset.toISOString())}</span>
-      </div>
-      <p style={{ margin: '16px 0 0' }}>
-        <span className="big-number">{fmt(used)}</span>{' '}
-        <span className="muted">{limit == null ? 'tokens used' : `of ${fmt(limit)} tokens · ${fmt(me.usage.remaining)} left`}</span>
-      </p>
-      <div className={pct >= 80 ? 'meter high' : 'meter'}><span style={{ width: `${pct}%` }} /></div>
-      {usage.isError
-        ? <ErrorRetry error={usage.error} onRetry={() => usage.refetch()} />
-        : <UsageChart series={usage.data?.series ?? []} />}
-      <div className="table-scroll" style={{ marginTop: 12 }}>
-        <table className="data">
-          <thead>
-            <tr><th scope="col">Endpoint</th><th scope="col">Calls</th><th scope="col">Tokens</th></tr>
-          </thead>
-          <tbody>
-            {usage.isPending
-              ? <tr><td colSpan={3} className="muted">Loading usage…</td></tr>
-              : usage.data && (usage.data.month.byEndpoint.length
-                ? usage.data.month.byEndpoint.map((r) => (
-                  <tr key={r.endpoint}><td>{r.endpoint}</td><td>{fmt(r.calls)}</td><td>{fmt(r.tokens)}</td></tr>
-                ))
-                : <tr><td colSpan={3} className="muted">No calls yet this month.</td></tr>)}
-          </tbody>
-        </table>
-      </div>
-      <p className="small muted" style={{ margin: '12px 0 0' }}>
-        Live keys only. Test keys: {fmt(me.testUsage.used)} of {fmt(me.testUsage.limit)} test tokens used this month.
-      </p>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------- plan and upgrades
-
-const UPGRADE_OPTIONS: [string, string][] = [
-  ['starter', 'Starter — 100k tokens'],
-  ['growth', 'Growth — 1M tokens'],
-  ['enterprise', 'Enterprise — custom'],
-];
-
-function PlanCard({ me, status, setStatus }: { me: Me; status: string; setStatus: (s: string) => void }) {
-  const queryClient = useQueryClient();
-  const price = (p: string) => me.plans[p]?.price ?? null;
-  // Paid plans are bought online (Razorpay, 30 days per payment) when the server has billing set up; the rest are requests.
-  const payable = (p: string) => Boolean(me.billing.enabled && (price(p) ?? 0) > 0);
-  const paidUntil = me.plan.expiresAt;
-  // The same rank the server uses: the current plan can be extended (if it can be paid for) and a higher one chosen;
-  // a cheaper one is never offered, whether or not the current plan has an end date.
-  const selectable = (p: string) =>
-    p === me.plan.id ? payable(p) : (me.plans[p]?.rank ?? Infinity) > me.plan.rank;
-  const firstOpen = UPGRADE_OPTIONS.find(([v]) => v !== me.plan.id && selectable(v))?.[0]
-    ?? UPGRADE_OPTIONS.find(([v]) => selectable(v))?.[0];
-  const { register, handleSubmit, watch, resetField, setValue } = useForm<{ plan: string; message: string }>({
-    defaultValues: { plan: firstOpen ?? 'starter', message: '' },
-  });
-  const plan = watch('plan');
-  const [busy, setBusy] = useState(false);
-  const pending = useRef(false);
-  // Upgrade requests sent during this visit, by plan: the form for that plan is replaced by "Request sent".
-  const [sent, setSent] = useState<Record<string, { plan: string; sentAt: string }>>({});
-  // A payment Checkout reported but the portal couldn't confirm: a notice that stays until the next attempt.
-  const [unconfirmed, setUnconfirmed] = useState<string | null>(null);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
-  const request = useMutation({ mutationFn: (v: { plan: string; message: string }) => api.requestUpgrade(v.plan, v.message) });
-
-  const buy = async (p: string) => {
-    setUnconfirmed(null);
-    const order = await api.createOrder(p);
-    setStatus('Complete the payment in the Razorpay window…');
-    const response = await payWithRazorpay({
-      key: order.keyId,
-      order_id: order.orderId,
-      amount: order.amount,
-      currency: order.currency,
-      name: 'Nutrikit',
-      description: `${me.plans[p]?.name ?? p} plan — 30 days`,
-      prefill: { name: me.account.name, email: me.account.email },
-      theme: { color: '#e0462b' },
-    }, (message) => setStatus(`${sentence(message)} You can try again in the Razorpay window.`));
-    if (!response) {
-      setStatus('Payment cancelled — you have not been charged.');
-      return;
-    }
-    setStatus('Payment received — activating your plan…');
-    const view = await api.verifyPayment(response).catch(() => null);
-    if (!view) {
-      // The webhook applies a charged payment the browser couldn't confirm; reload the plan shortly to pick it up.
-      setStatus('');
-      setUnconfirmed(response.razorpay_payment_id);
-      timers.current.forEach(clearTimeout);
-      timers.current = VERIFY_RETRY_MS.map((ms) => setTimeout(() => queryClient.invalidateQueries({ queryKey: ['me'] }), ms));
-      return;
-    }
-    queryClient.setQueryData<Me>(['me'], (old) => (old ? { ...old, ...view } : old));
-    setStatus(`You're on the ${view.plan.name} plan until ${fmtPeriodDate(view.plan.expiresAt)}.`);
-  };
-
-  const onSubmit = async (data: { plan: string; message: string }) => {
-    if (pending.current) return;
-    pending.current = true;
-    setBusy(true);
-    try {
-      if (payable(data.plan)) {
-        await buy(data.plan);
-        return;
-      }
-      await request.mutateAsync(data);
-      setSent((s) => ({ ...s, [data.plan]: { plan: data.plan, sentAt: new Date().toISOString() } }));
-      setStatus('');
-      resetField('message');
-    } catch (err) {
-      setStatus(errorText(err));
-    } finally {
-      pending.current = false;
-      setBusy(false);
-    }
-  };
-
-  const current = me.plan.price;
-  const action = (p: string) => (p === me.plan.id ? 'Extend 30 days' : 'Pay');
-  const planName = (p: string) => me.plans[p]?.name ?? UPGRADE_OPTIONS.find(([v]) => v === p)?.[1].split(' —')[0] ?? p;
-  const sentFor = sent[plan];
-  return (
-    <section className="card">
-      <h2 style={{ margin: '0 0 12px' }}>Plan</h2>
-      <p style={{ margin: 0 }}><b>{me.plan.name + (!PAYMENTS_VISIBLE ? '' : current ? ` — ${fmtPrice(current, me.plan.currency)} / 30 days` : current === 0 ? ` — ${fmtPrice(0, me.plan.currency)}` : '')}</b></p>
-      {paidUntil ? <p className="small muted" style={{ margin: '4px 0 0' }}>Paid until {fmtPeriodDate(paidUntil)} · then the Free plan, unless you extend it.</p> : null}
-      <ul className="muted small" style={{ paddingLeft: 18 }}>
-        <li>{me.plan.monthlyTokens == null ? 'Custom monthly tokens' : `${fmt(me.plan.monthlyTokens)} tokens / month`}</li>
-        <li>{fmt(me.plan.ratePerMinute)} requests / minute</li>
-        <li>Up to {me.plan.maxKeys} live and {me.plan.maxKeys} test keys</li>
-        <li>Up to {me.plan.maxMembers} people in the team</li>
-      </ul>
-      {unconfirmed ? (
-        <div className="notice" role="alert" style={{ margin: '0 0 12px' }}>
-          We couldn't confirm the payment yet. If you were charged, your plan will switch on within a few minutes.
-          {' '}Payment id <code>{unconfirmed}</code>. If it hasn't switched on by then, contact support with this id.
-        </div>
-      ) : null}
-      {!PAYMENTS_VISIBLE ? null : !can.manageTeam(me.team.role) ? (
-        <p className="small muted" style={{ margin: 0 }}>Only a team owner can change the plan.</p>
-      ) : firstOpen == null ? (
-        <p className="small muted" style={{ margin: 0 }}>You're on our highest plan. To change it, contact us.</p>
-      ) : (
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="field">
-            <label htmlFor="upgrade-plan">{paidUntil ? 'Extend or move up' : 'Need more?'}</label>
-            <Select
-              id="upgrade-plan"
-              value={plan}
-              onChange={(v) => setValue('plan', v)}
-              options={UPGRADE_OPTIONS.map(([value, label]) => ({ value, label, disabled: !selectable(value) }))}
-            />
-          </div>
-          {sentFor ? (
-            <p className="small" style={{ margin: '8px 0 0' }}>
-              <b>Request sent</b> for the {planName(sentFor.plan)} plan on {fmtDate(sentFor.sentAt)}. We'll be in touch at {me.account.email}.
-            </p>
-          ) : (
-            <>
-              <div className="field" hidden={payable(plan)}>
-                <label htmlFor="upgrade-msg">Tell us about your app (optional)</label>
-                <textarea id="upgrade-msg" rows={2} maxLength={1000} {...register('message')} />
-              </div>
-              <button className="btn btn-ghost btn-sm" type="submit" disabled={busy || !selectable(plan)} aria-busy={busy || undefined}>
-                {payable(plan) ? `${action(plan)} — ${fmtPrice(price(plan)!, me.plans[plan]?.currency)}` : 'Request upgrade'}
-              </button>
-              <p className="small muted" hidden={!payable(plan)} style={{ margin: '8px 0 0' }}>
-                One-time payment for 30 days; no automatic renewal.
-                {me.billing.mode === 'test' ? <> Test mode: use one of Razorpay's{' '}
-                  <a href="https://razorpay.com/docs/payments/payments/test-card-details/" target="_blank" rel="noreferrer">test cards or UPI ids</a>.</> : null}
-              </p>
-            </>
-          )}
-          <p className="small muted" style={{ margin: '8px 0 0' }}>{status}</p>
-        </form>
-      )}
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------- API keys
-
-function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void }) {
-  const toast = useToast();
-  const queryClient = useQueryClient();
-  const keys = useQuery({ queryKey: ['keys', me.team.id], queryFn: api.keys });
-  const liveAllowed = can.manageLiveKeys(me.team.role);
-  const { register, handleSubmit, reset, watch, setValue } = useForm<{ name: string; mode: KeyMode }>({ defaultValues: { name: '', mode: liveAllowed ? 'live' : 'test' } });
-  const mode = watch('mode');
-  // Revokes in flight, by key id: a ref so a double click can't send twice, state so the row's button disables.
-  const revoking = useRef(new Set<string>());
-  const [pendingIds, setPendingIds] = useState<ReadonlySet<string>>(new Set());
-  const settle = (id: string) => {
-    revoking.current.delete(id);
-    setPendingIds(new Set(revoking.current));
-  };
-
-  const create = useMutation({
-    mutationFn: (v: { name: string; mode: KeyMode }) => api.createKey(v.name, v.mode),
-    onSuccess: (key) => {
-      reset({ name: '', mode: key.mode });
-      onCreated({ key: key.key, title: `New ${key.mode} key “${key.name}” created`, teamId: me.team.id });
-      toast('New key created');
-    },
-    // The plan's key limit is enforced by the server (403 key_limit); its message says what to do.
-    onError: (err) => toast(errorText(err)),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['keys'] }),
-  });
-
-  const revoke = useMutation({
-    mutationFn: (id: string) => api.revokeKey(id),
-    onSuccess: () => toast('Key revoked'),
-    onError: (err) => toast(errorText(err)),
-    onSettled: async (_data, _err, id) => {
-      await queryClient.invalidateQueries({ queryKey: ['keys'] });
-      settle(id);
-    },
-  });
-
-  const regenerate = useMutation({
-    mutationFn: (id: string) => api.regenerateKey(id),
-    onSuccess: (key) => {
-      onCreated({ key: key.key, title: `New key for “${key.name}”`, teamId: me.team.id });
-      toast('Key regenerated. The old one no longer works');
-    },
-    onError: (err) => toast(errorText(err)),
-    onSettled: async (_data, _err, id) => {
-      await queryClient.invalidateQueries({ queryKey: ['keys'] });
-      settle(id);
-    },
-  });
-
-  const onRegenerate = (id: string, name: string) => {
-    if (revoking.current.has(id)) return;
-    if (!window.confirm(`Regenerate “${name}”? You'll get a new key to copy, and the current one (and its access tokens) stops working immediately.`)) return;
-    revoking.current.add(id);
-    setPendingIds(new Set(revoking.current));
-    regenerate.mutate(id);
-  };
-
-  const onRevoke = (id: string, name: string) => {
-    if (revoking.current.has(id)) return;
-    if (!window.confirm(`Revoke “${name}”? Apps using it (and its access tokens) stop working immediately.`)) return;
-    revoking.current.add(id);
-    setPendingIds(new Set(revoking.current));
-    revoke.mutate(id);
-  };
-
-  const list = keys.data?.keys;
-  const activeOf = (m: KeyMode) => list?.filter((k) => !k.revokedAt && k.mode === m).length;
-  const active = activeOf(mode);
-  const atLimit = active != null && active >= me.plan.maxKeys;
-  return (
-    <section className="card" style={{ marginBottom: 20 }}>
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <h2 style={{ margin: '0 0 12px' }}>API keys</h2>
-        <form className="row" onSubmit={handleSubmit((v) => { if (!create.isPending) create.mutate(v); })}>
-          <input className="input" placeholder="Key name, e.g. iOS app" maxLength={100} aria-label="New key name" style={{ width: 220 }} {...register('name')} />
-          <Select<KeyMode>
-            aria-label="Key type"
-            value={mode}
-            onChange={(v) => setValue('mode', v)}
-            options={[
-              { value: 'live', label: `Live${liveAllowed ? '' : ' (owners and admins)'}`, disabled: !liveAllowed },
-              { value: 'test', label: 'Test' },
-            ]}
-          />
-          <button className="btn btn-primary btn-sm" type="submit" disabled={create.isPending || atLimit} aria-describedby={atLimit ? 'key-limit' : undefined}>
-            Create key
-          </button>
-        </form>
-      </div>
-      {atLimit ? (
-        <p className="small" id="key-limit" style={{ margin: '8px 0 0' }}>
-          Your {me.plan.name} plan allows {me.plan.maxKeys} active {mode} {me.plan.maxKeys === 1 ? 'key' : 'keys'}. Revoke one or upgrade your plan to create another.
-        </p>
-      ) : null}
-      <p className="small muted" style={{ margin: '8px 0 12px' }}>
-        {list && `${activeOf('live')} of ${me.plan.maxKeys} live and ${activeOf('test')} of ${me.plan.maxKeys} test keys. Live keys share the team's monthly allowance. Test keys (nk_test_…) get real catalog answers and sample AI answers, never touch the AI provider, and have their own ${fmt(me.testUsage.limit)}-token allowance.`}
-      </p>
-      {keys.isPending ? (
-        <div className="skeleton-rows" aria-busy="true"><span className="sr-only">Loading keys…</span><i /><i /></div>
-      ) : keys.isError ? (
-        <ErrorRetry error={keys.error} onRetry={() => keys.refetch()} />
-      ) : !list?.length ? (
-        <p className="muted" style={{ margin: 0 }}>No keys yet. Name one above and choose Create key to start calling the API.</p>
-      ) : (
-        <div className="table-scroll keys-scroll">
-          <table className="data keys-table">
-            <thead>
-              <tr>
-                <th scope="col">Name</th><th scope="col">Created</th><th scope="col">Last used</th><th scope="col">Tokens this month</th>
-                <th scope="col"><span className="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((k) => (
-                <tr key={k.id}>
-                  <td className="key-name">
-                    <span className={k.mode === 'test' ? 'badge warn' : 'badge ok'}>{k.mode === 'test' ? 'Test' : 'Live'}</span> {k.name} <span className="muted small">{k.id}</span>
-                  </td>
-                  <td data-label="Created">{fmtDate(k.createdAt)}{k.createdBy ? <span className="muted small admin-sub">by {k.createdBy}</span> : null}</td>
-                  <td data-label="Last used">{k.lastUsedAt ? fmtDate(k.lastUsedAt) : <span className="muted">never</span>}</td>
-                  <td data-label="Tokens this month">{fmt(k.usedThisMonth)}</td>
-                  <td className="key-cell-actions">
-                    {k.revokedAt
-                      ? <span className="badge">revoked</span>
-                      : k.mode === 'live' && !liveAllowed ? null : (
-                        <div className="key-actions">
-                          <button
-                            className="btn btn-ghost btn-sm"
-                            type="button"
-                            aria-label={`Regenerate ${k.name}`}
-                            title="Lost this key? Get a new one in its place"
-                            disabled={pendingIds.has(k.id)}
-                            onClick={() => onRegenerate(k.id, k.name)}
-                          >
-                            <Icon name="refresh" />Regenerate
-                          </button>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            type="button"
-                            aria-label={`Revoke ${k.name}`}
-                            disabled={pendingIds.has(k.id)}
-                            onClick={() => onRevoke(k.id, k.name)}
-                          >
-                            Revoke
-                          </button>
-                        </div>
-                      )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------- page
-
-/** "Delete account": the password confirms it; afterwards the visitor is signed out and sent home. */
-function DeleteAccountCard({ me, onDeleted }: { me: Me; onDeleted: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const paidUntil = me.plan.expiresAt && new Date(me.plan.expiresAt) > new Date() ? me.plan.expiresAt : null;
-  const remove = useMutation({
-    mutationFn: () => api.deleteAccount(password),
-    onSuccess: onDeleted,
-    onError: (err) => {
-      if (err instanceof ApiError && err.status === 429 && err.retryAfter) setError(`Too many wrong passwords. Try again ${waitText(err.retryAfter)}.`);
-      else setError(err instanceof ApiError && err.fields?.password ? err.fields.password : errorText(err));
-    },
-  });
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    remove.mutate();
-  };
-  return (
-    <section className="card" aria-labelledby="delete-account-title" style={{ marginTop: 20 }}>
-      <h2 id="delete-account-title" style={{ margin: '0 0 8px' }}>Delete account</h2>
-      <p className="muted small" style={{ marginTop: 0 }}>
-        Permanently deletes your login and every team where you are the only member, with its API keys and usage
-        history. Apps using those keys stop working at once. Teams with other members stay; if you are their only
-        owner, make someone else an owner first. This cannot be undone. Payment records are kept for tax purposes,
-        without your name or email.
-        See the <Link to="/privacy">privacy policy</Link>.
-      </p>
-      {!open ? (
-        <button className="btn btn-danger btn-sm" type="button" onClick={() => setOpen(true)}>Delete my account…</button>
-      ) : (
-        <form onSubmit={submit} noValidate>
-          {paidUntil ? <p className="form-error">Your {me.plan.name} plan is paid until {fmtDate(paidUntil)}. Deleting the account ends it with no refund.</p> : null}
-          <div className="field">
-            <label htmlFor="delete-password">Enter your password to confirm</label>
-            <PasswordInput
-              id="delete-password" className="input" autoComplete="current-password" value={password}
-              onChange={(e) => setPassword(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby={error ? 'delete-error' : undefined}
-            />
-          </div>
-          <p id="delete-error" className="form-error" role="alert" hidden={!error}>{error}</p>
-          <div className="row">
-            <button className="btn btn-danger btn-sm" type="submit" disabled={!password || remove.isPending}>{remove.isPending ? 'Deleting…' : 'Delete my account permanently'}</button>
-            <button className="btn btn-ghost btn-sm" type="button" onClick={() => { setOpen(false); setPassword(''); setError(''); }}>Cancel</button>
-          </div>
-        </form>
-      )}
-    </section>
-  );
-}
 
 function DashboardLoading() {
   return (
@@ -544,28 +48,6 @@ function DashboardLoading() {
   );
 }
 
-// Unverified address: the API keeps working; this asks once per visit and can send the link again.
-function VerifyBanner({ email }: { email: string }) {
-  const [state, setState] = useState<{ kind: 'idle' | 'sending' } | { kind: 'sent' } | { kind: 'error'; text: string }>({ kind: 'idle' });
-  const send = async () => {
-    setState({ kind: 'sending' });
-    try {
-      await api.sendVerification();
-      setState({ kind: 'sent' });
-    } catch (err) {
-      setState({ kind: 'error', text: err instanceof ApiError && err.code === 'too_many_emails' ? `A link was sent recently. Check your inbox, or try again ${waitText(err.retryAfter)}.` : errorText(err) });
-    }
-  };
-  return (
-    <div className="notice" role="status">
-      <b>Confirm your email.</b> We sent a link to <b>{email}</b> so you can recover your account if you forget your password.{' '}
-      {state.kind === 'sent' ? <span>A new link is on its way.</span>
-        : <button type="button" className="btn btn-ghost btn-sm" onClick={send} disabled={state.kind === 'sending'}>Send a new link</button>}
-      {state.kind === 'error' ? <span role="alert"> {state.text}</span> : null}
-    </div>
-  );
-}
-
 export function Dashboard() {
   const me = useMe();
   const navigate = useNavigate();
@@ -573,13 +55,10 @@ export function Dashboard() {
   const toast = useToast();
   // A new key stays on screen (and in sessionStorage) until dismissed, so a refresh doesn't lose it.
   const [reveal, setRevealState] = useState<Reveal | null>(storedReveal);
-  const [upgradeStatus, setUpgradeStatus] = useState('');
   const leaving = useRef(false);
   const setReveal = (r: Reveal | null) => {
-    try {
-      if (r) sessionStorage.setItem(NEW_KEY, JSON.stringify(r));
-      else sessionStorage.removeItem(NEW_KEY);
-    } catch { /* storage unavailable: the key still shows until this page is left */ }
+    // With storage blocked the key still shows until this page is left.
+    tabStore.set(NEW_KEY_STORE, r ? JSON.stringify(r) : null);
     setRevealState(r);
   };
 
@@ -597,15 +76,8 @@ export function Dashboard() {
 
   // Forgets everything this browser holds for the account (after logging out or deleting it) and goes home.
   const leave = (notice?: string) => {
-    try {
-      sessionStorage.removeItem(PLAYGROUND_KEY_STORE);
-      sessionStorage.removeItem(NEW_KEY);
-    } catch { /* nothing stored */ }
     navigate('/');
-    queryClient.setQueryData(['me'], null);
-    queryClient.removeQueries({ queryKey: ['keys'] });
-    queryClient.removeQueries({ queryKey: ['usage'] });
-    queryClient.removeQueries({ queryKey: ['members'] });
+    forgetAccount(queryClient);
     if (notice) toast(notice);
   };
 
@@ -658,7 +130,7 @@ export function Dashboard() {
 
       <div className="dash-grid">
         <UsageCard me={account} />
-        <PlanCard me={account} status={upgradeStatus} setStatus={setUpgradeStatus} />
+        <PlanCard key={`plan:${account.team.id}`} me={account} />
       </div>
 
       {/* Keyed by team: switching teams starts the forms afresh (the key type defaults by role). */}
