@@ -130,6 +130,8 @@ export interface MealPlan {
 
 export interface Usage {
   keyId: string;
+  /** 'test' for nk_test_ keys: they count against the team's separate test allowance. */
+  mode: 'live' | 'test';
   accountId: string | null;
   periodStart: string;
   tokenLimit: number | null;

@@ -1,7 +1,8 @@
 // API keys, short-lived access tokens, token-based usage metering and rate limiting.
 //
 // Credentials accepted by the API (Authorization: Bearer ...):
-//   nk_...    secret API key, created in the developer portal; stored only as a SHA-256 hash.
+//   nk_live_... / nk_test_...  secret API key, created in the developer portal; stored only as a SHA-256 hash.
+//             Keys made before test mode existed are plain nk_... and are live.
 //   nkat_...  access token from POST /v1/auth/token; HMAC-signed, expires after 1 hour.
 //             Lets a backend keep the secret key and hand mobile/web clients a short-lived token.
 //
@@ -10,6 +11,9 @@
 // Calls are charged in "tokens": a flat cost per endpoint, plus 1 token per 1,000 model tokens on
 // AI-assisted calls. Accounts get a monthly allowance and per-minute rate from their plan; keys made
 // by an operator (admin API / CLI) may carry their own allowance instead.
+//
+// Test keys count against a separate monthly test allowance and rate (NUTRIKIT_TEST_TOKENS, NUTRIKIT_TEST_RATE_LIMIT),
+// never against the plan, and never reach the AI provider (routes use the sample provider).
 import crypto from 'node:crypto';
 import type { IncomingHttpHeaders } from 'node:http';
 import type { Fragment, Sql } from 'postgres';
@@ -22,14 +26,19 @@ export interface KeyContext {
   name: string;
   accountId: string | null;
   via: 'api_key' | 'access_token' | 'none';
+  mode: KeyMode;
   tokenLimit: number | null; // null = unlimited
   ratePerMinute: number;
 }
+
+export type KeyMode = 'live' | 'test';
+export const KEY_MODES: readonly KeyMode[] = ['live', 'test'];
 
 export interface NewKey {
   id: string;
   key: string; // the secret; shown once
   name: string | null | undefined;
+  mode: KeyMode;
   tokenLimit: number | null;
   prefix: string;
 }
@@ -37,6 +46,8 @@ export interface NewKey {
 export interface KeySummary {
   id: string;
   name: string;
+  mode: KeyMode;
+  createdBy: string | null; // the creator's name; null for operator keys or when they deleted their login
   tokenLimit?: number | null; // operator listing only
   createdAt: Date;
   revokedAt: Date | null;
@@ -60,6 +71,7 @@ export interface EndpointUsage {
 
 export interface UsageSummary {
   keyId: string;
+  mode: KeyMode;
   accountId: string | null;
   periodStart: string;
   tokenLimit: number | null;
@@ -77,6 +89,7 @@ export interface UsageDay {
 interface KeyRow {
   id: string;
   name: string;
+  mode: KeyMode;
   token_limit: number | null;
   account_id: string | null;
   plan: string | null;
@@ -105,6 +118,10 @@ export type CostKey = keyof typeof COSTS;
 
 export const ACCESS_TOKEN_TTL = 3600;
 const DEFAULT_RATE = Number(process.env.NUTRIKIT_RATE_LIMIT || 120);
+const TEST_TOKENS = () => Number(process.env.NUTRIKIT_TEST_TOKENS) || 5_000;
+const TEST_RATE = () => Number(process.env.NUTRIKIT_TEST_RATE_LIMIT) || 30;
+/** The test allowance per team (or per operator test key), per month. */
+export const testAllowance = () => TEST_TOKENS();
 const hash = (key: string) => crypto.createHash('sha256').update(key).digest('hex');
 export const monthStart = () => {
   const d = new Date();
@@ -113,32 +130,41 @@ export const monthStart = () => {
 
 // ---------------------------------------------------------------- keys
 
-export async function createKey(sql: Sql, { name, tokenLimit = null, accountId = null }: { name?: string | null; tokenLimit?: number | null; accountId?: string | null }): Promise<NewKey> {
+export async function createKey(sql: Sql, { name, tokenLimit = null, accountId = null, mode = 'live', createdBy = null }: { name?: string | null; tokenLimit?: number | null; accountId?: string | null; mode?: KeyMode; createdBy?: string | null }): Promise<NewKey> {
+  if (!KEY_MODES.includes(mode)) throw Object.assign(new Error('mode must be live or test'), { status: 400, code: 'invalid_request' });
   const id = `key_${crypto.randomBytes(6).toString('hex')}`;
-  const key = `nk_${crypto.randomBytes(32).toString('base64url')}`;
-  await sql`INSERT INTO api_keys (id, key_hash, name, token_limit, account_id)
-    VALUES (${id}, ${hash(key)}, ${String(name || 'unnamed').slice(0, 100)}, ${tokenLimit == null ? null : Number(tokenLimit)}, ${accountId})`;
-  return { id, key, name, tokenLimit, prefix: key.slice(0, 10) };
+  const key = `nk_${mode}_${crypto.randomBytes(32).toString('base64url')}`;
+  await sql`INSERT INTO api_keys (id, key_hash, name, token_limit, account_id, mode, created_by)
+    VALUES (${id}, ${hash(key)}, ${String(name || 'unnamed').slice(0, 100)}, ${tokenLimit == null ? null : Number(tokenLimit)}, ${accountId}, ${mode}, ${createdBy})`;
+  return { id, key, name, mode, tokenLimit, prefix: key.slice(0, 12) };
 }
 
 export async function listKeys(sql: Sql, accountId?: string): Promise<KeySummary[]> {
   const used = sql`(SELECT COALESCE(SUM(u.tokens), 0) FROM usage u WHERE u.key_id = k.id AND u.at >= ${monthStart()}) AS "usedThisMonth"`;
   const rows = accountId === undefined
-    ? await sql<KeySummary[]>`SELECT id, name, token_limit AS "tokenLimit", created_at AS "createdAt", revoked_at AS "revokedAt", last_used_at AS "lastUsedAt", account_id AS "accountId", ${used}
-        FROM api_keys k ORDER BY created_at`
-    : await sql<KeySummary[]>`SELECT id, name, created_at AS "createdAt", revoked_at AS "revokedAt", last_used_at AS "lastUsedAt", ${used}
-        FROM api_keys k WHERE account_id = ${accountId} ORDER BY created_at DESC`;
+    ? await sql<KeySummary[]>`SELECT k.id, k.name, k.mode, c.name AS "createdBy", k.token_limit AS "tokenLimit", k.created_at AS "createdAt", k.revoked_at AS "revokedAt", k.last_used_at AS "lastUsedAt", k.account_id AS "accountId", ${used}
+        FROM api_keys k LEFT JOIN users c ON c.id = k.created_by ORDER BY k.created_at`
+    : await sql<KeySummary[]>`SELECT k.id, k.name, k.mode, c.name AS "createdBy", k.created_at AS "createdAt", k.revoked_at AS "revokedAt", k.last_used_at AS "lastUsedAt", ${used}
+        FROM api_keys k LEFT JOIN users c ON c.id = k.created_by WHERE k.account_id = ${accountId} ORDER BY k.created_at DESC`;
   return rows.map((k) => ({ ...k }));
 }
 
-export async function newestActiveKey(sql: Sql, accountId: string): Promise<{ id: string; name: string } | null> {
-  const [row] = await sql<{ id: string; name: string }[]>`SELECT id, name FROM api_keys WHERE account_id = ${accountId} AND revoked_at IS NULL ORDER BY created_at DESC LIMIT 1`;
+export async function newestActiveKey(sql: Sql, accountId: string, mode?: KeyMode): Promise<{ id: string; name: string; mode: KeyMode } | null> {
+  const [row] = await sql<{ id: string; name: string; mode: KeyMode }[]>`SELECT id, name, mode FROM api_keys
+    WHERE account_id = ${accountId} AND revoked_at IS NULL AND (${mode ?? null}::text IS NULL OR mode = ${mode ?? null})
+    ORDER BY created_at DESC LIMIT 1`;
   return row ? { ...row } : null;
 }
 
-export async function activeKeyCount(sql: Sql, accountId: string): Promise<number> {
-  const [{ n }] = await sql<{ n: number }[]>`SELECT COUNT(*) AS n FROM api_keys WHERE account_id = ${accountId} AND revoked_at IS NULL`;
+export async function activeKeyCount(sql: Sql, accountId: string, mode: KeyMode = 'live'): Promise<number> {
+  const [{ n }] = await sql<{ n: number }[]>`SELECT COUNT(*) AS n FROM api_keys WHERE account_id = ${accountId} AND mode = ${mode} AND revoked_at IS NULL`;
   return n;
+}
+
+/** The mode of one of the account's active keys, or null when it isn't theirs or is revoked. */
+export async function keyMode(sql: Sql, id: string, accountId: string): Promise<KeyMode | null> {
+  const [row] = await sql<{ mode: KeyMode }[]>`SELECT mode FROM api_keys WHERE id = ${id} AND account_id = ${accountId} AND revoked_at IS NULL`;
+  return row?.mode ?? null;
 }
 
 export async function revokeKey(sql: Sql, id: string, accountId?: string): Promise<boolean> {
@@ -149,17 +175,17 @@ export async function revokeKey(sql: Sql, id: string, accountId?: string): Promi
 }
 
 /**
- * Replaces an active key with a fresh one under the same name and token limit, in one transaction: the old key stops
- * working as the new one is issued, so this works even when the account is at its plan's key limit.
+ * Replaces an active key with a fresh one under the same name, mode and token limit, in one transaction: the old key
+ * stops working as the new one is issued, so this works even when the account is at its plan's key limit.
  * Returns null when the key is not this account's or is already revoked.
  */
-export async function regenerateKey(sql: Sql, id: string, accountId: string): Promise<NewKey | null> {
+export async function regenerateKey(sql: Sql, id: string, accountId: string, createdBy: string | null = null): Promise<NewKey | null> {
   return sql.begin(async (tx) => {
-    const [old] = await tx<{ name: string; tokenLimit: number | null }[]>`UPDATE api_keys SET revoked_at = now()
+    const [old] = await tx<{ name: string; tokenLimit: number | null; mode: KeyMode }[]>`UPDATE api_keys SET revoked_at = now()
       WHERE id = ${id} AND account_id = ${accountId} AND revoked_at IS NULL
-      RETURNING name, token_limit AS "tokenLimit"`;
+      RETURNING name, token_limit AS "tokenLimit", mode`;
     if (!old) return null;
-    return createKey(tx as unknown as Sql, { name: old.name, tokenLimit: old.tokenLimit, accountId });
+    return createKey(tx as unknown as Sql, { name: old.name, tokenLimit: old.tokenLimit, accountId, mode: old.mode, createdBy });
   });
 }
 
@@ -210,19 +236,18 @@ async function verifyAccessToken(sql: Sql, token: string): Promise<TokenCheck | 
 // ---------------------------------------------------------------- authentication
 
 function keyContext(row: KeyRow, via: 'api_key' | 'access_token'): KeyContext {
+  const base = { id: row.id, name: row.name, accountId: row.account_id || null, via, mode: row.mode };
+  if (row.mode === 'test') return { ...base, tokenLimit: row.token_limit ?? TEST_TOKENS(), ratePerMinute: TEST_RATE() };
   const plan = row.account_id ? PLANS[row.plan as string] || PLANS.free : null;
   return {
-    id: row.id,
-    name: row.name,
-    accountId: row.account_id || null,
-    via,
+    ...base,
     tokenLimit: row.token_limit ?? (plan ? plan.monthlyTokens : null),
     ratePerMinute: plan ? plan.ratePerMinute : DEFAULT_RATE,
   };
 }
 
 const activeKeys = (sql: Sql, where: Fragment) => sql<KeyRow[]>`
-  SELECT k.id, k.name, k.token_limit, k.account_id, ${effectivePlan(sql, 'a')} AS plan
+  SELECT k.id, k.name, k.mode, k.token_limit, k.account_id, ${effectivePlan(sql, 'a')} AS plan
   FROM api_keys k LEFT JOIN accounts a ON a.id = k.account_id
   WHERE k.revoked_at IS NULL AND ${where}`;
 
@@ -231,7 +256,7 @@ const activeKeys = (sql: Sql, where: Fragment) => sql<KeyRow[]>`
  * Returns the key context, null when no/unknown credentials, or throws 401 for an expired token.
  */
 export async function authenticate(sql: Sql, headers: IncomingHttpHeaders): Promise<KeyContext | null> {
-  if (process.env.NUTRIKIT_AUTH === 'off') return { id: 'dev', name: 'auth disabled', accountId: null, via: 'none', tokenLimit: null, ratePerMinute: DEFAULT_RATE };
+  if (process.env.NUTRIKIT_AUTH === 'off') return { id: 'dev', name: 'auth disabled', accountId: null, via: 'none', mode: 'live', tokenLimit: null, ratePerMinute: DEFAULT_RATE };
   const auth = headers.authorization || '';
   const credential = auth.startsWith('Bearer ') ? auth.slice(7).trim() : String(headers['x-api-key'] || '').trim();
   if (!credential) return null;
@@ -260,8 +285,18 @@ export function isAdmin(headers: IncomingHttpHeaders): boolean {
 // with one conditional upsert before the handler runs, so concurrent calls can't overspend; afterwards it is
 // settled to what it actually cost (or released, on failure), in the same transaction as its `usage` row.
 
-/** The allowance a call counts against: the whole account (all of its keys), or an operator key on its own. */
-const subjectOf = (key: Pick<KeyContext, 'id' | 'accountId'>) => (key.accountId ? `acct:${key.accountId}` : `key:${key.id}`);
+/**
+ * The allowance a call counts against: the whole account (all of its live keys), or an operator key on its own.
+ * Test keys count against the account's test allowance (`test:`), or their own (`test-key:`) for operator keys.
+ */
+const subjectOf = (key: Pick<KeyContext, 'id' | 'accountId'> & { mode?: KeyMode }) => key.mode === 'test'
+  ? (key.accountId ? `test:${key.accountId}` : `test-key:${key.id}`)
+  : (key.accountId ? `acct:${key.accountId}` : `key:${key.id}`);
+
+/** Usage rows of one mode (test rows are told apart by their key's mode). */
+const usageMode = (sql: Sql, mode: KeyMode) => mode === 'test'
+  ? sql`key_id IN (SELECT id FROM api_keys WHERE mode = 'test')`
+  : sql`key_id NOT IN (SELECT id FROM api_keys WHERE mode = 'test')`;
 const periodOf = (iso = monthStart()) => iso.slice(0, 10);
 
 /** Tokens reserved for one in-flight call. */
@@ -277,8 +312,8 @@ async function counterValue(sql: Sql, subject: string, period = periodOf()): Pro
   return row?.used ?? 0;
 }
 
-export async function accountUsedThisMonth(sql: Sql, accountId: string): Promise<number> {
-  return counterValue(sql, `acct:${accountId}`);
+export async function accountUsedThisMonth(sql: Sql, accountId: string, mode: KeyMode = 'live'): Promise<number> {
+  return counterValue(sql, mode === 'test' ? `test:${accountId}` : `acct:${accountId}`);
 }
 
 /**
@@ -288,7 +323,9 @@ export async function accountUsedThisMonth(sql: Sql, accountId: string): Promise
 export async function reserve(sql: Sql, key: KeyContext, cost: number): Promise<Reservation> {
   const subject = subjectOf(key);
   const period = periodOf();
-  const exhausted = () => Object.assign(new Error(`monthly token allowance exhausted (${key.tokenLimit} tokens); upgrade your plan or wait for the next month`), { status: 429, code: 'quota_exceeded' });
+  const exhausted = () => Object.assign(new Error(key.mode === 'test'
+    ? `monthly test allowance exhausted (${key.tokenLimit} tokens); it resets next month and live keys are unaffected`
+    : `monthly token allowance exhausted (${key.tokenLimit} tokens); upgrade your plan or wait for the next month`), { status: 429, code: 'quota_exceeded' });
   if (cost <= 0) return { subject, period, reserved: 0, used: null };
   if (key.tokenLimit != null && cost > key.tokenLimit) throw exhausted();
   const [row] = await sql<{ used: number }[]>`
@@ -329,11 +366,11 @@ export async function settle(sql: Sql, key: KeyContext, reservation: Reservation
 export const aiTokens = (usage?: Partial<AIUsage> | null) => (usage ? Math.ceil(((usage.inputTokens || 0) + (usage.outputTokens || 0)) / 1000) : 0);
 
 export async function usageSummary(sql: Sql, key: KeyContext): Promise<UsageSummary> {
-  const filter = key.accountId ? sql`account_id = ${key.accountId}` : sql`key_id = ${key.id}`;
+  const filter = key.accountId ? sql`account_id = ${key.accountId} AND ${usageMode(sql, key.mode ?? 'live')}` : sql`key_id = ${key.id}`;
   const rows = (await sql<EndpointUsage[]>`SELECT endpoint, COUNT(*) AS calls, SUM(tokens) AS tokens FROM usage
     WHERE ${filter} AND at >= ${monthStart()} GROUP BY endpoint ORDER BY endpoint`).map((r) => ({ ...r }));
   const used = await counterValue(sql, subjectOf(key));
-  return { keyId: key.id, accountId: key.accountId, periodStart: monthStart(), tokenLimit: key.tokenLimit, used, remaining: key.tokenLimit == null ? null : Math.max(key.tokenLimit - used, 0), byEndpoint: rows };
+  return { keyId: key.id, mode: key.mode ?? 'live', accountId: key.accountId, periodStart: monthStart(), tokenLimit: key.tokenLimit, used, remaining: key.tokenLimit == null ? null : Math.max(key.tokenLimit - used, 0), byEndpoint: rows };
 }
 
 /**
@@ -348,21 +385,22 @@ export async function reconcileUsage(sql: Sql, month: string): Promise<number> {
     await tx`DELETE FROM usage_periods WHERE period_start = ${period}`;
     const rows = await tx`
       INSERT INTO usage_periods (subject, period_start, used)
-      SELECT CASE WHEN account_id IS NOT NULL THEN 'acct:' || account_id ELSE 'key:' || key_id END, ${period}::date, SUM(tokens)
-      FROM usage
-      WHERE at >= ${period}::date AND at < (${period}::date + interval '1 month')
+      SELECT CASE WHEN k.mode = 'test' THEN (CASE WHEN u.account_id IS NOT NULL THEN 'test:' || u.account_id ELSE 'test-key:' || u.key_id END)
+                  WHEN u.account_id IS NOT NULL THEN 'acct:' || u.account_id ELSE 'key:' || u.key_id END, ${period}::date, SUM(u.tokens)
+      FROM usage u LEFT JOIN api_keys k ON k.id = u.key_id
+      WHERE u.at >= ${period}::date AND u.at < (${period}::date + interval '1 month')
       GROUP BY 1
       RETURNING subject`;
     return rows.length;
   });
 }
 
-/** Daily token totals for an account over the last `days` days (UTC), zero-filled. */
+/** Daily live token totals for an account over the last `days` days (UTC), zero-filled; test keys are left out. */
 export async function usageSeries(sql: Sql, accountId: string, days = 30): Promise<UsageDay[]> {
   const since = new Date(Date.now() - (days - 1) * 864e5);
   since.setUTCHours(0, 0, 0, 0);
   const rows = await sql<UsageDay[]>`SELECT to_char(at AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS day, SUM(tokens) AS tokens, COUNT(*) AS calls
-    FROM usage WHERE account_id = ${accountId} AND at >= ${since} GROUP BY day`;
+    FROM usage WHERE account_id = ${accountId} AND ${usageMode(sql, 'live')} AND at >= ${since} GROUP BY day`;
   const byDay = new Map(rows.map((r) => [r.day, r]));
   return Array.from({ length: days }, (_, i) => {
     const day = new Date(since.getTime() + i * 864e5).toISOString().slice(0, 10);
@@ -387,7 +425,7 @@ export async function hitRateLimit(sql: Sql, bucket: string, limit: number): Pro
   }
 }
 
-// Per account (or per operator key).
+// Per account (or per operator key); test keys have their own bucket.
 export function rateLimit(sql: Sql, key: KeyContext): Promise<void> {
-  return hitRateLimit(sql, `key:${key.accountId || key.id}`, key.ratePerMinute || DEFAULT_RATE);
+  return hitRateLimit(sql, `${key.mode === 'test' ? 'test' : 'key'}:${key.accountId || key.id}`, key.ratePerMinute || DEFAULT_RATE);
 }

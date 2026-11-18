@@ -64,6 +64,10 @@ in Brevo) when you have one.
 |---|---|---|
 | `PORT` | `8787` | HTTP port (most hosts set it) |
 | `NUTRIKIT_RATE_LIMIT` | `120` | Requests per minute per key |
+| `NUTRIKIT_TEST_TOKENS` | `5000` | Monthly tokens for a team's test keys (`nk_test_…`), separate from its plan |
+| `NUTRIKIT_TEST_RATE_LIMIT` | `30` | Requests per minute for a team's test keys |
+| `NUTRIKIT_TEAMS_PER_USER` | `3` | Teams one person can own (each team gets its own Free allowance) |
+| `NUTRIKIT_INVITE_LIMIT` | `30` | Invitations a team can send per hour (each address can also be invited at most 3 times an hour) |
 | `NUTRIKIT_SIGNUP_LIMIT` | `5` | Signups per hour per client address (invalid attempts count). Raise it if many developers share one network, e.g. an office or college |
 | `NUTRIKIT_LOGIN_IP_LIMIT` | `20` | Failed logins per 15 minutes per client address, across all emails (each email also has its own limit of 5) |
 | `NUTRIKIT_EMAIL_LIMIT` | `3` | Emails per hour per address and kind (verification, password reset). Reset requests over it are dropped silently, so the answer never shows whether an account exists |

@@ -24,7 +24,7 @@ export async function toApiError(res: Response): Promise<ApiError> {
   return new ApiError(res.status, data.error?.code || 'error', data.error?.message || 'Something went wrong', data.error?.fields, retry ? Number(retry) : undefined);
 }
 
-export async function portal<T>(method: 'GET' | 'POST' | 'DELETE', path: string, body?: unknown): Promise<T> {
+export async function portal<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
   const res = await fetch(`/portal/api${path}`, {
     method,
     credentials: 'same-origin',
@@ -43,7 +43,10 @@ export interface Plan {
   ratePerMinute: number;
   price: number | null; // per 30-day period, in `currency`; null = arranged directly
   currency: string;
+  /** Active keys allowed per mode (live and test are counted separately). */
   maxKeys: number;
+  /** People in a team, pending invitations included. */
+  maxMembers: number;
   /** 0 = Free, increasing with value: the server never sells a plan ranked below the current one. */
   rank: number;
 }
@@ -51,23 +54,49 @@ export interface Plan {
 /** sessionStorage key of a key pasted into the playground (cleared on logout). */
 export const PLAYGROUND_KEY_STORE = 'nk-playground-key';
 
+export type Role = 'owner' | 'admin' | 'developer';
+export type KeyMode = 'live' | 'test';
+
+export interface TeamSummary { id: string; name: string; role: Role; plan: string }
+
 export interface AccountView {
+  /** The signed-in person (kept as `account` for older code; `user` is the same). */
   account: { id: string; name: string; email: string; emailVerified?: boolean; createdAt: string };
+  user: { id: string; name: string; email: string; emailVerified: boolean; createdAt: string };
+  /** The team in use: it owns the plan, keys and usage. */
+  team: { id: string; name: string; role: Role; createdAt: string };
+  teams: TeamSummary[];
   /** expiresAt: when a paid 30-day period ends (null = no end). */
   plan: Plan & { id: string; expiresAt: string | null };
+  /** Live usage only; test keys have their own allowance in `testUsage`. */
   usage: { periodStart: string; used: number; remaining: number | null };
+  testUsage: { used: number; limit: number; remaining: number };
 }
+
+/** What each role may do (the server enforces the same rules). */
+export const can = {
+  manageLiveKeys: (role: Role) => role !== 'developer',
+  manageMembers: (role: Role) => role !== 'developer',
+  manageTeam: (role: Role) => role === 'owner',
+};
+
+export interface Member { userId: string; name: string; email: string; role: Role; joinedAt: string }
+export interface Invitation { id: string; email: string; role: Role; invitedBy: string | null; expiresAt: string; createdAt: string }
+export interface InvitationPreview { team: string; invitedBy: string | null; email: string; role: Role; expiresAt: string }
 
 export interface Me extends AccountView {
   plans: Record<string, Plan>;
   billing: { enabled: boolean; mode: 'live' | 'test' | null; currency: string; keyId: string | null };
 }
 
-export interface NewKey { id: string; name: string; key: string }
+export interface NewKey { id: string; name: string; mode: KeyMode; key: string }
 
 export interface KeySummary {
   id: string;
   name: string;
+  mode: KeyMode;
+  /** Who created it; null for keys whose creator deleted their login. */
+  createdBy: string | null;
   createdAt: string;
   lastUsedAt: string | null;
   revokedAt: string | null;
@@ -88,7 +117,7 @@ export interface AccessToken {
   token_type: 'Bearer';
   expires_in: number;
   expires_at: string;
-  key: { id: string; name: string };
+  key: { id: string; name: string; mode?: KeyMode };
 }
 
 /** A Razorpay order for one 30-day period, waiting to be paid in Razorpay Checkout (amount in paise). */
@@ -113,7 +142,7 @@ export const api = {
   verifyEmail: (token: string) => portal<{ verified: true; email: string }>('POST', '/email/verify', { token }),
   sendVerification: () => portal<{ sent: true } | { verified: true }>('POST', '/email/verification'),
   keys: () => portal<{ keys: KeySummary[] }>('GET', '/keys'),
-  createKey: (name: string) => portal<NewKey>('POST', '/keys', { name }),
+  createKey: (name: string, mode: KeyMode = 'live') => portal<NewKey>('POST', '/keys', { name, mode }),
   revokeKey: (id: string) => portal<{ revoked: string }>('DELETE', `/keys/${id}`),
   regenerateKey: (id: string) => portal<NewKey & { replaced: string }>('POST', `/keys/${id}/regenerate`),
   usage: (days = 30) => portal<{ series: UsageDay[]; month: UsageMonth }>('GET', `/usage?days=${days}`),
@@ -122,6 +151,18 @@ export const api = {
   createOrder: (plan: string) => portal<NewOrder>('POST', '/billing/order', { plan }),
   verifyPayment: (response: RazorpayPaymentResponse) => portal<AccountView>('POST', '/billing/verify', response),
   demo: <T>(text: string) => portal<T>('POST', '/demo', { text }),
+  // Teams
+  createTeam: (name: string) => portal<AccountView>('POST', '/teams', { name }),
+  switchTeam: (accountId: string) => portal<AccountView>('POST', '/teams/switch', { accountId }),
+  renameTeam: (name: string) => portal<AccountView>('PATCH', '/team', { name }),
+  members: () => portal<{ members: Member[]; invitations: Invitation[]; maxMembers: number }>('GET', '/members'),
+  invite: (email: string, role: Role) => portal<Invitation>('POST', '/invitations', { email, role }),
+  revokeInvitation: (id: string) => portal<{ revoked: string }>('DELETE', `/invitations/${id}`),
+  changeRole: (userId: string, role: Role) => portal<{ members: Member[] }>('PATCH', `/members/${userId}`, { role }),
+  /** Removes a member, or leaves the team when it is you. */
+  removeMember: (userId: string) => portal<{ removed: string; left: boolean }>('DELETE', `/members/${userId}`),
+  invitation: (token: string) => portal<InvitationPreview>('GET', `/invitations/${encodeURIComponent(token)}`),
+  acceptInvitation: (token: string) => portal<AccountView>('POST', `/invitations/${encodeURIComponent(token)}/accept`),
   /** Deletes the signed-in account (after re-entering its password) and ends the session. */
   deleteAccount: (password: string) => portal<{ deleted: true }>('POST', '/account/delete', { password }),
 };

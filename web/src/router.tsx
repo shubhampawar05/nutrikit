@@ -18,6 +18,7 @@ export const routes = [
       { path: '/forgot-password', lazy: async () => ({ Component: (await import('./pages/Recovery.tsx')).ForgotPassword }) },
       { path: '/reset-password', lazy: async () => ({ Component: (await import('./pages/Recovery.tsx')).ResetPassword }) },
       { path: '/verify-email', lazy: async () => ({ Component: (await import('./pages/Recovery.tsx')).VerifyEmail }) },
+      { path: '/invite', lazy: async () => ({ Component: (await import('./pages/Invite.tsx')).Invite }) },
       { path: '/dashboard', lazy: async () => ({ Component: (await import('./pages/Dashboard.tsx')).Dashboard }) },
       { path: '/playground', lazy: async () => ({ Component: (await import('./pages/Playground.tsx')).Playground }) },
       { path: '/admin', lazy: async () => ({ Component: (await import('./pages/Admin.tsx')).Admin }) },

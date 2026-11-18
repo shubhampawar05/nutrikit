@@ -9,7 +9,7 @@ import { CodeBlock } from '../components/CodeBlock.tsx';
 interface NutrientInfo { key: string; name: string; unit: string; dailyValue: number | null }
 
 const NAV: [string, [string, string][]][] = [
-  ['Getting started', [['introduction', 'Introduction'], ['quick-start', 'Quick start'], ['authentication', 'Authentication'], ['access-tokens', 'Access tokens for apps']]],
+  ['Getting started', [['introduction', 'Introduction'], ['quick-start', 'Quick start'], ['authentication', 'Authentication'], ['test-keys', 'Test keys'], ['teams', 'Teams'], ['access-tokens', 'Access tokens for apps']]],
   ['Guides', [['food-search', 'Food search & nutrients'], ['text-logging', 'Text & voice logging'], ['photo-logging', 'Photo logging'], ['barcodes', 'Barcodes'], ['labels', 'Nutrition labels'], ['meal-plans', 'Meal plans'], ['advisor', 'Nutrition advisor']]],
   ['SDK', [['sdk', 'JavaScript SDK'], ['sdk-browser', 'On-device capture']]],
   ['Platform', [['tokens', 'Tokens & usage'], ['rate-limits', 'Rate limits'], ['errors', 'Errors'], ['nutrients', 'Nutrient keys'], ['data', 'Data sources'], ['changelog', 'Changelog']]],
@@ -115,6 +115,29 @@ export function Docs() {
           <p><code>X-Api-Key: nk_...</code> is also accepted. Keys are created and revoked in your <Link to="/dashboard">dashboard</Link>; Nutrikit stores only a hash, so a lost key cannot be recovered — create a new one and revoke the old.</p>
           <div className="callout warn"><b>Keep <code>nk_</code> keys on your server.</b> Anyone with the key can spend your allowance. For browsers and mobile apps, use <a href="#access-tokens">access tokens</a>.</div>
           <p>Missing or wrong credentials return <code>401 unauthorized</code>.</p>
+        </section>
+
+        <section id="test-keys">
+          <h2>Test keys</h2>
+          <p>
+            Keys are <b>live</b> (<code>nk_live_…</code>) or <b>test</b> (<code>nk_test_…</code>). Use test keys in development and CI: they get
+            the same food data as live keys, but they never reach the AI provider. Photo logging, label photos, AI text logging and the advisor
+            answer with fixed sample results (<code>"provider": "test"</code>) in the same shape as live answers, so tests are free and repeatable.
+          </p>
+          <ul>
+            <li>Test calls count against a separate monthly test allowance (5,000 tokens per team), never your plan, and are rate limited to 30 a minute.</li>
+            <li>Every test response carries <code>X-Nutrikit-Mode: test</code>.</li>
+            <li>Keys created before test keys existed (<code>nk_…</code>) are live.</li>
+          </ul>
+        </section>
+
+        <section id="teams">
+          <h2>Teams</h2>
+          <p>
+            Keys, usage and the plan belong to a team, not to one person, so they keep working when someone leaves. Invite teammates from the
+            dashboard as <b>admins</b> (manage members and all keys) or <b>developers</b> (see keys and usage, manage test keys). <b>Owners</b>
+            can do everything, including changing the plan. You can belong to several teams and switch between them in the dashboard.
+          </p>
         </section>
 
         <section id="access-tokens">

@@ -75,7 +75,7 @@ function AuthForm({ mode }: { mode: Mode }) {
       } else {
         const res = await api.signup({ name: data.name, email: data.email, password: data.password });
         // The first key is shown once on the dashboard, then forgotten.
-        if (res.firstKey) sessionStorage.setItem('nutrikit-new-key', JSON.stringify(res.firstKey));
+        if (res.firstKey) sessionStorage.setItem('nutrikit-new-key', JSON.stringify({ ...res.firstKey, teamId: res.team?.id }));
       }
       submitted.current = true;
       await queryClient.invalidateQueries({ queryKey: ['me'] });

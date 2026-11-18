@@ -1,10 +1,10 @@
-// Developer dashboard: account, plan and usage, API keys, upgrades (the legacy portal.js dashboard half).
+// Developer dashboard: the team in use (switcher, members), plan and usage, live and test API keys, upgrades.
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { flushSync } from 'react-dom';
 import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, ApiError, errorText, fmt, fmtDate, fmtPeriodDate, fmtPrice, PLAYGROUND_KEY_STORE, sentence, type Me } from '../api/client.ts';
+import { api, ApiError, can, errorText, fmt, fmtDate, fmtPeriodDate, fmtPrice, PLAYGROUND_KEY_STORE, sentence, type KeyMode, type Me } from '../api/client.ts';
 import { payWithRazorpay } from '../api/razorpay.ts';
 import { useMe } from '../hooks.ts';
 import { waitText } from './Auth.tsx';
@@ -12,9 +12,11 @@ import { PAYMENTS_VISIBLE } from '../features.ts';
 import { useToast } from '../components/Toast.tsx';
 import { CodeBlock } from '../components/CodeBlock.tsx';
 import { UsageChart } from './dashboard/UsageChart.tsx';
+import { MembersCard, ROLE_NAMES, TeamSwitcher } from './dashboard/Team.tsx';
 import '../styles/dashboard.css';
 import { PasswordInput } from '../components/PasswordInput.tsx';
 import { Icon } from '../components/Icon.tsx';
+import { ErrorRetry } from '../components/ErrorRetry.tsx';
 
 /** sessionStorage: the newly created key, kept until the developer dismisses it (survives a refresh). */
 const NEW_KEY = 'nutrikit-new-key';
@@ -22,25 +24,17 @@ const WELCOME = 'Welcome! Here is your first API key';
 /** After a payment the browser couldn't confirm, reload the account this long after (the webhook applies it). */
 const VERIFY_RETRY_MS = [5_000, 30_000];
 
-interface Reveal { key: string; title: string }
+/** A key shown once. `teamId`: the team it belongs to; it is only shown while that team is in use. */
+interface Reveal { key: string; title: string; teamId?: string }
 
 function storedReveal(): Reveal | null {
   try {
-    const parsed = JSON.parse(sessionStorage.getItem(NEW_KEY) ?? 'null') as { key?: unknown; title?: unknown } | null;
+    const parsed = JSON.parse(sessionStorage.getItem(NEW_KEY) ?? 'null') as { key?: unknown; title?: unknown; teamId?: unknown } | null;
     if (parsed && typeof parsed.key === 'string') {
-      return { key: parsed.key, title: typeof parsed.title === 'string' ? parsed.title : WELCOME };
+      return { key: parsed.key, title: typeof parsed.title === 'string' ? parsed.title : WELCOME, teamId: typeof parsed.teamId === 'string' ? parsed.teamId : undefined };
     }
   } catch { /* ignore a malformed entry */ }
   return null;
-}
-
-function ErrorRetry({ error, onRetry }: { error: unknown; onRetry: () => void }) {
-  return (
-    <div className="dash-error">
-      <p className="form-error" style={{ margin: 0 }}>{errorText(error)}</p>
-      <button className="btn btn-ghost btn-sm" type="button" onClick={onRetry}>Retry</button>
-    </div>
-  );
 }
 
 // ---------------------------------------------------------------- one-time key reveal
@@ -129,7 +123,7 @@ function KeyReveal({ reveal, onDismiss }: { reveal: Reveal; onDismiss: () => voi
 // ---------------------------------------------------------------- usage this month
 
 function UsageCard({ me }: { me: Me }) {
-  const usage = useQuery({ queryKey: ['usage', 30], queryFn: () => api.usage(30) });
+  const usage = useQuery({ queryKey: ['usage', me.team.id, 30], queryFn: () => api.usage(30) });
   const used = me.usage.used;
   const limit = me.plan.monthlyTokens;
   const pct = limit ? Math.min(100, (used / limit) * 100) : 0;
@@ -138,7 +132,7 @@ function UsageCard({ me }: { me: Me }) {
   return (
     <section className="card">
       <div className="row" style={{ justifyContent: 'space-between' }}>
-        <h2 style={{ margin: '0 0 12px' }}>Usage this month</h2>
+        <h2 style={{ margin: '0 0 12px' }}>Live usage this month</h2>
         <span className="small muted">Resets {fmtPeriodDate(reset.toISOString())}</span>
       </div>
       <p style={{ margin: '16px 0 0' }}>
@@ -165,6 +159,9 @@ function UsageCard({ me }: { me: Me }) {
           </tbody>
         </table>
       </div>
+      <p className="small muted" style={{ margin: '12px 0 0' }}>
+        Live keys only. Test keys: {fmt(me.testUsage.used)} of {fmt(me.testUsage.limit)} test tokens used this month.
+      </p>
     </section>
   );
 }
@@ -268,7 +265,8 @@ function PlanCard({ me, status, setStatus }: { me: Me; status: string; setStatus
       <ul className="muted small" style={{ paddingLeft: 18 }}>
         <li>{me.plan.monthlyTokens == null ? 'Custom monthly tokens' : `${fmt(me.plan.monthlyTokens)} tokens / month`}</li>
         <li>{fmt(me.plan.ratePerMinute)} requests / minute</li>
-        <li>Up to {me.plan.maxKeys} API keys</li>
+        <li>Up to {me.plan.maxKeys} live and {me.plan.maxKeys} test keys</li>
+        <li>Up to {me.plan.maxMembers} people in the team</li>
       </ul>
       {unconfirmed ? (
         <div className="notice" role="alert" style={{ margin: '0 0 12px' }}>
@@ -276,7 +274,9 @@ function PlanCard({ me, status, setStatus }: { me: Me; status: string; setStatus
           {' '}Payment id <code>{unconfirmed}</code>. If it hasn't switched on by then, contact support with this id.
         </div>
       ) : null}
-      {!PAYMENTS_VISIBLE ? null : firstOpen == null ? (
+      {!PAYMENTS_VISIBLE ? null : !can.manageTeam(me.team.role) ? (
+        <p className="small muted" style={{ margin: 0 }}>Only a team owner can change the plan.</p>
+      ) : firstOpen == null ? (
         <p className="small muted" style={{ margin: 0 }}>You're on our highest plan. To change it, contact us.</p>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -320,8 +320,10 @@ function PlanCard({ me, status, setStatus }: { me: Me; status: string; setStatus
 function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void }) {
   const toast = useToast();
   const queryClient = useQueryClient();
-  const keys = useQuery({ queryKey: ['keys'], queryFn: api.keys });
-  const { register, handleSubmit, reset } = useForm<{ name: string }>({ defaultValues: { name: '' } });
+  const keys = useQuery({ queryKey: ['keys', me.team.id], queryFn: api.keys });
+  const liveAllowed = can.manageLiveKeys(me.team.role);
+  const { register, handleSubmit, reset, watch } = useForm<{ name: string; mode: KeyMode }>({ defaultValues: { name: '', mode: liveAllowed ? 'live' : 'test' } });
+  const mode = watch('mode');
   // Revokes in flight, by key id: a ref so a double click can't send twice, state so the row's button disables.
   const revoking = useRef(new Set<string>());
   const [pendingIds, setPendingIds] = useState<ReadonlySet<string>>(new Set());
@@ -331,10 +333,10 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
   };
 
   const create = useMutation({
-    mutationFn: (name: string) => api.createKey(name),
+    mutationFn: (v: { name: string; mode: KeyMode }) => api.createKey(v.name, v.mode),
     onSuccess: (key) => {
-      reset();
-      onCreated({ key: key.key, title: `New key “${key.name}” created` });
+      reset({ name: '', mode: key.mode });
+      onCreated({ key: key.key, title: `New ${key.mode} key “${key.name}” created`, teamId: me.team.id });
       toast('New key created');
     },
     // The plan's key limit is enforced by the server (403 key_limit); its message says what to do.
@@ -355,7 +357,7 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
   const regenerate = useMutation({
     mutationFn: (id: string) => api.regenerateKey(id),
     onSuccess: (key) => {
-      onCreated({ key: key.key, title: `New key for “${key.name}”` });
+      onCreated({ key: key.key, title: `New key for “${key.name}”`, teamId: me.team.id });
       toast('Key regenerated. The old one no longer works');
     },
     onError: (err) => toast(errorText(err)),
@@ -382,14 +384,19 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
   };
 
   const list = keys.data?.keys;
-  const active = list?.filter((k) => !k.revokedAt).length;
+  const activeOf = (m: KeyMode) => list?.filter((k) => !k.revokedAt && k.mode === m).length;
+  const active = activeOf(mode);
   const atLimit = active != null && active >= me.plan.maxKeys;
   return (
     <section className="card" style={{ marginBottom: 20 }}>
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <h2 style={{ margin: '0 0 12px' }}>API keys</h2>
-        <form className="row" onSubmit={handleSubmit(({ name }) => { if (!create.isPending) create.mutate(name); })}>
+        <form className="row" onSubmit={handleSubmit((v) => { if (!create.isPending) create.mutate(v); })}>
           <input className="input" placeholder="Key name, e.g. iOS app" maxLength={100} aria-label="New key name" style={{ width: 220 }} {...register('name')} />
+          <select className="input" aria-label="Key type" {...register('mode')}>
+            <option value="live" disabled={!liveAllowed}>Live{liveAllowed ? '' : ' (owners and admins)'}</option>
+            <option value="test">Test</option>
+          </select>
           <button className="btn btn-primary btn-sm" type="submit" disabled={create.isPending || atLimit} aria-describedby={atLimit ? 'key-limit' : undefined}>
             Create key
           </button>
@@ -397,11 +404,11 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
       </div>
       {atLimit ? (
         <p className="small" id="key-limit" style={{ margin: '8px 0 0' }}>
-          Your {me.plan.name} plan allows {me.plan.maxKeys} active {me.plan.maxKeys === 1 ? 'key' : 'keys'}. Revoke one or upgrade your plan to create another.
+          Your {me.plan.name} plan allows {me.plan.maxKeys} active {mode} {me.plan.maxKeys === 1 ? 'key' : 'keys'}. Revoke one or upgrade your plan to create another.
         </p>
       ) : null}
       <p className="small muted" style={{ margin: '8px 0 12px' }}>
-        {active != null && `${active} of ${me.plan.maxKeys} active keys on the ${me.plan.name} plan. Keys share the account's monthly allowance.`}
+        {list && `${activeOf('live')} of ${me.plan.maxKeys} live and ${activeOf('test')} of ${me.plan.maxKeys} test keys. Live keys share the team's monthly allowance. Test keys (nk_test_…) get real catalog answers and sample AI answers, never touch the AI provider, and have their own ${fmt(me.testUsage.limit)}-token allowance.`}
       </p>
       {keys.isPending ? (
         <div className="skeleton-rows" aria-busy="true"><span className="sr-only">Loading keys…</span><i /><i /></div>
@@ -421,14 +428,16 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
             <tbody>
               {list.map((k) => (
                 <tr key={k.id}>
-                  <td className="key-name">{k.name} <span className="muted small">{k.id}</span></td>
-                  <td data-label="Created">{fmtDate(k.createdAt)}</td>
+                  <td className="key-name">
+                    <span className={k.mode === 'test' ? 'badge warn' : 'badge ok'}>{k.mode === 'test' ? 'Test' : 'Live'}</span> {k.name} <span className="muted small">{k.id}</span>
+                  </td>
+                  <td data-label="Created">{fmtDate(k.createdAt)}{k.createdBy ? <span className="muted small admin-sub">by {k.createdBy}</span> : null}</td>
                   <td data-label="Last used">{k.lastUsedAt ? fmtDate(k.lastUsedAt) : <span className="muted">never</span>}</td>
                   <td data-label="Tokens this month">{fmt(k.usedThisMonth)}</td>
                   <td className="key-cell-actions">
                     {k.revokedAt
                       ? <span className="badge">revoked</span>
-                      : (
+                      : k.mode === 'live' && !liveAllowed ? null : (
                         <div className="key-actions">
                           <button
                             className="btn btn-ghost btn-sm"
@@ -487,8 +496,10 @@ function DeleteAccountCard({ me, onDeleted }: { me: Me; onDeleted: () => void })
     <section className="card" aria-labelledby="delete-account-title" style={{ marginTop: 20 }}>
       <h2 id="delete-account-title" style={{ margin: '0 0 8px' }}>Delete account</h2>
       <p className="muted small" style={{ marginTop: 0 }}>
-        Permanently deletes your account, API keys, usage history and sessions. Apps using your keys stop working at once.
-        This cannot be undone. Payment records are kept for tax purposes, without your name or email.
+        Permanently deletes your login and every team where you are the only member, with its API keys and usage
+        history. Apps using those keys stop working at once. Teams with other members stay; if you are their only
+        owner, make someone else an owner first. This cannot be undone. Payment records are kept for tax purposes,
+        without your name or email.
         See the <Link to="/privacy">privacy policy</Link>.
       </p>
       {!open ? (
@@ -587,6 +598,7 @@ export function Dashboard() {
     queryClient.setQueryData(['me'], null);
     queryClient.removeQueries({ queryKey: ['keys'] });
     queryClient.removeQueries({ queryKey: ['usage'] });
+    queryClient.removeQueries({ queryKey: ['members'] });
     if (notice) toast(notice);
   };
 
@@ -612,13 +624,19 @@ export function Dashboard() {
     return <DashboardLoading />;
   }
 
+  // A key made in another team stays saved for when that team is in use again, but isn't shown here.
+  const shown = reveal && (!reveal.teamId || reveal.teamId === account.team.id) ? reveal : null;
+
   return (
     <main className="wrap dash">
       <div className="dash-head">
         <div>
           <span className="kicker">Dashboard</span>
-          <h1>Hi, <span>{account.account.name}</span></h1>
-          <p className="muted" style={{ margin: 0 }}><span>{account.account.email}</span> · <span className="badge ok">{account.plan.name} plan</span></p>
+          <h1>Hi, <span>{account.user.name}</span></h1>
+          <p className="muted" style={{ margin: 0 }}>
+            <span>{account.user.email}</span> · <span className="badge ok">{account.plan.name} plan</span> · <span className="badge">{ROLE_NAMES[account.team.role]}</span>
+          </p>
+          <TeamSwitcher me={account} />
         </div>
         <div className="row">
           <Link className="btn btn-ghost btn-sm" to="/docs">Docs</Link>
@@ -627,22 +645,25 @@ export function Dashboard() {
         </div>
       </div>
 
-      {account.account.emailVerified === false ? <VerifyBanner email={account.account.email} /> : null}
+      {account.user.emailVerified === false ? <VerifyBanner email={account.user.email} /> : null}
 
-      {reveal ? <KeyReveal reveal={reveal} onDismiss={() => setReveal(null)} /> : null}
+      {shown ? <KeyReveal reveal={shown} onDismiss={() => setReveal(null)} /> : null}
 
       <div className="dash-grid">
         <UsageCard me={account} />
         <PlanCard me={account} status={upgradeStatus} setStatus={setUpgradeStatus} />
       </div>
 
-      <KeysCard me={account} onCreated={setReveal} />
+      {/* Keyed by team: switching teams starts the forms afresh (the key type defaults by role). */}
+      <KeysCard key={`keys:${account.team.id}`} me={account} onCreated={setReveal} />
+
+      <MembersCard key={`members:${account.team.id}`} me={account} />
 
       <section className="card">
         <h2 style={{ margin: '0 0 12px' }}>Make your first request</h2>
         {/* The snippet shows the new key masked like the reveal box; its Copy button copies the real key. */}
-        <CodeBlock copyText={snippet(reveal?.key ?? 'nk_your_key')}>
-          <code>{snippet(reveal ? maskKey(reveal.key) : 'nk_your_key')}</code>
+        <CodeBlock copyText={snippet(shown?.key ?? 'nk_your_key')}>
+          <code>{snippet(shown ? maskKey(shown.key) : 'nk_your_key')}</code>
         </CodeBlock>
         <p className="small muted" style={{ margin: 0 }}>
           Next: <Link to="/docs#access-tokens">use access tokens in apps</Link> · <Link to="/docs/reference">API reference</Link> · <a href="https://www.npmjs.com/package/@nutrikit/sdk" target="_blank" rel="noopener">install the SDK</a> (<code>npm i @nutrikit/sdk</code>)

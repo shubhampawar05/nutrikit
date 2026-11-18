@@ -17,8 +17,8 @@ import type { Me } from './api/client.ts';
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 const plans = {
-  free: { name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, rank: 0 },
-  starter: { name: 'Starter', monthlyTokens: 100000, ratePerMinute: 120, price: 1499, currency: 'INR', maxKeys: 5, rank: 1 },
+  free: { name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, maxMembers: 5, rank: 0 },
+  starter: { name: 'Starter', monthlyTokens: 100000, ratePerMinute: 120, price: 1499, currency: 'INR', maxKeys: 5, maxMembers: 5, rank: 1 },
 };
 const me: Me = {
   account: { id: 'acc_1', name: 'Ada Labs', email: 'ada@example.com', emailVerified: true, createdAt: '2026-10-01T00:00:00Z' },
@@ -26,6 +26,10 @@ const me: Me = {
   usage: { periodStart: '2026-10-01T00:00:00Z', used: 0, remaining: 2000 },
   plans,
   billing: { enabled: true, mode: 'test', currency: 'INR', keyId: 'rzp_test_key' },
+  user: { id: 'usr_1', name: 'Ada Labs', email: 'ada@example.com', emailVerified: true, createdAt: '2026-10-01T00:00:00Z' },
+  team: { id: 'acc_1', name: 'Ada Labs', role: 'owner', createdAt: '2026-10-01T00:00:00Z' },
+  teams: [{ id: 'acc_1', name: 'Ada Labs', role: 'owner', plan: 'free' }],
+  testUsage: { used: 0, limit: 5000, remaining: 5000 },
 };
 
 /** Signed in or out; answers the portal calls the pages make. */

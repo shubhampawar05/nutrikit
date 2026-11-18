@@ -1,7 +1,7 @@
 // Request and instance decorations used across route groups.
 import type { Sql } from 'postgres';
 import type { KeyContext } from './domain/auth.ts';
-import type { Account } from './domain/accounts.ts';
+import type { Account, Role, User } from './domain/accounts.ts';
 import type { Monitor } from './plugins/monitoring.ts';
 
 declare module 'fastify' {
@@ -12,7 +12,11 @@ declare module 'fastify' {
   }
   interface FastifyRequest {
     key: KeyContext;
+    /** Portal: the team in use, the signed-in user, their role in the team and the session cookie's value. */
     account: Account;
+    user: User;
+    role: Role;
+    sessionToken: string;
     rawBody?: Buffer;
   }
   interface FastifyContextConfig {

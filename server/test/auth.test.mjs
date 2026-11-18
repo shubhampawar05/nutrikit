@@ -3,7 +3,7 @@ import { sql } from './helpers.mjs';
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildApp } from '../src/app.ts';
-import { createAccount, login } from '../src/domain/accounts.ts';
+import { signup as createUser, login } from '../src/domain/accounts.ts';
 
 const app = await buildApp({ trustProxy: 1 }); // tests choose the client address with X-Forwarded-For
 let base;
@@ -32,14 +32,14 @@ test('an account stored with the old synchronous hashing still logs in', async (
   // Made by the previous scryptSync code with the same parameters.
   const legacy = 'scrypt$00112233445566778899aabbccddeeff$61a946d8b9d3110e54ba43e782c376bc9faeaee3ce4f39b6edb5f660add04ae4';
   const address = email('legacy');
-  await sql`INSERT INTO accounts (id, email, name, password_hash) VALUES (${`acct_${Date.now().toString(16)}`}, ${address}, 'Legacy', ${legacy})`;
+  await sql`INSERT INTO users (id, email, name, password_hash) VALUES (${`usr_${Date.now().toString(16)}`}, ${address}, 'Legacy', ${legacy})`;
   assert.equal((await login(sql, { email: address, password: 'legacy password 123' })).email, address);
   await assert.rejects(login(sql, { email: address, password: 'wrong password' }), { code: 'invalid_credentials' });
 });
 
 test('unknown email and wrong password look the same', async () => {
   const address = email('known');
-  await createAccount(sql, { name: 'Known', email: address, password: 'correct horse battery' });
+  await createUser(sql, { name: 'Known', email: address, password: 'correct horse battery' });
   const unknown = await post('/portal/api/login', { email: email('nobody'), password: 'whatever password' }, '198.51.100.40');
   const wrong = await post('/portal/api/login', { email: address, password: 'not the password' }, '198.51.100.41');
   assert.equal(unknown.status, 401);
@@ -49,7 +49,7 @@ test('unknown email and wrong password look the same', async () => {
 
 test('password hashing does not block other requests', async () => {
   const address = email('busy');
-  await createAccount(sql, { name: 'Busy', email: address, password: 'correct horse battery' });
+  await createUser(sql, { name: 'Busy', email: address, password: 'correct horse battery' });
   const started = Date.now();
   const logins = Array.from({ length: 20 }, () => login(sql, { email: address, password: 'correct horse battery' }));
   const health = (async () => { await new Promise((r) => setTimeout(r, 5)); const t = Date.now(); await fetch(`${base}/v1/health`); return Date.now() - t; })();
@@ -83,7 +83,7 @@ test('failed logins are throttled per client address across emails', async () =>
     const ip = '203.0.113.60';
     for (let i = 0; i < 20; i++) assert.equal((await post('/portal/api/login', { email: email('stuff'), password: 'guess guess' }, ip)).status, 401);
     const address = email('victim');
-    await createAccount(sql, { name: 'Victim', email: address, password: 'correct horse battery' });
+    await createUser(sql, { name: 'Victim', email: address, password: 'correct horse battery' });
     const blocked = await post('/portal/api/login', { email: address, password: 'correct horse battery' }, ip);
     assert.equal(blocked.status, 429);
     assert.equal((await blocked.json()).error.code, 'too_many_attempts');
@@ -94,7 +94,7 @@ test('failed logins are throttled per client address across emails', async () =>
 
 test('the per-email limit still applies from many addresses', async () => {
   const address = email('target');
-  await createAccount(sql, { name: 'Target', email: address, password: 'correct horse battery' });
+  await createUser(sql, { name: 'Target', email: address, password: 'correct horse battery' });
   for (let i = 0; i < 5; i++) assert.equal((await post('/portal/api/login', { email: address, password: 'wrong wrong' }, `192.0.2.${i + 1}`)).status, 401);
   const res = await post('/portal/api/login', { email: address, password: 'correct horse battery' }, '192.0.2.99');
   assert.equal(res.status, 429);

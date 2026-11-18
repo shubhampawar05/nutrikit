@@ -212,18 +212,18 @@ function PlanChanger({ account }: { account: AdminAccount }) {
   const change = useMutation({
     mutationFn: () => adminApi.setPlan(account.id, plan),
     onSuccess: () => {
-      toast(`${account.email} is now on ${planName(plan)}`);
+      toast(`${account.name} is now on ${planName(plan)}`);
       void queryClient.invalidateQueries({ queryKey: ['admin'] });
     },
     onError: (err) => toast(message(err)),
   });
   const apply = () => {
     const ending = account.planExpiresAt ? ` Their paid period (until ${fmtDate(account.planExpiresAt)}) is replaced by a plan with no end date.` : '';
-    if (window.confirm(`Set ${account.email} to the ${planName(plan)} plan?${ending}`)) change.mutate();
+    if (window.confirm(`Set ${account.name} to the ${planName(plan)} plan?${ending}`)) change.mutate();
   };
   return (
     <div className="row" style={{ gap: 6, flexWrap: 'nowrap' }}>
-      <select aria-label={`Plan for ${account.email}`} value={plan} onChange={(e) => setPlan(e.target.value)}>
+      <select aria-label={`Plan for ${account.name}`} value={plan} onChange={(e) => setPlan(e.target.value)}>
         {PLAN_OPTIONS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
       </select>
       <button className="btn btn-ghost btn-sm" type="button" disabled={plan === account.plan || change.isPending} onClick={apply}>Set</button>
@@ -237,21 +237,22 @@ function AccountsTab() {
   return (
     <section className="card">
       <div className="admin-toolbar">
-        <h2 style={{ margin: 0 }}>Accounts</h2>
-        <Search value={text} onChange={setText} busy={pending || list.isFetching} placeholder="Search by email or name" />
+        <h2 style={{ margin: 0 }}>Teams</h2>
+        <Search value={text} onChange={setText} busy={pending || list.isFetching} placeholder="Search by a member's email or team name" />
       </div>
       {list.error ? <p className="form-error">{message(list.error)}</p> : null}
       <div className="table-scroll">
         <table className="data" aria-busy={list.isFetching}>
           <thead>
-            <tr><th scope="col">Account</th><th scope="col">Plan</th><th scope="col">Paid until</th><th scope="col">Keys</th><th scope="col">Tokens this month</th><th scope="col">Total paid</th><th scope="col">Joined</th><th scope="col">Change plan</th></tr>
+            <tr><th scope="col">Team (owner)</th><th scope="col">Plan</th><th scope="col">Paid until</th><th scope="col">Members</th><th scope="col">Live keys</th><th scope="col">Tokens this month</th><th scope="col">Total paid</th><th scope="col">Joined</th><th scope="col">Change plan</th></tr>
           </thead>
           <tbody>
             {list.data?.accounts.map((a) => (
               <tr key={a.id}>
-                <td>{a.email}<span className="muted small admin-sub">{a.name} · {a.id}</span></td>
+                <td>{a.name}<span className="muted small admin-sub">{a.email ?? 'no owner'} · {a.id}</span></td>
                 <td><span className={`badge${a.plan !== 'free' ? ' ok' : ''}`}>{planName(a.plan)}</span></td>
                 <td>{a.planExpiresAt ? fmtDate(a.planExpiresAt) : <span className="muted">—</span>}</td>
+                <td>{fmt(a.members)}</td>
                 <td>{fmt(a.activeKeys)}</td>
                 <td>{fmt(a.usedThisMonth)}</td>
                 <td>{a.totalPaid ? fmtPrice(a.totalPaid) : <span className="muted">—</span>}</td>
@@ -299,7 +300,7 @@ function KeysTab() {
           <tbody>
             {list.data?.keys.map((k) => (
               <tr key={k.id}>
-                <td>{k.name}<span className="muted small admin-sub">{k.id}</span></td>
+                <td><span className={k.mode === 'test' ? 'badge warn' : 'badge ok'}>{k.mode === 'test' ? 'Test' : 'Live'}</span> {k.name}<span className="muted small admin-sub">{k.id}</span></td>
                 <td>{k.email ?? <span className="muted">operator key</span>}{k.accountName ? <span className="muted small admin-sub">{k.accountName}</span> : null}</td>
                 <td>{fmtDate(k.createdAt)}</td>
                 <td>{k.lastUsedAt ? fmtDate(k.lastUsedAt) : <span className="muted">never</span>}</td>

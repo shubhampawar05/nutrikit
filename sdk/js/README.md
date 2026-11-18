@@ -26,7 +26,7 @@ npm install @nutrikit/sdk
 import { Nutrikit } from '@nutrikit/sdk';
 
 const nk = new Nutrikit({
-  apiKey: process.env.NUTRIKIT_KEY,          // nk_… secret key (server-side only)
+  apiKey: process.env.NUTRIKIT_KEY,          // nk_live_… or nk_test_… secret key (server-side only)
   baseUrl: 'https://nutrikit.onrender.com',  // the hosted API, or your own Nutrikit server
 });
 
@@ -100,7 +100,7 @@ how many. `504 ai_timeout` (the AI provider didn't answer in time) is never char
 
 | Option | Default | |
 |---|---|---|
-| `apiKey` | – | Secret key (`nk_…`) or access token (`nkat_…`). Required |
+| `apiKey` | – | Secret key (`nk_live_…`, `nk_test_…`, or `nk_…` from before test keys) or access token (`nkat_…`). Required |
 | `baseUrl` | page origin / `http://localhost:8787` | Your Nutrikit server |
 | `fetch` | `globalThis.fetch` | Custom fetch implementation |
 | `maxRetries` | `2` | Retries for `429`, `502`, `503` |

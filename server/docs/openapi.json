@@ -490,6 +490,14 @@
           "keyId": {
             "type": "string"
           },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "live",
+              "test"
+            ],
+            "description": "test for nk_test_ keys, which have their own allowance"
+          },
           "periodStart": {
             "type": "string"
           },
