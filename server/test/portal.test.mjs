@@ -46,12 +46,12 @@ test('signup validates fields and rejects duplicates', async () => {
   const ok = await b.call('POST', '/portal/api/signup', { name: 'Acme Health', email: addr, password: 'correct horse battery' });
   assert.equal(ok.status, 201);
   assert.match(ok.headers.get('set-cookie'), /nk_session=.+; Path=\/; HttpOnly; SameSite=Lax/);
-  assert.match(ok.body.firstKey.key, /^nk_/);
+  assert.match(ok.body.firstKey.key, /^nk_live_/);
   assert.equal(ok.body.plan.id, 'free');
   const dup = await browser().call('POST', '/portal/api/signup', { name: 'Again', email: addr.toUpperCase(), password: 'correct horse battery' });
   assert.equal(dup.status, 409);
   assert.equal(dup.body.error.code, 'email_taken');
-  const [stored] = await sql`SELECT password_hash FROM accounts WHERE email = ${addr}`;
+  const [stored] = await sql`SELECT password_hash FROM users WHERE email = ${addr}`;
   assert.match(stored.password_hash, /^scrypt\$/);
 });
 
@@ -311,7 +311,7 @@ test('playground token: signed-in users get a working 1-hour token for their new
   const t = await b.call('POST', '/portal/api/playground-token');
   assert.equal(t.status, 200);
   assert.match(t.body.access_token, /^nkat_/);
-  assert.deepEqual(t.body.key, { id: body.firstKey.id, name: 'Default key' });
+  assert.deepEqual(t.body.key, { id: body.firstKey.id, name: 'Default key', mode: 'live' });
   assert.equal((await bearer(t.body.access_token, '/v1/foods/search?q=apple')).status, 200);
   await b.call('DELETE', `/portal/api/keys/${body.firstKey.id}`);
   const none = await b.call('POST', '/portal/api/playground-token');
@@ -328,7 +328,7 @@ test('the plans are public, cacheable, and only the display fields', async () =>
   assert.deepEqual(Object.keys(plans), ['free', 'starter', 'growth', 'enterprise'], 'ordered by rank');
   assert.deepEqual(Object.values(plans).map((p) => p.rank), [0, 1, 2, 3]);
   for (const p of Object.values(plans)) {
-    assert.deepEqual(Object.keys(p).sort(), ['currency', 'maxKeys', 'monthlyTokens', 'name', 'price', 'rank', 'ratePerMinute']);
+    assert.deepEqual(Object.keys(p).sort(), ['currency', 'maxKeys', 'maxMembers', 'monthlyTokens', 'name', 'price', 'rank', 'ratePerMinute']);
   }
   assert.equal(plans.starter.price, 1499);
   assert.equal(plans.enterprise.price, null);

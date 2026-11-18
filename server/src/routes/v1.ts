@@ -13,6 +13,7 @@ import { isValidGtin, lookupBarcode } from '../domain/barcode.ts';
 import { COUNTRIES, searchPackaged } from '../domain/packaged.ts';
 import { parseLabelText, LABEL_WARNINGS } from '../domain/label.ts';
 import { generateMealPlan, DIETS } from '../domain/mealplan.ts';
+import { sampleProvider } from '../domain/providers/sample.ts';
 import { getProvider, type AIProvider, type AICapability, type MealRecognition, type LabelReading, type AIFoodItem } from '../domain/providers/index.ts';
 import { COSTS, usageSummary, issueAccessToken } from '../domain/auth.ts';
 
@@ -31,8 +32,9 @@ const imageBody = Type.Object({
 // handlers validate (readImage); the per-route validator accepts everything.
 const documentOnly = () => () => true;
 
-async function requireProvider<C extends AICapability>(capability: C): Promise<AIProvider & Required<Pick<AIProvider, C>>> {
-  const provider = await getProvider();
+// Test keys never reach the AI provider: they get the sample provider's fixed answers.
+async function requireProvider<C extends AICapability>(capability: C, req: FastifyRequest): Promise<AIProvider & Required<Pick<AIProvider, C>>> {
+  const provider = req.key?.mode === 'test' ? sampleProvider : await getProvider();
   if (typeof provider[capability] !== 'function') {
     throw new HttpError(501, 'ai_provider_unavailable', 'this endpoint needs an AI provider; set ANTHROPIC_API_KEY or OPENAI_API_KEY (or NUTRIKIT_AI_PROVIDER) on the server');
   }
@@ -71,8 +73,8 @@ function labelFromProvider(out: LabelReading) {
 }
 
 // The provider is checked before the image, so a server without one answers 501 whatever was sent.
-async function labelImage(readInput: () => ImageInput) {
-  const provider = await requireProvider('readLabel');
+async function labelImage(req: FastifyRequest, readInput: () => ImageInput) {
+  const provider = await requireProvider('readLabel', req);
   const img = readInput();
   const out = await provider.readLabel({ image: img.image, mediaType: img.mediaType });
   try {
@@ -200,7 +202,7 @@ export async function v1Routes(fastify: FastifyInstance) {
   }, async (req) => {
     const { text, ai } = req.body;
     if (ai) {
-      const provider = await requireProvider('parseMeal');
+      const provider = await requireProvider('parseMeal', req);
       return aiItems(provider, () => provider.parseMeal({ text }));
     }
     return { ...logText(text), provider: 'rules' };
@@ -218,7 +220,7 @@ export async function v1Routes(fastify: FastifyInstance) {
     const text = req.body.transcript.replace(DISFLUENCIES, '').replace(/\s+/g, ' ').trim();
     let result;
     if (req.body.ai) {
-      const provider = await requireProvider('parseMeal');
+      const provider = await requireProvider('parseMeal', req);
       result = await aiItems(provider, () => provider.parseMeal({ text }));
     } else {
       result = { ...logText(text), provider: 'rules' };
@@ -236,7 +238,7 @@ export async function v1Routes(fastify: FastifyInstance) {
       response: { ...ok({ $ref: 'LogResult#' }), ...errors(400, 401, 413, 422, 429, 501, 502, 503, 504) },
     },
   }, async (req: FastifyRequest) => {
-    const provider = await requireProvider('recognizeMeal');
+    const provider = await requireProvider('recognizeMeal', req);
     const { image, mediaType, fields } = readImage(req);
     const hint = typeof fields.hint === 'string' ? fields.hint.slice(0, 500) : undefined;
     return aiItems(provider, () => provider.recognizeMeal({ image, mediaType, hint }));
@@ -293,13 +295,13 @@ export async function v1Routes(fastify: FastifyInstance) {
     // Cost depends on the input kind: the handler returns { costKey, body, usage }.
     const type = String(req.headers['content-type'] || '');
     if (type.startsWith('image/') || type.includes('json')) {
-      if (type.startsWith('image/')) return { costKey: 'labelImage', ...(await labelImage(() => readImage(req))) };
+      if (type.startsWith('image/')) return { costKey: 'labelImage', ...(await labelImage(req, () => readImage(req))) };
       const body = jsonBody(req);
       if (typeof body.text === 'string') {
         if (!body.text.trim()) throw bad('`text` is empty');
         return { costKey: 'labelText', body: { source: 'text', ...parseLabelText(body.text.slice(0, 5000)) } };
       }
-      if (body.image) return { costKey: 'labelImage', ...(await labelImage(() => imageFromJson(body))) };
+      if (body.image) return { costKey: 'labelImage', ...(await labelImage(req, () => imageFromJson(body))) };
     }
     throw bad('send {"text": "..."} or {"image": "...", "mediaType": "image/jpeg"} (or a raw image body)');
   });
@@ -316,7 +318,7 @@ export async function v1Routes(fastify: FastifyInstance) {
       },
     },
   }, async (req) => {
-    const provider = await requireProvider('advise');
+    const provider = await requireProvider('advise', req);
     const out = await provider.advise({ question: req.body.question.trim(), context: req.body.context?.trim() || null });
     return { answer: out.answer, declined: out.declined, provider: provider.name, usage: out.usage };
   });

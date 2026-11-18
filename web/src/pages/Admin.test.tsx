@@ -11,7 +11,7 @@ const overview = {
   payments: { count: 1, revenue: 1499, last30Days: { count: 1, revenue: 1499 } },
   activeKeys: 4, upgradeRequests: 1, tokensThisMonth: 1234,
 };
-const accounts = [{ id: 'acct_1', email: 'test11@gmail.com', name: 'Test Co', plan: 'starter', planExpiresAt: '2026-11-29T00:00:00Z', createdAt: '2026-10-30T00:00:00Z', activeKeys: 1, usedThisMonth: 40, totalPaid: 1499, lastPaymentAt: '2026-10-30T11:50:00Z' }];
+const accounts = [{ id: 'acct_1', email: 'test11@gmail.com', name: 'Test Co', members: 2, plan: 'starter', planExpiresAt: '2026-11-29T00:00:00Z', createdAt: '2026-10-30T00:00:00Z', activeKeys: 1, usedThisMonth: 40, totalPaid: 1499, lastPaymentAt: '2026-10-30T11:50:00Z' }];
 const payments = [{ paymentId: 'pay_abc', orderId: 'order_abc', accountId: 'acct_1', email: 'test11@gmail.com', name: 'Test Co', plan: 'starter', amount: 1499, currency: 'INR', periodEnd: '2026-11-29T00:00:00Z', paidAt: '2026-10-30T11:50:00Z' }];
 const metrics = {
   startedAt: '2026-11-12T00:00:00Z', uptimeSeconds: 7500,
@@ -23,7 +23,7 @@ const metrics = {
   routes: [{ route: 'GET /v1/foods/search', count: 100, byStatus: { '2xx': 95, '3xx': 0, '4xx': 3, '5xx': 2 }, p50Ms: 12.3, p95Ms: 48, p99Ms: 90.6 }],
   alerts: { configured: false, sent: 0, failed: 0, suppressed: 0, lastSentAt: null },
 };
-const keys = [{ id: 'key_1', name: 'Default key', tokenLimit: null, createdAt: '2026-10-30T00:00:00Z', revokedAt: null, lastUsedAt: null, accountId: 'acct_1', email: 'test11@gmail.com', accountName: 'Test Co', usedThisMonth: 40 }];
+const keys = [{ id: 'key_1', name: 'Default key', mode: 'live', tokenLimit: null, createdAt: '2026-10-30T00:00:00Z', revokedAt: null, lastUsedAt: null, accountId: 'acct_1', email: 'test11@gmail.com', accountName: 'Test Co', usedThisMonth: 40 }];
 
 /** The admin API, accepting only the token "right-token". */
 function stubAdmin() {
@@ -111,7 +111,7 @@ describe('Admin console', () => {
     renderPage(<Admin />);
     await signIn();
     fireEvent.click(await screen.findByRole('tab', { name: 'Accounts' }));
-    fireEvent.change(await screen.findByLabelText('Plan for test11@gmail.com'), { target: { value: 'enterprise' } });
+    fireEvent.change(await screen.findByLabelText('Plan for Test Co'), { target: { value: 'enterprise' } });
     fireEvent.click(screen.getByRole('button', { name: 'Set' }));
     await waitFor(() => {
       const call = fetchMock.mock.calls.find(([u, i]) => String(u) === '/v1/admin/accounts/acct_1/plan' && i?.method === 'POST');
@@ -137,7 +137,7 @@ describe('Admin console', () => {
     expect(await screen.findByText('acct_1', { exact: false })).toBeTruthy();
     const searches = () => fetchMock.mock.calls.filter(([u]) => String(u).startsWith('/v1/admin/accounts?'));
 
-    const box = screen.getByLabelText('Search by email or name');
+    const box = screen.getByLabelText("Search by a member's email or team name");
     for (const value of ['p', 'pr', 'pri', 'priy', 'priya', 'priya@']) {
       fireEvent.change(box, { target: { value } });
       act(() => { vi.advanceTimersByTime(100); });

@@ -10,15 +10,33 @@ import { createSql, closeAll, migrate } from '../src/pg.ts';
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const source = path.resolve(process.argv[2] || path.join(ROOT, 'data/app.db'));
 
-// Target table -> columns, in the order rows must be inserted. Timestamps are ISO strings in SQLite.
+// Target table -> where its rows come from, in the order rows must be inserted. Timestamps are ISO strings in SQLite.
+// The SQLite store predates teams: each of its accounts becomes a team (accounts) owned by a user with the same login
+// (users + memberships), as migration 006 does in Postgres. `from`/`read` are the SQLite table and its columns;
+// `map` turns a SQLite row into the target row.
+const userOf = (accountId) => (accountId ? `usr_${String(accountId).replace(/^acct_/, '')}` : null);
 const TABLES = {
-  accounts: ['id', 'email', 'name', 'password_hash', 'plan', 'created_at'],
-  sessions: ['id_hash', 'account_id', 'expires_at'],
-  api_keys: ['id', 'key_hash', 'name', 'token_limit', 'account_id', 'created_at', 'revoked_at', 'last_used_at'],
-  usage: ['id', 'key_id', 'account_id', 'endpoint', 'tokens', 'at'],
-  upgrade_requests: ['id', 'account_id', 'plan', 'message', 'created_at'],
-  barcode_cache: ['code', 'payload', 'fetched_at'],
-  meta: ['key', 'value'],
+  accounts: { from: 'accounts', read: ['id', 'name', 'plan', 'created_at'] },
+  users: {
+    from: 'accounts', read: ['id', 'email', 'name', 'password_hash', 'created_at'],
+    map: (r) => ({ id: userOf(r.id), email: r.email, name: r.name, password_hash: r.password_hash, created_at: r.created_at }),
+  },
+  memberships: {
+    from: 'accounts', read: ['id', 'created_at'],
+    map: (r) => ({ account_id: r.id, user_id: userOf(r.id), role: 'owner', created_at: r.created_at }),
+  },
+  sessions: {
+    from: 'sessions', read: ['id_hash', 'account_id', 'expires_at'],
+    map: (r) => ({ ...r, user_id: userOf(r.account_id) }),
+  },
+  api_keys: {
+    from: 'api_keys', read: ['id', 'key_hash', 'name', 'token_limit', 'account_id', 'created_at', 'revoked_at', 'last_used_at'],
+    map: (r) => ({ ...r, created_by: userOf(r.account_id) }),
+  },
+  usage: { from: 'usage', read: ['id', 'key_id', 'account_id', 'endpoint', 'tokens', 'at'] },
+  upgrade_requests: { from: 'upgrade_requests', read: ['id', 'account_id', 'plan', 'message', 'created_at'] },
+  barcode_cache: { from: 'barcode_cache', read: ['code', 'payload', 'fetched_at'] },
+  meta: { from: 'meta', read: ['key', 'value'] },
 };
 const SEQUENCES = { usage: 'usage_id_seq', upgrade_requests: 'upgrade_requests_id_seq' };
 const BATCH = 1000;
@@ -44,10 +62,11 @@ const sql = createSql();
 const counts = [];
 try {
   await sql.begin(async (tx) => {
-    for (const [table, columns] of Object.entries(TABLES)) {
+    for (const [table, { from, read, map }] of Object.entries(TABLES)) {
       const [{ n }] = await tx`SELECT COUNT(*) AS n FROM ${tx(table)}`;
       if (n > 0) throw new Error(`target table ${table} already has ${n} rows; copy into an empty database`);
-      const rows = readRows(table, columns);
+      const rows = readRows(from, read).map(map ?? ((r) => r));
+      const columns = rows.length ? Object.keys(rows[0]) : read;
       for (let i = 0; i < rows.length; i += BATCH) {
         const batch = rows.slice(i, i + BATCH);
         if (table === 'barcode_cache') {

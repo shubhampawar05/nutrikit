@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createSql } from '../src/pg.ts';
 import { createKey, authenticate, rateLimit } from '../src/domain/auth.ts';
-import { createAccount, login } from '../src/domain/accounts.ts';
+import { signup, login } from '../src/domain/accounts.ts';
 
 // A second pool on the same database stands in for a second app instance.
 const other = createSql();
@@ -30,7 +30,7 @@ test('a rate window resets after a minute', async () => {
 
 test('failed logins are throttled across instances: 5 per 15 minutes per email', async () => {
   const email = `throttle-${Date.now()}@example.com`;
-  await createAccount(sql, { name: 'Throttle', email, password: 'correct horse battery' });
+  await signup(sql, { name: 'Throttle', email, password: 'correct horse battery' });
   for (let i = 0; i < 5; i++) {
     await assert.rejects(login(i % 2 ? other : sql, { email, password: 'wrong password' }), (e) => e.code === 'invalid_credentials');
   }

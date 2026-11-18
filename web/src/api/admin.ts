@@ -40,8 +40,9 @@ export interface Overview {
   tokensThisMonth: number;
 }
 
+/** A team. `email` is its first owner's (null if it has no owner). */
 export interface AdminAccount {
-  id: string; email: string; name: string; plan: string; planExpiresAt: string | null; createdAt: string;
+  id: string; email: string | null; name: string; members: number; plan: string; planExpiresAt: string | null; createdAt: string;
   activeKeys: number; usedThisMonth: number; totalPaid: number; lastPaymentAt: string | null;
 }
 
@@ -52,6 +53,7 @@ export interface AdminPayment {
 }
 
 export interface AdminKey {
+  mode: 'live' | 'test';
   id: string; name: string; tokenLimit: number | null; createdAt: string; revokedAt: string | null; lastUsedAt: string | null;
   accountId: string | null; email: string | null; accountName: string | null; usedThisMonth: number;
 }

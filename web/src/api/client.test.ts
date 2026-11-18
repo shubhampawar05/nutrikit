@@ -20,7 +20,7 @@ describe('portal client', () => {
     expect(init.method).toBe('POST');
     expect(init.credentials).toBe('same-origin');
     expect(init.headers).toMatchObject({ 'X-Nutrikit-Portal': '1', 'Content-Type': 'application/json' });
-    expect(JSON.parse(init.body as string)).toEqual({ name: 'ci' });
+    expect(JSON.parse(init.body as string)).toEqual({ name: 'ci', mode: 'live' });
   });
 
   it('sends GETs without a body or Content-Type', async () => {

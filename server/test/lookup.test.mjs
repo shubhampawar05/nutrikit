@@ -5,7 +5,7 @@ import { canonicalUnit, parseQuantity } from '../src/domain/units.ts';
 import { searchFoods } from '../src/domain/search.ts';
 import { logText } from '../src/domain/textlog.ts';
 import { generateMealPlan } from '../src/domain/mealplan.ts';
-import { createAccount, setPlan, requestUpgrade, PLANS } from '../src/domain/accounts.ts';
+import { signup, setPlan, requestUpgrade, PLANS } from '../src/domain/accounts.ts';
 
 const BUILTINS = ['constructor', 'toString', '__proto__', 'hasOwnProperty', 'valueOf'];
 
@@ -22,7 +22,7 @@ test('built-in object names are not units, numbers or synonyms', () => {
 });
 
 test('built-in object names are not plans', async () => {
-  const account = await createAccount(sql, { name: 'Proto', email: `proto-${Date.now()}@example.com`, password: 'correct horse battery' });
+  const { account } = await signup(sql, { name: 'Proto', email: `proto-${Date.now()}@example.com`, password: 'correct horse battery' });
   for (const plan of BUILTINS) {
     await assert.rejects(setPlan(sql, account.id, plan), (e) => e.code === 'invalid_plan', plan);
     await assert.rejects(requestUpgrade(sql, account.id, plan), (e) => e.code === 'invalid_plan', plan);

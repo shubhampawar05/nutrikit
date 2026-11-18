@@ -75,6 +75,11 @@
       "description": "Confirm the email address of your Nutrikit account.",
       "index": false
     },
+    "/invite": {
+      "title": "Team invitation — Nutrikit",
+      "description": "Accept an invitation to join a team on Nutrikit.",
+      "index": false
+    },
     "/dashboard": {
       "title": "Dashboard — Nutrikit",
       "description": "Manage your Nutrikit API keys, usage and plan.",

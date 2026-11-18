@@ -30,7 +30,7 @@ AI not configured) come back as tool errors that the model can read.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `NUTRIKIT_API_KEY` | – | An `nk_…` key (`npm run create-key -- "mcp"` or the developer portal). Required |
+| `NUTRIKIT_API_KEY` | – | An `nk_live_…` or `nk_test_…` key (`npm run create-key -- "mcp"` or the developer portal). A test key gets sample AI answers. Required |
 | `NUTRIKIT_BASE_URL` | `http://localhost:8787` | The Nutrikit API |
 
 ## Use with Claude

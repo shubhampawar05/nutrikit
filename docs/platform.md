@@ -9,9 +9,10 @@ Besides the API, the server hosts everything other developers need to sign up an
 | `/` | Homepage |
 | `/pricing` | Plans and token costs |
 | `/docs`, `/docs/reference` | Guides and the live API reference |
-| `/signup`, `/login` | Accounts. New accounts start on Free |
+| `/signup`, `/login` | Sign up and log in. Signup creates a team on the Free plan, owned by the new user |
 | `/forgot-password`, `/reset-password`, `/verify-email` | Password reset and email confirmation, reached from links in emails |
-| `/dashboard` | Keys, usage charts, upgrades, and deleting the account |
+| `/dashboard` | Team switcher, members and invitations, live and test keys, usage charts, upgrades, and deleting the account |
+| `/invite` | Accepting a team invitation, reached from the invitation email |
 | `/privacy`, `/terms` | Privacy policy and terms of use ([web/src/pages/Legal.tsx](../web/src/pages/Legal.tsx)); operator name and contact address in [web/src/legal.ts](../web/src/legal.ts) |
 | `/playground` | Try any endpoint in the browser |
 | `/admin` | Operator console (not linked from the site) |
@@ -28,15 +29,53 @@ Besides the API, the server hosts everything other developers need to sign up an
 - Once the site is live, add it in [Google Search Console](https://search.google.com/search-console) and
   submit `/sitemap.xml`.
 
+## Teams
+
+People and teams are separate. A **user** (email, password) signs in; a **team** (the `accounts` table) owns the
+plan, keys, usage and payments. A user belongs to one or more teams through a **membership** with a role:
+
+| | Owner | Admin | Developer |
+|---|---|---|---|
+| See keys, usage and members | ✓ | ✓ | ✓ |
+| Create, revoke, regenerate test keys | ✓ | ✓ | ✓ |
+| Create, revoke, regenerate live keys | ✓ | ✓ | |
+| Invite, remove and change roles of admins and developers | ✓ | ✓ | |
+| Make, demote or remove owners; rename the team; change the plan | ✓ | | |
+
+- A team always keeps an owner: the last owner can't leave, be removed or be demoted (`409 last_owner`).
+- **Invitations** are emailed links (`/invite?token=…`) that work once, for 7 days, and only for a signed-in user
+  with the invited email. Someone without a login signs up first, then accepts. Accepting confirms their email.
+- A team holds at most its plan's `maxMembers` people, pending invitations included.
+- One person can own up to `NUTRIKIT_TEAMS_PER_USER` teams (default 3), since each team gets its own Free allowance.
+  Invitations have their own limits (`NUTRIKIT_INVITE_LIMIT` per team per hour, 3 per address per hour), separate
+  from the per-network limit on verification and reset emails.
+- Keys belong to the team and record who created them; they keep working when that person leaves.
+- The dashboard works in one team at a time (stored on the session). A user removed from the team they are viewing
+  falls back to another of their teams, or to a new one named after them.
+
+## Live and test keys
+
+| | Live (`nk_live_…`) | Test (`nk_test_…`) |
+|---|---|---|
+| Allowance | The team's plan | `NUTRIKIT_TEST_TOKENS` a month per team (default 5,000), separate from the plan |
+| Rate limit | The plan's | `NUTRIKIT_TEST_RATE_LIMIT` per minute (default 30) |
+| Catalog endpoints | Real data | Real data |
+| AI endpoints (photo, label photo, AI text, advisor) | The AI provider | Fixed sample answers (`provider: "test"`), no AI charges |
+| Header | – | `X-Nutrikit-Mode: test` |
+
+Keys made before test keys existed are plain `nk_…` and are live. The plan's key limit counts live and test keys
+separately. Live usage figures (dashboard, admin console) leave test keys out.
+
 ## Plans
 
-A plan sets the monthly token allowance, requests per minute, and how many keys an account can have. All keys on
-an account share one allowance. The plans are placeholders: edit `PLANS` in
+A plan sets the monthly token allowance, requests per minute, how many keys of each kind a team can have and how
+many people it can hold. All live keys of a team share one allowance. The plans are placeholders: edit `PLANS` in
 [server/src/domain/accounts.ts](../server/src/domain/accounts.ts) and the pricing page together.
 
 ## Usage metering
 
-Allowances are counted in `usage_periods`, one row per account (or operator key) per UTC month. Each call
+Allowances are counted in `usage_periods`, one row per team (`acct:`), team test allowance (`test:`) or operator
+key per UTC month. Each call
 reserves its cost there before running and settles afterwards (see [API: how a call is charged](api.md#how-a-call-is-charged)).
 `usage` keeps every charge as history, which feeds the dashboard charts, per-endpoint breakdowns and the admin
 console. The two agree. If a crash ever loses a settlement, the counter is slightly high, in your favour, and
@@ -108,17 +147,21 @@ The privacy policy (`/privacy`) describes what the server stores. Keep it in ste
 
 | Data | Where | Kept |
 |---|---|---|
-| Name, email, password hash, plan, email confirmed | `accounts` | Until the account is deleted |
-| Sessions, API keys (hashes), usage rows, email links, upgrade requests | `sessions`, `api_keys`, `usage`, `email_tokens`, `upgrade_requests` | Deleted with the account (`ON DELETE CASCADE`) |
-| Monthly usage counters | `usage_periods` | Deleted with the account |
+| Name, email, password hash, email confirmed | `users` | Until the user deletes their login |
+| Team name, plan | `accounts` | Until the team is deleted (with its last member) |
+| Team memberships, invitations (email, role, inviter) | `memberships`, `invitations` | Until the member leaves or the invitation is used, revoked or its team deleted |
+| Sessions, email links | `sessions`, `email_tokens` | Deleted with the user |
+| API keys (hashes, creator), usage rows, upgrade requests | `api_keys`, `usage`, `upgrade_requests` | Deleted with the team; a key's creator is cleared when they delete their login |
+| Monthly usage counters | `usage_periods` | Deleted with the team |
 | Sign-up IPs / failed logins (email, IP) / email sends | `signup_attempts` / `login_failures` / `email_sends` | 1 hour / 15 minutes / 1 day, and deleted with the account |
 | Payments (ids, plan, amount) | `payments` | Kept for accounting; the account link is cleared on deletion |
 | Content sent to the API (text, photos, barcodes) | Not stored; photos and AI text go to OpenAI or Anthropic | – |
 
 **Deleting an account:** Dashboard → Delete account, which calls `POST /portal/api/account/delete` with the
-account's password. Wrong passwords count as failed logins (5 per 15 minutes per email). Deletion removes everything
-above in one transaction, ends every session, and stops the account's keys at once. A running paid plan ends with it
-(the dashboard warns first). The address can sign up again afterwards.
+user's password. Wrong passwords count as failed logins (5 per 15 minutes per email). It deletes the user and every
+team where they are the only member (with its keys, usage and a running paid plan; the dashboard warns first), in one
+transaction. It is refused (`409 sole_owner`) while they are the only owner of a team that has other members: they
+make another member an owner first. The address can sign up again afterwards.
 
 ## Before a public launch
 
@@ -129,4 +172,4 @@ above in one transaction, ends every session, and stops the account's keys at on
 - [ ] Set `BREVO_API_KEY` (free, a verified sender address) or `RESEND_API_KEY` (a verified domain), `NUTRIKIT_MAIL_FROM`, and `NUTRIKIT_PUBLIC_URL`, so verification and reset emails are sent with the right links
 - [ ] Set `NUTRIKIT_ALERT_WEBHOOK_URL` in Render and the `UPTIME_SLACK_WEBHOOK_URL` repository secret ([Monitoring](monitoring.md))
 - [ ] Set `CONTACT_EMAIL` (and `OPERATOR` if needed) in `web/src/legal.ts`, and have the privacy policy and terms reviewed for your business ([legal review notes](legal-review.md))
-- [ ] Still to build: auto-renewing subscriptions, invoices/GST, self-serve plan changes
+- [ ] Still to build: auto-renewing subscriptions, invoices/GST, self-serve plan changes, deleting a team on its own

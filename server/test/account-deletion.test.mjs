@@ -76,7 +76,9 @@ test('deleting removes the account and everything tied to it, and signs out', as
     ['usage', sql`SELECT COUNT(*) AS n FROM usage WHERE account_id = ${accountId}`],
     ['usage_periods', sql`SELECT COUNT(*) AS n FROM usage_periods WHERE subject = ${`acct:${accountId}`}`],
     ['upgrade_requests', sql`SELECT COUNT(*) AS n FROM upgrade_requests WHERE account_id = ${accountId}`],
-    ['email_tokens', sql`SELECT COUNT(*) AS n FROM email_tokens WHERE account_id = ${accountId}`],
+    ['email_tokens', sql`SELECT COUNT(*) AS n FROM email_tokens WHERE email = ${addr}`],
+    ['users', sql`SELECT COUNT(*) AS n FROM users WHERE email = ${addr}`],
+    ['memberships', sql`SELECT COUNT(*) AS n FROM memberships WHERE account_id = ${accountId}`],
     ['login_failures', sql`SELECT COUNT(*) AS n FROM login_failures WHERE email = ${addr}`],
     ['email_sends', sql`SELECT COUNT(*) AS n FROM email_sends WHERE email = ${addr}`],
   ]) assert.equal(await count(query), 0, `${table} rows are gone`);

@@ -38,6 +38,14 @@ AI-assisted calls also cost **1 token per 1,000 model tokens**.
 > **Changed:** before this version, failed calls were never charged. Callers who repeatedly send photos the AI
 > provider refuses now pay for the model tokens used (usually 1–3 tokens per call).
 
+## Test keys
+
+Keys are live (`nk_live_…`) or test (`nk_test_…`); keys from before test keys (`nk_…`) are live. Test keys get real
+catalog answers, but AI endpoints (photo, label photo, `ai: true` text and voice, advisor) answer with fixed sample
+results (`provider: "test"`) and never call the AI provider. Test calls count against the team's test allowance
+(`NUTRIKIT_TEST_TOKENS`, default 5,000 a month) at `NUTRIKIT_TEST_RATE_LIMIT` per minute (default 30), never the plan,
+and carry `X-Nutrikit-Mode: test`. `GET /v1/usage` says which (`mode`). See [Developer platform](platform.md#live-and-test-keys).
+
 ## Limits and errors
 
 - Every successful metered response has `X-Tokens-Charged`, and `X-Tokens-Remaining` when the key has an

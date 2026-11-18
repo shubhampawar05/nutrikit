@@ -2,7 +2,7 @@
 // Before the body is read: authenticate, rate limit, then reserve the flat cost against the allowance
 // (atomically: a call that doesn't fit is refused and its handler never runs).
 // After the handler succeeds: settle to the actual cost (flat cost of the variant that ran + AI usage) and set
-// X-Tokens-Charged / X-Tokens-Remaining. On failure: release the reservation, charging only AI tokens the
+// X-Tokens-Charged / X-Tokens-Remaining. Test-key calls also carry X-Nutrikit-Mode: test. On failure: release the reservation, charging only AI tokens the
 // provider reported before failing (refusal, truncation), and say so in X-Tokens-Charged.
 // Handlers may return { costKey, body, usage } to pick the cost themselves (cost 'dynamic', which reserves the
 // most expensive variant).
@@ -31,9 +31,10 @@ export function metering(app: FastifyInstance) {
     // 'dynamic' routes reserve their dearest variant (labels/parse: an image) and settle down.
     const reserveKey: CostKey = cost in COSTS ? cost as CostKey : 'labelImage';
 
-    const guard: onRequestHookHandler = async (req) => {
+    const guard: onRequestHookHandler = async (req, reply) => {
       const key = await authenticate(app.sql, req.headers);
       if (!key) throw new HttpError(401, 'unauthorized', 'missing or invalid API key (Authorization: Bearer nk_...)');
+      if (key.mode === 'test') reply.header('X-Nutrikit-Mode', 'test');
       await rateLimit(app.sql, key);
       req.key = key;
       pending.set(req, await reserve(app.sql, key, COSTS[reserveKey]));

@@ -15,15 +15,19 @@ const json = (status: number, body: unknown) =>
 
 const me: Me = {
   account: { id: 'acc_1', name: 'Ada Labs', email: 'ada@example.com', createdAt: '2026-10-01T00:00:00Z' },
-  plan: { id: 'free', name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, rank: 0, expiresAt: null },
+  plan: { id: 'free', name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, maxMembers: 5, rank: 0, expiresAt: null },
   usage: { periodStart: '2026-10-01T00:00:00Z', used: 1700, remaining: 300 },
   plans: {
-    free: { name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, rank: 0 },
-    starter: { name: 'Starter', monthlyTokens: 100000, ratePerMinute: 120, price: 1499, currency: 'INR', maxKeys: 5, rank: 1 },
-    growth: { name: 'Growth', monthlyTokens: 1000000, ratePerMinute: 600, price: 4999, currency: 'INR', maxKeys: 10, rank: 2 },
-    enterprise: { name: 'Enterprise', monthlyTokens: null, ratePerMinute: 3000, price: null, currency: 'INR', maxKeys: 50, rank: 3 },
+    free: { name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, maxMembers: 5, rank: 0 },
+    starter: { name: 'Starter', monthlyTokens: 100000, ratePerMinute: 120, price: 1499, currency: 'INR', maxKeys: 5, maxMembers: 5, rank: 1 },
+    growth: { name: 'Growth', monthlyTokens: 1000000, ratePerMinute: 600, price: 4999, currency: 'INR', maxKeys: 10, maxMembers: 5, rank: 2 },
+    enterprise: { name: 'Enterprise', monthlyTokens: null, ratePerMinute: 3000, price: null, currency: 'INR', maxKeys: 50, maxMembers: 5, rank: 3 },
   },
   billing: { enabled: false, mode: null, currency: 'INR', keyId: null },
+  user: { id: 'usr_1', name: 'Ada Labs', email: 'ada@example.com', emailVerified: true, createdAt: '2026-10-01T00:00:00Z' },
+  team: { id: 'acc_1', name: 'Ada Labs', role: 'owner', createdAt: '2026-10-01T00:00:00Z' },
+  teams: [{ id: 'acc_1', name: 'Ada Labs', role: 'owner', plan: 'free' }],
+  testUsage: { used: 0, limit: 5000, remaining: 5000 },
 };
 
 const usage = {
@@ -49,7 +53,7 @@ function app(path = '/dashboard') {
   );
 }
 
-const defaultKey: KeySummary = { id: 'key_a', name: 'Default', createdAt: '2026-10-01T00:00:00Z', lastUsedAt: null, revokedAt: null, usedThisMonth: 40 };
+const defaultKey: KeySummary = { id: 'key_a', name: 'Default', mode: 'live', createdBy: 'Ada Labs', createdAt: '2026-10-01T00:00:00Z', lastUsedAt: null, revokedAt: null, usedThisMonth: 40 };
 
 type Override = (path: string, method: string) => Response | Promise<Response> | undefined;
 
@@ -72,20 +76,21 @@ function stubPortal({ signedIn = true, maxKeys = 2, account = me, initialKeys = 
     }
     if (path === '/billing/verify' && method === 'POST') return json(200, { ...account, plan: { id: 'starter', ...account.plans.starter!, expiresAt: '2026-11-29T00:00:00Z' } });
     if (path.startsWith('/usage')) return json(200, usage);
+    if (path === '/members') return json(200, { members: [{ userId: 'usr_1', name: 'Ada Labs', email: 'ada@example.com', role: 'owner', joinedAt: '2026-10-01T00:00:00Z' }], invitations: [], maxMembers: 5 });
     if (path === '/keys' && method === 'GET') return json(200, { keys });
     if (path === '/keys' && method === 'POST') {
       if (keys.filter((k) => !k.revokedAt).length >= maxKeys) {
         return json(403, { error: { code: 'key_limit', message: `your Free plan allows ${maxKeys} active keys; revoke one first` } });
       }
       const { name } = JSON.parse(String(init?.body)) as { name: string };
-      keys = [...keys, { id: 'key_b', name, createdAt: '2026-10-30T00:00:00Z', lastUsedAt: null, revokedAt: null, usedThisMonth: 0 }];
-      return json(201, { id: 'key_b', name, key: 'nk_live_brand_new_secret' });
+      keys = [...keys, { id: 'key_b', name, mode: 'live', createdBy: 'Ada Labs', createdAt: '2026-10-30T00:00:00Z', lastUsedAt: null, revokedAt: null, usedThisMonth: 0 }];
+      return json(201, { id: 'key_b', name, mode: 'live', key: 'nk_live_brand_new_secret' });
     }
     const regen = /^\/keys\/(.+)\/regenerate$/.exec(path);
     if (regen && method === 'POST') {
       const old = keys.find((k) => k.id === regen[1])!;
       keys = [{ ...old, id: 'key_r', createdAt: '2026-10-30T00:00:00Z', lastUsedAt: null, usedThisMonth: 0 }, ...keys.map((k) => (k.id === regen[1] ? { ...k, revokedAt: '2026-10-30T00:00:00Z' } : k))];
-      return json(201, { id: 'key_r', name: old.name, key: 'nk_live_regenerated_key', replaced: regen[1] });
+      return json(201, { id: 'key_r', name: old.name, mode: old.mode, key: 'nk_live_regenerated_key', replaced: regen[1] });
     }
     const revoke = /^\/keys\/(.+)$/.exec(path);
     if (revoke && method === 'DELETE') {
@@ -136,14 +141,14 @@ describe('Dashboard', () => {
     expect(screen.getByText('of 2,000 tokens · 300 left')).toBeTruthy();
     expect(document.querySelector('.meter')?.classList.contains('high')).toBe(true);
     expect(await screen.findByText('Default')).toBeTruthy();
-    expect(screen.getByText('1 of 2 active keys on the Free plan. Keys share the account\'s monthly allowance.')).toBeTruthy();
+    expect(screen.getByText(/1 of 2 live and 0 of 2 test keys\. Live keys share the team's monthly allowance\./)).toBeTruthy();
     expect(await screen.findByText('/v1/log/text')).toBeTruthy();
     expect(screen.getByText(/Last 30 days \(2026-10-29 → 2026-10-30\) · 40 tokens · busiest day 40/)).toBeTruthy();
     expect(screen.getByRole('option', { name: 'Starter — 100k tokens' })).toBeTruthy();
   });
 
   it('asks an unverified account to confirm its email and can send a new link', async () => {
-    const unverified: Me = { ...me, account: { ...me.account, emailVerified: false } };
+    const unverified: Me = { ...me, account: { ...me.account, emailVerified: false }, user: { ...me.user, emailVerified: false } };
     let sends = 0;
     const fetchMock = stubPortal({
       account: unverified,
@@ -242,7 +247,7 @@ describe('Dashboard', () => {
     fireEvent.change(screen.getByLabelText('New key name'), { target: { value: 'iOS app' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create key' }));
 
-    const heading = await screen.findByRole('heading', { name: 'New key “iOS app” created' });
+    const heading = await screen.findByRole('heading', { name: 'New live key “iOS app” created' });
     await waitFor(() => expect(document.activeElement).toBe(heading));
     expect(heading.closest('[role="status"]')).toBeNull();
     expect(screen.getByDisplayValue(MASKED_NEW).closest('[role="status"]')).toBeNull();
@@ -260,7 +265,7 @@ describe('Dashboard', () => {
     expect(await screen.findByText('iOS app')).toBeTruthy();
     expect((screen.getByLabelText('New key name') as HTMLInputElement).value).toBe('');
     const post = fetchMock.mock.calls.find(([u, i]) => String(u).endsWith('/portal/api/keys') && i?.method === 'POST');
-    expect(JSON.parse(String(post?.[1]?.body))).toEqual({ name: 'iOS app' });
+    expect(JSON.parse(String(post?.[1]?.body))).toEqual({ name: 'iOS app', mode: 'live' });
     // The secret appears only in the reveal box (and the snippet), never in the keys table.
     expect(within(screen.getByText('iOS app').closest('table') as HTMLElement).queryByText(/nk_live/)).toBeNull();
 
@@ -322,7 +327,7 @@ describe('Dashboard', () => {
     app();
     await screen.findByText('Second');
     expect((screen.getByRole('button', { name: 'Create key' }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByText('Your Free plan allows 2 active keys. Revoke one or upgrade your plan to create another.')).toBeTruthy();
+    expect(screen.getByText('Your Free plan allows 2 active live keys. Revoke one or upgrade your plan to create another.')).toBeTruthy();
   });
 
   it('reports the plan key limit from the server as a sentence', async () => {
