@@ -8,7 +8,9 @@ test('sign up → dashboard → create key → playground food search', async ({
   await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible();
   await page.getByLabel('Name or company').fill('E2E Health');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill('correct horse battery');
+  // Exact labels: the form also has "Confirm password" and "Show password" buttons.
+  await page.getByLabel('Password', { exact: true }).fill('correct horse battery');
+  await page.getByLabel('Confirm password', { exact: true }).fill('correct horse battery');
   await page.getByRole('button', { name: 'Create account' }).click();
 
   // The dashboard shows the first key once, in a read-only field. Dismissing a key that was never copied asks
