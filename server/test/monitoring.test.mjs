@@ -142,3 +142,28 @@ test('alerts: a failing webhook is counted and never breaks the request', async 
   assert.equal(m.alerts.failed, 1);
   assert.equal(m.alerts.sent, 0);
 });
+
+test('alerts: an admin can send a test alert, and learns when alerts are off or the webhook refuses it', async () => {
+  const off = await start();
+  assert.equal((await fetch(`${off.base}/v1/admin/alerts/test`, { method: 'POST' })).status, 401);
+  const notSet = await fetch(`${off.base}/v1/admin/alerts/test`, { method: 'POST', headers: ADMIN });
+  assert.equal(notSet.status, 503);
+  assert.equal((await notSet.json()).error.code, 'alerts_not_configured');
+
+  const hook = await webhook();
+  const { base } = await start({ alertWebhookUrl: hook.url });
+  for (let i = 0; i < 2; i++) {
+    const res = await fetch(`${base}/v1/admin/alerts/test`, { method: 'POST', headers: ADMIN });
+    assert.equal(res.status, 200);
+    assert.equal((await res.json()).sent, true);
+  }
+  assert.equal(hook.received.length, 2, 'the cooldown never swallows a test');
+  assert.equal(hook.received[0].event, 'test');
+  assert.match(hook.received[0].text, /Test alert: alerts from this server reach you/);
+
+  const broken = await webhook({ status: 404 });
+  const bad = await start({ alertWebhookUrl: broken.url });
+  const refused = await fetch(`${bad.base}/v1/admin/alerts/test`, { method: 'POST', headers: ADMIN });
+  assert.equal(refused.status, 502);
+  assert.equal((await refused.json()).error.code, 'alert_failed');
+});

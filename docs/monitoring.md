@@ -37,6 +37,17 @@ message (cut to 300 characters). They never contain headers, bodies, query strin
 A webhook that fails or is slow (5 s deadline) never affects the request. The failure is logged as
 `alert not delivered` and counted under **Alerts** in the Health tab.
 
+**Check it works:** send a test alert from the running server. It goes through the same path as a real alert,
+so it proves the variable is set on that instance and the webhook accepts it:
+
+```bash
+curl -X POST https://nutrikit.onrender.com/v1/admin/alerts/test -H "Authorization: Bearer $NUTRIKIT_ADMIN_TOKEN"
+```
+
+`200 {"sent":true}` means the message was delivered. `503 alerts_not_configured` means the variable isn't set there,
+`502 alert_failed` means the webhook refused it (a wrong or deleted URL), and `429 alert_capped` means the hourly cap
+is reached.
+
 ## 2. Uptime
 
 Metrics and alerts run inside the server, so they can't report that the server itself is down. A GitHub Actions
