@@ -8,4 +8,4 @@ export const OPERATOR = 'Nutrikit';
 export const CONTACT_EMAIL = 'nutrikit@gmail.com';
 
 /** Date both pages were last changed (shown at the top of each). */
-export const UPDATED = '12 November 2026';
+export const UPDATED = '18 November 2026';

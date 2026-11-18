@@ -6,3 +6,4 @@
 .admin-toolbar .input { width: min(320px, 100%); }
 .admin-signin { max-width: 440px; margin: 72px auto; }
 .admin-sub { display: block; }
+.admin-actions { gap: 6px; flex-wrap: wrap; }

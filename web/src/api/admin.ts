@@ -14,7 +14,7 @@ export const adminToken = {
 export const ADMIN_UNAUTHORIZED = 'nk-admin-unauthorized';
 
 /** Calls /v1/admin. With no explicit token it uses the stored one, and a 401 then clears it and fires ADMIN_UNAUTHORIZED. */
-async function admin<T>(method: 'GET' | 'POST' | 'DELETE', path: string, body?: unknown, token?: string): Promise<T> {
+async function admin<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown, token?: string): Promise<T> {
   const res = await fetch(`/v1/admin${path}`, {
     method,
     headers: { Authorization: `Bearer ${token ?? adminToken.get() ?? ''}`, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
@@ -79,6 +79,22 @@ export interface Metrics {
   alerts: { configured: boolean; sent: number; failed: number; suppressed: number; lastSentAt: string | null };
 }
 
+export type FoodRequestStatus = 'open' | 'resolved' | 'ignored';
+export type EstimateStatus = 'none' | 'pending' | 'approved' | 'rejected';
+
+/** A food people tried to log that the catalog lacks, with the AI's estimate for it if one was made. */
+export interface FoodRequest {
+  id: number; phrase: string; example: string; reason: string; count: number; firstSeen: string; lastSeen: string;
+  status: FoodRequestStatus; note: string | null; estimateStatus: EstimateStatus; estimateUses: number;
+  estimate: {
+    name: string; confidence: 'high' | 'medium' | 'low'; provider: string; model: string | null; at: string;
+    per100g: { calories: number; protein: number; fat: number; carbs: number; fiber: number; sugar: number; saturatedFat: number; sodium: number };
+    serving: { label: string; unit: string; grams: number };
+  } | null;
+}
+
+export interface FoodRequestCounts { open: number; pendingEstimates: number; approvedEstimates: number }
+
 export const adminApi = {
   /** Checks a token by loading the overview with it. */
   signIn: (token: string) => admin<Overview>('GET', '/overview', undefined, token),
@@ -90,4 +106,11 @@ export const adminApi = {
   metrics: () => admin<Metrics>('GET', '/metrics'),
   revokeKey: (id: string) => admin<{ revoked: string }>('DELETE', `/keys/${id}`),
   setPlan: (accountId: string, plan: string) => admin<{ account: string; plan: string }>('POST', `/accounts/${accountId}/plan`, { plan }),
+  foodRequests: (status: FoodRequestStatus | 'all', q?: string) => {
+    const params = new URLSearchParams({ status });
+    if (q && q.trim()) params.set('q', q.trim());
+    return admin<{ requests: FoodRequest[]; counts: FoodRequestCounts }>('GET', `/food-requests?${params}`);
+  },
+  updateFoodRequest: (id: number, change: { status?: FoodRequestStatus; note?: string | null; estimateStatus?: 'approved' | 'rejected' }) =>
+    admin<FoodRequest>('PATCH', `/food-requests/${id}`, change),
 };

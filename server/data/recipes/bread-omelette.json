@@ -1,0 +1,78 @@
+{
+  "id": 900000053,
+  "name": "Bread omelette (masala omelette with bread)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/bread-omelet-sandwich-recipe/"
+  },
+  "aliases": [
+    "bread omelette",
+    "bread omlette",
+    "bread omelet"
+  ],
+  "notes": "Serves 1. Recipe says 2 to 3 slices brown bread; 2 slices of whole wheat bread at 32 g each used. 2 large eggs 100 g; 1 tbsp oil 14 g; salt as needed taken as 1 g; 1/8 tsp turmeric 0.4 g; 1/8 tsp black pepper 0.3 g; 2 tbsp onion 20 g; 1 tbsp capsicum 9 g (green bell pepper); 1 green chili 5 g; 1 tbsp coriander 1 g. Optional chaat masala, butter, cheese, ketchup and herbs left out. About 8% of the weight is lost as steam while frying.",
+  "ingredients": [
+    {
+      "fdcId": 2707709,
+      "food": "Bread, whole wheat",
+      "grams": 64
+    },
+    {
+      "fdcId": 2707152,
+      "food": "Egg, whole, raw",
+      "grams": 100
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 14
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 1
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.4
+    },
+    {
+      "fdcId": 170931,
+      "food": "Spices, pepper, black",
+      "grams": 0.3
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 20
+    },
+    {
+      "fdcId": 2709800,
+      "food": "Peppers, sweet, green, raw",
+      "grams": 9
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 1
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 197,
+  "portions": [
+    {
+      "label": "1 bread omelette",
+      "amount": 1,
+      "unit": "piece",
+      "grams": 197
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { errors } from '../schemas.ts';
 import { isAdmin, createKey, revokeKey } from '../domain/auth.ts';
 import { overview, listAccounts, listPayments, listKeysWithOwners } from '../domain/admin.ts';
 import { PLANS, listUpgradeRequests, setPlan } from '../domain/accounts.ts';
+import { foodRequestCounts, listFoodRequests, updateFoodRequest } from '../domain/foodrequests.ts';
 
 export async function adminRoutes(fastify: FastifyInstance) {
   const app = fastify.withTypeProvider<TypeBoxTypeProvider>();
@@ -69,6 +70,38 @@ export async function adminRoutes(fastify: FastifyInstance) {
     if (monitor.alerts.sent > before.sent) return { sent: true, at };
     if (monitor.alerts.failed > before.failed) throw new HttpError(502, 'alert_failed', 'the webhook did not accept the alert; check the URL and the server log');
     throw new HttpError(429, 'alert_capped', 'the hourly alert cap is reached; try again later');
+  });
+
+  app.get('/v1/admin/food-requests', {
+    schema: {
+      summary: 'Foods people tried to log that the catalog could not match (admin)',
+      description: 'Most asked first; at most 200. Each carries its AI estimate, if one was made, and whether it is approved. Only the food words are stored.',
+      security,
+      querystring: Type.Object({
+        status: Type.Optional(Type.Union([Type.Literal('open'), Type.Literal('resolved'), Type.Literal('ignored'), Type.Literal('all')])),
+        q: Type.Optional(Type.String({ maxLength: 100, description: 'Filter by food words (substring)' })),
+      }),
+      response: list('OK'),
+    },
+  }, async (req) => ({ requests: await listFoodRequests(sql, { status: req.query.status ?? 'open', q: req.query.q }), counts: await foodRequestCounts(sql) }));
+
+  app.patch('/v1/admin/food-requests/:id', {
+    schema: {
+      summary: 'Review a food request (admin)',
+      description: '`status`: resolved once the catalog covers the food, ignored when it is not a food. `estimateStatus`: approved makes the AI estimate answer this food for every caller without an AI call; rejected stops it being used.',
+      security,
+      params: Type.Object({ id: Type.Integer({ minimum: 1 }) }),
+      body: Type.Object({
+        status: Type.Optional(Type.Union([Type.Literal('open'), Type.Literal('resolved'), Type.Literal('ignored')])),
+        note: Type.Optional(Type.Union([Type.String({ maxLength: 500 }), Type.Null()])),
+        estimateStatus: Type.Optional(Type.Union([Type.Literal('approved'), Type.Literal('rejected')])),
+      }, { minProperties: 1 }),
+      response: { 200: { description: 'The updated request', type: 'object' }, ...errors(400, 401, 404) },
+    },
+  }, async (req) => {
+    const row = await updateFoodRequest(sql, req.params.id, req.body);
+    if (!row) throw new HttpError(404, 'not_found', 'no food request with this id');
+    return row;
   });
 
   app.get('/v1/admin/accounts', {

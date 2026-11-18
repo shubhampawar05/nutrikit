@@ -1,7 +1,7 @@
 // The AI stand-in for test keys: fixed answers, no model calls, no AI usage. Results still go through the same
 // catalog matching as live calls, so responses have the real shape. Photo recognition always "sees" the same plate,
 // labels always read the same panel, and AI text logging uses the rule-based parser.
-import { logText } from '../textlog.ts';
+import { logText, splitMealText } from '../textlog.ts';
 import type { AIProvider } from './index.ts';
 
 const NO_USAGE = { inputTokens: 0, outputTokens: 0 };
@@ -36,7 +36,25 @@ export const sampleProvider: AIProvider = {
     return {
       meal: r.meal ?? null,
       notes: 'Sample result for test keys: parsed with the rule-based parser.',
-      items: r.items.map((i) => ({ food: i.food.name, quantity: i.grams, unit: 'g', grams: i.grams, confidence: i.confidence })),
+      items: [
+        ...r.items.map((i) => ({ food: i.food.name, quantity: i.grams, unit: 'g', grams: i.grams, confidence: i.confidence })),
+        // Foods the catalog lacks are passed on as named, so they reach the sample estimate below.
+        ...r.unmatched.flatMap((u) => splitMealText(u.text).items.map((p) => ({ food: p.food, quantity: p.quantity ?? 1, unit: p.unit ?? 'serving', grams: 0, confidence: 'low' as const }))),
+      ],
+      usage: NO_USAGE,
+    };
+  },
+  async estimateFoods({ foods }) {
+    // Every unknown food gets the same fixed estimate, so tests can rely on it.
+    return {
+      foods: foods.map((query) => ({
+        query,
+        known: true,
+        name: `Sample estimate for "${query}"`,
+        per100g: { calories: 150, protein: 5, fat: 6, carbs: 19, fiber: 2, sugar: 3, saturatedFat: 1.5, sodium: 300 },
+        serving: { label: '1 bowl', unit: 'bowl', grams: 200 },
+        confidence: 'low' as const,
+      })),
       usage: NO_USAGE,
     };
   },

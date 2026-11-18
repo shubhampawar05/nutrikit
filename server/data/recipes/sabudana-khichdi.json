@@ -1,0 +1,84 @@
+{
+  "id": 900000050,
+  "name": "Sabudana khichdi (tapioca pearls with peanuts and potato)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/sabudana-khichdi/"
+  },
+  "aliases": [
+    "sabudana khichdi",
+    "sabudana khichadi",
+    "sago khichdi"
+  ],
+  "notes": "Serves 2. 1 cup sabudana taken as 160 g dry pearls; 1/4 cup peanuts 36 g (roasted, salted); 2 tbsp ghee 26 g; 1 medium boiled potato 150 g (peeled); 1.5 green chilies 7 g; 1/2 tsp rock salt 3 g as table salt; 1/2 tsp sugar 2 g; 1 tbsp lemon juice 15 g; 2 tbsp coriander leaves 2 g. Curry leaves omitted (not in catalog); optional ginger and coconut left out. The 3/4 cup (180 g) soaking water is fully absorbed by the pearls and counted as water; about 5% is lost as steam while stir-frying.",
+  "ingredients": [
+    {
+      "fdcId": 169717,
+      "food": "Tapioca, pearl, dry",
+      "grams": 160
+    },
+    {
+      "fdcId": 2707515,
+      "food": "Peanuts, roasted, salted",
+      "grams": 36
+    },
+    {
+      "fdcId": 2710168,
+      "food": "Ghee, clarified butter",
+      "grams": 26
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 7
+    },
+    {
+      "fdcId": 170440,
+      "food": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "grams": 150
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 3
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 2
+    },
+    {
+      "fdcId": 2710258,
+      "food": "Sugar, white, granulated or lump",
+      "grams": 2
+    },
+    {
+      "fdcId": 2709181,
+      "food": "Lemon juice, 100%, freshly squeezed",
+      "grams": 15
+    }
+  ],
+  "water": 180,
+  "cookedGrams": 553,
+  "portions": [
+    {
+      "label": "1 plate",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 250
+    },
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 160
+    }
+  ]
+}

@@ -12,7 +12,7 @@ import type {
 } from '@anthropic-ai/sdk/resources/beta/messages';
 import type { AIUsage } from '../types.ts';
 import { aiDeadline, aiTimeout, type AIProvider } from './index.ts';
-import { ADVICE_SCHEMA, ADVICE_SYSTEM, FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, adviceMessage, type AdviceOutput, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
+import { ADVICE_SCHEMA, ADVICE_SYSTEM, FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, adviceMessage, type AdviceOutput, type FoodItemsOutput, type LabelOutput, ESTIMATE_SYSTEM, FOOD_ESTIMATES_SCHEMA, estimateMessage, type FoodEstimatesOutput } from './prompts.ts';
 
 const MODEL = process.env.NUTRIKIT_ANTHROPIC_MODEL || 'claude-opus-5-5';
 const EFFORT = (process.env.NUTRIKIT_ANTHROPIC_EFFORT || 'medium') as BetaOutputConfig['effort'];
@@ -88,6 +88,11 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
     async advise({ question, context }) {
       const { data: out, usage } = await call<AdviceOutput>(ADVICE_SYSTEM, [{ type: 'text', text: adviceMessage(question, context) }], ADVICE_SCHEMA);
       return { ...out, usage };
+    },
+
+    async estimateFoods({ foods }) {
+      const { data: out, usage } = await call<FoodEstimatesOutput>(ESTIMATE_SYSTEM, [{ type: 'text', text: estimateMessage(foods) }], FOOD_ESTIMATES_SCHEMA);
+      return { foods: out.foods, usage };
     },
   };
 }

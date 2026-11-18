@@ -48,6 +48,12 @@ export function Privacy() {
           device, not by us), food and nutrition-label photos, and barcodes. We process these to answer the request and
           don't store them. A barcode's product data is cached to speed up later lookups, without any record of who asked.
         </li>
+        <li>
+          <b>Foods we couldn't find</b>: when a food in a request isn't in our catalog, we keep its name (only the food
+          words, such as "sabudana khichdi", never the rest of the message), how many times it was asked for, and any AI
+          estimate made for it. These are not linked to you, your account, key or address. We use them to add missing
+          foods to the catalog.
+        </li>
       </ul>
       <h3>To keep the service secure</h3>
       <ul>
@@ -107,7 +113,8 @@ export function Privacy() {
 
       <h2 id="retention">How long we keep it</h2>
       <p>
-        Account data, keys and usage records are kept until you delete your account. Security records are deleted
+        Account data, keys and usage records are kept until you delete your account. The names of foods we couldn't find
+        aren't linked to anyone and are kept until the food is added to the catalog or we clear the list. Security records are deleted
         automatically after the periods above. Payment records are kept as long as tax and accounting law requires, even
         after an account is deleted, but no longer linked to your name or email. Where a law requires us to keep records
         of processing for a minimum period, we keep those records for that period only, and use them for nothing else.
@@ -195,7 +202,8 @@ export function Terms() {
       <h2 id="health">Not medical advice</h2>
       <p>
         Nutrient values are averages and estimates. Results from photos, labels and free text are produced by automated
-        matching and AI models and can be wrong. Don't rely on the service for medical, allergy or dietary decisions. Ask a
+        matching and AI models and can be wrong. A food our catalog doesn't have may be logged from an AI estimate,
+        marked <code>ai-estimate</code> with low confidence. Don't rely on the service for medical, allergy or dietary decisions. Ask a
         qualified professional, and make sure your own users understand this too.
       </p>
 

@@ -51,7 +51,8 @@ export interface FoodNutrients {
 
 export interface LoggedItem {
   input: string;
-  food: { id: number; name: string; source: FoodSource };
+  /** `source` "ai-estimate" (id 0): a food the catalog lacks, logged from an AI estimate with low confidence. */
+  food: { id: number; name: string; source: FoodSource | 'ai-estimate' };
   quantity: number;
   unit: string;
   grams: number;
