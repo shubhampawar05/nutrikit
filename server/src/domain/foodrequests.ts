@@ -119,19 +119,54 @@ export function estimateItem(input: string, estimate: StoredEstimate, amount: { 
 }
 
 /**
- * Asks the provider to estimate foods the catalog lacks and keeps the usable answers, keyed by requestKey(query).
+ * Why an estimate can't be used, or null when it can. The same arithmetic the build applies to recipes
+ * (scripts/recipes.mjs): calories must agree with protein, carbs and fat, and no part can outweigh its whole.
+ */
+export function estimateProblem(e: FoodEstimate): string | null {
+  if (!e.known) return 'not a food';
+  if (!e.name?.trim()) return 'no name';
+  const n = e.per100g;
+  if (!n || Object.values(n).some((v) => typeof v !== 'number' || !Number.isFinite(v) || v < 0)) return 'missing or negative values';
+  if (n.calories > 900) return `${n.calories} kcal per 100 g is more than pure fat`;
+  if (n.protein + n.carbs + n.fat > 100) return 'protein, carbs and fat weigh more than 100 g per 100 g';
+  if (n.sugar > n.carbs + 0.5) return 'sugar exceeds carbs';
+  if (n.saturatedFat > n.fat + 0.5) return 'saturated fat exceeds fat';
+  const atwater = 4 * n.protein + 4 * n.carbs + 9 * n.fat;
+  if (Math.abs(atwater - n.calories) > Math.max(30, 0.25 * n.calories)) return `${n.calories} kcal disagrees with its macros (${Math.round(atwater)} kcal)`;
+  if (!(e.serving?.grams >= 5 && e.serving.grams <= 2000)) return `serving of ${e.serving?.grams} g`;
+  return null;
+}
+
+const addUsage = (a: AIUsage, b: AIUsage): AIUsage => ({ inputTokens: a.inputTokens + b.inputTokens, outputTokens: a.outputTokens + b.outputTokens });
+
+/**
+ * Asks the provider to estimate foods the catalog lacks and keeps the answers that pass estimateProblem(), keyed by
+ * requestKey(query). Foods whose answer fails are asked once more; a second failure leaves them out (unmatched).
  * scripts/eval-estimates.ts measures this same function against INDB's published values.
  */
-export async function requestEstimates(provider: AIProvider, queries: string[]): Promise<{ estimates: Map<string, StoredEstimate>; usage: AIUsage }> {
-  const keys = queries.map(requestKey);
-  const out = await provider.estimateFoods!({ foods: queries });
+export async function requestEstimates(provider: AIProvider, queries: string[]): Promise<{ estimates: Map<string, StoredEstimate>; usage: AIUsage; rejected: { query: string; problem: string }[] }> {
   const estimates = new Map<string, StoredEstimate>();
-  for (const e of out.foods) {
-    const key = requestKey(e.query);
-    if (!keys.includes(key) || !e.known || !(e.serving?.grams > 0) || !(e.per100g?.calories >= 0)) continue;
-    estimates.set(key, { name: e.name, per100g: e.per100g, serving: e.serving, confidence: e.confidence, provider: provider.name, model: provider.model ?? null, at: new Date().toISOString() });
+  let rejected: { query: string; problem: string }[] = [];
+  let usage: AIUsage = { inputTokens: 0, outputTokens: 0 };
+  let ask = queries;
+  for (let attempt = 0; attempt < 2 && ask.length; attempt++) {
+    const keys = ask.map(requestKey);
+    const out = await provider.estimateFoods!({ foods: ask });
+    usage = addUsage(usage, out.usage);
+    const failed: { query: string; problem: string }[] = [];
+    for (const e of out.foods) {
+      const key = requestKey(e.query);
+      const at = keys.indexOf(key);
+      if (at < 0 || estimates.has(key)) continue;
+      const problem = estimateProblem(e);
+      if (!problem) estimates.set(key, { name: e.name, per100g: e.per100g, serving: e.serving, confidence: e.confidence, provider: provider.name, model: provider.model ?? null, at: new Date().toISOString() });
+      // "Not a food" is an answer, not a mistake: it is not asked again.
+      else if (problem !== 'not a food') failed.push({ query: ask[at], problem });
+    }
+    rejected = failed;
+    ask = failed.map((f) => f.query);
   }
-  return { estimates, usage: out.usage };
+  return { estimates, usage, rejected };
 }
 
 export interface Unknown {

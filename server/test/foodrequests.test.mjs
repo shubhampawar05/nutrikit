@@ -5,7 +5,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildApp } from '../src/app.ts';
 import { setProvider } from '../src/domain/providers/index.ts';
-import { phraseParts, requestKey } from '../src/domain/foodrequests.ts';
+import { estimateProblem, phraseParts, requestEstimates, requestKey } from '../src/domain/foodrequests.ts';
 
 const app = await buildApp();
 const ADMIN = { Authorization: 'Bearer test-admin-token', 'Content-Type': 'application/json' };
@@ -173,4 +173,46 @@ test('admins list requests most asked first, filter them, and resolve or ignore 
 
   assert.equal((await admin('PATCH', '/v1/admin/food-requests/999999', { status: 'ignored' })).status, 404);
   assert.equal((await admin('PATCH', `/v1/admin/food-requests/${glorbix.id}`, {})).status, 400);
+});
+
+const good = (query, over = {}) => ({
+  query, known: true, name: `Estimated ${query}`, confidence: 'medium', serving: { label: '1 bowl', unit: 'bowl', grams: 250 },
+  per100g: { calories: 120, protein: 6, fat: 4, carbs: 15, fiber: 3, sugar: 2, saturatedFat: 1, sodium: 250, ...over },
+});
+
+test('an estimate must add up: calories from macros, parts within their whole, a real serving', () => {
+  assert.equal(estimateProblem(good('dal')), null);
+  assert.match(estimateProblem(good('dal', { calories: 50, fat: 20 })), /disagrees with its macros/);
+  assert.match(estimateProblem(good('ghee', { calories: 950, fat: 105 })), /more than pure fat/);
+  assert.match(estimateProblem(good('x', { protein: 60, carbs: 40, fat: 10, calories: 490 })), /more than 100 g/);
+  assert.match(estimateProblem(good('x', { sugar: 30 })), /sugar exceeds carbs/);
+  assert.match(estimateProblem(good('x', { saturatedFat: 9 })), /saturated fat exceeds fat/);
+  assert.match(estimateProblem(good('x', { sodium: -1 })), /negative/);
+  assert.match(estimateProblem({ ...good('x'), serving: { label: '1 bowl', unit: 'bowl', grams: 0 } }), /serving/);
+  assert.equal(estimateProblem({ ...good('qwzx'), known: false }), 'not a food');
+});
+
+test('a failed estimate is asked once more, then left out; "not a food" is not asked again', async () => {
+  const asked = [];
+  const p = {
+    name: 'fake',
+    async estimateFoods({ foods }) {
+      asked.push(foods);
+      const first = asked.length === 1;
+      return {
+        foods: foods.map((q) => (q === 'dal' ? good(q)
+          : q === 'bad twice' ? good(q, { calories: 10 })
+          : q === 'qwzx' ? { ...good(q), known: false }
+          : first ? good(q, { calories: 10 }) : good(q))),
+        usage: { inputTokens: 10, outputTokens: 5 },
+      };
+    },
+  };
+  const r = await requestEstimates(p, ['dal', 'fixed later', 'bad twice', 'qwzx']);
+  assert.deepEqual(asked, [['dal', 'fixed later', 'bad twice', 'qwzx'], ['fixed later', 'bad twice']]);
+  assert.deepEqual([...r.estimates.keys()].sort(), ['dal', 'fixed later']);
+  assert.equal(r.rejected.length, 1);
+  assert.equal(r.rejected[0].query, 'bad twice');
+  assert.match(r.rejected[0].problem, /disagrees with its macros/);
+  assert.deepEqual(r.usage, { inputTokens: 20, outputTokens: 10 });
 });

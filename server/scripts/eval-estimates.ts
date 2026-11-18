@@ -40,13 +40,15 @@ const batches: Dish[][] = [];
 for (let i = 0; i < sample.length; i += MAX_ESTIMATES_PER_CALL) batches.push(sample.slice(i, i + MAX_ESTIMATES_PER_CALL));
 const got = new Map<number, StoredEstimate | null>();
 let inputTokens = 0;
+const rejected: { query: string; problem: string }[] = [];
 let outputTokens = 0;
 let next = 0;
 async function worker() {
   while (next < batches.length) {
     const batch = batches[next++];
     try {
-      const { estimates, usage } = await requestEstimates(provider, batch.map((d) => d.query));
+      const { estimates, usage, rejected: failed } = await requestEstimates(provider, batch.map((d) => d.query));
+      rejected.push(...failed);
       inputTokens += usage.inputTokens;
       outputTokens += usage.outputTokens;
       for (const d of batch) got.set(d.id, estimates.get(requestKey(d.query)) ?? null);
@@ -86,6 +88,7 @@ const summary = {
   dishes: sample.length,
   estimated: scored.length,
   notEstimated: sample.length - scored.length,
+  rejectedAfterRetry: rejected,
   calories: {
     medianError: pct(median(scored.map((r) => r.calorieError))),
     meanError: pct(mean(scored.map((r) => r.calorieError))),
