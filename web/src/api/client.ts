@@ -18,21 +18,37 @@ export class ApiError extends Error {
 interface ErrorBody { error?: { code?: string; message?: string; fields?: Record<string, string> } }
 
 /** Turns a non-2xx response into an ApiError carrying the server's code, message and field errors. */
-export async function toApiError(res: Response): Promise<ApiError> {
+async function toApiError(res: Response): Promise<ApiError> {
   const data = (await res.json().catch(() => ({}))) as ErrorBody;
   const retry = res.headers.get('Retry-After');
   return new ApiError(res.status, data.error?.code || 'error', data.error?.message || 'Something went wrong', data.error?.fields, retry ? Number(retry) : undefined);
 }
 
-export async function portal<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`/portal/api${path}`, {
+export type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
+
+/** Sends a JSON request (the body, if any, as JSON); a non-2xx response becomes an ApiError, anything else the parsed body. */
+export async function requestJson<T>(url: string, method: Method, body: unknown, init: { headers: Record<string, string>; credentials?: RequestCredentials }): Promise<T> {
+  const res = await fetch(url, {
     method,
-    credentials: 'same-origin',
-    headers: { 'X-Nutrikit-Portal': '1', ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
+    ...(init.credentials ? { credentials: init.credentials } : {}),
+    headers: { ...init.headers, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw await toApiError(res);
   return (await res.json()) as T;
+}
+
+/** Fired on window when a portal call finds no session (401 unauthorized, e.g. it expired); useMe then reads as signed out. */
+export const PORTAL_SIGNED_OUT = 'nk-portal-signed-out';
+
+export async function portal<T>(method: Method, path: string, body?: unknown): Promise<T> {
+  try {
+    return await requestJson<T>(`/portal/api${path}`, method, body, { credentials: 'same-origin', headers: { 'X-Nutrikit-Portal': '1' } });
+  } catch (err) {
+    // Only a missing session: a wrong password at login is also a 401, with its own code.
+    if (err instanceof ApiError && err.status === 401 && err.code === 'unauthorized') window.dispatchEvent(new Event(PORTAL_SIGNED_OUT));
+    throw err;
+  }
 }
 
 // ---------------------------------------------------------------- shapes returned by the portal
@@ -53,15 +69,16 @@ export interface Plan {
 
 /** sessionStorage key of a key pasted into the playground (cleared on logout). */
 export const PLAYGROUND_KEY_STORE = 'nk-playground-key';
+/** sessionStorage key of a newly created API key, shown on the dashboard until dismissed (cleared on logout). */
+export const NEW_KEY_STORE = 'nutrikit-new-key';
 
 export type Role = 'owner' | 'admin' | 'developer';
 export type KeyMode = 'live' | 'test';
 
-export interface TeamSummary { id: string; name: string; role: Role; plan: string }
+interface TeamSummary { id: string; name: string; role: Role; plan: string }
 
 export interface AccountView {
-  /** The signed-in person (kept as `account` for older code; `user` is the same). */
-  account: { id: string; name: string; email: string; emailVerified?: boolean; createdAt: string };
+  /** The signed-in person. */
   user: { id: string; name: string; email: string; emailVerified: boolean; createdAt: string };
   /** The team in use: it owns the plan, keys and usage. */
   team: { id: string; name: string; role: Role; createdAt: string };
@@ -82,14 +99,14 @@ export const can = {
 
 export interface Member { userId: string; name: string; email: string; role: Role; joinedAt: string }
 export interface Invitation { id: string; email: string; role: Role; invitedBy: string | null; expiresAt: string; createdAt: string }
-export interface InvitationPreview { team: string; invitedBy: string | null; email: string; role: Role; expiresAt: string }
+interface InvitationPreview { team: string; invitedBy: string | null; email: string; role: Role; expiresAt: string }
 
 export interface Me extends AccountView {
   plans: Record<string, Plan>;
   billing: { enabled: boolean; mode: 'live' | 'test' | null; currency: string; keyId: string | null };
 }
 
-export interface NewKey { id: string; name: string; mode: KeyMode; key: string }
+interface NewKey { id: string; name: string; mode: KeyMode; key: string }
 
 export interface KeySummary {
   id: string;
@@ -104,7 +121,7 @@ export interface KeySummary {
 }
 
 export interface UsageDay { day: string; tokens: number; calls: number }
-export interface UsageMonth {
+interface UsageMonth {
   periodStart: string;
   tokenLimit: number | null;
   used: number;
@@ -112,7 +129,7 @@ export interface UsageMonth {
   byEndpoint: { endpoint: string; calls: number; tokens: number }[];
 }
 
-export interface AccessToken {
+interface AccessToken {
   access_token: string;
   token_type: 'Bearer';
   expires_in: number;
@@ -121,7 +138,7 @@ export interface AccessToken {
 }
 
 /** A Razorpay order for one 30-day period, waiting to be paid in Razorpay Checkout (amount in paise). */
-export interface NewOrder { orderId: string; keyId: string; plan: string; amount: number; currency: string }
+interface NewOrder { orderId: string; keyId: string; plan: string; amount: number; currency: string }
 
 /** What Razorpay Checkout hands the page after a successful payment; the server verifies the signature. */
 export interface RazorpayPaymentResponse {

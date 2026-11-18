@@ -5,7 +5,7 @@ Everything needs only Node and Docker.
 | Command | What it runs |
 |---|---|
 | `npm test` | Everything below. Starts the local Postgres, and the app image for the browser test |
-| `npm run test:unit` | Server (71 tests), web (45 Vitest tests), MCP (5 tests) |
+| `npm run test:unit` | The server suite (Node test runner, against the local Postgres), the web app (Vitest) and the MCP server |
 | `npm run test:e2e` | Builds the image, then a Playwright run: sign up → dashboard → create key → search |
 | `npm run multi-instance -w e2e` | Two app containers on one database: shared rate limits, login throttling, sessions |
 | `npm run benchmark` | The food-logging accuracy benchmark: scores, and every case that isn't right |
@@ -28,7 +28,8 @@ every case that isn't right. The same cases run in `npm test`: each must hold ex
 
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on every pull request and every push to `main`:
 
-- **test** (Node 22.16 and 24): `npm run typecheck` and `npm run test:unit` against a Postgres 16 service.
+- **test** (Node 22.16 and 24): `npm run typecheck`, a check that `server/docs/openapi.json` matches the routes
+  (regenerate it with `npm run openapi`), the MCP server build, and `npm run test:unit` against a Postgres 16 service.
 - **e2e** (pushes to `main` only): builds the compose stack, then the Playwright smoke test and the
   multi-instance check.
 

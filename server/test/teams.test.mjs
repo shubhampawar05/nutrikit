@@ -327,3 +327,60 @@ test('invitations do not use the per-network email limit, and have their own per
     process.env.NUTRIKIT_INVITE_LIMIT = before.invites;
   }
 });
+
+test('parallel invitations cannot take more seats than the plan has', async () => {
+  const owner = await person('Rush Owner');
+  const results = await Promise.all(Array.from({ length: 8 }, () => owner.b.call('POST', '/portal/api/invitations', { email: email(), role: 'developer' })));
+  const statuses = results.map((r) => r.status);
+  // Free allows 5 people: the owner and 4 invitations.
+  assert.equal(statuses.filter((s) => s === 201).length, 4, `statuses: ${statuses}`);
+  assert.ok(results.filter((r) => r.status !== 201).every((r) => r.body.error.code === 'member_limit'));
+});
+
+test('a member demoted since signing in is judged by their current role', async () => {
+  const { changeRole, removeMember } = await import('../src/domain/teams.ts');
+  const owner = await person('Demoter');
+  const admin = await person('Demoted');
+  const dev = await person('Bystander');
+  await join(owner, admin, 'admin');
+  await join(owner, dev, 'developer');
+  const team = owner.me.team.id;
+  const adminId = admin.me.user.id;
+  await changeRole(sql, team, { userId: owner.me.user.id, role: 'owner' }, adminId, 'developer');
+  // The admin's session still says 'admin'.
+  await assert.rejects(changeRole(sql, team, { userId: adminId, role: 'admin' }, dev.me.user.id, 'admin'), { code: 'forbidden' });
+  await assert.rejects(removeMember(sql, team, { userId: adminId, role: 'admin' }, dev.me.user.id), { code: 'forbidden' });
+  await removeMember(sql, team, { userId: adminId, role: 'admin' }, adminId); // leaving is always allowed
+});
+
+test('an owner deleting their login while the other owner leaves never leaves a team without an owner', async () => {
+  const { deleteAccount } = await import('../src/domain/accounts.ts');
+  const { removeMember } = await import('../src/domain/teams.ts');
+  for (let round = 0; round < 3; round++) {
+    const a = await person('Owner A');
+    const b = await person('Owner B');
+    const c = await person('Member C');
+    await join(a, b, 'admin');
+    await join(a, c, 'developer');
+    const team = a.me.team.id;
+    await a.b.call('PATCH', `/portal/api/members/${b.me.user.id}`, { role: 'owner' });
+    await Promise.allSettled([
+      deleteAccount(sql, a.me.user.id, PASSWORD),
+      removeMember(sql, team, { userId: b.me.user.id, role: 'owner' }, b.me.user.id),
+    ]);
+    const [{ owners }] = await sql`SELECT COUNT(*)::int AS owners FROM memberships WHERE account_id = ${team} AND role = 'owner'`;
+    assert.equal(owners, 1, `round ${round}`);
+  }
+});
+
+test('parallel requests from a user with no team create exactly one team', async () => {
+  const { createSession, sessionContext } = await import('../src/domain/accounts.ts');
+  const p = await person('Teamless');
+  const userId = p.me.user.id;
+  await sql`DELETE FROM accounts WHERE id = ${p.me.team.id}`;
+  const { token } = await createSession(sql, userId);
+  const contexts = await Promise.all(Array.from({ length: 6 }, () => sessionContext(sql, token)));
+  assert.equal(new Set(contexts.map((c) => c.account.id)).size, 1);
+  const [{ n }] = await sql`SELECT COUNT(*)::int AS n FROM memberships WHERE user_id = ${userId}`;
+  assert.equal(n, 1);
+});

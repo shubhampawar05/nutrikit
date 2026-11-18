@@ -44,7 +44,7 @@ async function signUp(addr = email()) {
 
 test('signup emails a verification link; the link verifies the address once, and again is harmless', async () => {
   const { b, addr, res } = await signUp();
-  assert.equal(res.body.account.emailVerified, false);
+  assert.equal(res.body.user.emailVerified, false);
   const mail = lastMailTo(addr);
   assert.match(mail.subject, /confirm your email/i);
   const token = tokenIn(mail, 'verify-email');
@@ -56,7 +56,7 @@ test('signup emails a verification link; the link verifies the address once, and
   const ok = await browser().call('POST', '/portal/api/email/verify', { token });
   assert.equal(ok.status, 200);
   assert.deepEqual(ok.body, { verified: true, email: addr });
-  assert.equal((await b.call('GET', '/portal/api/me')).body.account.emailVerified, true);
+  assert.equal((await b.call('GET', '/portal/api/me')).body.user.emailVerified, true);
   assert.equal((await browser().call('POST', '/portal/api/email/verify', { token })).status, 200, 'a second click still says verified');
 });
 
@@ -118,7 +118,7 @@ test('a reset link sets a new password, ends other sessions, verifies the addres
   const ok = await fresh.call('POST', '/portal/api/password/reset', { token, password: 'a brand new passphrase' });
   assert.equal(ok.status, 200);
   assert.match(ok.headers.get('set-cookie'), /nk_session=.+; Path=\/; HttpOnly/);
-  assert.equal(ok.body.account.emailVerified, true, 'the link reached the inbox, so the address is verified');
+  assert.equal(ok.body.user.emailVerified, true, 'the link reached the inbox, so the address is verified');
   assert.equal((await fresh.call('GET', '/portal/api/me')).status, 200, 'signed in');
   assert.equal((await oldSession.call('GET', '/portal/api/me')).status, 401, 'every earlier session ended');
 
@@ -161,7 +161,7 @@ test('a mail outage never fails a signup, and the dashboard says it could not se
   setMailer({ name: 'down', send: async () => { throw new Error('provider down'); } });
   try {
     const { b, res } = await signUp();
-    assert.equal(res.body.account.emailVerified, false);
+    assert.equal(res.body.user.emailVerified, false);
     const resend = await b.call('POST', '/portal/api/email/verification');
     assert.equal(resend.status, 503);
     assert.equal(resend.body.error.code, 'email_unavailable');

@@ -21,7 +21,6 @@ const plans = {
   starter: { name: 'Starter', monthlyTokens: 100000, ratePerMinute: 120, price: 1499, currency: 'INR', maxKeys: 5, maxMembers: 5, rank: 1 },
 };
 const me: Me = {
-  account: { id: 'acc_1', name: 'Ada Labs', email: 'ada@example.com', emailVerified: true, createdAt: '2026-10-01T00:00:00Z' },
   plan: { id: 'free', ...plans.free, expiresAt: null },
   usage: { periodStart: '2026-10-01T00:00:00Z', used: 0, remaining: 2000 },
   plans,

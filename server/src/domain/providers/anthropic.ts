@@ -1,5 +1,5 @@
-// Claude-backed provider: meal photo recognition, nutrition-label reading and meal-text parsing,
-// each returning JSON constrained by a schema (structured outputs).
+// Claude-backed provider: meal photo recognition, nutrition-label reading, meal-text parsing, nutrition advice and
+// food estimates, each returning JSON constrained by a schema (structured outputs).
 import Anthropic from '@anthropic-ai/sdk';
 import type {
   BetaBase64ImageSource,
@@ -22,14 +22,14 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
   const client = new Anthropic({ maxRetries: 1 });
 
   // T is the shape `schema` describes; structured outputs guarantee the JSON matches it.
-  async function call<T>(system: string, content: BetaContentBlockParam[], schema: BetaJSONOutputFormat['schema']): Promise<{ data: T; usage: AIUsage }> {
+  async function call<T>(system: string, content: BetaContentBlockParam[], schema: BetaJSONOutputFormat['schema'], deadline?: AbortSignal): Promise<{ data: T; usage: AIUsage }> {
     let response: BetaMessage;
-    const signal = aiDeadline();
+    const signal = deadline ?? aiDeadline();
     try {
       response = await request(system, content, schema, signal);
     } catch (err) {
       if (signal.aborted || err instanceof Anthropic.APIConnectionTimeoutError) throw aiTimeout();
-      // Most specific first; the SDK has already retried 429/5xx/connection errors twice.
+      // Most specific first; the SDK has already retried 429/5xx/connection errors once (maxRetries).
       if (err instanceof Anthropic.BadRequestError) throw Object.assign(new Error(`AI provider rejected the input: ${err.message}`), { status: 422 });
       if (err instanceof Anthropic.AuthenticationError) throw Object.assign(new Error('AI provider credentials are invalid'), { status: 503 });
       if (err instanceof Anthropic.RateLimitError) throw Object.assign(new Error('AI provider is rate limited; retry later'), { status: 503 });
@@ -60,7 +60,12 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
       throw Object.assign(new Error('the AI provider response was truncated'), { status: 502, usage });
     }
     const text = response.content.filter((b): b is BetaTextBlock => b.type === 'text').map((b) => b.text).join('');
-    return { data: JSON.parse(text), usage };
+    try {
+      return { data: JSON.parse(text), usage };
+    } catch {
+      // Structured outputs should prevent this; an answer that isn't JSON is a bad reply, and its tokens were spent.
+      throw Object.assign(new Error('the AI provider returned malformed output'), { status: 502, usage });
+    }
   }
 
   const image = (data: string, mediaType: string): BetaImageBlockParam => ({ type: 'image', source: { type: 'base64', media_type: mediaType as BetaBase64ImageSource['media_type'], data } });
@@ -90,8 +95,8 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
       return { ...out, usage };
     },
 
-    async estimateFoods({ foods, candidates }) {
-      const { data: out, usage } = await call<FoodEstimatesOutput>(ESTIMATE_SYSTEM, [{ type: 'text', text: estimateMessage(foods, candidates) }], FOOD_ESTIMATES_SCHEMA);
+    async estimateFoods({ foods, candidates, signal }) {
+      const { data: out, usage } = await call<FoodEstimatesOutput>(ESTIMATE_SYSTEM, [{ type: 'text', text: estimateMessage(foods, candidates) }], FOOD_ESTIMATES_SCHEMA, signal);
       return { foods: out.foods, usage };
     },
   };

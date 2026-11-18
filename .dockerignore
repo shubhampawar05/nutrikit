@@ -1,10 +1,30 @@
 # Only sources go into the build; dependencies are installed inside the image.
+# docker/Dockerfile copies the root and workspace package.json files, tsconfig.base.json, sdk/js, web, server
+# (built with tsc from server/src), server/migrations and server/data/{foods,packaged}.db.
 **/node_modules
 **/dist
 .env
+.env.*
+!.env.example
+!.env.production.example
 .git
+.github
+.claude
 openspec
+graphify-out
+docs
+# mcp and e2e: only their package.json, which npm ci needs to match the lockfile.
+mcp/*
+!mcp/package.json
+e2e/*
+!e2e/package.json
+server/scripts
+server/docs
 server/data/raw
+server/data/eval
+server/data/indb
+server/data/recipes
+server/data/aliases
 server/data/packaged.all.db
 server/data/*.db.tmp*
 server/data/app.db*

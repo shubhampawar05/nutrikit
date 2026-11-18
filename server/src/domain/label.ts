@@ -2,7 +2,8 @@
 // label photo straight into the same shape (see providers/prompts.ts).
 import { BY_KEY, NUTRIENTS } from './nutrients.ts';
 
-const num = '(\\d+(?:[.,]\\d+)?)';
+// "1,200" (thousands, a comma before exactly three digits), "2,5" (a European decimal comma), "2.5" or "12".
+const num = '(\\d{1,3}(?:,\\d{3})+(?!\\d)|\\d+(?:[.,]\\d+)?)';
 // Label wording -> catalog key. Order matters: specific phrases before general ones.
 const PATTERNS: [string, string[]][] = [
   ['addedSugar', [`includes\\s+${num}\\s*(g)\\s+added\\s+sugars?`, `added\\s+sugars?\\s+${num}\\s*(g)`]],
@@ -28,7 +29,10 @@ const PATTERNS: [string, string[]][] = [
   ['caffeine', [`caffeine\\s+${num}\\s*(mg)`]],
 ];
 
-const toNumber = (s: string) => Number(String(s).replace(',', '.'));
+const toNumber = (s: string) => {
+  const t = String(s);
+  return Number(/^\d{1,3}(,\d{3})+$/.test(t) ? t.replaceAll(',', '') : t.replace(',', '.'));
+};
 
 /** Warnings shared by the text parser and the AI label reader, so both paths report the same caveats. */
 export const LABEL_WARNINGS = {
@@ -77,8 +81,8 @@ export function parseLabelText(text: string): ParsedLabel {
 
   const perServing: Record<string, LabelAmount> = {};
   // "Calories 230" (not "Calories from Fat 70"); \b stops backtracking to a shorter number.
-  const cal = t.match(/calories(?!\s+from)\s*:?\s*(\d+)\b/i);
-  if (cal) perServing.calories = { amount: Number(cal[1]), unit: 'kcal' };
+  const cal = t.match(new RegExp(`calories(?!\\s+from)\\s*:?\\s*${num}\\b`, 'i'));
+  if (cal) perServing.calories = { amount: toNumber(cal[1]), unit: 'kcal' };
   else warnings.push(LABEL_WARNINGS.noCalories);
   for (const [key, patterns] of PATTERNS) {
     for (const p of patterns) {

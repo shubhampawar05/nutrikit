@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 import seo from './seo.json';
 
-export interface PageMeta { title: string; description: string; index: boolean; found: boolean }
+interface PageMeta { title: string; description: string; index: boolean; found: boolean }
 
 /** /docs/ and /docs are the same page. */
 export const normalizePath = (pathname: string) => pathname.replace(/\/+$/, '') || '/';

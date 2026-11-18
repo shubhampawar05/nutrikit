@@ -30,6 +30,8 @@ services:
       DATABASE_URL: postgres://nutrikit:nutrikit@postgres:5432/nutrikit
       # Development-only defaults; set real values in your shell or a .env file for anything shared.
       NUTRIKIT_TOKEN_SECRET: ${NUTRIKIT_TOKEN_SECRET:-local-compose-only-change-me}
+      # The image runs with NODE_ENV=production, which requires the public origin (used for links in emails).
+      NUTRIKIT_PUBLIC_URL: ${NUTRIKIT_PUBLIC_URL:-http://localhost:8787}
       NUTRIKIT_ADMIN_TOKEN: ${NUTRIKIT_ADMIN_TOKEN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}

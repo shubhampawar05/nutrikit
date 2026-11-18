@@ -4,10 +4,13 @@ import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'rea
 
 export interface TabItem { id: string; label: ReactNode }
 
-/** Ids for a tab and its panel, so a page that renders its own panels can pair them. */
-export const tabIds = (prefix: string, id: string) => ({ tab: `${prefix}-tab-${id}`, panel: `${prefix}-panel-${id}` });
+/** Ids for a tab and its panel, so a page that renders its own panels can pair them ("Missing foods" -> "missing-foods"). */
+export const tabIds = (prefix: string, id: string) => {
+  const slug = id.toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+  return { tab: `${prefix}-tab-${slug}`, panel: `${prefix}-panel-${slug}` };
+};
 
-export function TabList({ tabs, current, onChange, label, prefix, className = 'tabs', tabClassName = 'tab' }: {
+export function TabList({ tabs, current, onChange, label, prefix, className = 'tabs', tabClassName = 'tab', onlySelectedPanel = false }: {
   tabs: TabItem[];
   current: string;
   onChange: (id: string) => void;
@@ -17,6 +20,8 @@ export function TabList({ tabs, current, onChange, label, prefix, className = 't
   prefix: string;
   className?: string;
   tabClassName?: string;
+  /** The page renders only the selected tab's panel, so the other tabs have no panel to point at (no aria-controls). */
+  onlySelectedPanel?: boolean;
 }) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -41,7 +46,7 @@ export function TabList({ tabs, current, onChange, label, prefix, className = 't
             type="button"
             role="tab"
             aria-selected={selected}
-            aria-controls={ids.panel}
+            aria-controls={selected || !onlySelectedPanel ? ids.panel : undefined}
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(t.id)}
             onKeyDown={(e) => onKeyDown(e, i)}
@@ -54,7 +59,7 @@ export function TabList({ tabs, current, onChange, label, prefix, className = 't
   );
 }
 
-/** A tab set that owns its panels (the legacy .code-card[data-tabs]). */
+/** A tab set that owns its panels (all rendered, the unselected ones hidden). */
 export function Tabs({ tabs, label, className = 'code-card', listClassName = 'tabs' }: { tabs: (TabItem & { panel: ReactNode })[]; label: string; className?: string; listClassName?: string }) {
   const [current, setCurrent] = useState(tabs[0]?.id ?? '');
   const prefix = useId().replace(/:/g, '');

@@ -7,7 +7,15 @@ import { INDB_SOURCE, indbDisplayAliases } from './indb.mjs';
 
 export const INDB_ID_BASE = 850_000_000;
 
+/**
+ * Ids for codes whose hash clashes with an earlier code's: code -> a free id in [INDB_ID_BASE, INDB_ID_BASE + 49M).
+ * Only ever add entries; the clashing earlier food keeps its id.
+ */
+const ID_OVERRIDES = {};
+
+/** A stable id from the INDB food code. Hashed into a 49M range, so indbTotalFoods() fails the build on a clash. */
 export function indbFoodId(code) {
+  if (Object.hasOwn(ID_OVERRIDES, code)) return ID_OVERRIDES[code];
   let h = 0;
   for (const c of String(code)) h = Math.imul(31, h) + c.charCodeAt(0) | 0;
   return INDB_ID_BASE + (Math.abs(h) % 49_000_000);
@@ -120,6 +128,7 @@ export function indbTotalFoods(dir) {
   const col = (name) => header.indexOf(name);
   const out = [];
   const flagged = [];
+  const codeById = new Map();
   for (const row of rows.slice(1)) {
     const code = String(row[col('food_code')] ?? '').trim();
     const name = String(row[col('food_name')] ?? '').trim();
@@ -139,8 +148,17 @@ export function indbTotalFoods(dir) {
     // servings_unit is text ("tall glass"); it is read from the row, not through num().
     const serving = indbServing(row[col('servings_unit')], grams);
     if (serving.flagged) flagged.push(`${name}: ${serving.flagged}`);
+    const id = indbFoodId(code);
+    const clash = codeById.get(id);
+    if (clash != null) {
+      // Ids are stored in users' logs, so an existing food's id never changes: resolve a clash by hand.
+      throw new Error(clash === code
+        ? `INDB.xlsx lists food code ${code} twice`
+        : `INDB food codes ${clash} and ${code} hash to the same catalog id ${id}; add ${code} to ID_OVERRIDES in indb-totals.mjs`);
+    }
+    codeById.set(id, code);
     out.push({
-      id: indbFoodId(code),
+      id,
       code,
       name,
       source: 'indb',

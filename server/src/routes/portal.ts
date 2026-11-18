@@ -10,9 +10,19 @@ import { publicOrigin } from './spa.ts';
 
 const SESSION_COOKIE = 'nk_session';
 
+/** The request's cookies; one that can't be decoded (another site's malformed cookie) is skipped. */
 function cookies(req: FastifyRequest): Record<string, string> {
-  return Object.fromEntries(String(req.headers.cookie || '').split(';').map((c) => c.trim().split('=')).filter(([k]) => k)
-    .map(([k, ...v]) => [k, decodeURIComponent(v.join('='))]));
+  const jar: Record<string, string> = {};
+  for (const part of String(req.headers.cookie || '').split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (!k) continue;
+    try {
+      jar[k] = decodeURIComponent(v.join('='));
+    } catch {
+      // URIError: leave it out
+    }
+  }
+  return jar;
 }
 
 function sessionCookie(token: string | null, expires?: Date) {
@@ -42,8 +52,7 @@ function intParam(v: unknown, def: number, min: number, max: number) {
 export async function portalRoutes(app: FastifyInstance) {
   const sql = app.sql;
 
-  // What the dashboard shows for the signed-in user in their current team. `account` keeps its old fields (name and
-  // email of the person) for older clients; `team` is the team itself.
+  // What the dashboard shows for the signed-in user in their current team: `user` is the person, `team` the team itself.
   async function accountView(user: accounts.User, account: accounts.Account, role: accounts.Role) {
     const plan = account.planDetails;
     const [used, testUsed, teams] = await Promise.all([
@@ -53,7 +62,6 @@ export async function portalRoutes(app: FastifyInstance) {
     ]);
     const testLimit = auth.testAllowance();
     return {
-      account: { id: account.id, name: user.name, email: user.email, emailVerified: user.emailVerified, createdAt: user.createdAt },
       user: { id: user.id, name: user.name, email: user.email, emailVerified: user.emailVerified, createdAt: user.createdAt },
       team: { id: account.id, name: account.name, role, createdAt: account.createdAt },
       teams,
@@ -216,7 +224,7 @@ export async function portalRoutes(app: FastifyInstance) {
 
   app.patch('/portal/api/members/:userId(^usr_[a-f0-9]+$)', signedIn, async (req) => {
     const { userId } = req.params as { userId: string };
-    await teams.changeRole(sql, req.account.id, req.role, userId, jsonBody(req).role);
+    await teams.changeRole(sql, req.account.id, { userId: req.user.id, role: req.role }, userId, jsonBody(req).role);
     return { members: await teams.listMembers(sql, req.account.id) };
   });
 
@@ -266,10 +274,8 @@ export async function portalRoutes(app: FastifyInstance) {
     if (mode === 'live') requireRole(teams.can.manageLiveKeys(req.role), 'developers can create test keys; ask an owner or admin for a live key');
     const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim() : (mode === 'test' ? 'Untitled test key' : 'Untitled key');
     const { planDetails } = req.account;
-    if (await auth.activeKeyCount(sql, req.account.id, mode) >= planDetails.maxKeys) {
-      throw new HttpError(403, 'key_limit', `your ${planDetails.name} plan allows ${planDetails.maxKeys} active ${mode} keys; revoke one first`);
-    }
-    const key = await auth.createKey(sql, { name, accountId: req.account.id, mode, createdBy: req.user.id });
+    const key = await auth.createTeamKey(sql, { name, accountId: req.account.id, mode, createdBy: req.user.id }, planDetails.maxKeys);
+    if (!key) throw new HttpError(403, 'key_limit', `your ${planDetails.name} plan allows ${planDetails.maxKeys} active ${mode} keys; revoke one first`);
     reply.status(201);
     return { id: key.id, name: key.name, mode: key.mode, key: key.key };
   });
@@ -330,7 +336,8 @@ export async function portalRoutes(app: FastifyInstance) {
 
   app.post('/portal/api/billing/verify', signedIn, async (req) => {
     requireRole(teams.can.manageTeam(req.role), 'only an owner can change the plan');
-    await billing.verifyPayment(sql, req.account, jsonBody(req));
+    const { note } = await billing.verifyPayment(sql, req.account, jsonBody(req));
+    if (note) req.log.warn({ accountId: req.account.id, note }, 'payment recorded without changing the plan');
     return viewFor(req.sessionToken);
   });
 }

@@ -12,6 +12,10 @@ COPY package.json package-lock.json ./
 COPY server/package.json server/
 COPY web/package.json web/
 COPY sdk/js/package.json sdk/js/
+# The root workspace list names mcp and e2e too: npm ci needs their manifests to match the lockfile (their sources
+# stay out of the image; see .dockerignore).
+COPY mcp/package.json mcp/
+COPY e2e/package.json e2e/
 RUN npm ci --no-audit --no-fund
 COPY tsconfig.base.json ./
 COPY sdk/js sdk/js

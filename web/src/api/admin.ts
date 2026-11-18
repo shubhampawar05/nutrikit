@@ -1,31 +1,30 @@
 // Operator API (/v1/admin) for the admin console. The admin token is the bearer credential; while signed in it is
 // kept in this tab's sessionStorage only (gone when the tab closes or on sign-out).
-import { toApiError } from './client.ts';
+import { ApiError, requestJson, type Method } from './client.ts';
+import { tabStore } from '../storage.ts';
 
 const TOKEN_KEY = 'nk-admin-token';
 
 export const adminToken = {
-  get: (): string | null => { try { return sessionStorage.getItem(TOKEN_KEY); } catch { return null; } },
-  set: (token: string) => { try { sessionStorage.setItem(TOKEN_KEY, token); } catch { /* storage unavailable */ } },
-  clear: () => { try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* storage unavailable */ } },
+  get: () => tabStore.get(TOKEN_KEY),
+  set: (token: string) => tabStore.set(TOKEN_KEY, token),
+  clear: () => tabStore.remove(TOKEN_KEY),
 };
 
 /** Fired on window when the stored admin token is refused (401); the console returns to sign-in. */
 export const ADMIN_UNAUTHORIZED = 'nk-admin-unauthorized';
 
 /** Calls /v1/admin. With no explicit token it uses the stored one, and a 401 then clears it and fires ADMIN_UNAUTHORIZED. */
-async function admin<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown, token?: string): Promise<T> {
-  const res = await fetch(`/v1/admin${path}`, {
-    method,
-    headers: { Authorization: `Bearer ${token ?? adminToken.get() ?? ''}`, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
-  if (res.status === 401 && token === undefined) {
-    adminToken.clear();
-    window.dispatchEvent(new Event(ADMIN_UNAUTHORIZED));
+async function admin<T>(method: Method, path: string, body?: unknown, token?: string): Promise<T> {
+  try {
+    return await requestJson<T>(`/v1/admin${path}`, method, body, { headers: { Authorization: `Bearer ${token ?? adminToken.get() ?? ''}` } });
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401 && token === undefined) {
+      adminToken.clear();
+      window.dispatchEvent(new Event(ADMIN_UNAUTHORIZED));
+    }
+    throw err;
   }
-  if (!res.ok) throw await toApiError(res);
-  return (await res.json()) as T;
 }
 
 const qs = (q?: string) => (q && q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '');
@@ -46,10 +45,12 @@ export interface AdminAccount {
   activeKeys: number; usedThisMonth: number; totalPaid: number; lastPaymentAt: string | null;
 }
 
-export interface AdminPayment {
+interface AdminPayment {
   /** accountId, email and name are null once the paying account was deleted (the payment is kept). */
   paymentId: string; orderId: string; accountId: string | null; email: string | null; name: string | null;
   plan: string; amount: number; currency: string; periodEnd: string; paidAt: string;
+  /** Set when the payment was recorded but the plan was kept (it would have moved the team down or shortened it). */
+  note: string | null;
 }
 
 export interface AdminKey {
@@ -58,17 +59,17 @@ export interface AdminKey {
   accountId: string | null; email: string | null; accountName: string | null; usedThisMonth: number;
 }
 
-export interface UpgradeRequest {
+interface UpgradeRequest {
   id: number; requestedPlan: string; message: string | null; createdAt: string;
   accountId: string; email: string; name: string; currentPlan: string;
 }
 
-export interface RouteMetrics {
+interface RouteMetrics {
   route: string; count: number; byStatus: Record<'2xx' | '3xx' | '4xx' | '5xx', number>;
   p50Ms: number | null; p95Ms: number | null; p99Ms: number | null;
 }
 
-export interface Metrics {
+interface Metrics {
   startedAt: string; uptimeSeconds: number;
   process: { rssMb: number; heapUsedMb: number; eventLoopDelayMs: { p50: number | null; p99: number | null; max: number | null }; node: string };
   requests: {
@@ -80,7 +81,7 @@ export interface Metrics {
 }
 
 export type FoodRequestStatus = 'open' | 'resolved' | 'ignored';
-export type EstimateStatus = 'none' | 'pending' | 'approved' | 'rejected';
+type EstimateStatus = 'none' | 'pending' | 'approved' | 'rejected';
 
 /** A food people tried to log that the catalog lacks, with the AI's estimate for it if one was made. */
 export interface FoodRequest {
@@ -95,7 +96,7 @@ export interface FoodRequest {
   } | null;
 }
 
-export interface FoodRequestCounts { open: number; pendingEstimates: number; approvedEstimates: number }
+interface FoodRequestCounts { open: number; pendingEstimates: number; approvedEstimates: number }
 
 export const adminApi = {
   /** Checks a token by loading the overview with it. */

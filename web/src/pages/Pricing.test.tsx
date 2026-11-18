@@ -19,7 +19,7 @@ const plans = {
 };
 
 const me = {
-  account: { id: 'acc_1', name: 'Ada', email: 'ada@example.com', createdAt: '2026-10-01T00:00:00Z' },
+  user: { id: 'usr_1', name: 'Ada', email: 'ada@example.com', emailVerified: true, createdAt: '2026-10-01T00:00:00Z' },
   plan: { id: 'free', ...plans.plans.free, expiresAt: null },
   usage: { periodStart: '2026-10-01T00:00:00Z', used: 0, remaining: 2000 },
   plans: plans.plans,

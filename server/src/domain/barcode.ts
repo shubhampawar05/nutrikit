@@ -55,6 +55,8 @@ export interface BarcodeLookup {
   /** Served from the local packaged-foods store (data/packaged.db). */
   local?: boolean;
   offline?: boolean;
+  /** Served from a cache entry older than CACHE_DAYS because Open Food Facts did not answer. */
+  stale?: boolean;
   product?: BarcodeProduct;
 }
 
@@ -222,24 +224,35 @@ export async function lookupBarcode(sql: Sql, code: string, { fetch: doFetch = g
   if (offline) return { found: false, cached: false, offline: true };
 
   const fields = 'code,product_name,generic_name,brands,quantity,product_quantity_unit,serving_size,serving_quantity,serving_quantity_unit,nutrition_data_per,nutriments,image_front_small_url,last_modified_t';
-  // A timeout or network failure is the same 502 as a bad response from the source.
-  const unavailable = (detail: string) => Object.assign(new Error('barcode source did not respond; try again later'), { status: 502, logDetail: `open food facts ${code}: ${detail}` });
+  // A timeout, network failure or unreadable body is the same 502 as a bad response from the source, unless an
+  // expired cache entry can answer instead.
+  const unavailable = (message: string, detail: string): BarcodeLookup => {
+    if (checked && cached) return cached.payload ? { found: true, cached: true, stale: true, product: cached.payload } : { found: false, cached: true, stale: true };
+    throw Object.assign(new Error(message), { status: 502, logDetail: `open food facts ${code}: ${detail}` });
+  };
+  const failure = (err: unknown) => ((err as Error).name === 'TimeoutError' ? 'timed out after 8000 ms' : (err as Error).message);
   let res: Response;
+  const signal = AbortSignal.timeout(8000); // covers reading the body too
   try {
     res = await doFetch(`${OFF_URL}/api/v2/product/${code}.json?fields=${fields}`, {
       headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
-      signal: AbortSignal.timeout(8000),
+      signal,
     });
   } catch (err) {
-    throw unavailable((err as Error).name === 'TimeoutError' ? 'timed out after 8000 ms' : (err as Error).message);
+    return unavailable('barcode source did not respond; try again later', failure(err));
   }
   if (res.status === 404) {
     await cache(sql, code, null);
     return { found: false, cached: false };
   }
-  if (!res.ok) throw Object.assign(new Error(`barcode source returned ${res.status}`), { status: 502 });
-  const body = (await res.json()) as OffResponse;
-  const product = body.status === 1 && body.product ? fromOpenFoodFacts({ ...body.product, code }) : null;
+  if (!res.ok) return unavailable(`barcode source returned ${res.status}`, `status ${res.status}`);
+  let body: OffResponse;
+  try {
+    body = (await res.json()) as OffResponse;
+  } catch (err) {
+    return unavailable('barcode source did not respond; try again later', `unreadable response: ${failure(err)}`);
+  }
+  const product = body?.status === 1 && body.product ? fromOpenFoodFacts({ ...body.product, code }) : null;
   await cache(sql, code, product);
   return product ? { found: true, cached: false, product } : { found: false, cached: false };
 }

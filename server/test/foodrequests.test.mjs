@@ -237,3 +237,71 @@ test('a catalog food the model calls the same dish is logged from real data, onl
   const unoffered = (await ask(answer(123456789, Math.round(dal.calories)))).estimates.get('daal fry special');
   assert.equal(unoffered.sameAs, null, 'only an id we offered counts');
 });
+
+test('an estimate missing any nutrient, or a malformed one, is not usable', () => {
+  assert.equal(estimateProblem({ ...good('x'), per100g: { calories: 150 } }), 'missing or negative values');
+  const { sodium, ...noSodium } = good('x').per100g;
+  assert.equal(estimateProblem({ ...good('x'), per100g: noSodium }), 'missing or negative values');
+  assert.equal(estimateProblem({ ...good('x'), per100g: { ...good('x').per100g, fat: 'lots' } }), 'missing or negative values');
+  assert.equal(estimateProblem(null), 'no estimate');
+  assert.equal(estimateProblem({ ...good('x'), name: 42 }), 'no name');
+});
+
+test('a malformed reply is a failed estimate, not a crash', async () => {
+  for (const reply of [{}, { foods: null }, { foods: [null, { known: true }] }, { foods: 'nope' }]) {
+    const r = await requestEstimates({ name: 'fake', estimateFoods: async () => reply }, ['dal']);
+    assert.equal(r.estimates.size, 0, JSON.stringify(reply));
+    assert.deepEqual(r.rejected, [{ query: 'dal', problem: 'no answer for this food' }]);
+    assert.deepEqual(r.usage, { inputTokens: 0, outputTokens: 0 });
+  }
+});
+
+test('a food the reply leaves out is asked again; a food answered twice counts once', async () => {
+  const asked = [];
+  const p = {
+    name: 'fake',
+    async estimateFoods({ foods }) {
+      asked.push(foods);
+      // First reply: "dal" twice (both failing), "kadhi" missing, "upma" renamed. Second: everything answered well.
+      const foods1 = [good('dal', { calories: 10 }), good('dal', { calories: 10 }), good('upma (south indian)')];
+      return { foods: asked.length === 1 ? foods1 : foods.map((q) => good(q)), usage: { inputTokens: 1, outputTokens: 1 } };
+    },
+  };
+  const r = await requestEstimates(p, ['dal', 'kadhi', 'upma']);
+  assert.deepEqual(asked[1], ['dal', 'kadhi', 'upma']);
+  assert.deepEqual([...r.estimates.keys()].sort(), ['dal', 'kadhi', 'upma']);
+  assert.deepEqual(r.rejected, []);
+});
+
+test('when the retry fails, the first attempt\'s estimates are kept and the retried foods are rejected', async () => {
+  let n = 0;
+  const p = {
+    name: 'fake',
+    async estimateFoods({ foods, signal }) {
+      assert.ok(signal instanceof AbortSignal, 'both attempts share one deadline');
+      if (++n === 2) throw Object.assign(new Error('AI provider error (500)'), { status: 502, usage: { inputTokens: 7, outputTokens: 3 } });
+      return { foods: foods.map((q) => (q === 'dal' ? good(q) : good(q, { calories: 10 }))), usage: { inputTokens: 10, outputTokens: 5 } };
+    },
+  };
+  const r = await requestEstimates(p, ['dal', 'kadhi']);
+  assert.deepEqual([...r.estimates.keys()], ['dal']);
+  assert.equal(r.rejected.length, 1);
+  assert.equal(r.rejected[0].query, 'kadhi');
+  assert.match(r.rejected[0].problem, /AI provider error/);
+  assert.deepEqual(r.usage, { inputTokens: 17, outputTokens: 8 });
+  // A failure on the first attempt is still an error.
+  await assert.rejects(requestEstimates({ name: 'fake', estimateFoods: async () => { throw new Error('down'); } }, ['dal']), /down/);
+});
+
+test('when estimating fails after the meal was parsed, the parse\'s tokens are still charged', async () => {
+  const saved = { parseMeal: provider.parseMeal, estimateFoods: provider.estimateFoods };
+  provider.parseMeal = async () => ({ meal: null, notes: '', items: [{ food: 'vrintal bake', quantity: 1, unit: 'bowl', grams: 300, confidence: 'medium' }], usage: { inputTokens: 3000, outputTokens: 1000 } });
+  provider.estimateFoods = async () => { throw Object.assign(new Error('AI provider error (500)'), { status: 502 }); };
+  try {
+    const res = await fetch(`${base}/v1/log/text`, { method: 'POST', headers: { Authorization: `Bearer ${live}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'a bowl of vrintal bake', ai: true }) });
+    assert.equal(res.status, 502);
+    assert.ok(Number(res.headers.get('x-tokens-charged')) > 0, 'AI usage is charged');
+  } finally {
+    Object.assign(provider, saved);
+  }
+});

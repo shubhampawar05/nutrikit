@@ -314,3 +314,28 @@ test('an Open Food Facts timeout is a 502, not a hung or 500 response', async ()
   await sql`DELETE FROM barcode_cache WHERE code = '1234567890128'`;
   await assert.rejects(lookupBarcode(sql, '1234567890128', { fetch: timeout }), (e) => e.status === 502 && /did not respond/.test(e.message));
 });
+
+test('an unreadable Open Food Facts body is a 502; an expired cache entry answers while the source is down', async () => {
+  const code = '5000112548167';
+  await sql`DELETE FROM barcode_cache WHERE code = ${code}`;
+  const notJson = async () => new Response('<html>busy</html>', { status: 200 });
+  await assert.rejects(lookupBarcode(sql, code, { fetch: notJson }), (e) => e.status === 502);
+  const ok = async () => new Response(JSON.stringify({ status: 1, product: { product_name: 'Cola', nutriments: { 'energy-kcal_100g': 42 } } }), { status: 200 });
+  assert.equal((await lookupBarcode(sql, code, { fetch: ok })).product.name, 'Cola');
+  await sql`UPDATE barcode_cache SET fetched_at = now() - interval '90 days' WHERE code = ${code}`;
+  for (const down of [notJson, async () => new Response('', { status: 503 }), async () => { throw Object.assign(new Error('timeout'), { name: 'TimeoutError' }); }]) {
+    const r = await lookupBarcode(sql, code, { fetch: down });
+    assert.equal(r.found, true);
+    assert.equal(r.stale, true);
+    assert.equal(r.product.name, 'Cola');
+  }
+});
+
+test('search paging stops where the ranked matches do; meal plan limits are enforced', async () => {
+  assert.equal((await call('/v1/foods/search?q=rice&offset=399')).status, 200);
+  assert.equal((await call('/v1/foods/search?q=rice&offset=400')).status, 400);
+  for (const bad of [{ proteinGrams: -5 }, { exclude: Array.from({ length: 51 }, (_, i) => `food${i}`) }, { exclude: ['x'.repeat(101)] }]) {
+    assert.equal((await call('/v1/meal-plans', { method: 'POST', body: bad })).status, 400, JSON.stringify(bad).slice(0, 80));
+  }
+  assert.equal((await call('/v1/meal-plans', { method: 'POST', body: { exclude: ['nut'], proteinGrams: 120, seed: 1 } })).status, 200);
+});

@@ -27,7 +27,7 @@ export const sampleProvider: AIProvider = {
       servingSize: '1 cup (55 g)',
       servingGrams: 55,
       servingsPerContainer: 8,
-      perServing: { calories: 210, protein: 6, fat: 3, saturatedFat: 0.5, carbohydrates: 40, fiber: 5, sugars: 9, sodium: 190 },
+      perServing: { calories: 210, protein: 6, fat: 3, saturatedFat: 0.5, carbs: 40, fiber: 5, sugar: 9, sodium: 190 },
       usage: NO_USAGE,
     };
   },

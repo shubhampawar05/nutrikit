@@ -40,7 +40,7 @@ Build it once from the repository root with `npm run build -w mcp`. Then:
 **Claude Code**
 
 ```bash
-claude mcp add nutrikit -e NUTRIKIT_API_KEY=nk_… -- node /absolute/path/to/nutrition-platform/mcp/dist/main.js
+claude mcp add nutrikit -e NUTRIKIT_API_KEY=nk_… -- node /absolute/path/to/nutrikit/mcp/dist/main.js
 ```
 
 **Claude Desktop**: add this to `claude_desktop_config.json`:
@@ -50,7 +50,7 @@ claude mcp add nutrikit -e NUTRIKIT_API_KEY=nk_… -- node /absolute/path/to/nut
   "mcpServers": {
     "nutrikit": {
       "command": "node",
-      "args": ["/absolute/path/to/nutrition-platform/mcp/dist/main.js"],
+      "args": ["/absolute/path/to/nutrikit/mcp/dist/main.js"],
       "env": { "NUTRIKIT_API_KEY": "nk_…", "NUTRIKIT_BASE_URL": "http://localhost:8787" }
     }
   }

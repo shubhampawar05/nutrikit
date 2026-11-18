@@ -141,7 +141,7 @@ function teamName(name: unknown): string {
   return name.trim();
 }
 
-export function validateSignup({ name, email, password }: Credentials): Record<string, string> {
+function validateSignup({ name, email, password }: Credentials): Record<string, string> {
   const errors: Record<string, string> = {};
   if (typeof name !== 'string' || !name.trim() || name.length > 100) errors.name = 'Enter your name or company (up to 100 characters).';
   if (!isEmail(email)) errors.email = 'Enter a valid email address.';
@@ -150,16 +150,29 @@ export function validateSignup({ name, email, password }: Credentials): Record<s
   return errors;
 }
 
+/**
+ * Serializes check-then-insert throttles on one name (an email or a client address) until the transaction ends, so
+ * parallel requests can't all pass the same count. Several names are locked in the order given.
+ */
+async function lockNames(tx: TransactionSql, ...names: string[]) {
+  for (const name of names) await tx`SELECT pg_advisory_xact_lock(hashtext(${name}))`;
+}
+
 // Every attempt counts, invalid ones included, so a script can't probe without spending its allowance.
 async function throttleSignup(sql: Sql, ip: string) {
-  await sql`DELETE FROM signup_attempts WHERE at < now() - interval '1 hour'`;
-  const [{ recent, oldest }] = await sql<{ recent: number; oldest: Date | null }[]>`
-    SELECT COUNT(*) AS recent, MIN(at) AS oldest FROM signup_attempts WHERE ip = ${ip} AND at > now() - interval '1 hour'`;
-  if (recent >= SIGNUP_LIMIT()) {
+  const refused = await sql.begin(async (tx) => {
+    await lockNames(tx, `signup:${ip}`);
+    const [{ recent, oldest }] = await tx<{ recent: number; oldest: Date | null }[]>`
+      SELECT COUNT(*)::int AS recent, MIN(at) AS oldest FROM signup_attempts WHERE ip = ${ip} AND at > now() - interval '1 hour'`;
+    if (recent >= SIGNUP_LIMIT()) return { oldest };
+    await tx`INSERT INTO signup_attempts (ip) VALUES (${ip})`;
+    return null;
+  });
+  if (refused) {
+    const { oldest } = refused;
     const retryAfter = oldest ? Math.max(1, Math.ceil((oldest.getTime() + 3600e3 - Date.now()) / 1000)) : 3600;
     throw Object.assign(fail(429, 'too_many_signups', 'too many signups from your network; try again later'), { retryAfter });
   }
-  await sql`INSERT INTO signup_attempts (ip) VALUES (${ip})`;
 }
 
 const newId = (prefix: string) => `${prefix}_${crypto.randomBytes(8).toString('hex')}`;
@@ -201,21 +214,33 @@ export async function signup(sql: Sql, { name, email, password }: Credentials, {
 // per 15 minutes per client address, so one address can't try many emails. Over either, even a correct password waits.
 export async function login(sql: Sql, { email, password }: Credentials, { ip }: Origin = {}): Promise<User> {
   const key = String(email || '').trim();
-  const [{ byEmail, byIp }] = await sql<{ byEmail: number; byIp: number }[]>`
-    SELECT COUNT(*) FILTER (WHERE email = ${key}) AS "byEmail",
-           COUNT(*) FILTER (WHERE ${ip ?? null}::inet IS NOT NULL AND ip = ${ip ?? null}::inet) AS "byIp"
-    FROM login_failures WHERE at > now() - interval '15 minutes'`;
-  if (byEmail >= 5 || byIp >= LOGIN_IP_LIMIT()) throw Object.assign(fail(429, 'too_many_attempts', 'too many failed logins; try again in 15 minutes'), { retryAfter: 900 });
+  if (!(await countAttempt(sql, key, ip, LOGIN_IP_LIMIT()))) {
+    throw Object.assign(fail(429, 'too_many_attempts', 'too many failed logins; try again in 15 minutes'), { retryAfter: 900 });
+  }
   const [row] = await sql<{ id: string; password_hash: string }[]>`SELECT id, password_hash FROM users WHERE email = ${key}`;
   // Hash even for unknown emails so response time does not reveal which emails exist.
   const ok = row ? await verifyPassword(String(password || ''), row.password_hash) : (await verifyPassword(String(password || ''), await unknownAccountHash()), false);
-  if (!ok) {
-    await sql`DELETE FROM login_failures WHERE at < now() - interval '15 minutes'`;
-    await sql`INSERT INTO login_failures (email, ip) VALUES (${key}, ${ip ?? null})`;
-    throw fail(401, 'invalid_credentials', 'email or password is incorrect');
-  }
+  if (!ok) throw fail(401, 'invalid_credentials', 'email or password is incorrect'); // the attempt stays counted
   await sql`DELETE FROM login_failures WHERE email = ${key}`;
   return getUser(sql, row!.id) as Promise<User>; // row exists: !ok threw above
+}
+
+/**
+ * Counts a password attempt as a failure before the password is checked (a correct one clears the email's failures
+ * afterwards), so parallel guesses can't all pass the limit: 5 per email per 15 minutes, and `ipLimit` per client
+ * address when one is given. Returns false, recording nothing, when either limit is already reached.
+ */
+async function countAttempt(sql: Sql, email: string, ip: string | undefined, ipLimit: number): Promise<boolean> {
+  return sql.begin(async (tx) => {
+    await lockNames(tx, `login:${email.toLowerCase()}`, ...(ip ? [`login-ip:${ip}`] : []));
+    const [{ byEmail, byIp }] = await tx<{ byEmail: number; byIp: number }[]>`
+      SELECT COUNT(*) FILTER (WHERE email = ${email})::int AS "byEmail",
+             COUNT(*) FILTER (WHERE ${ip ?? null}::inet IS NOT NULL AND ip = ${ip ?? null}::inet)::int AS "byIp"
+      FROM login_failures WHERE at > now() - interval '15 minutes'`;
+    if (byEmail >= 5 || byIp >= ipLimit) return false;
+    await tx`INSERT INTO login_failures (email, ip) VALUES (${email}, ${ip ?? null})`;
+    return true;
+  });
 }
 
 /** The plan in force: a paid period that has ended reads as Free (no scheduler needed). */
@@ -291,13 +316,13 @@ export async function sessionContext(sql: Sql, token: string | null | undefined)
   if (!user) return null;
   let { accountId, role } = row;
   if (!accountId || !role) {
-    const [first] = await sql<{ accountId: string; role: Role }[]>`
-      SELECT account_id AS "accountId", role FROM memberships WHERE user_id = ${user.id} ORDER BY created_at LIMIT 1`;
-    if (first) ({ accountId, role } = first);
-    else {
-      accountId = await sql.begin((tx) => createTeam(tx, user.id, user.name));
-      role = 'owner';
-    }
+    // Under a lock on the user, so parallel requests from a teamless user create one team, not one each.
+    ({ accountId, role } = await sql.begin(async (tx) => {
+      await tx`SELECT 1 FROM users WHERE id = ${user.id} FOR UPDATE`;
+      const [first] = await tx<{ accountId: string; role: Role }[]>`
+        SELECT account_id AS "accountId", role FROM memberships WHERE user_id = ${user.id} ORDER BY created_at LIMIT 1`;
+      return first ? { ...first } : { accountId: await createTeam(tx, user.id, user.name), role: 'owner' as const };
+    }));
     await sql`UPDATE sessions SET account_id = ${accountId} WHERE id_hash = ${id}`;
   }
   const account = await getAccount(sql, accountId!);
@@ -343,7 +368,7 @@ const EMAIL_IP_SENDS_PER_HOUR = () => Number(process.env.NUTRIKIT_EMAIL_IP_LIMIT
 const invalidLink = () => fail(400, 'invalid_token', 'this link has expired or was already used');
 
 /** Over the per-address limit -> retry-after seconds; over the per-network limit -> throws 429. */
-export async function emailThrottle(sql: Sql, email: string, purpose: string, ip?: string): Promise<number | null> {
+async function emailThrottle(sql: Sql, email: string, purpose: string, ip?: string): Promise<number | null> {
   await sql`DELETE FROM email_sends WHERE at < now() - interval '1 day'`;
   const [{ byEmail, byIp, oldest }] = await sql<{ byEmail: number; byIp: number; oldest: Date | null }[]>`
     SELECT COUNT(*) FILTER (WHERE email = ${email} AND purpose = ${purpose}) AS "byEmail",
@@ -468,21 +493,22 @@ export async function resetPassword(sql: Sql, token: unknown, password: unknown)
 export async function deleteAccount(sql: Sql, userId: string, password: unknown, { ip }: Origin = {}): Promise<{ email: string; deletedTeams: string[] }> {
   const [row] = await sql<{ email: string; password_hash: string }[]>`SELECT email, password_hash FROM users WHERE id = ${userId}`;
   if (!row) throw fail(404, 'not_found', 'account not found');
-  const [{ recent }] = await sql<{ recent: number }[]>`
-    SELECT COUNT(*)::int AS recent FROM login_failures WHERE email = ${row.email} AND at > now() - interval '15 minutes'`;
-  if (recent >= 5) throw Object.assign(fail(429, 'too_many_attempts', 'too many wrong passwords; try again in 15 minutes'), { retryAfter: 900 });
+  if (!(await countAttempt(sql, row.email, ip, Infinity))) {
+    throw Object.assign(fail(429, 'too_many_attempts', 'too many wrong passwords; try again in 15 minutes'), { retryAfter: 900 });
+  }
   if (typeof password !== 'string' || !password || !(await verifyPassword(password, row.password_hash))) {
-    await sql`INSERT INTO login_failures (email, ip) VALUES (${row.email}, ${ip ?? null})`;
     throw Object.assign(fail(400, 'invalid_password', 'check the highlighted fields'), { fields: { password: 'Password is incorrect' } });
   }
+  await sql`DELETE FROM login_failures WHERE email = ${row.email}`;
   const deletedTeams = await sql.begin(async (tx) => {
+    // Lock the teams first (as membership changes do, teams.ts), then count: owners can't leave in between.
+    await tx`SELECT a.id FROM accounts a JOIN memberships m ON m.account_id = a.id WHERE m.user_id = ${userId} ORDER BY a.id FOR UPDATE OF a`;
     const teams = await tx<{ id: string; name: string; role: Role; members: number; owners: number }[]>`
       SELECT a.id, a.name, m.role,
              (SELECT COUNT(*)::int FROM memberships x WHERE x.account_id = a.id) AS members,
              (SELECT COUNT(*)::int FROM memberships x WHERE x.account_id = a.id AND x.role = 'owner') AS owners
       FROM memberships m JOIN accounts a ON a.id = m.account_id
-      WHERE m.user_id = ${userId}
-      FOR UPDATE OF a`;
+      WHERE m.user_id = ${userId}`;
     const blocking = teams.filter((t) => t.members > 1 && t.role === 'owner' && t.owners === 1);
     if (blocking.length) {
       throw Object.assign(fail(409, 'sole_owner', `you are the only owner of ${blocking.map((t) => t.name).join(', ')}; make another member an owner first`),
@@ -499,6 +525,27 @@ export async function deleteAccount(sql: Sql, userId: string, password: unknown,
     return solo;
   });
   return { email: row.email, deletedTeams };
+}
+
+// ---- Housekeeping ----
+
+/**
+ * Deletes rows nothing reads any more: ended sessions, email links and invitations a day after they expire (a used
+ * link keeps answering until then), throttle records past their windows, and idle per-minute rate windows (one per
+ * demo visitor's address). Run periodically (app.ts); returns how many rows each table lost.
+ */
+export async function pruneExpired(sql: Sql): Promise<Record<string, number>> {
+  const counts: Record<string, number> = {};
+  const run = async (table: string, query: Promise<{ count: number }>) => { counts[table] = (await query).count; };
+  await run('sessions', sql`DELETE FROM sessions WHERE expires_at < now()`);
+  await run('email_tokens', sql`DELETE FROM email_tokens WHERE expires_at < now() - interval '1 day'`);
+  await run('invitations', sql`DELETE FROM invitations WHERE expires_at < now() - interval '1 day'`);
+  await run('rate_windows', sql`DELETE FROM rate_windows WHERE window_start < now() - interval '1 hour'`);
+  await run('login_failures', sql`DELETE FROM login_failures WHERE at < now() - interval '15 minutes'`);
+  await run('signup_attempts', sql`DELETE FROM signup_attempts WHERE at < now() - interval '1 hour'`);
+  await run('email_sends', sql`DELETE FROM email_sends WHERE at < now() - interval '1 day'`);
+  await run('invite_sends', sql`DELETE FROM invite_sends WHERE at < now() - interval '1 hour'`);
+  return counts;
 }
 
 export async function requestUpgrade(sql: Sql, accountId: string, plan: string, message: unknown): Promise<{ requested: string }> {

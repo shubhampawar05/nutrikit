@@ -1,4 +1,4 @@
-// A <pre> with a copy button (the legacy pre[data-copy]). `copyText` copies something other than what is shown,
+// A <pre> with a copy button. `copyText` copies something other than what is shown,
 // e.g. a snippet whose secret is masked on screen.
 import { useRef, useState, type ReactNode } from 'react';
 

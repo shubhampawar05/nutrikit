@@ -16,6 +16,9 @@ e2e/playwright-report/
 # Open Food Facts stores: data/packaged.db (the live set) is committed; the full set is local only.
 server/data/packaged.all.db
 server/data/*.db.tmp*
+# AI-estimate eval runs (npm run eval:estimates): only the baseline is kept; results of other runs go in docs/platform.md.
+server/data/eval/*
+!server/data/eval/baseline.json
 
 # graphify knowledge graph output
 graphify-out/

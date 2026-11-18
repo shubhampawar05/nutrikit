@@ -27,7 +27,7 @@ async function signup(name) {
     body: JSON.stringify({ name, email: `${name.toLowerCase().replace(/\W/g, '')}-${crypto.randomUUID().slice(0, 8)}@example.com`, password: 'correct horse battery' }),
   });
   const body = await res.json();
-  return { id: body.account.id, email: body.account.email, key: body.firstKey };
+  return { id: body.team.id, email: body.user.email, key: body.firstKey };
 }
 
 /** Records a payment the way billing does: a payments row and a 30-day period. */

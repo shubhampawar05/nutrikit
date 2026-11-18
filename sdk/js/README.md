@@ -12,7 +12,7 @@ nutrition advisor.
 
 - No dependencies. Works in browsers and Node 18+ (anything with `fetch`).
 - TypeScript types included.
-- Retries `429`, `502` and `503` responses, honouring `Retry-After`.
+- Retries `429`, `502` and `503` responses (honouring `Retry-After`) and failed connections.
 
 ## Install
 
@@ -61,6 +61,7 @@ const client = new Nutrikit({ apiKey: access_token, baseUrl: 'https://nutrikit.o
 | `logVoice(transcript, { ai })` | Log a meal from a spoken transcript |
 | `logPhoto(image, { mediaType, hint })` | Log a meal from a photo (`File`, `Blob`, `ArrayBuffer`, `Uint8Array`, data URL or base64) |
 | `lookupBarcode(code)` | Packaged product by EAN/UPC |
+| `searchBarcodes(q, { limit, offset, country })` | Search packaged products by name or brand (`country`: `in` or `us`; servers with a local Open Food Facts export, `503` otherwise) |
 | `parseLabel({ text })` / `parseLabel({ image })` | Read a nutrition label from text or a photo |
 | `createMealPlan({ calories, proteinGrams, diet, meals, days, exclude, seed })` | 1–7 day meal plan |
 | `askAdvisor(question, { context })` | Nutrition question answered by the server's AI provider (declines medical questions) |
@@ -92,6 +93,10 @@ try {
 
 Quota exhaustion (`quota_exceeded`) is not retried.
 
+When no response arrives, the error has `status` `0` and `code` `network_error` (the server couldn't be reached;
+retried like a `503`) or `timeout` (no answer within `timeoutMs`; not retried, since the server may still be
+working on the call). The underlying error is in `e.cause`.
+
 A failed call is free unless the AI provider already did work on it (a refused photo, a truncated answer, an image
 that isn't a label). Then only the AI tokens are charged, and the error response's `X-Tokens-Charged` header says
 how many. `504 ai_timeout` (the AI provider didn't answer in time) is never charged.
@@ -103,7 +108,7 @@ how many. `504 ai_timeout` (the AI provider didn't answer in time) is never char
 | `apiKey` | – | Secret key (`nk_live_…`, `nk_test_…`, or `nk_…` from before test keys) or access token (`nkat_…`). Required |
 | `baseUrl` | page origin / `http://localhost:8787` | Your Nutrikit server |
 | `fetch` | `globalThis.fetch` | Custom fetch implementation |
-| `maxRetries` | `2` | Retries for `429`, `502`, `503` |
+| `maxRetries` | `2` | Retries for `429`, `502`, `503` and network errors |
 | `timeoutMs` | `60000` | Per-request timeout |
 
 ## License

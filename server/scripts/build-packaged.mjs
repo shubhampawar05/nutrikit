@@ -106,9 +106,11 @@ async function main() {
   const args = process.argv.slice(2);
   const all = args.includes('--all');
   const outAt = args.indexOf('--out');
+  const usage = 'usage: build-packaged.mjs <openfoodfacts-products.jsonl> [--all] [--out <file>]';
+  if (outAt >= 0 && (!args[outAt + 1] || args[outAt + 1].startsWith('--'))) throw new Error(usage);
   const out = path.resolve(ROOT, outAt >= 0 ? args[outAt + 1] : all ? 'data/packaged.all.db' : 'data/packaged.db');
   const [input] = args.filter((a, i) => !a.startsWith('--') && !(outAt >= 0 && i === outAt + 1));
-  if (!input || !fs.existsSync(input)) throw new Error('usage: build-packaged.mjs <openfoodfacts-products.jsonl> [--all] [--out <file>]');
+  if (!input || !fs.existsSync(input)) throw new Error(usage);
   if (path.basename(out) === 'foods.db') throw new Error('Open Food Facts data is a separate ODbL database: never write it into foods.db');
 
   const tmp = `${out}.tmp`;
@@ -152,7 +154,6 @@ async function main() {
     if (skipped) { skip(skipped); continue; }
     const scans = Number(record.unique_scans_n) || 0;
     if (!all && !inLiveSet(countries, scans)) { skip('not in the live set (US, never scanned)'); continue; }
-    for (const c of countries) counts.stored[c]++;
     insert.run(...row(product, image, countries, scans, record.last_modified_t ?? 0));
     if (++pending === 50_000) { db.exec('COMMIT; BEGIN'); pending = 0; }
   }
@@ -161,7 +162,10 @@ async function main() {
   db.exec(`
     CREATE VIRTUAL TABLE products_fts USING fts5(name, brand, content='products', content_rowid='rowid', tokenize='unicode61 remove_diacritics 2');
     INSERT INTO products_fts(products_fts) VALUES ('rebuild');`);
-  const total = db.prepare('SELECT count(*) n FROM products').get().n;
+  // Counted from the table, not per line: a barcode exported twice is stored once.
+  const stored = db.prepare('SELECT count(*) n, coalesce(sum(country_in), 0) "in", coalesce(sum(country_us), 0) us FROM products').get();
+  const total = stored.n;
+  counts.stored = { in: stored.in, us: stored.us };
   const source = {
     ...OFF_SOURCE, set: all ? 'all' : 'live', file: path.basename(input), bytes: fs.statSync(input).size,
     newestEdit: newest ? new Date(newest * 1000).toISOString().slice(0, 10) : null,

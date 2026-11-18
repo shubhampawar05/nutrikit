@@ -22,7 +22,11 @@ export function vocabulary(): Vocabulary {
     for (const w of words) if (w.length >= 3) counts.set(w, (counts.get(w) ?? 0) + 1);
   }
   const byLength = new Map<number, string[]>();
-  for (const w of counts.keys()) byLength.set(w.length, [...(byLength.get(w.length) ?? []), w]);
+  for (const w of counts.keys()) {
+    const bucket = byLength.get(w.length);
+    if (bucket) bucket.push(w);
+    else byLength.set(w.length, [w]);
+  }
   vocab = { counts, byLength };
   return vocab;
 }

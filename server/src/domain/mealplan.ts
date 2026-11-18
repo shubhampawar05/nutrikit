@@ -1,6 +1,6 @@
 // Meal plan generation from the food catalog: picks a main and sides per meal from WWEIA
-// categories, filters by diet, then scales portions toward a calorie target and protein floor.
-// Deterministic for a given seed.
+// categories, filters by diet, then scales portions toward a calorie target. The protein target is reported
+// alongside the plan but does not steer it. Deterministic for a given seed.
 import { foods, getFood } from './db.ts';
 import { resolvePortion } from './units.ts';
 import { scaleNutrients, sumNutrients } from './nutrients.ts';
@@ -22,6 +22,7 @@ interface PoolRow {
 interface PoolEntry {
   id: number;
   name: string;
+  lower: string; // name in lowercase, for exclusions
 }
 
 // A food in a meal before final scaling; `scale` is set on sides only.
@@ -113,9 +114,8 @@ const NOT_PLANNABLE = /\b(baby|infant|toddler|formula|nfs|ns as to|frozen meal|f
 
 export const DIETS = ['omnivore', 'vegetarian', 'vegan', 'pescatarian', 'dairy-free', 'gluten-free'];
 
-function allowed(name: string, diet: string, exclude: string[]) {
+function allowed(name: string, diet: string) {
   if (NOT_PLANNABLE.test(name)) return false;
-  if (exclude.some((x) => x && name.toLowerCase().includes(x))) return false;
   const plant = /\b(meatless|vegetarian|vegan|plant-based|veggie|soy)\b/i.test(name);
   switch (diet) {
     case 'vegetarian': return plant || (!MEAT.test(name) && !SEAFOOD.test(name));
@@ -138,21 +138,24 @@ function rng(seed: number) {
   };
 }
 
+// Keyed by slot categories and diet only (both from fixed lists), so the cache stays small; a request's own
+// exclusions are applied to the cached pool.
 const poolCache = new Map<string, PoolEntry[]>();
 function pool(categories: string[], diet: string, exclude: string[]): PoolEntry[] {
-  const key = JSON.stringify([categories, diet, exclude]);
+  const key = JSON.stringify([categories, diet]);
   if (!poolCache.has(key)) {
     const rows = (foods()
       .prepare(`SELECT id, name, nutrients FROM foods WHERE source = 'survey' AND category IN (${categories.map(() => '?').join(',')})`)
       .all(...categories) as unknown as PoolRow[])
-      .filter((r) => allowed(r.name, diet, exclude))
+      .filter((r) => allowed(r.name, diet))
       // Survey names don't always reveal animal ingredients ("Chili, white"); plant foods carry no
       // cholesterol, so vegan picks must have essentially none.
       .filter((r) => diet !== 'vegan' || ((JSON.parse(r.nutrients) as Per100g).cholesterol ?? 0) <= 1)
-      .map(({ id, name }) => ({ id, name }));
+      .map(({ id, name }) => ({ id, name, lower: name.toLowerCase() }));
     poolCache.set(key, rows);
   }
-  return poolCache.get(key)!;
+  const rows = poolCache.get(key)!;
+  return exclude.length ? rows.filter((r) => !exclude.some((x) => r.lower.includes(x))) : rows;
 }
 
 // A realistic single serving: the food's default portion when it is 30-450 g, else the closest

@@ -80,19 +80,40 @@ export interface LogResult {
 
 export interface VoiceLogResult extends LogResult { transcript: string }
 
-export interface BarcodeProduct {
+/** A packaged food from Open Food Facts. */
+export interface PackagedProduct {
   barcode: string;
   name: string | null;
   brand: string | null;
   packageSize: string | null;
   servingSize: string | null;
   servingGrams: number | null;
+  servingMl: number | null;
   imageUrl: string | null;
+  /** What `per100g` is per: liquids are labelled per 100 ml. */
+  basis: '100g' | '100ml';
   per100g: Partial<Record<NutrientKey, number>>;
   perServing: NutrientMap | null;
+  /** Why the label values were withheld (they contradict each other); empty when they passed the checks. */
+  issues: string[];
+  /** When the Open Food Facts record was last edited (ISO date), or null. */
+  updatedAt: string | null;
   source: 'openfoodfacts';
   license: string;
+}
+
+/** lookupBarcode() result. */
+export interface BarcodeProduct extends PackagedProduct {
   cached: boolean;
+  /** Served from the server's local Open Food Facts export rather than the live API. */
+  local: boolean;
+}
+
+export interface PackagedSearchResult {
+  query: string;
+  total: number;
+  /** `barcodes`: every barcode the product is sold under (same name, brand and label values), the shown one first. */
+  results: (PackagedProduct & { barcodes: string[] })[];
 }
 
 export interface LabelResult {
@@ -146,6 +167,7 @@ export interface AccessToken { access_token: string; token_type: 'Bearer'; expir
 export type ImageInput = Blob | ArrayBuffer | ArrayBufferView | string;
 
 export class NutrikitError extends Error {
+  /** HTTP status, or 0 when no response arrived (`code` 'network_error' or 'timeout'; the original error is `cause`). */
   status: number;
   code: string;
   retryAfter: number | null;
@@ -163,6 +185,8 @@ export class Nutrikit {
   logVoice(transcript: string, opts?: { ai?: boolean }): Promise<VoiceLogResult>;
   logPhoto(image: ImageInput, opts?: { mediaType?: string; hint?: string }): Promise<LogResult>;
   lookupBarcode(code: string): Promise<BarcodeProduct>;
+  /** Needs a server with a local packaged-foods export; otherwise rejects with 503 `packaged_foods_unavailable`. */
+  searchBarcodes(q: string, opts?: { limit?: number; offset?: number; country?: 'in' | 'us' }): Promise<PackagedSearchResult>;
   parseLabel(input: { text: string } | { image: ImageInput; mediaType?: string }): Promise<LabelResult>;
   createMealPlan(opts?: { calories?: number; proteinGrams?: number; diet?: Diet; meals?: MealName[]; days?: number; exclude?: string[]; seed?: number }): Promise<MealPlan>;
   askAdvisor(question: string, opts?: { context?: string }): Promise<AdvisorAnswer>;

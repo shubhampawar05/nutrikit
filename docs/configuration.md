@@ -9,6 +9,10 @@ Templates: [.env.example](../.env.example) (local) and [.env.production.example]
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `NUTRIKIT_TOKEN_SECRET` | Signs access tokens. Required in production; generate with `openssl rand -hex 32` and keep it fixed |
+| `NUTRIKIT_PUBLIC_URL` | The site's public address, e.g. `https://nutrikit.onrender.com`. Required in production (`NODE_ENV=production`, as in the Docker image): the server refuses to start without it. Used for the links in emails, canonical URLs, link previews and the sitemap. In development it falls back to the request's host; production never does, because the `Host` header is the client's to choose and a forged one would put an attacker's address into password-reset links |
+
+With `NODE_ENV=production` (the Docker image sets it), the server refuses to start without `NUTRIKIT_TOKEN_SECRET`
+and `NUTRIKIT_PUBLIC_URL`.
 
 ## Production
 
@@ -17,7 +21,6 @@ Templates: [.env.example](../.env.example) (local) and [.env.production.example]
 | `NUTRIKIT_SECURE_COOKIES` | `1` marks session cookies `Secure`. Use when serving over HTTPS |
 | `NUTRIKIT_ADMIN_TOKEN` | Password for `/admin` and `/v1/admin/*`. Unset disables the admin console |
 | `NUTRIKIT_TRUST_PROXY` | Proxies in front of the server, so per-address limits see the real client: a hop count (`1` on Render, where every request comes through its proxy) or comma-separated proxy addresses/CIDRs. Unset trusts nothing and `X-Forwarded-For` is ignored. Never set a count on a host that clients can reach directly |
-| `NUTRIKIT_PUBLIC_URL` | The site's address, e.g. `https://nutrikit.onrender.com`. Used for canonical URLs, link previews, the sitemap and the links in emails; without it they follow the request's host |
 
 ## AI (optional)
 
@@ -40,6 +43,8 @@ Enables photo logging, label photos and `ai: true` text parsing. Without a provi
 |---|---|
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | Turn on paid upgrades. `rzp_test_…` for testing, `rzp_live_…` for real money |
 | `RAZORPAY_WEBHOOK_SECRET` | Secret of the `order.paid` webhook at `/webhooks/razorpay` |
+| `RAZORPAY_TIMEOUT_MS` | Deadline for one call to the Razorpay API (default `15000`) |
+| `RAZORPAY_API_BASE` | Razorpay API origin (default `https://api.razorpay.com`). Only for pointing tests at a stub server |
 
 ## Email
 
@@ -63,6 +68,7 @@ in Brevo) when you have one.
 | Variable | Default | What it's for |
 |---|---|---|
 | `PORT` | `8787` | HTTP port (most hosts set it) |
+| `HOST` | `0.0.0.0` | Address to listen on; `127.0.0.1` keeps the server off the network |
 | `NUTRIKIT_RATE_LIMIT` | `120` | Requests per minute per key |
 | `NUTRIKIT_FOOD_REQUESTS_MAX` | `5000` | Missing foods kept for review; beyond it only foods already listed are counted ([Platform](platform.md#missing-foods)) |
 | `NUTRIKIT_TEST_TOKENS` | `5000` | Monthly tokens for a team's test keys (`nk_test_…`), separate from its plan |
@@ -76,6 +82,7 @@ in Brevo) when you have one.
 | `NUTRIKIT_MAIL_TIMEOUT_MS` | `15000` | Deadline for one call to the email provider |
 | `NUTRIKIT_DB_POOL` | `10` | Postgres connections per instance |
 | `NUTRIKIT_OFFLINE` | – | `1` serves barcodes from the packaged-foods store and the cache only |
+| `NUTRIKIT_OFF_URL` | `https://world.openfoodfacts.org` | Open Food Facts origin for live barcode lookups (a mirror, or a stub in tests) |
 | `NUTRIKIT_PACKAGED_DB` | `data/packaged.db` | Packaged-foods store (see below). Set it to `data/packaged.all.db` to use the full local set; without a store, barcodes use the live API and packaged-food search answers 503 |
 | `NUTRIKIT_WEB_DIST` | `web/dist` | Built website to serve; without it the server is API-only |
 | `NUTRIKIT_LOG_LEVEL` | `info` | `fatal` … `debug`, or `silent`. Logs are JSON lines on stdout, one per request, with its `requestId` (also sent as `X-Request-Id`); bodies and credentials are never logged |

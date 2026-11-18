@@ -1,9 +1,9 @@
 // Types and pure helpers for the homepage live demo.
 
-export interface DemoNutrient { amount: number; unit?: string; dailyValuePercent?: number | null }
+interface DemoNutrient { amount: number; unit?: string; dailyValuePercent?: number | null }
 export type Totals = Partial<Record<string, DemoNutrient>>;
 
-export interface DemoItem {
+interface DemoItem {
   input: string;
   food: { id?: number | string; name: string; source?: string };
   quantity: number;

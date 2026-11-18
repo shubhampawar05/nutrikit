@@ -1,7 +1,8 @@
 // Teams on the dashboard: the team switcher (with "New team") and the members card (invite, roles, remove, leave).
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, ApiError, can, errorText, fmtDate, type AccountView, type Me, type Role } from '../../api/client.ts';
+import { api, ApiError, can, errorText, fmtDate, type Me, type Role } from '../../api/client.ts';
+import { useTeamChanged } from '../../hooks.ts';
 import { useToast } from '../../components/Toast.tsx';
 import { ErrorRetry } from '../../components/ErrorRetry.tsx';
 import { Select } from '../../components/Select.tsx';
@@ -12,16 +13,6 @@ const ROLE_HELP: Record<Role, string> = {
   admin: 'Members and all keys',
   developer: 'Sees keys and usage, manages test keys',
 };
-
-/** After the team in use changes: take the new view and reload everything that belongs to a team. */
-function useTeamChanged() {
-  const queryClient = useQueryClient();
-  return (view: AccountView | null) => {
-    if (view) queryClient.setQueryData<Me>(['me'], (old) => (old ? { ...old, ...view } : old));
-    else void queryClient.invalidateQueries({ queryKey: ['me'] });
-    for (const key of ['keys', 'usage', 'members']) void queryClient.invalidateQueries({ queryKey: [key] });
-  };
-}
 
 export function TeamSwitcher({ me }: { me: Me }) {
   const toast = useToast();

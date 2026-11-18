@@ -30,6 +30,13 @@ services:
       # Every request reaches the app through Render's proxy: trust that one hop for client addresses.
       - key: NUTRIKIT_TRUST_PROXY
         value: "1"
+      # The site's public address, e.g. https://nutrikit.onrender.com. Required: the server refuses to start without
+      # it in production (links in emails are built from it).
+      - key: NUTRIKIT_PUBLIC_URL
+        sync: false
+      # AI provider: set one of these (Claude wins when both are set).
+      - key: ANTHROPIC_API_KEY
+        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: RAZORPAY_KEY_ID

@@ -14,7 +14,6 @@ const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
 const me: Me = {
-  account: { id: 'acc_1', name: 'Ada Labs', email: 'ada@example.com', createdAt: '2026-10-01T00:00:00Z' },
   plan: { id: 'free', name: 'Free', monthlyTokens: 2000, ratePerMinute: 30, price: 0, currency: 'INR', maxKeys: 2, maxMembers: 5, rank: 0, expiresAt: null },
   usage: { periodStart: '2026-10-01T00:00:00Z', used: 1700, remaining: 300 },
   plans: {
@@ -149,7 +148,7 @@ describe('Dashboard', () => {
   });
 
   it('asks an unverified account to confirm its email and can send a new link', async () => {
-    const unverified: Me = { ...me, account: { ...me.account, emailVerified: false }, user: { ...me.user, emailVerified: false } };
+    const unverified: Me = { ...me, user: { ...me.user, emailVerified: false } };
     let sends = 0;
     const fetchMock = stubPortal({
       account: unverified,
@@ -165,7 +164,7 @@ describe('Dashboard', () => {
   });
 
   it('shows no email banner for a verified account', async () => {
-    stubPortal({ account: { ...me, account: { ...me.account, emailVerified: true } } });
+    stubPortal({ account: { ...me, user: { ...me.user, emailVerified: true } } });
     app();
     await screen.findByRole('heading', { level: 1, name: 'Hi, Ada Labs' });
     expect(screen.queryByText('Confirm your email.')).toBeNull();
@@ -450,6 +449,35 @@ describe('Dashboard', () => {
     expect(calls(fetchMock, '/upgrade', 'POST')).toBe(1);
     const sent = fetchMock.mock.calls.find(([u]) => String(u).endsWith('/upgrade'));
     expect(JSON.parse(String(sent?.[1]?.body))).toMatchObject({ plan: 'enterprise' });
+  });
+
+  it('switching teams starts the plan card afresh: a request sent for one team is not shown for another', async () => {
+    const bolt = { id: 'acc_2', name: 'Bolt', role: 'owner' as const, plan: 'free' };
+    const teams = [...me.teams, bolt];
+    stubPortal({
+      account: { ...me, teams },
+      override: (path, method) => (path === '/teams/switch' && method === 'POST'
+        ? json(200, { ...me, teams, team: { id: bolt.id, name: bolt.name, role: bolt.role, createdAt: '2026-10-05T00:00:00Z' } })
+        : undefined),
+    });
+    app();
+    // Pricing's Enterprise "Contact us" links to /dashboard#upgrade.
+    await screen.findByLabelText('Need more?');
+    expect(document.getElementById('upgrade')?.querySelector('h2')?.textContent).toBe('Plan');
+    choose(screen.getByLabelText('Need more?'), 'Enterprise — custom');
+    fireEvent.click(screen.getByRole('button', { name: 'Request upgrade' }));
+    expect(await screen.findByText('Request sent')).toBeTruthy();
+
+    choose(screen.getByLabelText('Team'), 'Bolt (Owner)');
+    expect(await screen.findByText('Switched to Bolt')).toBeTruthy();
+    expect(screen.queryByText('Request sent')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Request upgrade' })).toBeTruthy();
+  });
+
+  it('sends the developer to log in when the session expires while on the dashboard', async () => {
+    stubPortal({ override: (path) => (path === '/keys' ? json(401, { error: { code: 'unauthorized', message: 'please log in' } }) : undefined) });
+    app();
+    expect((await screen.findByTestId('where')).textContent).toBe('/login?next=/dashboard');
   });
 
   it('without online billing a paid plan is an upgrade request', async () => {

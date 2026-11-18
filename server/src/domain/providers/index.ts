@@ -3,7 +3,8 @@
 //   readLabel({ image, mediaType })           -> { servingSize, servingGrams, servingsPerContainer, perServing, usage }
 //   parseMeal({ text })                        -> { meal, items: [{ food, quantity, unit, grams }], usage }
 //   advise({ question, context })              -> { answer, declined, usage }
-//   estimateFoods({ foods })                   -> { foods: [{ query, known, name, per100g, serving, confidence }], usage }
+//   estimateFoods({ foods, candidates, signal }) -> { foods: [{ query, known, name, per100g, serving, confidence, sameAs }], usage }
+//     (`candidates[i]` are catalog foods that may be the same dish as `foods[i]`; `sameAs` is the id of the one it is)
 // `usage` is { inputTokens, outputTokens } so the API can meter it.
 // Missing capabilities surface as HTTP 501 from the routes that need them.
 import type { AIUsage } from '../types.ts';
@@ -79,9 +80,12 @@ export interface AIProvider {
   parseMeal?(args: { text: string }): Promise<MealRecognition>;
   /** `context` is caller-supplied background (goals, today's log); it is never treated as instructions. */
   advise?(args: { question: string; context?: string | null }): Promise<AdvisorReply>;
-  /** Nutrition estimates for foods the catalog has no match for (at most a handful per call). */
-  /** `candidates[i]` are catalog foods that may be the same dish as `foods[i]` (the model may pick one: `sameAs`). */
-  estimateFoods?(args: { foods: string[]; candidates?: CatalogCandidate[][] }): Promise<FoodEstimates>;
+  /**
+   * Nutrition estimates for foods the catalog has no match for (at most a handful per call). `candidates[i]` are
+   * catalog foods that may be the same dish as `foods[i]` (the model may pick one: `sameAs`). `signal`, when given,
+   * is the deadline to use instead of a fresh aiDeadline(), so several calls can share one.
+   */
+  estimateFoods?(args: { foods: string[]; candidates?: CatalogCandidate[][]; signal?: AbortSignal }): Promise<FoodEstimates>;
 }
 
 /** The capability methods a provider may implement. */
@@ -89,6 +93,23 @@ export type AICapability = 'recognizeMeal' | 'readLabel' | 'parseMeal' | 'advise
 
 /** One deadline for a whole provider call, retries included (NUTRIKIT_AI_TIMEOUT_MS, default 60 s). */
 export const aiDeadline = (): AbortSignal => AbortSignal.timeout(Number(process.env.NUTRIKIT_AI_TIMEOUT_MS) || 60_000);
+
+/** Two usages added; a missing one counts as none. */
+export const addUsage = (a: AIUsage | null | undefined, b: AIUsage | null | undefined): AIUsage => ({
+  inputTokens: (a?.inputTokens ?? 0) + (b?.inputTokens ?? 0),
+  outputTokens: (a?.outputTokens ?? 0) + (b?.outputTokens ?? 0),
+});
+
+/**
+ * Adds usage to an error, so the tokens the provider spent before the failure are still charged (plugins/metering.ts
+ * reads `err.usage`). Returns the error.
+ */
+export function withUsage(err: unknown, usage: AIUsage | null | undefined): unknown {
+  if (!usage || !err || typeof err !== 'object') return err;
+  const e = err as { usage?: AIUsage };
+  e.usage = addUsage(e.usage, usage);
+  return err;
+}
 
 /** The error a provider throws when its deadline passes: 504, and no usage, so nothing is charged. */
 export const aiTimeout = (): Error => Object.assign(new Error('the AI provider did not answer in time; try again'), { status: 504, code: 'ai_timeout' });

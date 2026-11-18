@@ -76,7 +76,10 @@ export function errorHandling(app: FastifyInstance, { fallback }: ErrorHandlingO
 
   app.setErrorHandler((err: AppError, req, reply) => {
     let status = err.status || err.statusCode || 500;
-    let code = err instanceof HttpError || !String(err.code || '').startsWith('FST_') ? err.code : undefined;
+    // Codes are the API's own (HttpError, or a domain error that set its status). Anything else may carry a library's
+    // code (Fastify's FST_*, Postgres '23505', Node's ECONNREFUSED): never sent for a server failure.
+    const own = err instanceof HttpError || typeof err.status === 'number';
+    let code = own || (status < 500 && !String(err.code || '').startsWith('FST_')) ? err.code : undefined;
     let message = err.message || '';
     if (err.validation) {
       status = 400;

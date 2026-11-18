@@ -4,6 +4,7 @@ import type { Writable } from 'node:stream';
 import Fastify, { LogController, type FastifyInstance } from 'fastify';
 import swagger from '@fastify/swagger';
 import { createSql } from './pg.ts';
+import { pruneExpired } from './domain/accounts.ts';
 import { HttpError, IMAGE_TYPES, MAX_JSON, contentType } from './http.ts';
 import { errorHandling } from './plugins/errors.ts';
 import { metering } from './plugins/metering.ts';
@@ -42,8 +43,6 @@ const isPortal = (url: string) => url.startsWith('/portal/');
 // A caller-supplied X-Request-Id is reused when it is safe to echo and to log.
 const REQUEST_ID = /^[A-Za-z0-9._-]{1,128}$/;
 
-// Request logs carry only what the onResponse hook passes; these paths are redacted in case a header object
-// is ever logged.
 // NUTRIKIT_TRUST_PROXY: a hop count (for hosts where every request comes through the proxy, such as Render), or a
 // comma-separated list of proxy addresses/CIDRs. Fastify reads a bare number as "trust nothing", so a count
 // becomes a function trusting that many hops nearest the server.
@@ -57,7 +56,26 @@ function trustProxyOption(value: number | string | undefined) {
   return text;
 }
 
+// Request logs carry only what the onResponse hook passes; these paths are redacted in case a header object
+// is ever logged.
 const REDACT = ['req.headers.authorization', 'req.headers.cookie', 'req.headers["x-api-key"]', 'headers.authorization', 'headers.cookie', 'headers["x-api-key"]'];
+
+/**
+ * Settings a production server can't run without, as messages (empty when all is well). main.ts refuses to start
+ * on any. Outside production, development defaults apply instead.
+ */
+export function configProblems(env: NodeJS.ProcessEnv = process.env): string[] {
+  if (env.NODE_ENV !== 'production') return [];
+  const problems: string[] = [];
+  // Access tokens must survive a database reset and verify on every instance.
+  if (!env.NUTRIKIT_TOKEN_SECRET) problems.push('NUTRIKIT_TOKEN_SECRET is required when NODE_ENV=production (e.g. `openssl rand -hex 32`)');
+  // Email links (password reset, invitations, verification) must never be built from a request's Host header.
+  if (!env.NUTRIKIT_PUBLIC_URL) problems.push('NUTRIKIT_PUBLIC_URL is required when NODE_ENV=production (the site\'s public origin, e.g. https://nutrikit.example.com)');
+  return problems;
+}
+
+// Expired sessions, links, invitations and throttle rows are deleted this often (accounts.pruneExpired).
+const PRUNE_EVERY_MS = 3600e3;
 
 export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> {
   // Scalars are coerced (query strings arrive as text), but a scalar never becomes an array.
@@ -75,7 +93,13 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
 
   const sql = createSql(opts.databaseUrl);
   app.decorate('sql', sql);
-  app.addHook('onClose', async () => { await sql.end({ timeout: 5 }); });
+  const pruning = setInterval(() => {
+    pruneExpired(sql).catch((err: Error) => app.log.warn({ err: err.message }, 'pruning expired rows failed'));
+  }, PRUNE_EVERY_MS).unref();
+  app.addHook('onClose', async () => {
+    clearInterval(pruning);
+    await sql.end({ timeout: 5 });
+  });
 
   app.addHook('onRequest', async (req, reply) => {
     reply.header('X-Request-Id', req.id);
