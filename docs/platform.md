@@ -160,6 +160,12 @@ compare large differences only.
 | `baseline` | 30.7% | 35% | estimates only |
 | `validated` | 34% | 30% | + arithmetic checks; none failed in this run |
 | `near-match` | 35.8% | 28% | + catalog matches: 11 dishes matched at 20% median error, vs 38% for estimated ones |
+| `recipe` (not kept) | 38.7% | 30% | AI's ingredients composed from USDA values: 34.5% vs the AI's own 32.6% on the same 54 dishes |
+
+Against our cited recipes (`--source recipe`, 28 dishes) the AI's own figures were 17.4% off at the median and
+the composed recipes 20.1%. Both methods' errors correlate at 0.98-0.99, because both come from the model's idea of
+the recipe, so composing from ingredients was dropped; it also made answers long enough to time out. The AI is much
+closer to typical recipes (about 17%) than to INDB's lighter home recipes (about 33%).
 
 ## Security in place
 

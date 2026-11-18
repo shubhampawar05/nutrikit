@@ -55,7 +55,6 @@ export const sampleProvider: AIProvider = {
         serving: { label: '1 bowl', unit: 'bowl', grams: 200 },
         confidence: 'low' as const,
         sameAs: null,
-        ingredients: [],
       })),
       usage: NO_USAGE,
     };

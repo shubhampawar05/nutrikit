@@ -2,7 +2,7 @@
 // lacked them (by their full INDB name, "Lassi (salted)"), through the same requestEstimates() that logging uses, and scores
 // the answers against INDB's published per-100 g values.
 //
-//   npm run eval:estimates -w server -- [--n 100] [--label baseline]
+//   npm run eval:estimates -w server -- [--n 100] [--label baseline] [--source indb|recipe]
 //
 // Needs an AI provider key (OPENAI_API_KEY or ANTHROPIC_API_KEY) and data/foods.db; costs one AI call per 5 dishes.
 // Writes data/eval/<label>.json (every dish, its estimate and errors) and prints a summary. INDB values are themselves
@@ -75,10 +75,7 @@ const rows = sample.map((d) => {
   const values = (e.sameAs ? getFood(e.sameAs.id)?.per100g : null) ?? e.per100g;
   const kcal = values.calories!;
   return {
-    id: d.id, query: d.query, name: e.name, confidence: e.confidence, sameAs: e.sameAs ?? null, method: e.method,
-    modelCalories: (e.modelPer100g ?? e.per100g).calories,
-    modelError: Math.abs((e.modelPer100g ?? e.per100g).calories - d.truth.calories) / d.truth.calories,
-    ingredients: e.ingredients,
+    id: d.id, query: d.query, name: e.name, confidence: e.confidence, sameAs: e.sameAs ?? null, modelCalories: e.per100g.calories,
     truth: { calories: d.truth.calories, ...Object.fromEntries(MACROS.map((m) => [m, d.truth[m] ?? null])) },
     estimate: { calories: kcal, ...Object.fromEntries(MACROS.map((m) => [m, values[m] ?? null])) },
     calorieError: Math.abs(kcal - d.truth.calories) / d.truth.calories,
@@ -103,14 +100,6 @@ const summary = {
   matchedCatalog: scored.filter((r) => r.sameAs).length,
   matchedCatalogMedianError: pct(median(scored.filter((r) => r.sameAs).map((r) => r.calorieError))),
   estimatedMedianError: pct(median(scored.filter((r) => !r.sameAs).map((r) => r.calorieError))),
-  // Same answers, two methods: the recipe composed from USDA values vs the model's own figures, on dishes with both.
-  recipeComposed: scored.filter((r) => r.method === 'recipe').length,
-  recipeVsModelOnSameDishes: {
-    recipeMedianError: pct(median(scored.filter((r) => r.method === 'recipe').map((r) => r.calorieError))),
-    modelMedianError: pct(median(scored.filter((r) => r.method === 'recipe').map((r) => r.modelError))),
-    recipeBetter: scored.filter((r) => r.method === 'recipe' && r.calorieError < r.modelError).length,
-    modelBetter: scored.filter((r) => r.method === 'recipe' && r.modelError < r.calorieError).length,
-  },
   calories: {
     medianError: pct(median(scored.map((r) => r.calorieError))),
     meanError: pct(mean(scored.map((r) => r.calorieError))),
