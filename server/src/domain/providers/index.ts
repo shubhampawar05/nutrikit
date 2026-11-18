@@ -53,6 +53,8 @@ export interface FoodEstimate {
   confidence: 'high' | 'medium' | 'low';
   /** The id of a listed catalog food that is the same dish, when the request offered candidates; else null. */
   sameAs?: number | null;
+  /** What 100 g of the dish as eaten is made of, each ingredient in its eaten form ("rice, white, cooked", 45 g). */
+  ingredients?: { name: string; grams: number }[];
 }
 
 /** A catalog food offered to the model as possibly the same dish as a food being estimated. */

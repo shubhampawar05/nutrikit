@@ -170,11 +170,24 @@ export const FOOD_ESTIMATES_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['query', 'known', 'name', 'per100g', 'serving', 'confidence', 'sameAs'],
+        required: ['query', 'known', 'name', 'ingredients', 'per100g', 'serving', 'confidence', 'sameAs'],
         properties: {
           query: { type: 'string', description: 'The food exactly as it was given' },
           known: { type: 'boolean', description: 'false when the text is not a food or drink you can describe' },
           name: { type: 'string', description: 'A clear name for the dish or food, e.g. "Sabudana khichdi (tapioca pearls with peanuts)"' },
+          ingredients: {
+            type: 'array',
+            description: 'What 100 g of the dish as eaten is made of, totalling about 100 g',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['name', 'grams'],
+              properties: {
+                name: { type: 'string', description: 'Generic USDA-style name in the form it is eaten: "rice, white, cooked", "potatoes, boiled", "onions, raw", "oil, vegetable", "ghee", "sugar", "milk, whole", "water"' },
+                grams: { type: 'number' },
+              },
+            },
+          },
           per100g: {
             type: 'object',
             additionalProperties: false,
@@ -210,6 +223,17 @@ matched on words only, so most are different dishes.
   the same dish. A different main ingredient is not ("veg manchurian" is not "gobi manchurian"), nor is a sweet
   version of a salted one. When in doubt, use null. When you set sameAs, still fill in your own estimate below.
 - Otherwise set sameAs to null and estimate the food.
+
+Ingredients (the most important part):
+- List what 100 g of the finished dish, as eaten, is made of, with grams totalling about 100. Use each ingredient
+  in the form it has in the dish: cooked grains and pulses ("rice, white, cooked", "lentils, boiled"), boiled or raw
+  vegetables, cooked meat; include the oil, ghee, butter and sugar that end up in the dish, and "water" for broth or
+  added water that remains. Base it on the most common home-style recipe.
+- Flours, semolina (rava/suji), tapioca pearls (sabudana), poha and besan have no cooked form in the database: give
+  their dry weight and add the water they absorbed as "water" ("semolina, dry" 25 g + "water" 50 g).
+- Name ingredients generically, as a nutrition database does: "chickpeas, boiled", "paneer", "yogurt, whole milk",
+  "flour, wheat", "peanuts, roasted". Leave out ingredients under 1 g except salt, and leave out garnish.
+- For a single food (a fruit, a plain drink), list just that food at 100 g.
 
 Estimating:
 - Give values per 100 g of the food as eaten (cooked, with its usual oil, sugar and accompaniments that are part of

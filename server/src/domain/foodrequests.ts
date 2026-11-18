@@ -10,8 +10,10 @@
 //   the catalog covers the food (an alias or a recipe) or ignored when it isn't a food.
 import type { Sql } from 'postgres';
 import type { AIProvider, AIUsage, CatalogCandidate, FoodEstimate } from './providers/index.ts';
-import { getFood } from './db.ts';
-import { searchFoods } from './search.ts';
+import { foods, getFood } from './db.ts';
+import { searchFoods, wordCoverage } from './search.ts';
+import { NUTRIENTS } from './nutrients.ts';
+import type { Food } from './types.ts';
 import { logText, splitMealText, type LoggedItem, type TextLog, type Unmatched } from './textlog.ts';
 import { resolvePortion } from './units.ts';
 import { scaleNutrients, sumNutrients } from './nutrients.ts';
@@ -29,6 +31,14 @@ export interface StoredEstimate {
   at: string;
   /** Set when the model judged an existing catalog food to be this same dish: that food is logged instead. */
   sameAs?: { id: number; name: string } | null;
+  /**
+   * How per100g was made: "recipe" when composed from the model's ingredients and USDA values (ingredients lists
+   * them), "estimate" when it is the model's own figures. Older stored estimates have neither (figures).
+   */
+  method?: 'recipe' | 'estimate';
+  ingredients?: { name: string; grams: number; food: { id: number; name: string } | null }[];
+  /** The model's own per-100 g figures, kept beside a recipe-composed per100g for comparison. */
+  modelPer100g?: FoodEstimate['per100g'];
 }
 
 export interface FoodRequest {
@@ -161,10 +171,90 @@ export function estimateProblem(e: FoodEstimate): string | null {
   return null;
 }
 
+/** The figures estimateProblem() checks, from a composed nutrient map (missing ones as 0). */
+const coreOf = (n: Record<string, number>): FoodEstimate['per100g'] => ({
+  calories: n.calories ?? 0, protein: n.protein ?? 0, fat: n.fat ?? 0, carbs: n.carbs ?? 0, fiber: n.fiber ?? 0,
+  sugar: n.sugar ?? 0, saturatedFat: n.saturatedFat ?? 0, sodium: n.sodium ?? 0,
+});
+
 /** Two calorie figures within 30% of the larger (and within 25 kcal for very light foods). */
 const agrees = (a: number, b: number) => Math.abs(a - b) <= Math.max(25, 0.3 * Math.max(a, b));
 
 const addUsage = (a: AIUsage, b: AIUsage): AIUsage => ({ inputTokens: a.inputTokens + b.inputTokens, outputTokens: a.outputTokens + b.outputTokens });
+
+const USDA_SOURCES = new Set(['survey', 'sr_legacy', 'foundation']);
+/** An ingredient this small a share of the dish (spices, salt) needn't be found, and doesn't decide a nutrient. */
+const MINOR_SHARE = 0.03;
+
+// Indian ingredients search doesn't find, or finds wrongly, as their USDA food. `dryOnly`: USDA has only the dry
+// food, so the ingredient must be named dry (the prompt asks for dry weight plus absorbed water).
+const INGREDIENTS: [RegExp, string, { dryOnly?: boolean }?][] = [
+  [/\begg whites?\b|\beggs?, whites?\b/, 'Egg, white, raw, fresh'],
+  [/\b(besan|gram flour|chickpea flour)\b/, 'Chickpea flour (besan)', { dryOnly: true }],
+  [/\b(jaggery|gur)\b/, 'Sugars, brown'],
+  [/\b(maida|all[- ]purpose flour|refined (wheat )?flour)\b/, 'Wheat flour, white, all-purpose, enriched, unbleached', { dryOnly: true }],
+  [/\b(semolina|rava|suji|sooji)\b/, 'Semolina, enriched', { dryOnly: true }],
+  [/\b(tapioca|sabudana|sago)\b/, 'Tapioca, pearl, dry', { dryOnly: true }],
+  [/\b(moong|mung)\b.*\b(boiled|cooked)\b/, 'Mung beans, mature seeds, cooked, boiled, without salt'],
+  [/\b(chicken)\b.*\b(cooked|curry|roasted|boiled)\b/, 'Chicken, broilers or fryers, meat only, cooked, roasted'],
+  [/\bcoconut\b(?!.*\b(milk|cream|water|oil)\b)/, 'Nuts, coconut meat, raw'],
+  [/\b(pav|dinner roll|bread roll|burger bun)\b/, 'Rolls, dinner, plain, commercially prepared (includes brown-and-serve)'],
+  [/\b(sev|namkeen|farsan|bhujia)\b/, 'Snack mix'],
+  [/^\s*(fresh )?ginger\b(?!.*\b(ground|powder)\b)/, 'Ginger root, raw'],
+  [/^\s*(black )?tea\b/, 'Tea, hot, leaf, black'],
+];
+const COOKED = /\b(cooked|boiled|soaked|steamed|fried|roasted|baked)\b/;
+const UNCOOKED = /\b(dry|raw|uncooked|unprepared|dried)\b/;
+const foodByName = (name: string): Food | null => {
+  const row = foods().prepare('SELECT id FROM foods WHERE name = ?').get(name) as { id: number } | undefined;
+  return row ? getFood(row.id) ?? null : null;
+};
+
+/**
+ * The USDA food an ingredient name stands for: from the ingredient table, else the first USDA search result that
+ * names it (most of its words) in the same state, so "chickpeas, boiled" is never dry chickpeas. Null otherwise.
+ */
+export function mapIngredient(name: string): Food | null {
+  const q = name.toLowerCase();
+  for (const [pattern, foodName, opts] of INGREDIENTS) {
+    if (!pattern.test(q)) continue;
+    if (opts?.dryOnly && COOKED.test(q)) return null;
+    return foodByName(foodName);
+  }
+  const found = searchFoods(name, { limit: 10 });
+  if (found.didYouMean) return null;
+  for (const r of found.results) {
+    if (!USDA_SOURCES.has(r.source)) continue;
+    if (found.match !== 'all-words' && wordCoverage(name, r.name) <= 0.5) return null;
+    const n = r.name.toLowerCase();
+    if ((COOKED.test(q) && UNCOOKED.test(n) && !COOKED.test(n)) || (UNCOOKED.test(q) && COOKED.test(n) && !UNCOOKED.test(n))) continue;
+    return getFood(r.id) ?? null;
+  }
+  return null;
+}
+
+/**
+ * Nutrients per 100 g of a dish from the model's ingredients (per 100 g as eaten) and USDA values, as the build
+ * composes recipes: a nutrient is given only when every ingredient over 3% of the dish has it. Null when the
+ * ingredients don't total 60-150 g or an ingredient over 3% can't be found in USDA.
+ */
+export function composeIngredients(ingredients: { name: string; grams: number }[]): { per100g: Record<string, number>; ingredients: NonNullable<StoredEstimate['ingredients']> } | null {
+  const list = ingredients.filter((i) => i.grams > 0 && i.name?.trim());
+  const total = list.reduce((s, i) => s + i.grams, 0);
+  if (!list.length || total < 60 || total > 150) return null;
+  const mapped = list.map((i) => ({ ...i, food: mapIngredient(i.name) }));
+  if (mapped.some((i) => !i.food && i.grams / total >= MINOR_SHARE)) return null;
+  const used = mapped.filter((i) => i.food);
+  const major = used.filter((i) => i.grams / total >= MINOR_SHARE);
+  const per100g: Record<string, number> = {};
+  for (const { key } of NUTRIENTS) {
+    if (!major.every((i) => i.food!.per100g[key] != null)) continue;
+    const sum = used.reduce((s, i) => s + ((i.food!.per100g[key] ?? 0) * i.grams) / 100, 0);
+    per100g[key] = Math.round((sum / total) * 100 * 1000) / 1000;
+  }
+  if (per100g.calories == null) return null;
+  return { per100g, ingredients: mapped.map((i) => ({ name: i.name, grams: i.grams, food: i.food ? { id: i.food.id, name: i.food.name } : null })) };
+}
 
 /**
  * Asks the provider to estimate foods the catalog lacks and keeps the answers that pass estimateProblem(), keyed by
@@ -193,9 +283,14 @@ export async function requestEstimates(provider: AIProvider, queries: string[], 
       const same = offeredMatch && offeredMatch.calories != null && !estimateProblem(e) && agrees(offeredMatch.calories, e.per100g.calories) ? offeredMatch : undefined;
       const problem = same && e.known ? null : estimateProblem(e);
       if (!problem) {
+        // The model's ingredients composed from USDA values replace its own figures when every major ingredient is
+        // found and the result passes the same checks; otherwise its figures stand.
+        const recipe = same ? null : composeIngredients(e.ingredients ?? []);
+        const recipeOk = recipe && !estimateProblem({ ...e, per100g: coreOf(recipe.per100g) });
         estimates.set(key, {
-          name: same ? same.name : e.name, per100g: e.per100g, serving: e.serving, confidence: e.confidence,
+          name: same ? same.name : e.name, per100g: recipeOk ? recipe.per100g as FoodEstimate['per100g'] : e.per100g, serving: e.serving, confidence: e.confidence,
           provider: provider.name, model: provider.model ?? null, at: new Date().toISOString(), sameAs: same ? { id: same.id, name: same.name } : null,
+          method: recipeOk ? 'recipe' : 'estimate', ...(recipeOk ? { ingredients: recipe.ingredients, modelPer100g: e.per100g } : {}),
         });
       }
       // "Not a food" is an answer, not a mistake: it is not asked again.
