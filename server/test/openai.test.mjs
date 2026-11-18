@@ -144,6 +144,16 @@ test('a wait between retries ends when the deadline does', async () => {
   assert.ok(Date.now() - started < 600, `took ${Date.now() - started} ms`);
 });
 
+test('a shared deadline with little time left is measured as such: a longer Retry-After is answered at once', async () => {
+  // The second estimate attempt shares the first one's deadline; only 300 ms of the 60 s remain.
+  const { aiDeadline } = await import('../src/domain/providers/index.ts');
+  const signal = Object.assign(aiDeadline(), { endsAt: Date.now() + 300 });
+  reply = () => ({ status: 429, body: { error: { message: 'slow down' } }, headers: { 'retry-after': '1' } });
+  const started = Date.now();
+  await assert.rejects(provider.estimateFoods({ foods: ['dal'], signal }), { status: 503, message: /rate limited/ });
+  assert.ok(Date.now() - started < 250, `took ${Date.now() - started} ms`);
+});
+
 test('an answer that is not JSON is a 502 that still carries its usage', async () => {
   reply = () => ({ status: 200, body: { choices: [{ finish_reason: 'stop', message: { content: 'Sure! Here is rice.', refusal: null } }], usage: { prompt_tokens: 9, completion_tokens: 4 } } });
   await assert.rejects(provider.parseMeal({ text: 'x' }), (err) => err.status === 502 && /malformed/.test(err.message) && err.usage?.inputTokens === 9);

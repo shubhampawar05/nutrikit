@@ -47,8 +47,9 @@ export function parseQuantity(text: string): { value: number | null; rest: strin
     else if (UNICODE_FRACTIONS[m[1]]) value = UNICODE_FRACTIONS[m[1]];
     else value = Number(m[1]) + (m[2] ? UNICODE_FRACTIONS[m[2]] : 0);
     s = s.slice(m[0].length).trim();
-    // "1/0 cup", "0 eggs": not a usable amount, so none is given (the number is still dropped from the text).
-    if (!(value > 0 && Number.isFinite(value))) value = null;
+    // "1/0 cup", "0/0 cup": not a usable amount, so none is given (the number is still dropped from the text). An
+    // explicit zero ("0 eggs") stays zero rather than becoming the default single portion.
+    if (!Number.isFinite(value)) value = null;
   } else {
     const w = s.match(/^([a-z]+)\b/i);
     if (w && WORD_NUMBERS[w[1].toLowerCase()] !== undefined) {

@@ -92,7 +92,17 @@ export interface AIProvider {
 export type AICapability = 'recognizeMeal' | 'readLabel' | 'parseMeal' | 'advise' | 'estimateFoods';
 
 /** One deadline for a whole provider call, retries included (NUTRIKIT_AI_TIMEOUT_MS, default 60 s). */
-export const aiDeadline = (): AbortSignal => AbortSignal.timeout(Number(process.env.NUTRIKIT_AI_TIMEOUT_MS) || 60_000);
+export const aiDeadline = (): AbortSignal => {
+  const ms = Number(process.env.NUTRIKIT_AI_TIMEOUT_MS) || 60_000;
+  return Object.assign(AbortSignal.timeout(ms), { endsAt: Date.now() + ms });
+};
+
+/** Milliseconds left before a deadline from aiDeadline() aborts (0 once it has); unknown signals report Infinity. */
+export const timeLeft = (signal: AbortSignal): number => {
+  if (signal.aborted) return 0;
+  const endsAt = (signal as AbortSignal & { endsAt?: number }).endsAt;
+  return endsAt == null ? Infinity : Math.max(0, endsAt - Date.now());
+};
 
 /** Two usages added; a missing one counts as none. */
 export const addUsage = (a: AIUsage | null | undefined, b: AIUsage | null | undefined): AIUsage => ({

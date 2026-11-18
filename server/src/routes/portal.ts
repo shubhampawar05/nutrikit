@@ -337,7 +337,8 @@ export async function portalRoutes(app: FastifyInstance) {
   app.post('/portal/api/billing/verify', signedIn, async (req) => {
     requireRole(teams.can.manageTeam(req.role), 'only an owner can change the plan');
     const { note } = await billing.verifyPayment(sql, req.account, jsonBody(req));
-    if (note) req.log.warn({ accountId: req.account.id, note }, 'payment recorded without changing the plan');
-    return viewFor(req.sessionToken);
+    if (note) billing.paymentKept(app, req.account.id, note);
+    // `payment` tells the payer whether the plan changed; when it didn't, they need to hear it (and a refund).
+    return { ...(await viewFor(req.sessionToken)), payment: { applied: !note, note } };
   });
 }

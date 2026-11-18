@@ -141,18 +141,32 @@ const wordsOf = (s: string) => s.toLowerCase().split(/[^a-z0-9']+/).filter((w) =
 
 /**
  * Whether the catalog's best match for a joined phrase ("mac and cheese") is a dish named by it: the food's leading
- * name has every word of the phrase (a short word may be its start: "mac" -> "Macaroni"), ends with the phrase's
- * last word, and adds at most one other word. "Macaroni or noodles with cheese" and "Beans and rice" qualify;
- * "Bread and butter pudding" (a pudding) and "Coffee, Latte, with non-dairy milk" (coffee) don't.
+ * name joins its parts with "and"/"with" too, and, alternatives ("or noodles") aside, names exactly the phrase's
+ * words in the same order (a short word may be its start: "mac" -> "Macaroni"). "Macaroni or noodles with cheese"
+ * and "Beans and rice" qualify; "Salad dressing" (no joiner: it is the add-on), "Chicken curry with rice" (another
+ * dish) and "Bread and butter pudding" (a pudding) don't. Memoized: the catalog doesn't change while running.
  */
 function namesDish(phrase: string): boolean {
+  const key = phrase.toLowerCase();
+  let known = dishCache.get(key);
+  if (known === undefined) {
+    if (dishCache.size >= 1000) dishCache.clear();
+    dishCache.set(key, (known = matchesDish(phrase)));
+  }
+  return known;
+}
+const dishCache = new Map<string, boolean>();
+
+function matchesDish(phrase: string): boolean {
   const found = searchFoods(phrase, { limit: 1 });
   const top = found.results[0];
   if (!top || found.match !== 'all-words' || found.didYouMean) return false;
+  const name = top.name.replace(/\([^)]*\)/g, ' ').split(',')[0].toLowerCase();
+  if (!/\s(and|with|&)\s/.test(name)) return false;
   const words = wordsOf(phrase);
-  const head = wordsOf(top.name.replace(/\([^)]*\)/g, ' ').split(',')[0]);
-  const has = (w: string) => head.some((h) => h === w || (w.length >= 3 && h.startsWith(w)));
-  return words.length > 1 && words.every(has) && head.at(-1) === words.at(-1) && head.length <= words.length + 1;
+  const head = wordsOf(name.replace(/\s+or\s+[a-z0-9'-]+/g, ' '));
+  const same = (h: string, w: string) => h === w || (w.length >= 3 && h.startsWith(w));
+  return words.length > 1 && head.length === words.length && words.every((w, i) => same(head[i], w));
 }
 
 // Unquantified add-ons ("with sugar", "with milk") are a spoonful or a splash, never a cup: rich add-ons

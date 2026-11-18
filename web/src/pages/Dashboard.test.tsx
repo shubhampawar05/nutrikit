@@ -475,9 +475,11 @@ describe('Dashboard', () => {
   });
 
   it('sends the developer to log in when the session expires while on the dashboard', async () => {
+    sessionStorage.setItem('nk-playground-key', 'nk_live_pasted');
     stubPortal({ override: (path) => (path === '/keys' ? json(401, { error: { code: 'unauthorized', message: 'please log in' } }) : undefined) });
     app();
     expect((await screen.findByTestId('where')).textContent).toBe('/login?next=/dashboard');
+    expect(sessionStorage.getItem('nk-playground-key')).toBeNull(); // forgotten, as on logout
   });
 
   it('without online billing a paid plan is an upgrade request', async () => {
@@ -528,6 +530,20 @@ describe('Dashboard', () => {
     await vi.advanceTimersByTimeAsync(25_000);
     await waitFor(() => expect(calls(fetchMock, '/me')).toBe(before + 2));
     expect(screen.getByText(/We couldn't confirm the payment yet/)).toBeTruthy();
+  });
+
+  it('a payment that could not change the plan says so instead of claiming the plan is active', async () => {
+    stubPortal({
+      account: billed,
+      override: (path) => (path === '/billing/verify'
+        ? json(200, { ...billed, payment: { applied: false, note: 'not applied: the team was on the dearer Growth plan' } })
+        : undefined),
+    });
+    razorpayPays();
+    app();
+    fireEvent.click(await screen.findByRole('button', { name: 'Pay — ₹1,499' }));
+    expect(await screen.findByText(/Payment received, but your plan was not changed \(the team was on the dearer Growth plan\)\. Contact us and we'll refund it\./)).toBeTruthy();
+    expect(screen.queryByText(/You're on the Starter plan/)).toBeNull();
   });
 
   it('closing Razorpay Checkout charges nothing', async () => {

@@ -13,7 +13,8 @@ const TEAM_QUERIES = ['keys', 'usage', 'members'] as const;
 export function useMe() {
   const queryClient = useQueryClient();
   useEffect(() => {
-    const signedOut = () => { if (queryClient.getQueryData(['me'])) queryClient.setQueryData(['me'], null); };
+    // The session ended (it expired, or was ended elsewhere): forget what this tab holds for that account, as logout does.
+    const signedOut = () => { if (queryClient.getQueryData(['me'])) forgetAccount(queryClient); };
     window.addEventListener(PORTAL_SIGNED_OUT, signedOut);
     return () => window.removeEventListener(PORTAL_SIGNED_OUT, signedOut);
   }, [queryClient]);

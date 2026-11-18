@@ -49,7 +49,7 @@ export function metering(app: FastifyInstance) {
       pending.delete(req);
       const { usage, costKey } = err as { usage?: AIUsage; costKey?: unknown };
       const tokens = aiTokens(usage);
-      const charged = typeof costKey === 'string' && costKey in COSTS ? costKey : reserveKey;
+      const charged = typeof costKey === 'string' && Object.hasOwn(COSTS, costKey) ? costKey : reserveKey;
       const bill = await settle(app.sql, req.key, reservation, charged, tokens);
       if (tokens > 0) chargeHeaders(reply, bill);
     };

@@ -85,7 +85,14 @@ export function PlanCard({ me }: { me: Me }) {
       timers.current = VERIFY_RETRY_MS.map((ms) => setTimeout(() => queryClient.invalidateQueries({ queryKey: ['me'] }), ms));
       return;
     }
-    queryClient.setQueryData<Me>(['me'], (old) => (old ? { ...old, ...view } : old));
+    const { payment, ...account } = view;
+    queryClient.setQueryData<Me>(['me'], (old) => (old ? { ...old, ...account } : old));
+    if (payment && !payment.applied) {
+      // Taken but not applied (the team already had a dearer plan, or this one with no end date): say so plainly.
+      const why = (payment.note ?? '').replace(/^not applied:\s*/, '');
+      setStatus(`Payment received, but your plan was not changed${why ? ` (${why})` : ''}. Contact us and we'll refund it.`);
+      return;
+    }
     setStatus(`You're on the ${view.plan.name} plan until ${fmtPeriodDate(view.plan.expiresAt)}.`);
   };
 

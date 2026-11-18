@@ -166,7 +166,8 @@ export const api = {
   playgroundToken: () => portal<AccessToken>('POST', '/playground-token'),
   requestUpgrade: (plan: string, message?: string) => portal<{ requested: string }>('POST', '/upgrade', { plan, message }),
   createOrder: (plan: string) => portal<NewOrder>('POST', '/billing/order', { plan }),
-  verifyPayment: (response: RazorpayPaymentResponse) => portal<AccountView>('POST', '/billing/verify', response),
+  /** `payment.applied` is false when the payment was recorded but couldn't change the plan (`note` says why). */
+  verifyPayment: (response: RazorpayPaymentResponse) => portal<AccountView & { payment?: { applied: boolean; note: string | null } }>('POST', '/billing/verify', response),
   demo: <T>(text: string) => portal<T>('POST', '/demo', { text }),
   // Teams
   createTeam: (name: string) => portal<AccountView>('POST', '/teams', { name }),

@@ -35,7 +35,7 @@ test('a fat, sweetener or condiment named without an amount is a spoonful, not a
   assert.equal(and.grams, withButter.grams);
 });
 
-test('a quantity that is not a positive finite number is no quantity', () => {
+test('a quantity that is not a finite number is no quantity; an explicit zero stays zero', () => {
   for (const text of ['1/0 cup rice', '0/0 cup rice', '1 1/0 cup rice']) {
     const { value } = parseQuantity(text);
     assert.equal(value, null, text);
@@ -43,6 +43,8 @@ test('a quantity that is not a positive finite number is no quantity', () => {
   const [item] = splitMealText('1/0 cup rice').items;
   assert.equal(item.quantity, null);
   assert.ok(Number.isFinite(only('1/0 cup rice').grams));
+  assert.equal(parseQuantity('0 eggs').value, 0);
+  assert.equal(only('0 eggs').grams, 0);
 });
 
 test('label numbers with thousands commas are thousands; a decimal comma is still a decimal', () => {
@@ -63,6 +65,11 @@ test('a dish named with "and" or "with" is one food; a list of foods is still sp
   assert.match(only('peanut butter and jelly').food.name, /^Peanut butter and jelly/);
   assert.equal(logText('eggs and toast').items.length, 2);
   assert.equal(logText('bread and butter').items.length, 2); // not "Bread and butter pudding"
+  // The catalog's best match is the add-on itself ("Salad dressing") or another dish ("Chicken curry with rice").
+  const salad = logText('salad with dressing').items;
+  assert.equal(salad.length, 2);
+  assert.ok(salad[0].grams > salad[1].grams, 'the salad, then a spoonful of dressing');
+  assert.ok(logText('chicken with rice').items.every((i) => !/curry/i.test(i.food.name)));
   const coffee = logText('coffee with milk').items;
   assert.equal(coffee.length, 2);
   assert.equal(coffee[1].portionMethod, 'add-on-smallest-portion');

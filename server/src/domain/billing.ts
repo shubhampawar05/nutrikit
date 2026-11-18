@@ -8,6 +8,7 @@
 //   An `order.paid` webhook applies payments whose browser confirmation never arrived. Each payment applies once.
 // Use test-mode keys (rzp_test_...) while developing; Razorpay's test cards and UPI ids complete payments.
 import crypto from 'node:crypto';
+import type { FastifyInstance } from 'fastify';
 import type { Sql } from 'postgres';
 import { PLANS, CURRENCY, effectivePlan, fail, planRank } from './accounts.ts';
 import type { Account } from './accounts.ts';
@@ -205,4 +206,13 @@ export async function applyEvent(sql: Sql, event: RazorpayEvent): Promise<Billin
   const applied = await applyPayment(sql, payment.id, order);
   if (!applied) return { applied: null };
   return { applied: 'payment', accountId, plan: order.notes!.plan!, ...(applied.note ? { note: applied.note } : {}) };
+}
+
+/**
+ * A payment that was taken but left the plan unchanged needs an operator (most likely a refund): it is logged and
+ * sent as an alert, besides the note on the payment the admin console shows.
+ */
+export function paymentKept(app: FastifyInstance, accountId: string, note: string): void {
+  app.log.warn({ accountId, note }, 'payment recorded without changing the plan');
+  void app.monitor.alert('payment_kept', 'A payment was recorded without changing the plan', { team: accountId, note }, `payment_kept:${accountId}:${note}`);
 }

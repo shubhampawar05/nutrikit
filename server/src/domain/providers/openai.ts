@@ -2,7 +2,7 @@
 // Completions API with strict JSON-schema outputs. Uses fetch, so it needs no SDK; OPENAI_BASE_URL
 // points it at any OpenAI-compatible endpoint (Azure OpenAI, OpenRouter, a local Ollama, …).
 import type { AIUsage } from '../types.ts';
-import { aiDeadline, aiTimeout, type AIProvider } from './index.ts';
+import { aiDeadline, aiTimeout, timeLeft, type AIProvider } from './index.ts';
 import { ADVICE_SCHEMA, ADVICE_SYSTEM, ESTIMATE_SYSTEM, FOOD_ESTIMATES_SCHEMA, FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, adviceMessage, estimateMessage, type AdviceOutput, type FoodEstimatesOutput, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
 
 const MODEL = process.env.NUTRIKIT_OPENAI_MODEL || 'gpt-5-mini';
@@ -54,7 +54,6 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
   // Retries rate limits, 5xx and connection errors, like the Anthropic SDK does for the Claude provider,
   // all within one deadline: a wait between attempts ends when the deadline does.
   async function request(signal: AbortSignal, body: object): Promise<ChatCompletion> {
-    const ends = Date.now() + (Number(process.env.NUTRIKIT_AI_TIMEOUT_MS) || 60_000);
     for (let attempt = 0; ; attempt++) {
       let res: Response;
       try {
@@ -81,7 +80,7 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
       const retryAfter = Number(res.headers.get('retry-after'));
       const wait = retryAfter > 0 ? retryAfter * 1000 : 500 * 2 ** attempt;
       // A Retry-After the deadline can't cover is not waited for: the error below is answered now.
-      if ((res.status === 429 || res.status >= 500) && attempt < MAX_RETRIES && wait < ends - Date.now()) {
+      if ((res.status === 429 || res.status >= 500) && attempt < MAX_RETRIES && wait < timeLeft(signal)) {
         await sleep(wait, signal);
         continue;
       }

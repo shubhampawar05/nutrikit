@@ -78,6 +78,7 @@ async function pay(user, plan) {
   const response = paymentResponse(order.body.orderId);
   const verified = await user.call('POST', '/portal/api/billing/verify', response);
   assert.equal(verified.status, 200, JSON.stringify(verified.body));
+  assert.deepEqual(verified.body.payment, { applied: true, note: null });
   return { ...verified.body, response, orderId: order.body.orderId };
 }
 
@@ -320,6 +321,8 @@ test('paying a cheaper order after a dearer one keeps the dearer plan and record
   assert.equal(paid.status, 200, JSON.stringify(paid.body));
   assert.equal(paid.body.plan.id, 'growth');
   assert.equal(paid.body.plan.expiresAt, growth.plan.expiresAt, 'the running period is unchanged');
+  assert.equal(paid.body.payment.applied, false, 'the payer is told the plan did not change');
+  assert.match(paid.body.payment.note, /dearer Growth plan/);
   const [payment] = await sql`SELECT plan, note FROM payments WHERE order_id = ${cheap.orderId}`;
   assert.equal(payment.plan, 'starter');
   assert.match(payment.note, /dearer Growth plan/);
