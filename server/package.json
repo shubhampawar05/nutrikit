@@ -18,7 +18,8 @@
     "usage:reconcile": "node --env-file-if-exists=../.env --import tsx src/cli/reconcile-usage.ts",
     "openapi": "node --import tsx scripts/openapi.mjs",
     "test": "node --env-file-if-exists=../.env --import tsx --test 'test/*.test.mjs'",
-    "typecheck": "tsc -p . --noEmit"
+    "typecheck": "tsc -p . --noEmit",
+    "eval:estimates": "node --env-file-if-exists=../.env --import tsx scripts/eval-estimates.ts"
   },
   "engines": {
     "node": ">=22.16"

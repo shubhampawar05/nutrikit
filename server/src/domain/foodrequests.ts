@@ -118,6 +118,22 @@ export function estimateItem(input: string, estimate: StoredEstimate, amount: { 
   };
 }
 
+/**
+ * Asks the provider to estimate foods the catalog lacks and keeps the usable answers, keyed by requestKey(query).
+ * scripts/eval-estimates.ts measures this same function against INDB's published values.
+ */
+export async function requestEstimates(provider: AIProvider, queries: string[]): Promise<{ estimates: Map<string, StoredEstimate>; usage: AIUsage }> {
+  const keys = queries.map(requestKey);
+  const out = await provider.estimateFoods!({ foods: queries });
+  const estimates = new Map<string, StoredEstimate>();
+  for (const e of out.foods) {
+    const key = requestKey(e.query);
+    if (!keys.includes(key) || !e.known || !(e.serving?.grams > 0) || !(e.per100g?.calories >= 0)) continue;
+    estimates.set(key, { name: e.name, per100g: e.per100g, serving: e.serving, confidence: e.confidence, provider: provider.name, model: provider.model ?? null, at: new Date().toISOString() });
+  }
+  return { estimates, usage: out.usage };
+}
+
 export interface Unknown {
   /** The phrase as unmatched. */
   unmatched: Unmatched;
@@ -146,12 +162,9 @@ export async function coverUnknowns(sql: Sql, unknowns: Unknown[], provider: AIP
     : [];
   let usage: AIUsage | null = null;
   if (ask.length) {
-    const out = await provider!.estimateFoods!({ foods: ask });
+    const out = await requestEstimates(provider!, ask);
     usage = out.usage;
-    for (const e of out.foods) {
-      const key = requestKey(e.query);
-      if (!ask.includes(key) || !e.known || !(e.serving?.grams > 0) || !(e.per100g?.calories >= 0)) continue;
-      const estimate: StoredEstimate = { name: e.name, per100g: e.per100g, serving: e.serving, confidence: e.confidence, provider: provider!.name, model: provider!.model ?? null, at: new Date().toISOString() };
+    for (const [key, estimate] of out.estimates) {
       stored.set(key, estimate);
       if (opts.store) await saveEstimate(sql, key, keyed.find((u) => u.key === key)!.unmatched.text, estimate);
     }
