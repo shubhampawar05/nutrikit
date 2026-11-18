@@ -140,4 +140,20 @@ export const CASES = [
   { input: '1 dhokla', food: /^Instant dhokla|Dhokla/ },
   { input: '1 cup halwa', food: /halwa/i },
   { input: '1 cup poha', food: /Poha \(flattened rice/ },
+  // Reviewed aliases (data/aliases/recipes.json) win over a food merely named the same, and beat synonyms
+  { input: '1 dosa', food: /^Dosa, plain$/ },
+  { input: '1 plate curd rice', food: /^Curd rice/ },
+  { input: '1 katori prawn curry', food: /^Prawn curry/ },
+  { input: '1 plate jeera rice', food: /^Cumin pulao/ },
+  { input: '2 phulka', food: /^Chapati\/Roti$/ },
+  { input: '1 katori raita', food: /^Cucumber raita/ },
+  { input: '2 cookies', food: /^Cookie, NFS$/ },
+  { input: '1 plate veg biryani', food: /^Vegetable biryani/ },
+  // Cited recipes for common dishes no dataset has
+  { input: '1 plate sabudana khichdi', food: /^Sabudana khichdi/, grams: [245, 255] },
+  { input: '1 katori paneer bhurji', food: /^Paneer bhurji/, grams: [115, 125] }, // a katori is 1 cup,
+  { input: '1 katori mutton curry', food: /^Mutton curry/, grams: [225, 235] },
+  { input: '1 katori mix veg', food: /^Mixed vegetable sabzi/, grams: [145, 155] },
+  { input: '1 cup filter coffee', food: /^Filter coffee/ },
+  { input: '1 bread omelette', food: /^Bread omelette/, grams: [190, 205] },
 ];

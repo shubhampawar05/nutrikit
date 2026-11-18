@@ -1,0 +1,106 @@
+{
+  "id": 900000043,
+  "name": "Lauki sabzi (bottle gourd cooked with onion and tomato)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/lauki-sabzi/"
+  },
+  "aliases": [
+    "lauki sabzi",
+    "lauki ki sabzi",
+    "ghiya sabzi",
+    "dudhi sabzi",
+    "lauki"
+  ],
+  "notes": "Serves 2 to 3. Bottle gourd 450 g as listed (USDA calabash gourd). Weights: 1/2 cup chopped onion = 80 g, 1 cup chopped tomato = 180 g, 1 tsp ginger = 3 g (ginger chosen over garlic), 1 green chilli = 5 g, 2 tbsp oil = 27 g, salt 5/8 tsp = 3.75 g, Kashmiri chilli powder 5/8 tsp = 1.6 g, coriander powder 3/4 tsp = 1.4 g (as coriander seed), garam masala 1/2 tsp as curry powder, fennel powder 1/2 tsp as fennel seed, coriander leaves 2 tbsp = 2 g. Curry leaves left out (not in catalog). Water 1/2 to 2/3 cup taken as 140 g; assumed ~120 g of it and ~10% of vegetable weight cook off. A katori or bowl is taken as 1 cup, as everywhere in the catalog.",
+  "ingredients": [
+    {
+      "fdcId": 169232,
+      "food": "Gourd, white-flowered (calabash), raw",
+      "grams": 450
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 80
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 180
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 3
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 27
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 3.75
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 1.6
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.4
+    },
+    {
+      "fdcId": 170922,
+      "food": "Spices, coriander seed",
+      "grams": 1.4
+    },
+    {
+      "fdcId": 170924,
+      "food": "Spices, curry powder",
+      "grams": 1
+    },
+    {
+      "fdcId": 171323,
+      "food": "Spices, fennel seed",
+      "grams": 1
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 2
+    }
+  ],
+  "water": 140,
+  "cookedGrams": 690,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 150
+    },
+    {
+      "label": "1 plate",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 250
+    }
+  ]
+}

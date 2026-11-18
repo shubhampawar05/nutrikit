@@ -134,7 +134,16 @@ Nutrikit never fills a gap with a guess or a zero.
   carries `missingFrom`: how many foods lacked it. The amount is then a lower bound. A nutrient no food has is left
   out of the totals.
 - **A food the catalog doesn't have** is listed in `unmatched`, never swapped for a different food. With no
-  items, `totals` is `{}`.
+  items, `totals` is `{}`. Every such food is counted for the operator (only its words, never who asked; see
+  [Platform](platform.md#missing-foods)), so missing foods get added to the catalog.
+- **With `ai: true`, and for photos, the AI covers what the catalog lacks.** A food the catalog doesn't have is
+  estimated by the AI provider and logged with `food.source` `"ai-estimate"`, `food.id` `0` (it has no catalog
+  entry to fetch), `confidence` `"low"` and a `portionMethod` starting `ai-estimate`. The estimate is kept and reused
+  for the same food, so later calls are consistent and don't pay for it again; at most 5 unknown foods are estimated
+  per call, and the AI tokens it uses are charged like the rest of the call. Text the AI says isn't a food stays in
+  `unmatched`. Test keys get a fixed sample estimate.
+- **Approved estimates work without AI.** Once the operator approves an estimate, rule-based logging (no `ai`) logs
+  that food from it too, still marked `ai-estimate`, with no AI call and no AI charge.
 - **Open Food Facts** values that are blank, `null` or not numbers are left out, and so are values Open Food Facts
   calculated itself rather than copied from the label (its added-sugar estimates, marked `~`).
 - **Open Food Facts labels that contradict themselves are not served.** Volunteers sometimes type per-serving

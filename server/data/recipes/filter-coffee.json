@@ -1,0 +1,50 @@
+{
+  "id": 900000054,
+  "name": "Filter coffee (South Indian coffee decoction with milk and sugar)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Hebbar's Kitchen (hebbarskitchen.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://hebbarskitchen.com/filter-coffee-recipe-filter-kaapi-recipe/"
+  },
+  "aliases": [
+    "filter coffee",
+    "filter kaapi",
+    "kaapi",
+    "madras coffee"
+  ],
+  "notes": "Serves 4. Decoction (3 tbsp coffee powder in 1.5 cups water) taken as USDA brewed coffee; the recipe pours about a quarter glass of decoction per serving, taken as ~37 g each (150 g for 4), the rest of the decoction kept for later. 1.5 cups whole milk 366 g, boiled, about 12 g lost as steam; 4 tsp sugar 16 g. Chicory in the powder is not modelled.",
+  "ingredients": [
+    {
+      "fdcId": 2710375,
+      "food": "Coffee, brewed",
+      "grams": 150
+    },
+    {
+      "fdcId": 2705385,
+      "food": "Milk, whole",
+      "grams": 366
+    },
+    {
+      "fdcId": 2710258,
+      "food": "Sugar, white, granulated or lump",
+      "grams": 16
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 520,
+  "portions": [
+    {
+      "label": "1 tumbler",
+      "amount": 1,
+      "unit": "serving",
+      "grams": 130
+    },
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 150
+    }
+  ]
+}

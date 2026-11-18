@@ -5,7 +5,7 @@ import * as auth from '../domain/auth.ts';
 import * as accounts from '../domain/accounts.ts';
 import * as billing from '../domain/billing.ts';
 import * as teams from '../domain/teams.ts';
-import { logText } from '../domain/textlog.ts';
+import { logTextWithRequests } from '../domain/foodrequests.ts';
 import { publicOrigin } from './spa.ts';
 
 const SESSION_COOKIE = 'nk_session';
@@ -115,7 +115,8 @@ export async function portalRoutes(app: FastifyInstance) {
     const body = jsonBody(req);
     if (typeof body.text !== 'string' || !body.text.trim()) throw bad('`text` is required');
     if (body.text.length > 200) throw bad('the demo accepts up to 200 characters');
-    return logText(body.text);
+    // The homepage demo counts its misses too: what visitors type is a good guide to what the catalog lacks.
+    return logTextWithRequests(sql, body.text, { live: true, log: req.log });
   });
 
   app.post('/portal/api/signup', open, async (req, reply) => {

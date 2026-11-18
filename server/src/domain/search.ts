@@ -91,7 +91,16 @@ const BARE_DEFAULTS: Record<string, string> = lookup({
   lassi: 'Lassi, sweet',
   chaas: 'Lassi (salted)',
   kheer: 'Kheer (rice pudding)',
-  halwa: 'Semolina halwa',
+  halwa: 'Semolina halwa (Suji ka halwa)',
+  sabzi: 'Mixed vegetable sabzi (semi-dry Indian mixed vegetables)',
+  sabji: 'Mixed vegetable sabzi (semi-dry Indian mixed vegetables)',
+  omelette: 'Omelette, plain, homemade',
+  omelet: 'Omelette, plain, homemade',
+  cookie: 'Cookie, NFS',
+  cookies: 'Cookie, NFS',
+  // Indo-Chinese chowmein as ordered in India is the vegetable kind unless chicken or egg is said.
+  chowmein: 'Vegetable chowmein',
+  'chow mein': 'Vegetable chowmein',
   dhokla: 'Instant dhokla',
   naan: 'Bread, naan',
   samosa: 'Samosa',
@@ -255,6 +264,19 @@ export function correctSpelling(query: string): string | null {
   return changed ? words.join(' ') : null;
 }
 
+// A query typed exactly as a reviewed alias (data/aliases/recipes.json: "curd rice", "dosa") names that food
+// outright. The alias is compared as typed, before synonyms ("curd" -> yogurt) rewrite the query. The build records
+// these in meta.pinned_aliases; aliases INDB derives from its dish names are not pinned.
+const aliasKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9']+/g, ' ').trim();
+let aliasIndex: Map<string, number> | null = null;
+function aliasedFood(query: string): number | undefined {
+  if (!aliasIndex) {
+    const row = foods().prepare("SELECT value FROM meta WHERE key = 'pinned_aliases'").get() as { value: string } | undefined;
+    aliasIndex = new Map(Object.entries(JSON.parse(row?.value ?? '{}') as Record<string, number>).map(([a, id]) => [aliasKey(a), id]));
+  }
+  return aliasIndex.get(aliasKey(query));
+}
+
 /**
  * Search the catalog. When the query as typed finds no food with all its words, a respelled query is tried, and
  * its results are returned with `didYouMean` when they match better.
@@ -291,7 +313,6 @@ function searchOnce(query: string | null | undefined, { limit = 10, offset = 0, 
     if (kind === 'all-words' && !rows.some((r) => wordCoverage(String(query), `${r.name} ${r.aliases?.replaceAll('|', ' ') ?? ''}`) > 0)) continue;
     if (rows.length) { match = kind; break; }
   }
-  const relaxed = match === 'any-word';
   const ranked = rows
     .map((r) => ({ ...r, score: score(r, tokens, q) }))
     .sort((a, b) => b.score - a.score);
@@ -307,7 +328,19 @@ function searchOnce(query: string | null | undefined, { limit = 10, offset = 0, 
     const insertAt = ranked.findIndex((r) => r.source === 'recipe');
     ranked.splice(insertAt >= 0 ? insertAt : 0, 0, cofid);
   } else if (firstCofid > 0 && firstRecipe >= 0 && firstRecipe < firstCofid) ranked.splice(firstCofid, 0, ...ranked.splice(firstRecipe, 1));
-  const preferred = BARE_DEFAULTS[tokens.map(singular).join(' ')];
+  const aliased = aliasedFood(String(query ?? ''));
+  if (aliased !== undefined) {
+    const i = ranked.findIndex((r) => r.id === aliased);
+    if (i >= 0) ranked.unshift(...ranked.splice(i, 1));
+    else {
+      const row = foods().prepare(`SELECT id, name, source, category, aliases, 0 AS rank FROM foods WHERE id = ? ${source ? 'AND source = ?' : ''}`)
+        .get(...(source ? [aliased, source] : [aliased])) as unknown as SearchRow | undefined;
+      if (row) ranked.unshift({ ...row, score: ranked[0] ? ranked[0].score + 1 : 0 });
+    }
+    if (ranked[0]?.id === aliased) match = 'all-words';
+  }
+  // As typed first: singular() turns "cookies" into "cooky".
+  const preferred = BARE_DEFAULTS[tokens.join(' ')] ?? BARE_DEFAULTS[tokens.map(singular).join(' ')];
   if (preferred) {
     const i = ranked.findIndex((r) => r.name === preferred);
     if (i >= 0) ranked.unshift(...ranked.splice(i, 1));
@@ -330,7 +363,8 @@ function searchOnce(query: string | null | undefined, { limit = 10, offset = 0, 
   });
   return {
     query: q,
-    relaxed,
+    // An alias or bare-word default can promote a weak match to a named one, so this is read at the end.
+    relaxed: match === 'any-word',
     ...(match ? { match } : {}),
     total: unique.length,
     results: unique.slice(offset, offset + limit).map((r) => ({

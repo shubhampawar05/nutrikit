@@ -8,7 +8,7 @@ import { foods, getFood } from '../domain/db.ts';
 import { searchFoods } from '../domain/search.ts';
 import { NUTRIENTS, scaleNutrients, sumNutrients } from '../domain/nutrients.ts';
 import { resolvePortion } from '../domain/units.ts';
-import { logText, resolvePhrase, type LoggedItem, type Unmatched } from '../domain/textlog.ts';
+import { resolvePhrase, type LoggedItem, type Unmatched } from '../domain/textlog.ts';
 import { isValidGtin, lookupBarcode } from '../domain/barcode.ts';
 import { COUNTRIES, searchPackaged } from '../domain/packaged.ts';
 import { parseLabelText, LABEL_WARNINGS } from '../domain/label.ts';
@@ -16,6 +16,9 @@ import { generateMealPlan, DIETS } from '../domain/mealplan.ts';
 import { sampleProvider } from '../domain/providers/sample.ts';
 import { getProvider, type AIProvider, type AICapability, type MealRecognition, type LabelReading, type AIFoodItem } from '../domain/providers/index.ts';
 import { COSTS, usageSummary, issueAccessToken } from '../domain/auth.ts';
+import { coverUnknowns, logTextWithRequests, recordMisses, type Unknown } from '../domain/foodrequests.ts';
+import type { AIUsage } from '../domain/types.ts';
+import type { Sql } from 'postgres';
 
 const DISFLUENCIES = /\b(um+|uh+|erm|hmm+|like|you know|i mean|basically|actually)\b[,]?\s*/gi;
 const MEALS = ['breakfast', 'lunch', 'dinner', 'snack'];
@@ -41,18 +44,38 @@ async function requireProvider<C extends AICapability>(capability: C, req: Fasti
   return provider as AIProvider & Required<Pick<AIProvider, C>>;
 }
 
-async function aiItems(provider: AIProvider, run: () => Promise<MealRecognition>) {
+const addUsage = (a: AIUsage, b: AIUsage | null): AIUsage => (b ? { inputTokens: a.inputTokens + b.inputTokens, outputTokens: a.outputTokens + b.outputTokens } : a);
+
+/** Live calls count what the catalog missed and keep AI estimates; test-key calls do neither, so they stay repeatable. */
+const isLive = (req: FastifyRequest) => req.key?.mode !== 'test';
+
+/**
+ * Resolves the provider's items against the catalog. A food the catalog lacks is counted as a food request and,
+ * when the provider can estimate foods, logged from an estimate (source "ai-estimate", low confidence).
+ */
+async function aiItems(sql: Sql, req: FastifyRequest, provider: AIProvider, run: () => Promise<MealRecognition>) {
   const out = await run();
+  type Item = LoggedItem & { recognition: { label: string; confidence: AIFoodItem['confidence'] } };
   // Resolve each AI item on its own so its recognition stays with it when an earlier item is unmatched.
-  const items: (LoggedItem & { recognition: { label: string; confidence: AIFoodItem['confidence'] } })[] = [];
-  const unmatched: Unmatched[] = [];
+  const slots: (Item | null)[] = [];
+  const unknowns: (Unknown & { at: number; recognition: Item['recognition'] })[] = [];
   for (const i of out.items) {
+    const recognition = { label: i.food, confidence: i.confidence };
     const r = resolvePhrase({ food: i.food, quantity: i.quantity, unit: i.unit, grams: i.grams, text: `${i.quantity} ${i.unit} ${i.food}` });
-    if ('item' in r) items.push({ ...r.item, recognition: { label: i.food, confidence: i.confidence } });
-    else unmatched.push(r.unmatched);
+    if ('item' in r) slots.push({ ...r.item, recognition });
+    else {
+      unknowns.push({ unmatched: r.unmatched, food: i.food, amount: { quantity: i.quantity, unit: i.unit, grams: i.grams }, at: slots.length, recognition });
+      slots.push(null);
+    }
   }
+  const live = isLive(req);
+  if (live) await recordMisses(sql, unknowns.map((u) => ({ ...u.unmatched, food: u.food })), req.log);
+  const covered = await coverUnknowns(sql, unknowns, provider, { store: live, pending: true });
+  covered.items.forEach((item, k) => { if (item) slots[unknowns[k].at] = { ...item, recognition: unknowns[k].recognition }; });
+  const items = slots.filter((i): i is Item => i !== null);
+  const unmatched: Unmatched[] = unknowns.filter((_, k) => !covered.items[k]).map((u) => u.unmatched);
   const totals = sumNutrients(items.map((i) => i.nutrients));
-  return { meal: out.meal ?? null, items, unmatched, totals, notes: out.notes, provider: provider.name, usage: out.usage };
+  return { meal: out.meal ?? null, items, unmatched, totals, notes: out.notes, provider: provider.name, usage: addUsage(out.usage, covered.usage) };
 }
 
 function labelFromProvider(out: LabelReading) {
@@ -203,9 +226,9 @@ export async function v1Routes(fastify: FastifyInstance) {
     const { text, ai } = req.body;
     if (ai) {
       const provider = await requireProvider('parseMeal', req);
-      return aiItems(provider, () => provider.parseMeal({ text }));
+      return aiItems(fastify.sql, req, provider, () => provider.parseMeal({ text }));
     }
-    return { ...logText(text), provider: 'rules' };
+    return { ...(await logTextWithRequests(fastify.sql, text, { live: isLive(req), log: req.log })), provider: 'rules' };
   });
 
   app.post('/v1/log/voice', {
@@ -221,9 +244,9 @@ export async function v1Routes(fastify: FastifyInstance) {
     let result;
     if (req.body.ai) {
       const provider = await requireProvider('parseMeal', req);
-      result = await aiItems(provider, () => provider.parseMeal({ text }));
+      result = await aiItems(fastify.sql, req, provider, () => provider.parseMeal({ text }));
     } else {
-      result = { ...logText(text), provider: 'rules' };
+      result = { ...(await logTextWithRequests(fastify.sql, text, { live: isLive(req), log: req.log })), provider: 'rules' };
     }
     return { transcript: text, ...result };
   });
@@ -241,7 +264,7 @@ export async function v1Routes(fastify: FastifyInstance) {
     const provider = await requireProvider('recognizeMeal', req);
     const { image, mediaType, fields } = readImage(req);
     const hint = typeof fields.hint === 'string' ? fields.hint.slice(0, 500) : undefined;
-    return aiItems(provider, () => provider.recognizeMeal({ image, mediaType, hint }));
+    return aiItems(fastify.sql, req, provider, () => provider.recognizeMeal({ image, mediaType, hint }));
   });
 
   app.get('/v1/barcodes/:code(^[0-9]+$)', {

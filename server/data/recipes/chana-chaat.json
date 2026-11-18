@@ -1,0 +1,94 @@
+{
+  "id": 900000052,
+  "name": "Chana chaat (chickpea salad with onion, tomato and chaat masala)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Hebbar's Kitchen (hebbarskitchen.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://hebbarskitchen.com/chana-chaat-recipe-chole-chaat-recipe/"
+  },
+  "aliases": [
+    "chana chaat",
+    "chole chaat",
+    "chickpea chaat"
+  ],
+  "notes": "Serves 2. Uses the boiled chickpea entry directly (recipe lists 2 cups soaked and boiled chana = 328 g), so no water is added and nothing is cooked off; cooked weight equals the ingredient sum. 1/2 tsp Kashmiri chili powder 1.3 g; 1/4 tsp cumin powder 0.5 g; 1 tsp green chutney taken as 5 g cilantro; 1/2 tsp chaat masala (not in catalog) split as 0.8 g cumin + 0.7 g salt; 2 tbsp tamarind chutney 40 g taken as USDA sweet chutney; 1/4 tsp salt 1.5 g; 2 tbsp onion 20 g; 2 tbsp tomato 22 g; 3 tbsp boiled potato 30 g; 2 tbsp cucumber 16 g; 1 green chili 5 g; 2 tbsp fine sev 12 g taken as USDA snack mix; 1 tbsp coriander 1 g.",
+  "ingredients": [
+    {
+      "fdcId": 173757,
+      "food": "Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt",
+      "grams": 328
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 1.3
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1.3
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 6
+    },
+    {
+      "fdcId": 2709309,
+      "food": "Chutney",
+      "grams": 40
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 2.2
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 20
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 22
+    },
+    {
+      "fdcId": 170440,
+      "food": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "grams": 30
+    },
+    {
+      "fdcId": 2709784,
+      "food": "Cucumber, raw",
+      "grams": 16
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 2708213,
+      "food": "Snack mix",
+      "grams": 12
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 483.8,
+  "portions": [
+    {
+      "label": "1 plate",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 240
+    },
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 160
+    }
+  ]
+}

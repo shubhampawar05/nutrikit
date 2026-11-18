@@ -1,0 +1,115 @@
+{
+  "id": 900000044,
+  "name": "Cabbage sabzi (cabbage stir-fried with potato and peas)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Hebbar's Kitchen (hebbarskitchen.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://hebbarskitchen.com/cabbage-sabzi-recipe-cabbage-curry/"
+  },
+  "aliases": [
+    "cabbage sabzi",
+    "patta gobhi sabzi",
+    "cabbage poriyal",
+    "bandh gobhi sabzi"
+  ],
+  "notes": "Serves 4. North Indian style with potato and peas, as in the cited recipe. Weights: 3 tsp oil = 13.6 g, 1 tsp cumin = 2.1 g, 1 tsp kasuri methi = 0.6 g (as fenugreek seed), 1 onion = 110 g, 1/2 tsp ginger garlic paste split 1.25 g each, 1 tomato = 120 g, 1 potato = 150 g (raw, peeled), 4 cups shredded cabbage = 280 g (70 g/cup), 1/2 cup peas = 72 g (raw), coriander powder 1 tsp = 1.8 g (as coriander seed), garam masala as curry powder, coriander leaves 2 tbsp = 2 g. No water added; assumed ~20% of the weight lost as steam (dry stir-fry). A katori or bowl is taken as 1 cup, as everywhere in the catalog.",
+  "ingredients": [
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 13.6
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 2.1
+    },
+    {
+      "fdcId": 171324,
+      "food": "Spices, fenugreek seed",
+      "grams": 0.6
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 110
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 1.25
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 1.25
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 120
+    },
+    {
+      "fdcId": 2346401,
+      "food": "Potatoes, russet, without skin, raw",
+      "grams": 150
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.8
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 1.3
+    },
+    {
+      "fdcId": 170922,
+      "food": "Spices, coriander seed",
+      "grams": 1.8
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 4.5
+    },
+    {
+      "fdcId": 2709773,
+      "food": "Cabbage, green, raw",
+      "grams": 280
+    },
+    {
+      "fdcId": 170419,
+      "food": "Peas, green, raw",
+      "grams": 72
+    },
+    {
+      "fdcId": 170924,
+      "food": "Spices, curry powder",
+      "grams": 0.5
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 2
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 610,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 130
+    },
+    {
+      "label": "1 plate",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 220
+    }
+  ]
+}

@@ -112,13 +112,37 @@ Open `/admin` and sign in with `NUTRIKIT_ADMIN_TOKEN`. The token stays in that b
 | Accounts | Plans, usage, total paid; **change an account's plan** |
 | Keys | Every key with its owner; **revoke** a key |
 | Requests | Upgrade requests (Enterprise, or when payments are off) |
+| Missing foods | Foods people tried to log that the catalog lacks, most asked first, with any AI estimate; **approve or reject** an estimate, **resolve** or **ignore** a food |
 
-The same is available over the admin API (`/v1/admin/overview`, `/metrics`, `/accounts`, `/payments`, `/keys`), e.g.:
+The same is available over the admin API (`/v1/admin/overview`, `/metrics`, `/accounts`, `/payments`, `/keys`,
+`/food-requests`), e.g.:
 
 ```bash
 curl -X POST https://<host>/v1/admin/accounts/acct_…/plan \
   -H "Authorization: Bearer $NUTRIKIT_ADMIN_TOKEN" -H "Content-Type: application/json" \
   -d '{"plan": "starter"}'
+```
+
+## Missing foods
+
+Text, voice, photo and homepage-demo logging count every food the catalog couldn't match, under its food words
+("2 bowls sabudana khichdi" → `sabudana khichdi`). Nothing else from the request is kept: no account, key or IP.
+Test keys are never counted. The list holds up to `NUTRIKIT_FOOD_REQUESTS_MAX` foods (default 5,000); after that
+only foods already on it are counted.
+
+When a call uses AI (`ai: true`, or a photo), a missing food is estimated by the AI provider, logged as
+`ai-estimate`, and its estimate is stored as **to review**. In **Missing foods**:
+
+- **Approve** an estimate you've checked: from then on every caller logging that food gets it, rule-based logging
+  included, without an AI call.
+- **Reject** a wrong one: it stops being used and the food isn't estimated again; it stays unmatched.
+- Once the catalog covers the food (an alias in `server/data/aliases/recipes.json` or a cited recipe in
+  `server/data/recipes/`, then `npm run build:db`), mark it **Resolved**. **Ignore** text that isn't a food.
+
+```bash
+curl https://<host>/v1/admin/food-requests?status=open -H "Authorization: Bearer $NUTRIKIT_ADMIN_TOKEN"
+curl -X PATCH https://<host>/v1/admin/food-requests/12 -H "Authorization: Bearer $NUTRIKIT_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" -d '{"estimateStatus": "approved"}'
 ```
 
 ## Security in place

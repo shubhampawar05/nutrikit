@@ -1,0 +1,110 @@
+{
+  "id": 900000045,
+  "name": "Mutton curry (home-style Indian goat curry)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/mutton-curry-recipe-mutton-gravy/"
+  },
+  "aliases": [
+    "mutton curry",
+    "mutton masala",
+    "goat curry",
+    "mutton gravy"
+  ],
+  "notes": "Serves 3. Mutton 500 g taken as raw goat meat (USDA game meat, goat, raw), all edible: the recipe allows bone-in, which would mean less meat per serving. Pressure-cooker version: 3/4 cup hot water = 180 g. Weights: 2 tbsp yogurt = 30 g, 3/4 tbsp ginger garlic paste split 5.5 g each, salt 3/4 tsp + 1/2 tsp = 7.5 g, meat masala 1 tsp + 2 tsp = 6 g (as curry powder), Kashmiri chilli 1/2 tsp = 1.3 g, 2 tbsp oil = 27 g, 3 cardamoms = 0.6 g, 1 inch cinnamon = 1 g (as ground cinnamon), 1 cup chopped onion = 160 g, 3/4 cup tomato = 135 g, 1.5 green chillies = 7.5 g, 1.5 tbsp coriander leaves = 1.5 g. Curry leaves left out. Assumed ~30% of meat weight, ~30% of onion and tomato, and ~40% of the water lost while cooking. A katori or bowl is taken as 1 cup, as everywhere in the catalog.",
+  "ingredients": [
+    {
+      "fdcId": 175303,
+      "food": "Game meat, goat, raw",
+      "grams": 500
+    },
+    {
+      "fdcId": 171284,
+      "food": "Yogurt, plain, whole milk",
+      "grams": 30
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 5.5
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 5.5
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 7.5
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.8
+    },
+    {
+      "fdcId": 170924,
+      "food": "Spices, curry powder",
+      "grams": 6
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 1.3
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 27
+    },
+    {
+      "fdcId": 170919,
+      "food": "Spices, cardamom",
+      "grams": 0.6
+    },
+    {
+      "fdcId": 171320,
+      "food": "Spices, cinnamon, ground",
+      "grams": 1
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 160
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 135
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 7.5
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 1.5
+    }
+  ],
+  "water": 180,
+  "cookedGrams": 760,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 230
+    },
+    {
+      "label": "1 plate",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 250
+    }
+  ]
+}

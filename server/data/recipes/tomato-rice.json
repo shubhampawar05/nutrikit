@@ -1,0 +1,125 @@
+{
+  "id": 900000051,
+  "name": "Tomato rice (South Indian rice cooked with tomatoes)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/tomato-rice-recipe/"
+  },
+  "aliases": [
+    "tomato rice",
+    "tomato bath",
+    "thakkali sadam",
+    "tomato pulao"
+  ],
+  "notes": "Serves 3. Pressure-cooker method: 1.5 cups raw basmati taken as 278 g long-grain white rice (raw) cooked in 2.5 cups (592 g) water, which is absorbed. 2 tbsp oil 27 g; 1 medium onion 110 g; 1 tbsp ginger garlic paste as 8 g ginger + 8 g garlic; 1 cup chopped tomatoes 180 g; 3/4 tsp salt 4.5 g; garam masala taken as curry powder (the recipe allows either) 1.5 g; 3/4 tsp chili powder 2 g; 12 cashews 18 g (optional in recipe, included); whole spices: cumin 1.5 g, 1 inch cinnamon 1 g, 3 cardamoms 0.6 g, 3 cloves 0.3 g; bay leaf omitted. About 12% of the weight is lost as steam (sauteing and pressure release).",
+  "ingredients": [
+    {
+      "fdcId": 168877,
+      "food": "Rice, white, long-grain, regular, raw, enriched",
+      "grams": 278
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 27
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1.5
+    },
+    {
+      "fdcId": 171320,
+      "food": "Spices, cinnamon, ground",
+      "grams": 1
+    },
+    {
+      "fdcId": 170919,
+      "food": "Spices, cardamom",
+      "grams": 0.6
+    },
+    {
+      "fdcId": 171321,
+      "food": "Spices, cloves, ground",
+      "grams": 0.3
+    },
+    {
+      "fdcId": 170162,
+      "food": "Nuts, cashew nuts, raw",
+      "grams": 18
+    },
+    {
+      "fdcId": 2709795,
+      "food": "Onions, raw",
+      "grams": 110
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 8
+    },
+    {
+      "fdcId": 2709786,
+      "food": "Garlic, raw",
+      "grams": 8
+    },
+    {
+      "fdcId": 2709719,
+      "food": "Tomatoes, raw",
+      "grams": 180
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 4.5
+    },
+    {
+      "fdcId": 170924,
+      "food": "Spices, curry powder",
+      "grams": 1.5
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 2
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.8
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 3
+    },
+    {
+      "fdcId": 2709181,
+      "food": "Lemon juice, 100%, freshly squeezed",
+      "grams": 15
+    }
+  ],
+  "water": 592,
+  "cookedGrams": 1100,
+  "portions": [
+    {
+      "label": "1 plate",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 250
+    },
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 180
+    }
+  ]
+}

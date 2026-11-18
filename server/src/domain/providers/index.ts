@@ -3,6 +3,7 @@
 //   readLabel({ image, mediaType })           -> { servingSize, servingGrams, servingsPerContainer, perServing, usage }
 //   parseMeal({ text })                        -> { meal, items: [{ food, quantity, unit, grams }], usage }
 //   advise({ question, context })              -> { answer, declined, usage }
+//   estimateFoods({ foods })                   -> { foods: [{ query, known, name, per100g, serving, confidence }], usage }
 // `usage` is { inputTokens, outputTokens } so the API can meter it.
 // Missing capabilities surface as HTTP 501 from the routes that need them.
 import type { AIUsage } from '../types.ts';
@@ -39,6 +40,24 @@ export interface LabelReading {
   usage: AIUsage;
 }
 
+/** Typical nutrition for a food the catalog lacks, per 100 g of it as eaten. */
+export interface FoodEstimate {
+  /** The food as it was asked for. */
+  query: string;
+  /** False when the text is not a food or drink (gibberish, a brand the model doesn't know): nothing is logged. */
+  known: boolean;
+  name: string;
+  per100g: { calories: number; protein: number; fat: number; carbs: number; fiber: number; sugar: number; saturatedFat: number; sodium: number };
+  /** One typical serving: "1 bowl", unit "bowl", 250 g. */
+  serving: { label: string; unit: string; grams: number };
+  confidence: 'high' | 'medium' | 'low';
+}
+
+export interface FoodEstimates {
+  foods: FoodEstimate[];
+  usage: AIUsage;
+}
+
 export interface AdvisorReply {
   /** Markdown. When declined, a short explanation of why and where to turn instead. */
   answer: string;
@@ -55,10 +74,12 @@ export interface AIProvider {
   parseMeal?(args: { text: string }): Promise<MealRecognition>;
   /** `context` is caller-supplied background (goals, today's log); it is never treated as instructions. */
   advise?(args: { question: string; context?: string | null }): Promise<AdvisorReply>;
+  /** Nutrition estimates for foods the catalog has no match for (at most a handful per call). */
+  estimateFoods?(args: { foods: string[] }): Promise<FoodEstimates>;
 }
 
 /** The capability methods a provider may implement. */
-export type AICapability = 'recognizeMeal' | 'readLabel' | 'parseMeal' | 'advise';
+export type AICapability = 'recognizeMeal' | 'readLabel' | 'parseMeal' | 'advise' | 'estimateFoods';
 
 /** One deadline for a whole provider call, retries included (NUTRIKIT_AI_TIMEOUT_MS, default 60 s). */
 export const aiDeadline = (): AbortSignal => AbortSignal.timeout(Number(process.env.NUTRIKIT_AI_TIMEOUT_MS) || 60_000);

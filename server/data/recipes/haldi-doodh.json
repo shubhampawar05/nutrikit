@@ -1,0 +1,65 @@
+{
+  "id": 900000055,
+  "name": "Haldi doodh (turmeric milk)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/turmeric-milk-recipe/"
+  },
+  "aliases": [
+    "haldi doodh",
+    "haldi wala doodh",
+    "turmeric milk",
+    "golden milk"
+  ],
+  "notes": "Serves 1. 1 cup whole milk 244 g; 3/4 to 1 tsp turmeric taken as 2.7 g; 1/8 to 1/4 tsp black pepper 0.4 g; optional 1 tsp sugar 4 g included; optional 1/8 tsp cardamom 0.3 g and 1/8 tsp cinnamon 0.3 g included; dry ginger and clove left out. No water; about 5% lost as steam while simmering.",
+  "ingredients": [
+    {
+      "fdcId": 2705385,
+      "food": "Milk, whole",
+      "grams": 244
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 2.7
+    },
+    {
+      "fdcId": 170931,
+      "food": "Spices, pepper, black",
+      "grams": 0.4
+    },
+    {
+      "fdcId": 2710258,
+      "food": "Sugar, white, granulated or lump",
+      "grams": 4
+    },
+    {
+      "fdcId": 170919,
+      "food": "Spices, cardamom",
+      "grams": 0.3
+    },
+    {
+      "fdcId": 171320,
+      "food": "Spices, cinnamon, ground",
+      "grams": 0.3
+    }
+  ],
+  "water": 0,
+  "cookedGrams": 239,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 240
+    },
+    {
+      "label": "1 tumbler",
+      "amount": 1,
+      "unit": "serving",
+      "grams": 150
+    }
+  ]
+}

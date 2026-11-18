@@ -1,0 +1,89 @@
+{
+  "id": 900000042,
+  "name": "Jeera aloo (potatoes tempered with cumin)",
+  "category": "Indian dishes",
+  "source": {
+    "name": "Swasthi's Recipes (indianhealthyrecipes.com)",
+    "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+    "url": "https://www.indianhealthyrecipes.com/jeera-aloo-recipe/"
+  },
+  "aliases": [
+    "jeera aloo",
+    "aloo jeera",
+    "jeera alu"
+  ],
+  "notes": "Serves 3. The recipe boils the potatoes first, so the 400 g of potatoes is taken as boiled peeled potato (raw and boiled weights assumed equal). Weights: 2 tbsp oil = 27 g, 1 tbsp chopped ginger = 6 g, 1 green chilli = 5 g, salt 3/8 tsp = 2.25 g (midpoint), 1.25 tsp cumin seeds = 2.6 g, 3/4 tsp cumin powder = 1.5 g (as cumin seed), 1.25 tsp coriander powder = 2.3 g (as coriander seed), 3/4 tsp red chilli powder = 2 g, 2.5 tbsp coriander leaves = 2.5 g. Asafoetida, amchur and optional kasuri methi left out (trace amounts). 3 tbsp water = 45 g; assumed the water plus ~3% of potato weight cooks off. A katori or bowl is taken as 1 cup, as everywhere in the catalog.",
+  "ingredients": [
+    {
+      "fdcId": 170440,
+      "food": "Potatoes, boiled, cooked without skin, flesh, without salt",
+      "grams": 400
+    },
+    {
+      "fdcId": 2710180,
+      "food": "Vegetable oil, NFS",
+      "grams": 27
+    },
+    {
+      "fdcId": 169231,
+      "food": "Ginger root, raw",
+      "grams": 6
+    },
+    {
+      "fdcId": 170497,
+      "food": "Peppers, hot chili, green, raw",
+      "grams": 5
+    },
+    {
+      "fdcId": 173468,
+      "food": "Salt, table",
+      "grams": 2.25
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 2.6
+    },
+    {
+      "fdcId": 172231,
+      "food": "Spices, turmeric, ground",
+      "grams": 0.8
+    },
+    {
+      "fdcId": 171319,
+      "food": "Spices, chili powder",
+      "grams": 2
+    },
+    {
+      "fdcId": 170923,
+      "food": "Spices, cumin seed",
+      "grams": 1.5
+    },
+    {
+      "fdcId": 170922,
+      "food": "Spices, coriander seed",
+      "grams": 2.3
+    },
+    {
+      "fdcId": 2709782,
+      "food": "Cilantro, raw",
+      "grams": 2.5
+    }
+  ],
+  "water": 45,
+  "cookedGrams": 440,
+  "portions": [
+    {
+      "label": "1 cup",
+      "amount": 1,
+      "unit": "cup",
+      "grams": 120
+    },
+    {
+      "label": "1 plate",
+      "amount": 1,
+      "unit": "plate",
+      "grams": 200
+    }
+  ]
+}

@@ -294,9 +294,14 @@ if (indbDir && !useIndbTotals) {
 } else if (!indbDir) {
   console.warn(`INDB workbooks not found under ${path.join(RAW, 'indb')}; building without INDB (see data/indb/README.md)`);
 }
+// Reviewed aliases (data/aliases/recipes.json) name their food outright: search puts it first when the query is
+// exactly the alias (see aliasedFood in src/domain/search.ts). Names INDB derives from its own brackets don't.
+const pinnedAliases = {};
 if (fs.existsSync(RECIPE_ALIASES)) {
   const byName = new Map([...kept.values()].map((f) => [f.name.toLowerCase(), f]));
-  const extra = recipeAliases(JSON.parse(fs.readFileSync(RECIPE_ALIASES, 'utf8')), byName);
+  const entries = JSON.parse(fs.readFileSync(RECIPE_ALIASES, 'utf8'));
+  const extra = recipeAliases(entries, byName);
+  for (const e of entries) pinnedAliases[e.alias.trim().toLowerCase()] = byName.get(e.name.toLowerCase()).id;
   const updateAlias = db.prepare('UPDATE foods SET aliases = ? WHERE id = ?');
   for (const [id, aliases] of extra) {
     updateAlias.run(aliases.join('|'), id);
@@ -310,6 +315,7 @@ insertMeta.run('built_at', new Date().toISOString());
 insertMeta.run('sources', JSON.stringify(DATASETS.map((d) => d.dir)));
 insertMeta.run('clamped', String(clamped));
 insertMeta.run('collisions', String(collisions));
+insertMeta.run('pinned_aliases', JSON.stringify(pinnedAliases));
 if (cofidMeta) insertMeta.run('cofid_source', JSON.stringify(cofidMeta));
 if (indbMeta) insertMeta.run('indb_source', JSON.stringify(indbMeta));
 db.exec('COMMIT');

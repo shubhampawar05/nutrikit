@@ -64,6 +64,7 @@ in Brevo) when you have one.
 |---|---|---|
 | `PORT` | `8787` | HTTP port (most hosts set it) |
 | `NUTRIKIT_RATE_LIMIT` | `120` | Requests per minute per key |
+| `NUTRIKIT_FOOD_REQUESTS_MAX` | `5000` | Missing foods kept for review; beyond it only foods already listed are counted ([Platform](platform.md#missing-foods)) |
 | `NUTRIKIT_TEST_TOKENS` | `5000` | Monthly tokens for a team's test keys (`nk_test_…`), separate from its plan |
 | `NUTRIKIT_TEST_RATE_LIMIT` | `30` | Requests per minute for a team's test keys |
 | `NUTRIKIT_TEAMS_PER_USER` | `3` | Teams one person can own (each team gets its own Free allowance) |

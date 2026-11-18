@@ -65,13 +65,46 @@ export function nutrientsFromIndbRow(cols) {
   return out;
 }
 
-function normUnit(label) {
-  const s = String(label ?? '').toLowerCase().trim();
-  if (/cup|glass|mug/.test(s)) return 'cup';
-  if (/plate/.test(s)) return 'plate';
-  if (/bowl|katori/.test(s)) return 'bowl';
-  if (/piece|pc/.test(s)) return 'piece';
-  return s ? 'serving' : null;
+// INDB's serving names ("tall glass", "small bowl", "idli") become the portion label, so "1 glass lemonade" or
+// "2 idli" match the dish's own published serving. A name is kept only when its weight is believable for it: a
+// cup or spoon also tells the portion engine the dish's density, so a wrong one would skew every volume. Anything
+// else, and servings with no real name ("ml", "gm", blank), stay "1 serving" as before.
+const UNNAMED = new Set(['', 'ml', 'gm', 'g', 'small', 'portion', 'serving']);
+/**
+ * [pattern on the INDB name, portion unit, lowest and highest believable grams for one]. A typed "cup" or "glass"
+ * means a standard 236.6 ml everywhere in the API, and INDB's cups and glasses are its own vessel sizes (a "glass"
+ * is about 340 g), so those keep their name only as the dish's default serving (unit `serving`), never as the size
+ * of a typed cup or glass.
+ */
+const VESSELS = [
+  [/^(tea )?cup$/, 'serving', 100, 300],
+  [/^tablespoon$/, 'tbsp', 5, 25],
+  [/^teaspoon$/, 'tsp', 2, 8],
+  [/(^|\s)glass$/, 'serving', 150, 450],
+  [/(^|\s)bowl$/, 'bowl', 80, 600],
+  [/(^|\s)plate$/, 'plate', 80, 700],
+];
+const singular = (w) => (/[^s]s$/.test(w) && w.length > 3 ? w.slice(0, -1) : w);
+
+/**
+ * The portion for one INDB serving: `{ label, unit, flagged }`. `flagged` names a serving whose weight is not
+ * believable for its name; it is listed at build time for review and stays "1 serving".
+ * @param {string} name INDB servings_unit
+ * @param {number} grams one serving, from the published per-serving and per-100 g energy
+ */
+export function indbServing(name, grams) {
+  const unitName = String(name ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
+  if (UNNAMED.has(unitName)) return { label: '1 serving', unit: 'serving', flagged: null };
+  const vessel = VESSELS.find(([pattern]) => pattern.test(unitName));
+  if (vessel) {
+    const [, unit, low, high] = vessel;
+    if (grams < low || grams > high) return { label: '1 serving', unit: 'serving', flagged: `1 ${unitName} = ${grams} g (expected ${low}-${high} g)` };
+    return { label: `1 ${unitName}`, unit, flagged: null };
+  }
+  // A piece of something ("idli", "large slice", "kaathi roll"): its last word is the unit, so "2 idli" or
+  // "1 slice" finds it.
+  if (grams < 5) return { label: '1 serving', unit: 'serving', flagged: `1 ${unitName} = ${grams} g (under 5 g)` };
+  return { label: `1 ${unitName}`, unit: singular(unitName.split(' ').at(-1)), flagged: null };
 }
 
 /**
@@ -86,6 +119,7 @@ export function indbTotalFoods(dir) {
   const header = rows[0];
   const col = (name) => header.indexOf(name);
   const out = [];
+  const flagged = [];
   for (const row of rows.slice(1)) {
     const code = String(row[col('food_code')] ?? '').trim();
     const name = String(row[col('food_name')] ?? '').trim();
@@ -94,7 +128,7 @@ export function indbTotalFoods(dir) {
       ['energy_kcal', 'protein_g', 'fat_g', 'carb_g', 'fibre_g', 'freesugar_g', 'sfa_mg', 'mufa_mg', 'pufa_mg',
         'cholesterol_mg', 'sodium_mg', 'potassium_mg', 'calcium_mg', 'iron_mg', 'magnesium_mg', 'phosphorus_mg',
         'zinc_mg', 'vita_ug', 'vite_mg', 'vitd2_ug', 'vitd3_ug', 'vitk1_ug', 'folate_ug', 'vitb1_mg', 'vitb2_mg',
-        'vitb3_mg', 'vitb6_mg', 'vitb9_ug', 'vitc_mg', 'unit_serving_energy_kcal', 'servings_unit'].map((k) => [k, num(row[col(k)])]),
+        'vitb3_mg', 'vitb6_mg', 'vitb9_ug', 'vitc_mg', 'unit_serving_energy_kcal'].map((k) => [k, num(row[col(k)])]),
     );
     const n = nutrientsFromIndbRow(cols);
     if (n.calories == null) continue;
@@ -102,8 +136,9 @@ export function indbTotalFoods(dir) {
     const perServ = cols.unit_serving_energy_kcal;
     let grams = 200;
     if (per100 > 0 && perServ > 0) grams = Math.max(20, Math.round((100 * perServ) / per100));
-    const servLabel = cols.servings_unit ? String(row[col('servings_unit')]).trim() : 'serving';
-    const unit = normUnit(servLabel);
+    // servings_unit is text ("tall glass"); it is read from the row, not through num().
+    const serving = indbServing(row[col('servings_unit')], grams);
+    if (serving.flagged) flagged.push(`${name}: ${serving.flagged}`);
     out.push({
       id: indbFoodId(code),
       code,
@@ -113,13 +148,17 @@ export function indbTotalFoods(dir) {
       n,
       portions: [{
         seq: 1,
-        label: `1 ${servLabel}`,
+        label: serving.label,
         amount: 1,
-        unit,
+        unit: serving.unit,
         grams,
       }],
       aliases: indbDisplayAliases(name),
     });
+  }
+  if (flagged.length) {
+    console.warn(`INDB: ${flagged.length} servings kept as "1 serving" because their weight is not believable for their name:`);
+    for (const f of flagged) console.warn(`  ${f}`);
   }
   return out;
 }
