@@ -52,6 +52,25 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return fastify.monitor.snapshot();
   });
 
+  app.post('/v1/admin/alerts/test', {
+    schema: {
+      summary: 'Send a test alert to the alert webhook (admin)',
+      description: 'Checks that NUTRIKIT_ALERT_WEBHOOK_URL is set on this instance and that the webhook accepts the alert. Counts toward the hourly alert cap.',
+      security,
+      response: { 200: { description: 'The webhook accepted the alert', type: 'object' }, ...errors(401, 429, 502, 503) },
+    },
+  }, async () => {
+    const monitor = fastify.monitor;
+    if (!monitor.alertsConfigured) throw new HttpError(503, 'alerts_not_configured', 'NUTRIKIT_ALERT_WEBHOOK_URL is not set on this instance');
+    const before = { ...monitor.alerts };
+    const at = new Date().toISOString();
+    // A key of its own each time, so the cooldown between identical alerts never swallows a test.
+    await monitor.alert('test', 'Test alert: alerts from this server reach you', { 'sent at': at }, `test:${at}`);
+    if (monitor.alerts.sent > before.sent) return { sent: true, at };
+    if (monitor.alerts.failed > before.failed) throw new HttpError(502, 'alert_failed', 'the webhook did not accept the alert; check the URL and the server log');
+    throw new HttpError(429, 'alert_capped', 'the hourly alert cap is reached; try again later');
+  });
+
   app.get('/v1/admin/accounts', {
     schema: { summary: 'List accounts with plan, paid-until, keys, usage and payments (admin)', description: 'Newest first; at most 200.', security, querystring: search, response: list('OK') },
   }, async (req) => ({ accounts: await listAccounts(sql, req.query.q) }));

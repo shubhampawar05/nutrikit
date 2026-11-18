@@ -2223,6 +2223,70 @@
         }
       }
     },
+    "/v1/admin/alerts/test": {
+      "post": {
+        "summary": "Send a test alert to the alert webhook (admin)",
+        "description": "Checks that NUTRIKIT_ALERT_WEBHOOK_URL is set on this instance and that the webhook accepts the alert. Counts toward the hourly alert cap.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The webhook accepted the alert",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The webhook accepted the alert",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or monthly token allowance exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream source failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or AI provider unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/admin/accounts": {
       "get": {
         "summary": "List accounts with plan, paid-until, keys, usage and payments (admin)",
