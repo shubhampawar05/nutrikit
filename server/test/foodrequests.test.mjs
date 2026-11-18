@@ -5,7 +5,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildApp } from '../src/app.ts';
 import { setProvider } from '../src/domain/providers/index.ts';
-import { estimateProblem, phraseParts, requestEstimates, requestKey } from '../src/domain/foodrequests.ts';
+import { catalogCandidates, estimateItem, estimateProblem, phraseParts, requestEstimates, requestKey } from '../src/domain/foodrequests.ts';
 
 const app = await buildApp();
 const ADMIN = { Authorization: 'Bearer test-admin-token', 'Content-Type': 'application/json' };
@@ -215,4 +215,25 @@ test('a failed estimate is asked once more, then left out; "not a food" is not a
   assert.equal(r.rejected[0].query, 'bad twice');
   assert.match(r.rejected[0].problem, /disagrees with its macros/);
   assert.deepEqual(r.usage, { inputTokens: 20, outputTokens: 10 });
+});
+
+test('a catalog food the model calls the same dish is logged from real data, only if offered and in agreement', async () => {
+  const [dal] = catalogCandidates('dal');
+  assert.ok(dal && dal.calories > 0, 'search offers catalog foods with their calories');
+  const offered = [{ id: dal.id, name: dal.name, calories: dal.calories }];
+  const answer = (sameAs, calories) => ({ ...good('daal fry special'), sameAs, per100g: { ...good('x').per100g, calories, carbs: (calories - 24 - 36) / 4 } });
+  const ask = (e) => requestEstimates({ name: 'fake', estimateFoods: async () => ({ foods: [e], usage: { inputTokens: 1, outputTokens: 1 } }) }, ['daal fry special'], [offered]);
+
+  const agreeing = (await ask(answer(dal.id, Math.round(dal.calories)))).estimates.get('daal fry special');
+  assert.deepEqual(agreeing.sameAs, { id: dal.id, name: dal.name });
+  const item = estimateItem('1 cup daal fry special', agreeing, { quantity: 1, unit: 'cup' });
+  assert.equal(item.food.id, dal.id);
+  assert.equal(item.food.source, 'survey');
+  assert.equal(item.confidence, 'medium');
+  assert.match(item.portionMethod, /^ai-same-as-/);
+
+  const far = (await ask(answer(dal.id, Math.round(dal.calories * 2)))).estimates.get('daal fry special');
+  assert.equal(far.sameAs, null, "the model's own figure disagrees: its estimate is used instead");
+  const unoffered = (await ask(answer(123456789, Math.round(dal.calories)))).estimates.get('daal fry special');
+  assert.equal(unoffered.sameAs, null, 'only an id we offered counts');
 });

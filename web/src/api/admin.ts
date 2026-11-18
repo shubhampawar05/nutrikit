@@ -90,6 +90,8 @@ export interface FoodRequest {
     name: string; confidence: 'high' | 'medium' | 'low'; provider: string; model: string | null; at: string;
     per100g: { calories: number; protein: number; fat: number; carbs: number; fiber: number; sugar: number; saturatedFat: number; sodium: number };
     serving: { label: string; unit: string; grams: number };
+    /** The catalog food the AI judged to be this same dish; it is logged with that food's own values. */
+    sameAs?: { id: number; name: string } | null;
   } | null;
 }
 

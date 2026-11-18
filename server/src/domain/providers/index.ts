@@ -51,7 +51,12 @@ export interface FoodEstimate {
   /** One typical serving: "1 bowl", unit "bowl", 250 g. */
   serving: { label: string; unit: string; grams: number };
   confidence: 'high' | 'medium' | 'low';
+  /** The id of a listed catalog food that is the same dish, when the request offered candidates; else null. */
+  sameAs?: number | null;
 }
+
+/** A catalog food offered to the model as possibly the same dish as a food being estimated. */
+export interface CatalogCandidate { id: number; name: string; calories: number | null }
 
 export interface FoodEstimates {
   foods: FoodEstimate[];
@@ -75,7 +80,8 @@ export interface AIProvider {
   /** `context` is caller-supplied background (goals, today's log); it is never treated as instructions. */
   advise?(args: { question: string; context?: string | null }): Promise<AdvisorReply>;
   /** Nutrition estimates for foods the catalog has no match for (at most a handful per call). */
-  estimateFoods?(args: { foods: string[] }): Promise<FoodEstimates>;
+  /** `candidates[i]` are catalog foods that may be the same dish as `foods[i]` (the model may pick one: `sameAs`). */
+  estimateFoods?(args: { foods: string[]; candidates?: CatalogCandidate[][] }): Promise<FoodEstimates>;
 }
 
 /** The capability methods a provider may implement. */

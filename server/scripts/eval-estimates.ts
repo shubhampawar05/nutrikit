@@ -10,9 +10,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { foods } from '../src/domain/db.ts';
+import { foods, getFood } from '../src/domain/db.ts';
 import { getProvider } from '../src/domain/providers/index.ts';
-import { MAX_ESTIMATES_PER_CALL, requestEstimates, requestKey, type StoredEstimate } from '../src/domain/foodrequests.ts';
+import { MAX_ESTIMATES_PER_CALL, catalogCandidates, requestEstimates, requestKey, type StoredEstimate } from '../src/domain/foodrequests.ts';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const arg = (name: string, fallback: string) => {
@@ -47,7 +47,9 @@ async function worker() {
   while (next < batches.length) {
     const batch = batches[next++];
     try {
-      const { estimates, usage, rejected: failed } = await requestEstimates(provider, batch.map((d) => d.query));
+      // The dish itself (and any food with exactly its name) is hidden from its candidates, as if it were missing.
+      const candidates = batch.map((d) => catalogCandidates(d.query, (id, name) => id === d.id || name.toLowerCase() === d.name.toLowerCase()));
+      const { estimates, usage, rejected: failed } = await requestEstimates(provider, batch.map((d) => d.query), candidates);
       rejected.push(...failed);
       inputTokens += usage.inputTokens;
       outputTokens += usage.outputTokens;
@@ -66,13 +68,15 @@ const MACROS = ['protein', 'carbs', 'fat'] as const;
 const rows = sample.map((d) => {
   const e = got.get(d.id);
   if (!e) return { id: d.id, query: d.query, truth: d.truth.calories, estimate: null };
-  const kcal = e.per100g.calories;
+  // A catalog food the model judged the same dish is logged with that food's values, so those are what count.
+  const values = (e.sameAs ? getFood(e.sameAs.id)?.per100g : null) ?? e.per100g;
+  const kcal = values.calories!;
   return {
-    id: d.id, query: d.query, name: e.name, confidence: e.confidence,
+    id: d.id, query: d.query, name: e.name, confidence: e.confidence, sameAs: e.sameAs ?? null, modelCalories: e.per100g.calories,
     truth: { calories: d.truth.calories, ...Object.fromEntries(MACROS.map((m) => [m, d.truth[m] ?? null])) },
-    estimate: { calories: kcal, ...Object.fromEntries(MACROS.map((m) => [m, e.per100g[m]])) },
+    estimate: { calories: kcal, ...Object.fromEntries(MACROS.map((m) => [m, values[m] ?? null])) },
     calorieError: Math.abs(kcal - d.truth.calories) / d.truth.calories,
-    macroError: Object.fromEntries(MACROS.map((m) => [m, d.truth[m] == null ? null : Math.abs(e.per100g[m] - d.truth[m])])),
+    macroError: Object.fromEntries(MACROS.map((m) => [m, d.truth[m] == null || values[m] == null ? null : Math.abs(values[m]! - d.truth[m])])),
   };
 });
 
@@ -89,6 +93,9 @@ const summary = {
   estimated: scored.length,
   notEstimated: sample.length - scored.length,
   rejectedAfterRetry: rejected,
+  matchedCatalog: scored.filter((r) => r.sameAs).length,
+  matchedCatalogMedianError: pct(median(scored.filter((r) => r.sameAs).map((r) => r.calorieError))),
+  estimatedMedianError: pct(median(scored.filter((r) => !r.sameAs).map((r) => r.calorieError))),
   calories: {
     medianError: pct(median(scored.map((r) => r.calorieError))),
     meanError: pct(mean(scored.map((r) => r.calorieError))),
@@ -104,4 +111,6 @@ fs.writeFileSync(path.join(ROOT, 'data/eval', `${LABEL}.json`), `${JSON.stringif
 console.log(JSON.stringify(summary, null, 2));
 const worst = [...scored].sort((a, b) => b.calorieError - a.calorieError).slice(0, 8);
 console.log('\nLargest calorie errors:');
-for (const r of worst) console.log(`  ${r.query}: estimated ${Math.round(r.estimate.calories)} kcal, INDB ${Math.round(r.truth.calories)} (${pct(r.calorieError)})`);
+for (const r of worst) console.log(`  ${r.query}: ${r.sameAs ? `matched "${r.sameAs.name}"` : 'estimated'} ${Math.round(r.estimate.calories)} kcal, INDB ${Math.round(r.truth.calories)} (${pct(r.calorieError)})`);
+console.log('\nMatched to a catalog food:');
+for (const r of scored.filter((x) => x.sameAs)) console.log(`  ${r.query} -> ${r.sameAs!.name} (${pct(r.calorieError)})`);

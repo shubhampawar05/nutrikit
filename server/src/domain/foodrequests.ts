@@ -9,7 +9,9 @@
 //   rules-based logging included, with no AI call; rejecting it stops it being used or asked for again; a request is resolved once
 //   the catalog covers the food (an alias or a recipe) or ignored when it isn't a food.
 import type { Sql } from 'postgres';
-import type { AIProvider, AIUsage, FoodEstimate } from './providers/index.ts';
+import type { AIProvider, AIUsage, CatalogCandidate, FoodEstimate } from './providers/index.ts';
+import { getFood } from './db.ts';
+import { searchFoods } from './search.ts';
 import { logText, splitMealText, type LoggedItem, type TextLog, type Unmatched } from './textlog.ts';
 import { resolvePortion } from './units.ts';
 import { scaleNutrients, sumNutrients } from './nutrients.ts';
@@ -25,6 +27,8 @@ export interface StoredEstimate {
   provider: string;
   model: string | null;
   at: string;
+  /** Set when the model judged an existing catalog food to be this same dish: that food is logged instead. */
+  sameAs?: { id: number; name: string } | null;
 }
 
 export interface FoodRequest {
@@ -98,6 +102,26 @@ async function saveEstimate(sql: Sql, phrase: string, example: string, estimate:
 
 /** A logged item from an estimate, with the amount the person gave (or the AI's grams, or one typical serving). */
 export function estimateItem(input: string, estimate: StoredEstimate, amount: { quantity: number | null; unit: string | null; grams?: number | null }): LoggedItem {
+  const catalog = estimate.sameAs ? getFood(estimate.sameAs.id) : undefined;
+  if (catalog) {
+    // The model matched an existing food: log it from real data, with its own portions.
+    const portion = amount.grams
+      ? { grams: amount.grams, quantity: amount.quantity ?? 1, unit: amount.unit || 'serving', portion: null, method: 'provided-grams' }
+      : resolvePortion(catalog, amount.quantity, amount.unit);
+    const grams = Math.round(portion.grams * 10) / 10;
+    return {
+      input,
+      food: { id: catalog.id, name: catalog.name, source: catalog.source },
+      quantity: portion.quantity,
+      unit: portion.unit,
+      grams,
+      portionBasis: portion.portion,
+      portionMethod: portion.method === 'provided-grams' ? 'provided-grams' : `ai-same-as-${portion.method}`,
+      confidence: 'medium',
+      nutrients: scaleNutrients(catalog.per100g, grams),
+      alternatives: [],
+    };
+  }
   const s = estimate.serving;
   const food = { name: estimate.name, portions: [{ label: s.label, amount: 1, unit: s.unit, grams: s.grams }] };
   const portion = amount.grams
@@ -137,6 +161,9 @@ export function estimateProblem(e: FoodEstimate): string | null {
   return null;
 }
 
+/** Two calorie figures within 30% of the larger (and within 25 kcal for very light foods). */
+const agrees = (a: number, b: number) => Math.abs(a - b) <= Math.max(25, 0.3 * Math.max(a, b));
+
 const addUsage = (a: AIUsage, b: AIUsage): AIUsage => ({ inputTokens: a.inputTokens + b.inputTokens, outputTokens: a.outputTokens + b.outputTokens });
 
 /**
@@ -144,22 +171,33 @@ const addUsage = (a: AIUsage, b: AIUsage): AIUsage => ({ inputTokens: a.inputTok
  * requestKey(query). Foods whose answer fails are asked once more; a second failure leaves them out (unmatched).
  * scripts/eval-estimates.ts measures this same function against INDB's published values.
  */
-export async function requestEstimates(provider: AIProvider, queries: string[]): Promise<{ estimates: Map<string, StoredEstimate>; usage: AIUsage; rejected: { query: string; problem: string }[] }> {
+export async function requestEstimates(provider: AIProvider, queries: string[], candidates?: CatalogCandidate[][]): Promise<{ estimates: Map<string, StoredEstimate>; usage: AIUsage; rejected: { query: string; problem: string }[] }> {
   const estimates = new Map<string, StoredEstimate>();
   let rejected: { query: string; problem: string }[] = [];
   let usage: AIUsage = { inputTokens: 0, outputTokens: 0 };
   let ask = queries;
+  const offered = new Map(queries.map((q, i) => [requestKey(q), candidates?.[i] ?? []]));
   for (let attempt = 0; attempt < 2 && ask.length; attempt++) {
     const keys = ask.map(requestKey);
-    const out = await provider.estimateFoods!({ foods: ask });
+    const out = await provider.estimateFoods!({ foods: ask, ...(candidates ? { candidates: ask.map((q) => offered.get(requestKey(q)) ?? []) } : {}) });
     usage = addUsage(usage, out.usage);
     const failed: { query: string; problem: string }[] = [];
     for (const e of out.foods) {
       const key = requestKey(e.query);
       const at = keys.indexOf(key);
       if (at < 0 || estimates.has(key)) continue;
-      const problem = estimateProblem(e);
-      if (!problem) estimates.set(key, { name: e.name, per100g: e.per100g, serving: e.serving, confidence: e.confidence, provider: provider.name, model: provider.model ?? null, at: new Date().toISOString() });
+      // A catalog food the model judged the same dish is used as it is, when it is one we offered and the model's own
+      // estimate agrees with it: words can name the same dish while the recipes differ (a yogurt dip made with sour
+      // cream), and two independent figures within 30% is evidence they don't.
+      const offeredMatch = e.sameAs != null ? offered.get(key)?.find((c) => c.id === e.sameAs) : undefined;
+      const same = offeredMatch && offeredMatch.calories != null && !estimateProblem(e) && agrees(offeredMatch.calories, e.per100g.calories) ? offeredMatch : undefined;
+      const problem = same && e.known ? null : estimateProblem(e);
+      if (!problem) {
+        estimates.set(key, {
+          name: same ? same.name : e.name, per100g: e.per100g, serving: e.serving, confidence: e.confidence,
+          provider: provider.name, model: provider.model ?? null, at: new Date().toISOString(), sameAs: same ? { id: same.id, name: same.name } : null,
+        });
+      }
       // "Not a food" is an answer, not a mistake: it is not asked again.
       else if (problem !== 'not a food') failed.push({ query: ask[at], problem });
     }
@@ -167,6 +205,14 @@ export async function requestEstimates(provider: AIProvider, queries: string[]):
     ask = failed.map((f) => f.query);
   }
   return { estimates, usage, rejected };
+}
+
+/** The catalog foods closest to a phrase by its words (at most 5), offered to the model as possibly the same dish. */
+export function catalogCandidates(food: string, exclude: (id: number, name: string) => boolean = () => false): CatalogCandidate[] {
+  return searchFoods(food, { limit: 8 }).results
+    .filter((r) => !exclude(r.id, r.name))
+    .slice(0, 5)
+    .map((r) => ({ id: r.id, name: r.name, calories: getFood(r.id)?.per100g.calories ?? null }));
 }
 
 export interface Unknown {
@@ -197,7 +243,7 @@ export async function coverUnknowns(sql: Sql, unknowns: Unknown[], provider: AIP
     : [];
   let usage: AIUsage | null = null;
   if (ask.length) {
-    const out = await requestEstimates(provider!, ask);
+    const out = await requestEstimates(provider!, ask, ask.map((k) => catalogCandidates(keyed.find((u) => u.key === k)!.food)));
     usage = out.usage;
     for (const [key, estimate] of out.estimates) {
       stored.set(key, estimate);

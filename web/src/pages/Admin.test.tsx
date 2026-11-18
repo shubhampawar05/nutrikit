@@ -38,6 +38,16 @@ const foodRequests = [
     },
   },
   {
+    id: 9, phrase: 'chicken korma restaurant', example: 'chicken korma restaurant', reason: 'no confident match', count: 2,
+    firstSeen: '2026-11-18T00:00:00Z', lastSeen: '2026-11-18T00:00:00Z', status: 'open', note: null,
+    estimateStatus: 'pending', estimateUses: 2,
+    estimate: {
+      name: 'Curry, chicken korma, homemade', confidence: 'high', provider: 'openai', model: 'gpt-5-mini', at: '2026-11-17T00:00:00Z',
+      per100g: { calories: 170, protein: 13, fat: 10, carbs: 7, fiber: 1, sugar: 2, saturatedFat: 3, sodium: 400 },
+      serving: { label: '1 bowl', unit: 'bowl', grams: 250 }, sameAs: { id: 800150700, name: 'Curry, chicken korma, homemade' },
+    },
+  },
+  {
     id: 8, phrase: 'qwzx', example: 'qwzx', reason: 'no matching food', count: 1,
     firstSeen: '2026-11-18T00:00:00Z', lastSeen: '2026-11-18T00:00:00Z', status: 'open', note: null,
     estimateStatus: 'none', estimateUses: 0, estimate: null,
@@ -58,7 +68,7 @@ function stubAdmin() {
     if (path === '/metrics') return json(200, metrics);
     if (path === '/keys/key_1' && method === 'DELETE') return json(200, { revoked: 'key_1' });
     if (path === '/accounts/acct_1/plan' && method === 'POST') return json(200, { account: 'acct_1', plan: 'enterprise' });
-    if (path === '/food-requests' && method === 'GET') return json(200, { requests: foodRequests, counts: { open: 2, pendingEstimates: 1, approvedEstimates: 0 } });
+    if (path === '/food-requests' && method === 'GET') return json(200, { requests: foodRequests, counts: { open: 3, pendingEstimates: 2, approvedEstimates: 0 } });
     if (path === '/food-requests/7' && method === 'PATCH') return json(200, { ...foodRequests[0], ...JSON.parse(String(init?.body)) });
     return json(404, { error: { code: 'not_found', message: 'not found' } });
   });
@@ -220,8 +230,9 @@ describe('Admin console', () => {
     fireEvent.click(await screen.findByRole('tab', { name: 'Missing foods' }));
     expect(await screen.findByText('sabudana khichdi')).toBeTruthy();
     expect(screen.getByText(/180 kcal · P 3 g · C 27 g · F 7 g per 100 g · 1 bowl = 250 g/)).toBeTruthy();
-    expect(screen.getByText('to review')).toBeTruthy();
+    expect(screen.getAllByText('to review')).toHaveLength(2);
     expect(screen.getByText('none yet')).toBeTruthy();
+    expect(screen.getByText(/Consider adding “chicken korma restaurant” as its alias/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Approve estimate for qwzx' })).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: 'Approve estimate for sabudana khichdi' }));

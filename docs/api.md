@@ -142,6 +142,12 @@ Nutrikit never fills a gap with a guess or a zero.
   for the same food, so later calls are consistent and don't pay for it again; at most 5 unknown foods are estimated
   per call, and the AI tokens it uses are charged like the rest of the call. Text the AI says isn't a food stays in
   `unmatched`. Test keys get a fixed sample estimate.
+- **The AI is shown the closest catalog foods first.** When it judges one to be the same dish, and its own estimate
+  agrees with that food's calories within 30%, the catalog food is logged with its real values (its own `source`,
+  `confidence` `"medium"`, a `portionMethod` starting `ai-same-as`).
+- **Estimates must add up.** Calories must agree with protein, carbs and fat (4/4/9 kcal per g, within 25%), nothing
+  can be negative or exceed its whole, and the serving must be 5 g to 2 kg. A failing answer is asked again once;
+  a second failure leaves the food in `unmatched`.
 - **Approved estimates work without AI.** Once the operator approves an estimate, rule-based logging (no `ai`) logs
   that food from it too, still marked `ai-estimate`, with no AI call and no AI charge.
 - **Open Food Facts** values that are blank, `null` or not numbers are left out, and so are values Open Food Facts
