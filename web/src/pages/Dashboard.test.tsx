@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderPage } from '../test-utils.tsx';
+import { choose, openSelect, renderPage } from '../test-utils.tsx';
 import { ToastProvider } from '../components/Toast.tsx';
 import { Dashboard } from './Dashboard.tsx';
 import type { KeySummary, Me } from '../api/client.ts';
@@ -144,6 +144,7 @@ describe('Dashboard', () => {
     expect(screen.getByText(/1 of 2 live and 0 of 2 test keys\. Live keys share the team's monthly allowance\./)).toBeTruthy();
     expect(await screen.findByText('/v1/log/text')).toBeTruthy();
     expect(screen.getByText(/Last 30 days \(2026-10-29 → 2026-10-30\) · 40 tokens · busiest day 40/)).toBeTruthy();
+    openSelect(screen.getByLabelText('Need more?'));
     expect(screen.getByRole('option', { name: 'Starter — 100k tokens' })).toBeTruthy();
   });
 
@@ -441,7 +442,7 @@ describe('Dashboard', () => {
   it('an upgrade request is replaced by "Request sent" for that plan', async () => {
     const fetchMock = stubPortal();
     app();
-    fireEvent.change(await screen.findByLabelText('Need more?'), { target: { value: 'enterprise' } });
+    choose(await screen.findByLabelText('Need more?'), 'Enterprise — custom');
     fireEvent.click(screen.getByRole('button', { name: 'Request upgrade' }));
     fireEvent.click(screen.getByRole('button', { name: 'Request upgrade' }));
     expect(await screen.findByText('Request sent')).toBeTruthy();
@@ -520,8 +521,7 @@ describe('Dashboard', () => {
     app();
     expect(await screen.findByText('Starter — ₹1,499 / 30 days')).toBeTruthy();
     expect(screen.getByText(/Paid until Nov 20, 2026/)).toBeTruthy();
-    const select = screen.getByLabelText('Extend or move up') as HTMLSelectElement;
-    fireEvent.change(select, { target: { value: 'starter' } });
+    choose(screen.getByLabelText('Extend or move up'), 'Starter — 100k tokens');
     expect(await screen.findByRole('button', { name: 'Extend 30 days — ₹1,499' })).toBeTruthy();
   });
 
@@ -529,11 +529,12 @@ describe('Dashboard', () => {
     const operatorSet: Me = { ...billed, plan: { id: 'growth', ...me.plans.growth!, expiresAt: null } };
     stubPortal({ account: operatorSet });
     app();
-    const starter = (await screen.findByRole('option', { name: 'Starter — 100k tokens' })) as HTMLOptionElement;
-    expect(starter.disabled).toBe(true);
-    expect((screen.getByRole('option', { name: 'Growth — 1M tokens' }) as HTMLOptionElement).disabled).toBe(false);
-    expect((screen.getByRole('option', { name: 'Enterprise — custom' }) as HTMLOptionElement).disabled).toBe(false);
-    expect((screen.getByLabelText('Need more?') as HTMLSelectElement).value).toBe('enterprise');
+    const trigger = await screen.findByLabelText('Need more?');
+    expect(trigger.textContent).toBe('Enterprise — custom');
+    openSelect(trigger);
+    expect(screen.getByRole('option', { name: 'Starter — 100k tokens' }).getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByRole('option', { name: 'Growth — 1M tokens' }).getAttribute('aria-disabled')).toBeNull();
+    expect(screen.getByRole('option', { name: 'Enterprise — custom' }).getAttribute('aria-disabled')).toBeNull();
   });
 
   it('deletes the account only with the right password, then signs out and goes home', async () => {

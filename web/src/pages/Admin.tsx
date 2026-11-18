@@ -8,6 +8,7 @@ import { TabList, tabIds } from '../components/Tabs.tsx';
 import { useToast } from '../components/Toast.tsx';
 import '../styles/admin.css';
 import { PasswordInput } from '../components/PasswordInput.tsx';
+import { Select } from '../components/Select.tsx';
 
 const PLAN_OPTIONS: [string, string][] = [['free', 'Free'], ['starter', 'Starter'], ['growth', 'Growth'], ['enterprise', 'Enterprise']];
 const planName = (id: string) => PLAN_OPTIONS.find(([v]) => v === id)?.[1] ?? id;
@@ -223,9 +224,7 @@ function PlanChanger({ account }: { account: AdminAccount }) {
   };
   return (
     <div className="row" style={{ gap: 6, flexWrap: 'nowrap' }}>
-      <select aria-label={`Plan for ${account.name}`} value={plan} onChange={(e) => setPlan(e.target.value)}>
-        {PLAN_OPTIONS.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
-      </select>
+      <Select aria-label={`Plan for ${account.name}`} value={plan} onChange={setPlan} options={PLAN_OPTIONS.map(([value, label]) => ({ value, label }))} />
       <button className="btn btn-ghost btn-sm" type="button" disabled={plan === account.plan || change.isPending} onClick={apply}>Set</button>
     </div>
   );

@@ -394,11 +394,11 @@ body:has(.auth-shell:not(.single)) .site-footer { margin-top: 0; }
 .dash-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: flex-end; padding-bottom: 28px; margin-bottom: 28px; border-bottom: 1.5px solid var(--ink); }
 .dash-head h1 { font-size: clamp(2rem, 4vw, 3rem); margin: 0 0 6px; }
 .team-switcher { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
-.team-switcher select { width: auto; max-width: 100%; min-width: 0; }
+.team-switcher .select { max-width: 100%; }
 .team-switcher form { flex-wrap: wrap; }
 .invite-form { flex-wrap: wrap; }
 .invite-form input[type="email"] { flex: 1 1 220px; min-width: 0; }
-.invite-form select, .members-table select { width: auto; }
+.invite-form .select-trigger, .members-table .select-trigger { width: auto; }
 .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; align-items: start; }
 .dash-grid > *, .hero-grid > *, .dev > * { min-width: 0; } /* let wide tables/code scroll instead of stretching the grid */
 @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
@@ -624,3 +624,23 @@ kbd { font: 600 .72rem/1 var(--mono); padding: 2px 6px; border: 1px solid var(--
   .keys-table .key-actions { justify-content: stretch; }
   .keys-table .key-actions .btn { flex: 1; }
 }
+
+/* Custom dropdown (components/Select.tsx): a button that looks like the text inputs, and a floating list. */
+.select { position: relative; display: inline-flex; min-width: 0; max-width: 100%; vertical-align: middle; }
+.field .select { display: flex; width: 100%; }
+.select-trigger { display: inline-flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-width: 0; padding-right: 12px; text-align: left; cursor: pointer; }
+.select-trigger:disabled { opacity: .55; cursor: not-allowed; }
+.select-trigger[aria-expanded="true"] { border-color: var(--ink); }
+.select-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select-chevron { flex: 0 0 auto; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; color: var(--muted); transition: transform .15s; }
+.select-trigger[aria-expanded="true"] .select-chevron { transform: rotate(180deg); color: var(--ink); }
+.select-list { position: fixed; z-index: 1000; margin: 0; padding: 6px; list-style: none; overflow-y: auto; max-width: calc(100vw - 16px); background: var(--card); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 12px; box-shadow: var(--shadow); font-family: var(--sans); font-size: .95rem; animation: select-in .12s ease-out; }
+.select-list.up { animation-name: select-in-up; }
+.select-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 9px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+.select-option.active { background: color-mix(in srgb, var(--ink) 9%, var(--card)); }
+.select-option[aria-selected="true"] { font-weight: 600; }
+.select-option[aria-disabled="true"] { color: var(--muted); cursor: not-allowed; }
+.select-check { width: 16px; height: 16px; fill: none; stroke: var(--tomato); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes select-in { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes select-in-up { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { .select-list, .select-chevron { animation: none; transition: none; } }

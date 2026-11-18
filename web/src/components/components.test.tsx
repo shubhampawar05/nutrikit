@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Tabs } from './Tabs.tsx';
 import { ToastProvider, useToast } from './Toast.tsx';
 import { Layout } from './Layout.tsx';
+import { Select } from './Select.tsx';
+import { useState } from 'react';
 
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
@@ -86,5 +88,67 @@ describe('Layout', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(button.getAttribute('aria-expanded')).toBe('false');
     expect(document.activeElement).toBe(button);
+  });
+});
+
+describe('Select', () => {
+  const FRUIT = [
+    { value: 'apple', label: 'Apple' },
+    { value: 'banana', label: 'Banana', disabled: true },
+    { value: 'cherry', label: 'Cherry' },
+    { value: 'date', label: 'Date' },
+  ];
+  function Fruit({ onChange = () => {} }: { onChange?: (v: string) => void }) {
+    const [v, setV] = useState('apple');
+    return (
+      <>
+        <label htmlFor="fruit">Fruit</label>
+        <Select id="fruit" value={v} options={FRUIT} onChange={(x) => { setV(x); onChange(x); }} />
+        <button type="button">Elsewhere</button>
+      </>
+    );
+  }
+
+  it('is labelled, shows the choice, and opens a listbox with the current option selected', () => {
+    render(<Fruit />);
+    const trigger = screen.getByRole('combobox', { name: 'Fruit' });
+    expect(trigger.textContent).toBe('Apple');
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(trigger);
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('option', { name: 'Apple' }).getAttribute('aria-selected')).toBe('true');
+    expect(trigger.getAttribute('aria-activedescendant')).toBe(screen.getByRole('option', { name: 'Apple' }).id);
+  });
+
+  it('moves with the arrow keys past disabled options, picks with Enter, and closes with Escape', () => {
+    const onChange = vi.fn();
+    render(<Fruit onChange={onChange} />);
+    const trigger = screen.getByRole('combobox', { name: 'Fruit' });
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    expect(trigger.getAttribute('aria-activedescendant')).toBe(screen.getByRole('option', { name: 'Cherry' }).id);
+    fireEvent.keyDown(trigger, { key: 'End' });
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(onChange).toHaveBeenCalledWith('date');
+    expect(trigger.textContent).toBe('Date');
+    expect(screen.queryByRole('listbox')).toBeNull();
+    fireEvent.keyDown(trigger, { key: 'ArrowUp' });
+    fireEvent.keyDown(trigger, { key: 'Escape' });
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores clicks on disabled options, closes on an outside click, and jumps by typing', () => {
+    const onChange = vi.fn();
+    render(<Fruit onChange={onChange} />);
+    const trigger = screen.getByRole('combobox', { name: 'Fruit' });
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole('option', { name: 'Banana' }));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('listbox')).toBeTruthy();
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Elsewhere' }));
+    expect(screen.queryByRole('listbox')).toBeNull();
+    fireEvent.keyDown(trigger, { key: 'c' });
+    expect(onChange).toHaveBeenCalledWith('cherry');
   });
 });

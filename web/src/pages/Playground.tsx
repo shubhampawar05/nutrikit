@@ -15,6 +15,7 @@ import {
 } from './playground/endpoints.ts';
 import { JsonText, Preview, PreviewBoundary } from './playground/previews.tsx';
 import { PasswordInput } from '../components/PasswordInput.tsx';
+import { Select } from '../components/Select.tsx';
 
 const KEY_STORE = PLAYGROUND_KEY_STORE;
 const store = {
@@ -390,9 +391,7 @@ export function Playground() {
         );
       case 'select':
         control = (
-          <select id={id} name={f.name} value={text} onChange={(e) => setValue(f.name, e.target.value)}>
-            {(f.options ?? []).map((o) => <option key={o}>{o}</option>)}
-          </select>
+          <Select id={id} name={f.name} value={text} onChange={(v) => setValue(f.name, v)} options={(f.options ?? []).map((o) => ({ value: o, label: o }))} />
         );
         break;
       case 'image': {

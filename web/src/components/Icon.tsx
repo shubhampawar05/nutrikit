@@ -12,6 +12,7 @@ const ICONS = {
   bolt: <path d="M13 3 5 13.5h6L10 21l8-10.5h-6z" />,
   shield: <><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" /><path d="M9 12l2 2 4-4" /></>,
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+  chevron: <path d="M6.5 9.5 12 15l5.5-5.5" />,
   code: <path d="M8.5 7 4 12l4.5 5M15.5 7 20 12l-4.5 5M13.5 5l-3 14" />,
   chart: <path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6" />,
   leaf: <><path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15" /><path d="M5 19 13 11" /></>,

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { Route, Routes, useLocation } from 'react-router';
-import { renderPage } from '../test-utils.tsx';
+import { choose, openSelect, optionLabels, renderPage } from '../test-utils.tsx';
 import { Dashboard } from './Dashboard.tsx';
 import { Invite } from './Invite.tsx';
 import type { Me, Member, Role } from '../api/client.ts';
@@ -57,9 +57,11 @@ describe('Dashboard for team members', () => {
     stub(meAs('developer'));
     dashboard();
     expect(await screen.findByRole('heading', { name: /Team: Acme Health/ })).toBeTruthy();
-    const select = screen.getByLabelText('Team') as HTMLSelectElement;
-    expect(select.value).toBe('acct_acme');
-    expect([...select.options].map((o) => o.textContent)).toEqual(['Acme Health (Developer)', 'Dee (Owner)']);
+    const select = screen.getByLabelText('Team');
+    expect(select.textContent).toBe('Acme Health (Developer)');
+    expect(optionLabels(select)).toEqual(['Acme Health (Developer)', 'Dee (Owner)']);
+    fireEvent.keyDown(select, { key: 'Escape' });
+    expect(screen.queryByRole('listbox')).toBeNull();
 
     await screen.findByText('Olu Owner');
     expect(screen.queryByLabelText('Email to invite')).toBeNull();
@@ -68,9 +70,10 @@ describe('Dashboard for team members', () => {
     expect(screen.getByRole('button', { name: 'Leave team' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /Revoke invitation/ })).toBeNull();
 
-    const keyType = screen.getByLabelText('Key type') as HTMLSelectElement;
-    expect(keyType.value).toBe('test');
-    expect((keyType.querySelector('option[value="live"]') as HTMLOptionElement).disabled).toBe(true);
+    const keyType = screen.getByLabelText('Key type');
+    expect(keyType.textContent).toBe('Test');
+    expect(within(openSelect(keyType)).getByRole('option', { name: 'Live (owners and admins)' }).getAttribute('aria-disabled')).toBe('true');
+    fireEvent.keyDown(keyType, { key: 'Escape' });
     await screen.findByText('Prod');
     expect(screen.queryByRole('button', { name: 'Revoke Prod' })).toBeNull();
     expect(screen.getByText(/Test keys: 3 of 5,000 test tokens/)).toBeTruthy();
@@ -89,9 +92,9 @@ describe('Dashboard for team members', () => {
     const sent = fetchMock.mock.calls.find(([u, i]) => String(u) === '/portal/api/invitations' && i?.method === 'POST');
     expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ email: 'sam@acme.test', role: 'developer' });
 
-    const role = await screen.findByLabelText('Role for Dee') as HTMLSelectElement;
-    expect([...role.options].map((o) => o.value)).toEqual(['owner', 'admin', 'developer']);
-    fireEvent.change(role, { target: { value: 'admin' } });
+    const role = await screen.findByLabelText('Role for Dee');
+    expect(optionLabels(role)).toEqual(['Owner', 'Admin', 'Developer']);
+    choose(role, 'Admin');
     await waitFor(() => expect(fetchMock.mock.calls.some(([u, i]) => String(u) === '/portal/api/members/usr_2' && i?.method === 'PATCH')).toBe(true));
     expect(screen.getByText('3 of 5 seats on the Free plan')).toBeTruthy();
     expect(within(screen.getByText('new@acme.test').closest('tr')!).getByText('pending')).toBeTruthy();
@@ -122,9 +125,9 @@ describe('Team edge cases', () => {
       return undefined;
     });
     dashboard();
-    expect((await screen.findByLabelText('Key type') as HTMLSelectElement).value).toBe('live');
-    fireEvent.change(screen.getByLabelText('Team'), { target: { value: 'acct_own' } });
-    await waitFor(() => expect((screen.getByLabelText('Key type') as HTMLSelectElement).value).toBe('test'));
+    expect((await screen.findByLabelText('Key type')).textContent).toBe('Live');
+    choose(screen.getByLabelText('Team'), 'Dee (Owner)');
+    await waitFor(() => expect(screen.getByLabelText('Key type').textContent).toBe('Test'));
   });
 });
 

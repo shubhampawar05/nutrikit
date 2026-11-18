@@ -17,6 +17,7 @@ import '../styles/dashboard.css';
 import { PasswordInput } from '../components/PasswordInput.tsx';
 import { Icon } from '../components/Icon.tsx';
 import { ErrorRetry } from '../components/ErrorRetry.tsx';
+import { Select } from '../components/Select.tsx';
 
 /** sessionStorage: the newly created key, kept until the developer dismisses it (survives a refresh). */
 const NEW_KEY = 'nutrikit-new-key';
@@ -186,7 +187,7 @@ function PlanCard({ me, status, setStatus }: { me: Me; status: string; setStatus
     p === me.plan.id ? payable(p) : (me.plans[p]?.rank ?? Infinity) > me.plan.rank;
   const firstOpen = UPGRADE_OPTIONS.find(([v]) => v !== me.plan.id && selectable(v))?.[0]
     ?? UPGRADE_OPTIONS.find(([v]) => selectable(v))?.[0];
-  const { register, handleSubmit, watch, resetField } = useForm<{ plan: string; message: string }>({
+  const { register, handleSubmit, watch, resetField, setValue } = useForm<{ plan: string; message: string }>({
     defaultValues: { plan: firstOpen ?? 'starter', message: '' },
   });
   const plan = watch('plan');
@@ -282,11 +283,12 @@ function PlanCard({ me, status, setStatus }: { me: Me; status: string; setStatus
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="field">
             <label htmlFor="upgrade-plan">{paidUntil ? 'Extend or move up' : 'Need more?'}</label>
-            <select id="upgrade-plan" {...register('plan')}>
-              {UPGRADE_OPTIONS.map(([value, label]) => (
-                <option key={value} value={value} disabled={!selectable(value)}>{label}</option>
-              ))}
-            </select>
+            <Select
+              id="upgrade-plan"
+              value={plan}
+              onChange={(v) => setValue('plan', v)}
+              options={UPGRADE_OPTIONS.map(([value, label]) => ({ value, label, disabled: !selectable(value) }))}
+            />
           </div>
           {sentFor ? (
             <p className="small" style={{ margin: '8px 0 0' }}>
@@ -322,7 +324,7 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
   const queryClient = useQueryClient();
   const keys = useQuery({ queryKey: ['keys', me.team.id], queryFn: api.keys });
   const liveAllowed = can.manageLiveKeys(me.team.role);
-  const { register, handleSubmit, reset, watch } = useForm<{ name: string; mode: KeyMode }>({ defaultValues: { name: '', mode: liveAllowed ? 'live' : 'test' } });
+  const { register, handleSubmit, reset, watch, setValue } = useForm<{ name: string; mode: KeyMode }>({ defaultValues: { name: '', mode: liveAllowed ? 'live' : 'test' } });
   const mode = watch('mode');
   // Revokes in flight, by key id: a ref so a double click can't send twice, state so the row's button disables.
   const revoking = useRef(new Set<string>());
@@ -393,10 +395,15 @@ function KeysCard({ me, onCreated }: { me: Me; onCreated: (r: Reveal) => void })
         <h2 style={{ margin: '0 0 12px' }}>API keys</h2>
         <form className="row" onSubmit={handleSubmit((v) => { if (!create.isPending) create.mutate(v); })}>
           <input className="input" placeholder="Key name, e.g. iOS app" maxLength={100} aria-label="New key name" style={{ width: 220 }} {...register('name')} />
-          <select className="input" aria-label="Key type" {...register('mode')}>
-            <option value="live" disabled={!liveAllowed}>Live{liveAllowed ? '' : ' (owners and admins)'}</option>
-            <option value="test">Test</option>
-          </select>
+          <Select<KeyMode>
+            aria-label="Key type"
+            value={mode}
+            onChange={(v) => setValue('mode', v)}
+            options={[
+              { value: 'live', label: `Live${liveAllowed ? '' : ' (owners and admins)'}`, disabled: !liveAllowed },
+              { value: 'test', label: 'Test' },
+            ]}
+          />
           <button className="btn btn-primary btn-sm" type="submit" disabled={create.isPending || atLimit} aria-describedby={atLimit ? 'key-limit' : undefined}>
             Create key
           </button>

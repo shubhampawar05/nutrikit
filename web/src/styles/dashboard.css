@@ -6,4 +6,4 @@
 .dash .admin-sub { display: block; }
 
 /* Selects inside a row of controls (key type, invite role, team) size to their text, not the row. */
-.dash .row > select.input, .dash .team-switcher > select.input { width: auto; flex: 0 0 auto; }
+.dash .row > .select, .dash .team-switcher > .select { flex: 0 0 auto; }

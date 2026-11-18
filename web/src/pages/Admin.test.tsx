@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { renderPage } from '../test-utils.tsx';
+import { choose, renderPage } from '../test-utils.tsx';
 import { Admin } from './Admin.tsx';
 
 const json = (status: number, body: unknown) =>
@@ -111,7 +111,7 @@ describe('Admin console', () => {
     renderPage(<Admin />);
     await signIn();
     fireEvent.click(await screen.findByRole('tab', { name: 'Accounts' }));
-    fireEvent.change(await screen.findByLabelText('Plan for Test Co'), { target: { value: 'enterprise' } });
+    choose(await screen.findByLabelText('Plan for Test Co'), 'Enterprise');
     fireEvent.click(screen.getByRole('button', { name: 'Set' }));
     await waitFor(() => {
       const call = fetchMock.mock.calls.find(([u, i]) => String(u) === '/v1/admin/accounts/acct_1/plan' && i?.method === 'POST');

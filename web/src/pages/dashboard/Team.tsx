@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, can, errorText, fmtDate, type AccountView, type Me, type Role } from '../../api/client.ts';
 import { useToast } from '../../components/Toast.tsx';
 import { ErrorRetry } from '../../components/ErrorRetry.tsx';
+import { Select } from '../../components/Select.tsx';
 
 export const ROLE_NAMES: Record<Role, string> = { owner: 'Owner', admin: 'Admin', developer: 'Developer' };
 const ROLE_HELP: Record<Role, string> = {
@@ -52,15 +53,13 @@ export function TeamSwitcher({ me }: { me: Me }) {
   return (
     <div className="team-switcher">
       <label className="sr-only" htmlFor="team-select">Team</label>
-      <select
+      <Select
         id="team-select"
-        className="input"
         value={me.team.id}
         disabled={switchTo.isPending}
-        onChange={(e) => switchTo.mutate(e.target.value)}
-      >
-        {me.teams.map((t) => <option key={t.id} value={t.id}>{t.name} ({ROLE_NAMES[t.role]})</option>)}
-      </select>
+        onChange={(id) => switchTo.mutate(id)}
+        options={me.teams.map((t) => ({ value: t.id, label: `${t.name} (${ROLE_NAMES[t.role]})` }))}
+      />
       {creating ? (
         <form className="row" onSubmit={submit}>
           <input
@@ -180,10 +179,12 @@ export function MembersCard({ me }: { me: Me }) {
             className="input" type="email" placeholder="teammate@company.com" aria-label="Email to invite" maxLength={254}
             value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={inviteError ? true : undefined} aria-describedby={inviteError ? 'invite-error' : full ? 'seat-limit' : undefined}
           />
-          <select className="input" aria-label="Role for the invitation" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Role)}>
-            <option value="developer">Developer</option>
-            <option value="admin">Admin</option>
-          </select>
+          <Select<Role>
+            aria-label="Role for the invitation"
+            value={inviteRole}
+            onChange={setInviteRole}
+            options={[{ value: 'developer', label: 'Developer' }, { value: 'admin', label: 'Admin' }]}
+          />
           <button className="btn btn-primary btn-sm" type="submit" disabled={!email.trim() || invite.isPending || full}>{invite.isPending ? 'Sending…' : 'Invite'}</button>
         </form>
       ) : null}
@@ -212,12 +213,11 @@ export function MembersCard({ me }: { me: Me }) {
                     <td>{m.name}{self ? <span className="muted small"> (you)</span> : null}<span className="muted small admin-sub">{m.email}</span></td>
                     <td data-label="Role">
                       {choices.length ? (
-                        <select
-                          className="input" aria-label={`Role for ${m.name}`} value={m.role} disabled={setRole.isPending}
-                          onChange={(e) => setRole.mutate({ userId: m.userId, role: e.target.value as Role })}
-                        >
-                          {choices.map((r) => <option key={r} value={r}>{ROLE_NAMES[r]}</option>)}
-                        </select>
+                        <Select<Role>
+                          aria-label={`Role for ${m.name}`} value={m.role} disabled={setRole.isPending}
+                          onChange={(role) => setRole.mutate({ userId: m.userId, role })}
+                          options={choices.map((r) => ({ value: r, label: ROLE_NAMES[r] }))}
+                        />
                       ) : <span className="badge">{ROLE_NAMES[m.role]}</span>}
                     </td>
                     <td data-label="Joined">{fmtDate(m.joinedAt)}</td>
