@@ -167,7 +167,7 @@ describe('Admin console', () => {
     expect(await screen.findByText('acct_1', { exact: false })).toBeTruthy();
     const searches = () => fetchMock.mock.calls.filter(([u]) => String(u).startsWith('/v1/admin/accounts?'));
 
-    const box = screen.getByLabelText("Search by a member's email or team name");
+    const box = screen.getByLabelText('Search email or team');
     for (const value of ['p', 'pr', 'pri', 'priy', 'priya', 'priya@']) {
       fireEvent.change(box, { target: { value } });
       act(() => { vi.advanceTimersByTime(100); });

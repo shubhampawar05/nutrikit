@@ -25,7 +25,7 @@ export function SignIn({ onSignedIn, notice = '' }: { onSignedIn: () => void; no
   return (
     <main className="wrap">
       <form className="card admin-signin" onSubmit={submit}>
-        <h1 style={{ margin: '0 0 6px' }}>Operator console</h1>
+        <h1>Operator console</h1>
         <p className="muted small" style={{ marginTop: 0 }}>Sign in with the server's <code>NUTRIKIT_ADMIN_TOKEN</code>. It is kept in this tab only.</p>
         <div className="field">
           <label htmlFor="admin-token">Admin token</label>

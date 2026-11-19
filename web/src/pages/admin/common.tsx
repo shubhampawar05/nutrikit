@@ -21,12 +21,27 @@ function useDebouncedValue<T>(value: T, delay = SEARCH_DELAY_MS): T {
 
 export function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: ReactNode }) {
   return (
-    <div className="card">
-      <span className="muted small">{label}</span>
-      <div className="big-number">{value}</div>
-      {sub ? <span className="muted small">{sub}</span> : null}
+    <div className="admin-stat">
+      <span className="admin-stat-label">{label}</span>
+      <div className="admin-stat-value">{value}</div>
+      {sub ? <span className="admin-stat-sub">{sub}</span> : null}
     </div>
   );
+}
+
+/** A titled row of stat tiles; `columns` keeps rows full instead of leaving a lone tile on its own line. */
+export function StatGroup({ title, columns, children }: { title?: string; columns: 3 | 4; children: ReactNode }) {
+  return (
+    <section className="admin-stat-group">
+      {title ? <h2 className="admin-group-title">{title}</h2> : null}
+      <div className={`admin-stats cols-${columns}`}>{children}</div>
+    </section>
+  );
+}
+
+/** What a table shows when it has no rows: a sentence, not an empty header. */
+export function Empty({ children }: { children: ReactNode }) {
+  return <p className="admin-empty">{children}</p>;
 }
 
 export function Search({ value, onChange, placeholder, busy }: { value: string; onChange: (v: string) => void; placeholder: string; busy: boolean }) {
