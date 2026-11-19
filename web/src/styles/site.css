@@ -405,6 +405,14 @@ details.faq p { margin: 12px 0 0; color: var(--ink-2); max-width: 60ch; }
 /* The dark panel runs straight into the footer instead of leaving a strip of paper between them. */
 body:has(.auth-shell:not(.single)) .site-footer { margin-top: 0; }
 @media (max-width: 860px) { .auth-shell { grid-template-columns: 1fr; } .auth-aside { display: none; } body:has(.auth-shell) .site-footer { margin-top: 120px; } }
+/* Very wide screens: the two backgrounds still run edge to edge, but their content moves in to the page column,
+   the pitch lining up with the logo and the form with the header's right edge, instead of sitting at the far sides. */
+.auth-shell:not(.single) { --edge: max(56px, calc((100vw - var(--max)) / 2 + 24px)); }
+.auth-shell:not(.single) .auth-aside { padding-left: var(--edge); }
+.auth-shell:not(.single) .auth-aside > div:first-child { max-width: 520px; }
+@media (min-width: 1600px) {
+  .auth-shell:not(.single) .auth-main { padding-right: var(--edge); justify-items: end; }
+}
 .field { display: grid; gap: 7px; margin-bottom: 18px; }
 .field label { font-weight: 600; font-size: .88rem; }
 .field input, .field select, .field textarea, .input { width: 100%; min-height: 46px; padding: 10px 14px; border: 1.5px solid var(--rule); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; transition: border-color .15s; }

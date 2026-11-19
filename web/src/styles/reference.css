@@ -57,3 +57,13 @@
 .reference-scalar h1,
 .reference-scalar .section-header-label,
 .reference-scalar h2.section-header { font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; }
+
+/* On very wide screens (or zoomed far out) Scalar would stretch edge to edge while the header and footer
+   stay centred. Cap it, centre it, and give the header and footer the same width on this page so the edges line up. */
+.reference-page { --reference-max: 1440px; }
+.reference-scalar { max-width: var(--reference-max); margin: 0 auto; }
+@media (min-width: 1441px) {
+  .reference-scalar { border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); }
+}
+body:has(.reference-page) .site-header .wrap,
+body:has(.reference-page) .site-footer .wrap { max-width: 1440px; }
