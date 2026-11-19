@@ -30,6 +30,7 @@ let provider;
 before(async () => {
   await new Promise((r) => stub.listen(0, '127.0.0.1', r));
   process.env.OPENAI_API_KEY = 'sk-test';
+  process.env.NUTRIKIT_OPENAI_FALLBACK = '1'; // these tests exercise OpenAI itself: paid calls need the explicit opt-in
   process.env.OPENAI_BASE_URL = `http://127.0.0.1:${stub.address().port}/v1/`;
   process.env.NUTRIKIT_OPENAI_MODEL = 'gpt-test';
   delete process.env.ANTHROPIC_API_KEY;
@@ -234,9 +235,10 @@ test('on Gemini with no model set, heavy and light tasks get built-in models; va
   const p = await routedProvider(gemini);
   assert.deepEqual(p.models.parseMeal, ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite']);
   assert.deepEqual(p.models.advise, ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite']);
-  for (const task of ['recognizeMeal', 'readLabel', 'estimateFoods']) {
+  for (const task of ['recognizeMeal', 'readLabel']) {
     assert.deepEqual(p.models[task], ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'], task);
   }
+  assert.deepEqual(p.models.estimateFoods, ['gemini-3.5-flash-lite'], 'nutrition estimates: Flash-Lite only');
   assert.equal(p.model, 'gemini-3.1-flash-lite');
   const custom = await routedProvider({ ...gemini, NUTRIKIT_OPENAI_MODEL_PHOTO: 'my-model' });
   assert.deepEqual(custom.models.recognizeMeal, ['my-model']);
@@ -254,7 +256,7 @@ const both = () => ({ GEMINI_API_KEY: 'g-test', GEMINI_BASE_URL: `http://127.0.0
 test('with GEMINI_API_KEY and OPENAI_API_KEY, each task tries its Gemini models, then OpenAI', async () => {
   const p = await routedProvider(both());
   assert.deepEqual(p.models.parseMeal, ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gpt-test']);
-  assert.deepEqual(p.models.estimateFoods, ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gpt-test']);
+  assert.deepEqual(p.models.estimateFoods, ['gemini-3.5-flash-lite', 'gpt-test'], 'estimates: Flash-Lite only, then the opted-in OpenAI');
   assert.equal(p.model, 'gemini-3.1-flash-lite');
 
   let start = requests.length;
@@ -268,7 +270,7 @@ test('with GEMINI_API_KEY and OPENAI_API_KEY, each task tries its Gemini models,
     : { status: 200, body: estimate('upma') });
   const out = await p.estimateFoods({ foods: ['upma'] });
   assert.equal(out.model, 'gpt-test');
-  assert.deepEqual(requests.slice(start).map((r) => r.path), ['/gemini/chat/completions', '/gemini/chat/completions', '/gemini/chat/completions', '/v1/chat/completions']);
+  assert.deepEqual(requests.slice(start).map((r) => r.path), ['/gemini/chat/completions', '/v1/chat/completions']);
   assert.equal(requests.at(-1).auth, 'Bearer sk-test');
 });
 

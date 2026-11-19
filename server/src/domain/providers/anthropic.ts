@@ -22,7 +22,7 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
   const client = new Anthropic({ maxRetries: 1 });
 
   // T is the shape `schema` describes; structured outputs guarantee the JSON matches it.
-  async function call<T>(system: string, content: BetaContentBlockParam[], schema: BetaJSONOutputFormat['schema'], deadline?: AbortSignal): Promise<{ data: T; usage: AIUsage }> {
+  async function call<T>(system: string, content: BetaContentBlockParam[], schema: BetaJSONOutputFormat['schema'], deadline?: AbortSignal): Promise<{ data: T; usage: AIUsage; modelVersion?: string }> {
     let response: BetaMessage;
     const signal = deadline ?? aiDeadline();
     try {
@@ -61,7 +61,7 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
     }
     const text = response.content.filter((b): b is BetaTextBlock => b.type === 'text').map((b) => b.text).join('');
     try {
-      return { data: JSON.parse(text), usage };
+      return { data: JSON.parse(text), usage, modelVersion: response.model };
     } catch {
       // Structured outputs should prevent this; an answer that isn't JSON is a bad reply, and its tokens were spent.
       throw Object.assign(new Error('the AI provider returned malformed output'), { status: 502, usage });
@@ -95,9 +95,9 @@ export async function createAnthropicProvider(): Promise<AIProvider> {
       return { ...out, usage };
     },
 
-    async estimateFoods({ foods, candidates, signal }) {
-      const { data: out, usage } = await call<FoodEstimatesOutput>(ESTIMATE_SYSTEM, [{ type: 'text', text: estimateMessage(foods, candidates) }], FOOD_ESTIMATES_SCHEMA, signal);
-      return { foods: out.foods, usage };
+    async estimateFoods({ foods, candidates, signal, prompt }) {
+      const { data: out, usage, modelVersion } = await call<FoodEstimatesOutput>(prompt?.system ?? ESTIMATE_SYSTEM, [{ type: 'text', text: (prompt?.message ?? estimateMessage)(foods, candidates) }], FOOD_ESTIMATES_SCHEMA, signal);
+      return { foods: out.foods, usage, ...(modelVersion && modelVersion !== MODEL ? { modelVersion } : {}) };
     },
   };
 }

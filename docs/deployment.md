@@ -43,7 +43,9 @@ Render dashboard → **New → Blueprint** → pick this repository. It reads [r
 | `DATABASE_URL` | The string from step 1 |
 | `NUTRIKIT_TOKEN_SECRET`, `NUTRIKIT_ADMIN_TOKEN` | The values from step 2 |
 | `NUTRIKIT_PUBLIC_URL` | Required: the service's address, e.g. `https://nutrikit.onrender.com` (links in emails) |
-| `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` | Optional: photo and label features |
+| `GEMINI_API_KEY` | Optional: AI features (photo and label logging, `ai: true`, estimates, advisor) on Gemini's free tier |
+| `OPENAI_API_KEY` + `NUTRIKIT_OPENAI_FALLBACK=1` | Optional, paid: OpenAI is used only with both set; the key alone sends no request |
+| `ANTHROPIC_API_KEY` | Optional, paid: Claude replaces Gemini for every AI task when set; leave empty unless intended |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | Optional: leave empty to run without payments |
 
 Creating the service by hand (**New → Web Service**) instead? Pick **Docker** as the language, set

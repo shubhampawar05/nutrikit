@@ -24,6 +24,8 @@ export interface SearchResult {
   match?: 'all-words' | 'prefix' | 'any-word';
   /** Set when the query as typed matched no food well: the respelled query these results are for ("panner" -> "paneer"). */
   didYouMean?: string;
+  /** Set when the query matched through an equivalent form ("murgh korma" as "chicken korma"): that form. */
+  matchedAs?: string;
   total: number;
   results: { id: number; name: string; source: FoodSource; category: string | null; score: number }[];
 }
@@ -62,6 +64,24 @@ export interface LoggedItem {
   nutrients: NutrientMap;
   alternatives: { id: number; name: string }[];
   recognition?: { label: string; confidence: 'high' | 'medium' | 'low' };
+  /** Only on items logged from an AI estimate: how that estimate was produced. */
+  basis?: EstimateBasis;
+}
+
+/**
+ * Provenance of an item logged from an AI estimate. `kind` "catalog-match": the AI judged a catalog food the same
+ * dish and its values were used. `status` "approved" means an operator reviewed the estimate; it is still an AI
+ * estimate, not verified data. Version fields are null for estimates made before they were recorded.
+ */
+export interface EstimateBasis {
+  kind: 'ai-estimate' | 'catalog-match';
+  status: 'approved' | 'pending' | 'unstored';
+  provider: string;
+  model: string | null;
+  modelVersion: string | null;
+  promptVersion: string | null;
+  calcVersion: string | null;
+  estimatedAt: string;
 }
 
 export interface LogResult {

@@ -1,0 +1,170 @@
+{
+  "set": "P",
+  "version": "1",
+  "title": "Portion weights: one piece or serving of a dish, from published household-measure data",
+  "rules": [
+    "Each reference is a USDA FNDDS 2021-2023 (survey) or SR Legacy food portion: the food's FDC id plus the exact portion label; the grams are read from foods.db at build time.",
+    "This is a single-source set: no second independent table of Indian piece weights is available locally (INDB's Units.xlsx lists ingredient measures only; INDB serving weights are recipe yields divided by servings, see data/indb/README.md). Treat it as a check of gross portion errors, not as precise truth.",
+    "`hide` (or the set A dish's `hide`) is the pattern of catalog names hidden from the model. The phrase is logged as the app logs it: with the dish hidden from the catalog, the AI estimate's serving decides the grams for '1 <dish>'. The score is the logged grams against the reference."
+  ],
+  "catalogBuild": "2026-11-19T10:19:26.486Z",
+  "portions": [
+    {
+      "phrase": "1 chapati",
+      "dish": "chapati",
+      "hide": "chapati|\\broti\\b|phulka",
+      "food": {
+        "id": 171844,
+        "name": "Bread, chapati or roti, plain, commercially prepared",
+        "source": "sr_legacy"
+      },
+      "label": "1 piece",
+      "grams": 68
+    },
+    {
+      "phrase": "1 naan",
+      "dish": "naan",
+      "hide": "\\bnaan\\b",
+      "food": {
+        "id": 2707613,
+        "name": "Bread, naan",
+        "source": "survey"
+      },
+      "label": "1 Naan (10\" dia)",
+      "grams": 177
+    },
+    {
+      "phrase": "1 paratha",
+      "dish": "paratha",
+      "hide": "paratha|parantha|prantha",
+      "food": {
+        "id": 2707715,
+        "name": "Bread, paratha",
+        "source": "survey"
+      },
+      "label": "1 paratha",
+      "grams": 70
+    },
+    {
+      "phrase": "1 puri",
+      "dish": "puri",
+      "hide": "\\bpuri\\b|poori",
+      "food": {
+        "id": 2707714,
+        "name": "Bread, puri",
+        "source": "survey"
+      },
+      "label": "1 puri (approx 4-4/5\" dia)",
+      "grams": 36
+    },
+    {
+      "phrase": "1 idli",
+      "dish": "idli",
+      "hide": "idli",
+      "food": {
+        "id": 2708346,
+        "name": "Idli",
+        "source": "survey"
+      },
+      "label": "1 item",
+      "grams": 38
+    },
+    {
+      "phrase": "1 samosa",
+      "dish": "samosa",
+      "hide": "samosa",
+      "food": {
+        "id": 2708730,
+        "name": "Samosa",
+        "source": "survey"
+      },
+      "label": "1 regular/large",
+      "grams": 100
+    },
+    {
+      "phrase": "1 plain dosa",
+      "dish": "plain-dosa",
+      "hide": "dosa",
+      "food": {
+        "id": 2708347,
+        "name": "Dosa, plain",
+        "source": "survey"
+      },
+      "label": "1 medium",
+      "grams": 80
+    },
+    {
+      "phrase": "1 masala dosa",
+      "dish": "masala-dosa",
+      "hide": "dosa",
+      "food": {
+        "id": 2709129,
+        "name": "Dosa, with filling",
+        "source": "survey"
+      },
+      "label": "1 medium",
+      "grams": 267
+    },
+    {
+      "phrase": "1 vada",
+      "dish": "vada",
+      "hide": "\\bvada|vadai",
+      "food": {
+        "id": 2709130,
+        "name": "Vada",
+        "source": "survey"
+      },
+      "label": "1 item, any size",
+      "grams": 30
+    },
+    {
+      "phrase": "1 barfi",
+      "dish": "barfi",
+      "hide": "barfi|burfi",
+      "food": {
+        "id": 2705700,
+        "name": "Barfi or Burfi, Indian dessert",
+        "source": "survey"
+      },
+      "label": "1 piece",
+      "grams": 45
+    },
+    {
+      "phrase": "1 ladoo",
+      "dish": "ladoo",
+      "hide": "ladoo|laddu",
+      "food": {
+        "id": 2710351,
+        "name": "Ladoo, round ball",
+        "source": "survey"
+      },
+      "label": "1 piece",
+      "grams": 60
+    },
+    {
+      "phrase": "1 pakora",
+      "dish": "pakora",
+      "hide": "pakora|bhajia|bhaji",
+      "food": {
+        "id": 2710066,
+        "name": "Pakora",
+        "source": "survey"
+      },
+      "label": "1 pakora",
+      "grams": 12
+    },
+    {
+      "phrase": "1 scone",
+      "dish": "scone",
+      "hide": "scone",
+      "food": {
+        "id": 2707808,
+        "name": "Scone",
+        "source": "survey"
+      },
+      "label": "1 regular",
+      "grams": 70
+    }
+  ],
+  "sha256": "faf0ed6679060e7e02332f32aa08e701b85d9198428176aa40445d53db5e0852"
+}

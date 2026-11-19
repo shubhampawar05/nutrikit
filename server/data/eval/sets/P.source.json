@@ -1,0 +1,25 @@
+{
+  "set": "P",
+  "version": "1",
+  "title": "Portion weights: one piece or serving of a dish, from published household-measure data",
+  "rules": [
+    "Each reference is a USDA FNDDS 2021-2023 (survey) or SR Legacy food portion: the food's FDC id plus the exact portion label; the grams are read from foods.db at build time.",
+    "This is a single-source set: no second independent table of Indian piece weights is available locally (INDB's Units.xlsx lists ingredient measures only; INDB serving weights are recipe yields divided by servings, see data/indb/README.md). Treat it as a check of gross portion errors, not as precise truth.",
+    "`hide` (or the set A dish's `hide`) is the pattern of catalog names hidden from the model. The phrase is logged as the app logs it: with the dish hidden from the catalog, the AI estimate's serving decides the grams for '1 <dish>'. The score is the logged grams against the reference."
+  ],
+  "portions": [
+    { "phrase": "1 chapati", "dish": "chapati", "id": 171844, "label": "1 piece" },
+    { "phrase": "1 naan", "dish": "naan", "id": 2707613, "label": "1 Naan (10\" dia)" },
+    { "phrase": "1 paratha", "dish": "paratha", "id": 2707715, "label": "1 paratha" },
+    { "phrase": "1 puri", "dish": "puri", "id": 2707714, "label": "1 puri (approx 4-4/5\" dia)" },
+    { "phrase": "1 idli", "dish": "idli", "hide": "idli", "id": 2708346, "label": "1 item" },
+    { "phrase": "1 samosa", "dish": "samosa", "id": 2708730, "label": "1 regular/large" },
+    { "phrase": "1 plain dosa", "dish": "plain-dosa", "id": 2708347, "label": "1 medium" },
+    { "phrase": "1 masala dosa", "dish": "masala-dosa", "id": 2709129, "label": "1 medium" },
+    { "phrase": "1 vada", "dish": "vada", "hide": "\\bvada|vadai", "id": 2709130, "label": "1 item, any size" },
+    { "phrase": "1 barfi", "dish": "barfi", "id": 2705700, "label": "1 piece" },
+    { "phrase": "1 ladoo", "dish": "ladoo", "hide": "ladoo|laddu", "id": 2710351, "label": "1 piece" },
+    { "phrase": "1 pakora", "dish": "pakora", "id": 2710066, "label": "1 pakora" },
+    { "phrase": "1 scone", "dish": "scone", "id": 2707808, "label": "1 regular" }
+  ]
+}

@@ -29,8 +29,9 @@ Enables photo logging, label photos and `ai: true` text parsing. Without a provi
 | Variable | Default | What it's for |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | – | Use Claude (wins if it is set with the keys below) |
-| `GEMINI_API_KEY` | – | Use Google Gemini, with built-in models per task. With `OPENAI_API_KEY` too, Gemini answers first and OpenAI is the fallback |
-| `OPENAI_API_KEY` | – | Use OpenAI (or the endpoint at `OPENAI_BASE_URL`) |
+| `GEMINI_API_KEY` | – | Use Google Gemini, with built-in models per task |
+| `OPENAI_API_KEY` | – | OpenAI (or the endpoint at `OPENAI_BASE_URL`). **Paid, so used only with `NUTRIKIT_OPENAI_FALLBACK=1`**: a key alone never sends a request |
+| `NUTRIKIT_OPENAI_FALLBACK` | off | Exactly `1` allows OpenAI calls: as the fallback after Gemini, or alone without a Gemini key. Any other value (`0`, `true`, unset) keeps OpenAI off |
 | `NUTRIKIT_AI_PROVIDER` | auto | Force `anthropic`, `openai` (OpenAI and/or Gemini) or `none` |
 | `NUTRIKIT_ANTHROPIC_MODEL` | `claude-opus-5-5` | Claude model |
 | `NUTRIKIT_ANTHROPIC_EFFORT` | `medium` | `low` … `max` |
@@ -42,20 +43,24 @@ Enables photo logging, label photos and `ai: true` text parsing. Without a provi
 | `NUTRIKIT_AI_TIMEOUT_MS` | `60000` | Deadline for one AI call, retries and fallbacks included; past it the API answers `504 ai_timeout` and charges nothing |
 | `OPENAI_BASE_URL` | `https://api.openai.com/v1` | Any OpenAI-compatible endpoint: Azure, OpenRouter, Ollama, Gemini |
 
-### Gemini, with OpenAI as the fallback
+### Gemini, with OpenAI as an opt-in fallback
 
 ```
 GEMINI_API_KEY=<key from Google AI Studio>
-OPENAI_API_KEY=<OpenAI key>      # optional: answers when no Gemini model can
+# Paid OpenAI only if you opt in; without NUTRIKIT_OPENAI_FALLBACK=1 the OpenAI key is never used:
+# OPENAI_API_KEY=<OpenAI key>
+# NUTRIKIT_OPENAI_FALLBACK=1
 ```
 
-Each task has a list of models, tried in order: Gemini's, then OpenAI's. A strong model does the heavy work and
-light ones the rest, chosen for Gemini's free tier, where the newest models are often busy:
+Each task has a list of models, tried in order: Gemini's, then (only with `NUTRIKIT_OPENAI_FALLBACK=1`) OpenAI's.
+Without the opt-in, a call that no Gemini model can answer fails: there is no silent paid fallback. A strong model
+does the heavy work and light ones the rest, chosen for Gemini's free tier, where the newest models are often busy:
 
-| Tasks | Gemini models, in order | Then |
+| Tasks | Gemini models, in order | Then, with the opt-in |
 |---|---|---|
 | Text parsing, advice | `gemini-3.1-flash-lite`, `gemini-3.5-flash-lite` | `NUTRIKIT_OPENAI_MODEL` |
-| Meal photos, label photos, estimates | `gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` | `NUTRIKIT_OPENAI_MODEL` |
+| Meal photos, label photos | `gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` | `NUTRIKIT_OPENAI_MODEL` |
+| Nutrition estimates | `gemini-3.5-flash-lite` only (measured most accurate, fastest and cheapest; `gemini-3.5-flash` failed most calls) | `NUTRIKIT_OPENAI_MODEL` |
 
 What moves a call to the next model:
 
@@ -114,6 +119,8 @@ in Brevo) when you have one.
 | `PORT` | `8787` | HTTP port (most hosts set it) |
 | `HOST` | `0.0.0.0` | Address to listen on; `127.0.0.1` keeps the server off the network |
 | `NUTRIKIT_RATE_LIMIT` | `120` | Requests per minute per key |
+| `NUTRIKIT_ESTIMATE_MAX_AGE_DAYS` | `30` | A pending (unreviewed) AI estimate older than this is made again on its next AI-enabled use ([Platform](platform.md#missing-foods)) |
+| `NUTRIKIT_REESTIMATE_RETRY_MINUTES` | `60` | After a failed re-estimate (provider error, timeout, rate limit or a rejected answer), how long that food waits before it is tried again; its current estimate is served meanwhile |
 | `NUTRIKIT_FOOD_REQUESTS_MAX` | `5000` | Missing foods kept for review; beyond it only foods already listed are counted ([Platform](platform.md#missing-foods)) |
 | `NUTRIKIT_TEST_TOKENS` | `5000` | Monthly tokens for a team's test keys (`nk_test_…`), separate from its plan |
 | `NUTRIKIT_TEST_RATE_LIMIT` | `30` | Requests per minute for a team's test keys |

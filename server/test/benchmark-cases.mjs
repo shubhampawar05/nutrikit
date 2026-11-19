@@ -50,7 +50,8 @@ export const CASES = [
   { input: 'frozen yogurt', food: /^Frozen yogurt/ },
 
   // Indian foods
-  { input: '2 rotis', food: /chapati or roti/, grams: [100, 150] },
+  // Home roti (INDB Chapati/Roti, 36 g each; CoFID agrees on 202 kcal/100 g), not USDA's commercial chapati (audit P0-3).
+  { input: '2 rotis', food: /^Chapati\/Roti$/, grams: [65, 80] },
   { input: '1 naan', food: /naan/i },
   { input: '2 idli', food: /^Idli/ },
   { input: '1 dosa', food: /^Dosa/ },
@@ -140,7 +141,8 @@ export const CASES = [
   { input: 'a plate of pav bhaji', food: /Pav bhaji/ },
   { input: '1 cup kheer', food: /^Kheer \(rice pudding\)/ },
   { input: '1 jalebi', food: /^Jalebi/ },
-  { input: '1 rasgulla', food: /^Rasgulla/ },
+  // INDB's only weight is a 342 g recipe serving (several pieces with syrup): flagged until a cited piece weight exists (audit P0-5).
+  { input: '1 rasgulla', food: /^Rasgulla/, gap: 'rasgulla piece weight (INDB serving is a recipe yield)' },
   { input: '1 dhokla', food: /^Instant dhokla|Dhokla/ },
   { input: '1 cup halwa', food: /halwa/i },
   { input: '1 cup poha', food: /Poha \(flattened rice/ },

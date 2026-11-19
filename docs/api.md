@@ -120,6 +120,16 @@ setup is in [mcp/README.md](../mcp/README.md).
   logs a respelling: the phrase is listed in `unmatched` with `didYouMean`, the phrase respelled ("1 cup panner" →
   "1 cup paneer"), and `suggestions`, so the app can log it once the user confirms. Amount words (bowl, katori,
   plate, glass) are never respelled.
+- Other ways of writing the same food do match. When a phrase finds no food with all of its words, these forms are
+  tried in order:
+  - romanised spellings in the catalog's spelling ("panir" → paneer, "daal" → dal, "chapathi" → chapati,
+    "samose" → samosa; repeated letters and long vowels count as one spelling)
+  - the same without Hindi connector words ("matar aloo ki sabzi" → matar aloo)
+  - Hindi names for the catalog's English ones ("murgh korma" → chicken korma, "kakdi raita" → cucumber raita)
+
+  A form is used only when it names a food on all of its words, in that food's name, other name or alias, never
+  only in a description. The search response then says `matchedAs`. Nothing typed is ever dropped except connector
+  words, so "matar ki sabzi" stays a pea curry and "palak paneer" is never plain palak.
 - The same food from two data sources appears once in search results. When two USDA datasets list the same name,
   the catalog keeps the record with more Nutrition Facts label nutrients (newest data on a tie) and never mixes
   values from the two.
@@ -143,6 +153,16 @@ Nutrikit never fills a gap with a guess or a zero.
   for the same food, so later calls are consistent and don't pay for it again; at most 5 unknown foods are estimated
   per call, and the AI tokens it uses are charged like the rest of the call. Text the AI says isn't a food stays in
   `unmatched`. Test keys get a fixed sample estimate.
+- **Every estimated item says where it came from.** Items logged from an AI estimate carry `basis`: `kind`
+  (`ai-estimate`, or `catalog-match` when a catalog food's values were used), `status` (`approved` by an operator,
+  `pending`, or `unstored` for test keys), and the `provider`, `model`, `modelVersion`, `promptVersion`,
+  `calcVersion` and `estimatedAt` of the estimate (versions are null for estimates made before they were recorded).
+  Approval means reviewed, not verified: the item stays `ai-estimate` with `confidence` `"low"`. An estimate may
+  leave fiber, sugar, saturated fat or sodium unknown; those nutrients are then absent from the item, never 0.
+- **An estimate's serving counts its pieces.** When the AI's typical serving is "2 idlis, 80 g", "1 idli" is logged
+  as 40 g and "3 idli" as 120 g; "1 serving idli" is the whole 80 g. When an older estimate's serving can't be read
+  as a count ("2-3 pieces", "a few"), the whole serving is used and `portionMethod` is
+  `ai-estimate-unclear-serving-count`, rather than guessing.
 - **The AI is shown the closest catalog foods first.** When it judges one to be the same dish, and its own estimate
   agrees with that food's calories within 30%, the catalog food is logged with its real values (its own `source`,
   `confidence` `"medium"`, a `portionMethod` starting `ai-same-as`).

@@ -1,0 +1,3504 @@
+{
+  "config": {
+    "label": "m1-A-openai",
+    "at": "2026-11-19T11:00:01.570Z",
+    "set": {
+      "name": "A",
+      "version": "1",
+      "sha256": "3142dbe067f3a94115b25182b277bd4a3daa7a82b91a7df9de6265ea35e62b4c",
+      "items": 41
+    },
+    "provider": "openai",
+    "model": "gpt-5-mini",
+    "variant": "baseline",
+    "promptVersion": "f2d48adc5786",
+    "runs": 3,
+    "concurrency": 2,
+    "aiTimeoutMs": 60000,
+    "gitCommit": "550fb11",
+    "gitDirty": true,
+    "catalogBuild": "2026-11-19T10:19:26.486Z",
+    "price": {
+      "input": 0.25,
+      "output": 2,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "checked": "2026-11-19"
+    }
+  },
+  "across": {
+    "coverage": {
+      "mean": 1,
+      "min": 1,
+      "max": 1,
+      "runs": 3
+    },
+    "calorieMaeKcal": {
+      "mean": 29.175618686868688,
+      "min": 27.420022727272727,
+      "max": 32.20140151515152,
+      "runs": 3
+    },
+    "calorieMape": {
+      "mean": 0.16009474392682424,
+      "min": 0.15678325183358835,
+      "max": 0.166589843761668,
+      "runs": 3
+    },
+    "calorieMedianError": {
+      "mean": 0.12395615363251937,
+      "min": 0.10487846336902928,
+      "max": 0.13670613562970937,
+      "runs": 3
+    },
+    "within10": {
+      "mean": 0.4471544715447155,
+      "min": 0.4146341463414634,
+      "max": 0.4634146341463415,
+      "runs": 3
+    },
+    "within20": {
+      "mean": 0.6991869918699187,
+      "min": 0.6585365853658537,
+      "max": 0.7560975609756098,
+      "runs": 3
+    },
+    "over50": {
+      "mean": 2,
+      "min": 1,
+      "max": 3,
+      "runs": 3
+    },
+    "macroMaeGrams.protein": {
+      "mean": 1.1772655826558267,
+      "min": 1.1077398373983738,
+      "max": 1.2525853658536585,
+      "runs": 3
+    },
+    "macroMaeGrams.carbs": {
+      "mean": 4.2306783625731015,
+      "min": 4.049859649122809,
+      "max": 4.486280701754388,
+      "runs": 3
+    },
+    "macroMaeGrams.fat": {
+      "mean": 2.3140186991869918,
+      "min": 2.2335894308943085,
+      "max": 2.4334626016260166,
+      "runs": 3
+    },
+    "matchedCatalog": {
+      "mean": 0.3333333333333333,
+      "min": 0,
+      "max": 1,
+      "runs": 3
+    },
+    "latencyMs.median": {
+      "mean": 37590,
+      "min": 34131,
+      "max": 41802,
+      "runs": 3
+    },
+    "latencyMs.p90": {
+      "mean": 47896.333333333336,
+      "min": 41267,
+      "max": 55003,
+      "runs": 3
+    },
+    "tokens.input": {
+      "mean": 7391,
+      "min": 7391,
+      "max": 7391,
+      "runs": 3
+    },
+    "tokens.output": {
+      "mean": 25279.333333333332,
+      "min": 23448,
+      "max": 27212,
+      "runs": 3
+    },
+    "costUsd": {
+      "mean": 0.05240641666666667,
+      "min": 0.04874375,
+      "max": 0.05627175,
+      "runs": 3
+    }
+  },
+  "matching": null,
+  "runs": [
+    {
+      "run": 1,
+      "summary": {
+        "eligible": 41,
+        "scored": 41,
+        "coverage": 1,
+        "calorieMaeKcal": 32.20140151515152,
+        "calorieMape": 0.166589843761668,
+        "calorieMedianError": 0.1302838618988194,
+        "within10": 0.4146341463414634,
+        "within20": 0.6585365853658537,
+        "over50": 2,
+        "macroMaeGrams": {
+          "protein": 1.2525853658536585,
+          "carbs": 4.486280701754388,
+          "fat": 2.2335894308943085
+        },
+        "matchedCatalog": 0,
+        "calls": {
+          "total": 9,
+          "failed": 0,
+          "models": [
+            "gpt-5-mini"
+          ]
+        },
+        "latencyMs": {
+          "median": 41802,
+          "p90": 55003,
+          "max": 55003
+        },
+        "tokens": {
+          "input": 7391,
+          "output": 27212
+        },
+        "costUsd": 0.05627175
+      },
+      "rows": [
+        {
+          "key": "naan",
+          "query": "naan",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": "Naan (leavened Indian flatbread, typically brushed with butter)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 323,
+            "protein": 9,
+            "carbs": 56,
+            "fat": 7
+          },
+          "modelCalories": 323,
+          "servingGrams": 100,
+          "calorieError": 0.09807921128675832
+        },
+        {
+          "key": "chapati",
+          "query": "chapati",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Chapati / roti (whole wheat flatbread, cooked on a tava)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 260,
+            "protein": 8,
+            "carbs": 48,
+            "fat": 4
+          },
+          "modelCalories": 260,
+          "servingGrams": 40,
+          "calorieError": 0
+        },
+        {
+          "key": "paratha",
+          "query": "paratha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": "Plain paratha (layered unleavened flatbread, pan-cooked with oil/ghee)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 320,
+            "protein": 6.5,
+            "carbs": 42,
+            "fat": 14
+          },
+          "modelCalories": 320,
+          "servingGrams": 80,
+          "calorieError": 0.0028193849165519197
+        },
+        {
+          "key": "mooli-paratha",
+          "query": "mooli paratha",
+          "ref": {
+            "kind": "point",
+            "calories": 177.262,
+            "macros": {
+              "protein": 4.599,
+              "carbs": 28.107,
+              "fat": 5.914
+            },
+            "low": 171,
+            "high": 183.524
+          },
+          "name": "Mooli paratha (stuffed radish paratha, pan-cooked with oil/ghee)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 284,
+            "protein": 6,
+            "carbs": 38,
+            "fat": 12
+          },
+          "modelCalories": 284,
+          "servingGrams": 100,
+          "calorieError": 0.6021482325597138
+        },
+        {
+          "key": "puri",
+          "query": "puri",
+          "ref": {
+            "kind": "point",
+            "calories": 387.5,
+            "macros": {
+              "protein": 7.02,
+              "carbs": 37.9345,
+              "fat": 23.62
+            },
+            "low": 366,
+            "high": 409
+          },
+          "name": "Puri (deep-fried Indian unleavened bread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 346,
+            "protein": 6,
+            "carbs": 40,
+            "fat": 18
+          },
+          "modelCalories": 346,
+          "servingGrams": 25,
+          "calorieError": 0.10709677419354839
+        },
+        {
+          "key": "samosa",
+          "query": "vegetable samosa",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": "Vegetable samosa (potato-pea fried pastry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 338,
+            "protein": 6,
+            "carbs": 38,
+            "fat": 18
+          },
+          "modelCalories": 338,
+          "servingGrams": 100,
+          "calorieError": 0.09032258064516129
+        },
+        {
+          "key": "masala-dosa",
+          "query": "masala dosa",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": "Masala dosa (rice-dal crepe with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 197,
+            "protein": 4.5,
+            "carbs": 29,
+            "fat": 7
+          },
+          "modelCalories": 197,
+          "servingGrams": 200,
+          "calorieError": 0.1302838618988194
+        },
+        {
+          "key": "mutton-biryani",
+          "query": "mutton biryani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": "Mutton biryani (meat and rice cooked with ghee/oil and spices)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 237,
+            "protein": 7.5,
+            "carbs": 27,
+            "fat": 11
+          },
+          "modelCalories": 237,
+          "servingGrams": 300,
+          "calorieError": 0.2153846153846154
+        },
+        {
+          "key": "veg-pulao",
+          "query": "vegetable pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": "Vegetable pulao (rice cooked with mixed vegetables and oil/ghee)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 153,
+            "protein": 3.5,
+            "carbs": 28,
+            "fat": 3
+          },
+          "modelCalories": 153,
+          "servingGrams": 200,
+          "calorieError": 0.3597038867091166
+        },
+        {
+          "key": "mushroom-pulao",
+          "query": "mushroom pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 131.143,
+            "macros": {
+              "protein": 2.5115,
+              "carbs": 20.649,
+              "fat": 3.7645
+            },
+            "low": 124.286,
+            "high": 138
+          },
+          "name": "Mushroom pulao (rice cooked with mushrooms and spices)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 151,
+            "protein": 3.5,
+            "carbs": 27.5,
+            "fat": 3
+          },
+          "modelCalories": 151,
+          "servingGrams": 200,
+          "calorieError": 0.15141486773979548
+        },
+        {
+          "key": "plain-pulao",
+          "query": "plain pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 137.06933333333333,
+            "macros": {
+              "protein": 2.7096666666666667,
+              "carbs": 22.881666666666664,
+              "fat": 3.7840000000000003
+            },
+            "low": 134,
+            "high": 140.208
+          },
+          "name": "Plain pulao (rice cooked with spices and a little oil/ghee)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 167,
+            "protein": 3.5,
+            "carbs": 27,
+            "fat": 5
+          },
+          "modelCalories": 167,
+          "servingGrams": 150,
+          "calorieError": 0.2183615104764499
+        },
+        {
+          "key": "rajma",
+          "query": "rajma",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": "Rajma (kidney bean curry, home-style)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 135,
+            "protein": 6.5,
+            "carbs": 17,
+            "fat": 4.5
+          },
+          "modelCalories": 135,
+          "servingGrams": 200,
+          "calorieError": 0
+        },
+        {
+          "key": "chicken-korma",
+          "query": "chicken korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": "Chicken korma (creamy spiced chicken curry with nuts/cream)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 231,
+            "protein": 9,
+            "carbs": 6,
+            "fat": 19
+          },
+          "modelCalories": 231,
+          "servingGrams": 150,
+          "calorieError": 0.6802566210112092
+        },
+        {
+          "key": "palak-paneer",
+          "query": "palak paneer",
+          "ref": {
+            "kind": "range",
+            "low": 77.683,
+            "high": 101,
+            "macros": {
+              "protein": 4.727,
+              "carbs": 4.355,
+              "fat": 5.8915
+            }
+          },
+          "name": "Palak paneer (spinach curry with paneer)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 143,
+            "protein": 6.5,
+            "carbs": 4.5,
+            "fat": 11
+          },
+          "modelCalories": 143,
+          "servingGrams": 200,
+          "calorieError": 0.4158415841584158
+        },
+        {
+          "key": "paneer",
+          "query": "paneer",
+          "ref": {
+            "kind": "point",
+            "calories": 313.5,
+            "macros": {
+              "protein": 20.93,
+              "carbs": 11.6585,
+              "fat": 20.009999999999998
+            },
+            "low": 299,
+            "high": 328
+          },
+          "name": "Paneer (Indian cottage cheese, full-fat)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 264,
+            "protein": 18,
+            "carbs": 3,
+            "fat": 20
+          },
+          "modelCalories": 264,
+          "servingGrams": 100,
+          "calorieError": 0.15789473684210525
+        },
+        {
+          "key": "cucumber-raita",
+          "query": "cucumber raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": "Cucumber raita (yogurt with cucumber)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 62,
+            "protein": 3.5,
+            "carbs": 4,
+            "fat": 3.5
+          },
+          "modelCalories": 62,
+          "servingGrams": 100,
+          "calorieError": 0.06781485468245425
+        },
+        {
+          "key": "egg-curry",
+          "query": "egg curry",
+          "ref": {
+            "kind": "range",
+            "low": 117.521,
+            "high": 149,
+            "macros": {
+              "protein": 5.3415,
+              "carbs": 4.4245,
+              "fat": 10.5045
+            }
+          },
+          "name": "Egg curry (boiled eggs in spiced tomato-onion gravy)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 146,
+            "protein": 8,
+            "carbs": 6,
+            "fat": 10
+          },
+          "modelCalories": 146,
+          "servingGrams": 120,
+          "calorieError": 0
+        },
+        {
+          "key": "fish-curry",
+          "query": "fish curry",
+          "ref": {
+            "kind": "range",
+            "low": 93,
+            "high": 139,
+            "macros": {
+              "protein": 8.334000000000001,
+              "carbs": 4.801666666666667,
+              "fat": 7.236999999999999
+            }
+          },
+          "name": "Fish curry (spiced tomato/coconut-based fish curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 136,
+            "protein": 12,
+            "carbs": 4,
+            "fat": 8
+          },
+          "modelCalories": 136,
+          "servingGrams": 120,
+          "calorieError": 0
+        },
+        {
+          "key": "veg-curry",
+          "query": "vegetable curry",
+          "ref": {
+            "kind": "point",
+            "calories": 88,
+            "macros": {
+              "protein": 2.05,
+              "fat": 5.685
+            },
+            "low": 86,
+            "high": 90
+          },
+          "name": "Mixed vegetable curry (home-style)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 104,
+            "protein": 2.5,
+            "carbs": 10,
+            "fat": 6
+          },
+          "modelCalories": 104,
+          "servingGrams": 200,
+          "calorieError": 0.18181818181818182
+        },
+        {
+          "key": "aloo-gobi",
+          "query": "aloo gobi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": "Aloo gobi (potato and cauliflower, spiced)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 138,
+            "protein": 2.5,
+            "carbs": 15,
+            "fat": 7.56
+          },
+          "modelCalories": 138,
+          "servingGrams": 150,
+          "calorieError": 0.3008007465465153
+        },
+        {
+          "key": "aloo-matar",
+          "query": "aloo matar",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": "Aloo matar (potato and green peas curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 122,
+            "protein": 3,
+            "carbs": 15,
+            "fat": 5.5
+          },
+          "modelCalories": 122,
+          "servingGrams": 150,
+          "calorieError": 0.26475329535617836
+        },
+        {
+          "key": "whole-moong",
+          "query": "whole moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 53.699,
+            "high": 74,
+            "macros": {
+              "protein": 3.2245,
+              "carbs": 7.172000000000001,
+              "fat": 2.682
+            }
+          },
+          "name": "Whole moong dal (cooked whole mung beans)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 106,
+            "protein": 7,
+            "carbs": 18.5,
+            "fat": 0.4
+          },
+          "modelCalories": 106,
+          "servingGrams": 100,
+          "calorieError": 0.43243243243243246
+        },
+        {
+          "key": "moong-dal",
+          "query": "moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": "Moong dal (cooked split yellow mung dal)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 103,
+            "protein": 6.5,
+            "carbs": 18,
+            "fat": 0.6
+          },
+          "modelCalories": 103,
+          "servingGrams": 100,
+          "calorieError": 0.3918918918918919
+        },
+        {
+          "key": "barfi",
+          "query": "barfi",
+          "ref": {
+            "kind": "range",
+            "low": 284,
+            "high": 408.324,
+            "macros": {
+              "protein": 7.618,
+              "carbs": 35.657,
+              "fat": 19.662
+            }
+          },
+          "name": "Barfi (milk-based Indian sweet/fudge)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 453,
+            "protein": 5,
+            "carbs": 52,
+            "fat": 25
+          },
+          "modelCalories": 453,
+          "servingGrams": 40,
+          "calorieError": 0.10941311311605487
+        },
+        {
+          "key": "veg-fried-rice",
+          "query": "veg fried rice",
+          "ref": {
+            "kind": "range",
+            "low": 120.584,
+            "high": 174,
+            "macros": {
+              "protein": 4.051,
+              "carbs": 23.096,
+              "fat": 4.1975
+            }
+          },
+          "name": "Vegetable fried rice (rice stir-fried with mixed vegetables and oil/soy sauce)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 190,
+            "protein": 4,
+            "carbs": 30,
+            "fat": 6
+          },
+          "modelCalories": 190,
+          "servingGrams": 200,
+          "calorieError": 0.09195402298850575
+        },
+        {
+          "key": "chicken-chow-mein",
+          "query": "chicken chow mein",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": "Chicken chow mein (stir-fried noodles with chicken and vegetables)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 179,
+            "protein": 7,
+            "carbs": 22,
+            "fat": 7
+          },
+          "modelCalories": 179,
+          "servingGrams": 350,
+          "calorieError": 0.25077445531916875
+        },
+        {
+          "key": "scrambled-eggs",
+          "query": "scrambled eggs",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": "Scrambled eggs (cooked with a little butter and milk)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 153,
+            "protein": 10.5,
+            "carbs": 1.5,
+            "fat": 11.67
+          },
+          "modelCalories": 153,
+          "servingGrams": 100,
+          "calorieError": 0.004440106702613506
+        },
+        {
+          "key": "shepherds-pie",
+          "query": "shepherd's pie",
+          "ref": {
+            "kind": "range",
+            "low": 107,
+            "high": 142.777,
+            "macros": {
+              "protein": 6.996333333333332,
+              "carbs": 8.754,
+              "fat": 6.859333333333333
+            }
+          },
+          "name": "Shepherd's pie (minced lamb with vegetables and mashed potato topping)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 169,
+            "protein": 7,
+            "carbs": 15,
+            "fat": 9
+          },
+          "modelCalories": 169,
+          "servingGrams": 300,
+          "calorieError": 0.18366403552392904
+        },
+        {
+          "key": "chilli-con-carne",
+          "query": "chilli con carne",
+          "ref": {
+            "kind": "point",
+            "calories": 113.5,
+            "macros": {
+              "protein": 7.5,
+              "carbs": 9.208,
+              "fat": 5.485
+            },
+            "low": 107,
+            "high": 120
+          },
+          "name": "Chilli con carne (beef, beans and tomato chili)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 134,
+            "protein": 9,
+            "carbs": 11,
+            "fat": 6
+          },
+          "modelCalories": 134,
+          "servingGrams": 240,
+          "calorieError": 0.18061674008810572
+        },
+        {
+          "key": "cheese-quiche",
+          "query": "cheese quiche",
+          "ref": {
+            "kind": "range",
+            "low": 305,
+            "high": 365,
+            "macros": {
+              "protein": 12.205,
+              "carbs": 14.189,
+              "fat": 25.765
+            }
+          },
+          "name": "Cheese quiche (pastry crust filled with eggs, cream and cheese)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 324,
+            "protein": 9,
+            "carbs": 9,
+            "fat": 28
+          },
+          "modelCalories": 324,
+          "servingGrams": 120,
+          "calorieError": 0
+        },
+        {
+          "key": "beef-stew",
+          "query": "beef stew",
+          "ref": {
+            "kind": "point",
+            "calories": 106,
+            "macros": {
+              "protein": 10.33,
+              "carbs": 5.9415,
+              "fat": 4.835
+            },
+            "low": 105,
+            "high": 107
+          },
+          "name": "Beef stew (beef with vegetables in gravy)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 128,
+            "protein": 7,
+            "carbs": 8,
+            "fat": 7.5
+          },
+          "modelCalories": 128,
+          "servingGrams": 240,
+          "calorieError": 0.20754716981132076
+        },
+        {
+          "key": "beef-stroganoff",
+          "query": "beef stroganoff",
+          "ref": {
+            "kind": "point",
+            "calories": 160.5,
+            "macros": {
+              "protein": 12.68,
+              "carbs": 4.608,
+              "fat": 10.265
+            },
+            "low": 150,
+            "high": 171
+          },
+          "name": "Beef stroganoff (beef in creamy mushroom sauce)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 177,
+            "protein": 10,
+            "carbs": 5,
+            "fat": 13
+          },
+          "modelCalories": 177,
+          "servingGrams": 200,
+          "calorieError": 0.102803738317757
+        },
+        {
+          "key": "ratatouille",
+          "query": "ratatouille",
+          "ref": {
+            "kind": "range",
+            "low": 67,
+            "high": 82,
+            "macros": {
+              "protein": 1.145,
+              "carbs": 5.5335,
+              "fat": 5.865
+            }
+          },
+          "name": "Ratatouille (stewed eggplant, zucchini, peppers, tomato)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 84,
+            "protein": 1.5,
+            "carbs": 7,
+            "fat": 5.5
+          },
+          "modelCalories": 84,
+          "servingGrams": 180,
+          "calorieError": 0.024390243902439025
+        },
+        {
+          "key": "apple-crumble",
+          "query": "apple crumble",
+          "ref": {
+            "kind": "range",
+            "low": 161,
+            "high": 201,
+            "macros": {
+              "protein": 1.725,
+              "carbs": 32.5085,
+              "fat": 4.915
+            }
+          },
+          "name": "Apple crumble (baked apples with a butter, sugar and flour/oat crumble)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 262,
+            "protein": 2.5,
+            "carbs": 36,
+            "fat": 12
+          },
+          "modelCalories": 262,
+          "servingGrams": 150,
+          "calorieError": 0.3034825870646766
+        },
+        {
+          "key": "coleslaw",
+          "query": "coleslaw",
+          "ref": {
+            "kind": "range",
+            "low": 117,
+            "high": 173,
+            "macros": {
+              "protein": 0.87,
+              "carbs": 8.7915,
+              "fat": 12.14
+            }
+          },
+          "name": "Coleslaw (cabbage and carrot with mayonnaise dressing)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 166,
+            "protein": 1.5,
+            "carbs": 8,
+            "fat": 14
+          },
+          "modelCalories": 166,
+          "servingGrams": 75,
+          "calorieError": 0
+        },
+        {
+          "key": "trifle",
+          "query": "trifle",
+          "ref": {
+            "kind": "point",
+            "calories": 168,
+            "macros": {
+              "protein": 3.1100000000000003,
+              "carbs": 21.7725,
+              "fat": 7.525
+            },
+            "low": 167,
+            "high": 169
+          },
+          "name": "Trifle (British layered dessert with sponge, custard, fruit and cream)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 205,
+            "protein": 3.5,
+            "carbs": 23,
+            "fat": 11
+          },
+          "modelCalories": 205,
+          "servingGrams": 200,
+          "calorieError": 0.22023809523809523
+        },
+        {
+          "key": "scone",
+          "query": "plain scone",
+          "ref": {
+            "kind": "point",
+            "calories": 367,
+            "macros": {
+              "protein": 6.9350000000000005,
+              "carbs": 50.760999999999996,
+              "fat": 15.525
+            },
+            "low": 352,
+            "high": 382
+          },
+          "name": "Plain scone (British/unfilled)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 423,
+            "protein": 7,
+            "carbs": 56,
+            "fat": 19
+          },
+          "modelCalories": 423,
+          "servingGrams": 60,
+          "calorieError": 0.15258855585831063
+        },
+        {
+          "key": "cheesecake",
+          "query": "cheesecake",
+          "ref": {
+            "kind": "range",
+            "low": 325,
+            "high": 399,
+            "macros": {
+              "protein": 5.745,
+              "carbs": 29.639,
+              "fat": 24.66
+            }
+          },
+          "name": "Cheesecake (plain baked, cream-cheese based)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 351,
+            "protein": 6,
+            "carbs": 21,
+            "fat": 27
+          },
+          "modelCalories": 351,
+          "servingGrams": 125,
+          "calorieError": 0
+        },
+        {
+          "key": "guacamole",
+          "query": "guacamole",
+          "ref": {
+            "kind": "range",
+            "low": 128,
+            "high": 155,
+            "macros": {
+              "protein": 1.6749999999999998,
+              "carbs": 6.093999999999999,
+              "fat": 13.44
+            }
+          },
+          "name": "Guacamole (mashed avocado dip with lime, onion, tomato and salt)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 170,
+            "protein": 2,
+            "carbs": 9,
+            "fat": 14
+          },
+          "modelCalories": 170,
+          "servingGrams": 30,
+          "calorieError": 0.0967741935483871
+        },
+        {
+          "key": "minestrone",
+          "query": "minestrone soup",
+          "ref": {
+            "kind": "range",
+            "low": 40,
+            "high": 60,
+            "macros": {
+              "protein": 4.371333333333333,
+              "carbs": 6.234333333333333,
+              "fat": 4.6290000000000004
+            }
+          },
+          "name": "Minestrone (vegetable, bean and pasta soup)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 48,
+            "protein": 2.5,
+            "carbs": 6.8,
+            "fat": 1.2
+          },
+          "modelCalories": 48,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "cheese-pizza",
+          "query": "cheese pizza",
+          "ref": {
+            "kind": "point",
+            "calories": 262.499,
+            "macros": {
+              "protein": 9.793666666666667,
+              "carbs": 33.276,
+              "fat": 10.641666666666667
+            },
+            "low": 249.497,
+            "high": 272
+          },
+          "name": "Cheese pizza (plain mozzarella)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 254,
+            "protein": 11,
+            "carbs": 30,
+            "fat": 10
+          },
+          "modelCalories": 254,
+          "servingGrams": 107,
+          "calorieError": 0.03237726619910942
+        }
+      ],
+      "errors": []
+    },
+    {
+      "run": 2,
+      "summary": {
+        "eligible": 41,
+        "scored": 41,
+        "coverage": 1,
+        "calorieMaeKcal": 27.905431818181818,
+        "calorieMape": 0.15678325183358835,
+        "calorieMedianError": 0.13670613562970937,
+        "within10": 0.4634146341463415,
+        "within20": 0.6829268292682927,
+        "over50": 1,
+        "macroMaeGrams": {
+          "protein": 1.1077398373983738,
+          "carbs": 4.155894736842106,
+          "fat": 2.2750040650406502
+        },
+        "matchedCatalog": 0,
+        "calls": {
+          "total": 9,
+          "failed": 0,
+          "models": [
+            "gpt-5-mini"
+          ]
+        },
+        "latencyMs": {
+          "median": 36837,
+          "p90": 47419,
+          "max": 47419
+        },
+        "tokens": {
+          "input": 7391,
+          "output": 25178
+        },
+        "costUsd": 0.05220375
+      },
+      "rows": [
+        {
+          "key": "naan",
+          "query": "naan",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": "Naan (leavened white-flour flatbread, typically brushed with butter)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 319,
+            "protein": 8.5,
+            "carbs": 52,
+            "fat": 8.5
+          },
+          "modelCalories": 319,
+          "servingGrams": 100,
+          "calorieError": 0.08448070712221643
+        },
+        {
+          "key": "chapati",
+          "query": "chapati",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Chapati / Roti (whole-wheat flatbread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 266,
+            "protein": 8.5,
+            "carbs": 50,
+            "fat": 3.5
+          },
+          "modelCalories": 266,
+          "servingGrams": 50,
+          "calorieError": 0
+        },
+        {
+          "key": "paratha",
+          "query": "paratha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": "Paratha (pan-fried layered whole-wheat flatbread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 304,
+            "protein": 6.5,
+            "carbs": 38,
+            "fat": 14
+          },
+          "modelCalories": 304,
+          "servingGrams": 80,
+          "calorieError": 0.047321584329275676
+        },
+        {
+          "key": "mooli-paratha",
+          "query": "mooli paratha",
+          "ref": {
+            "kind": "point",
+            "calories": 177.262,
+            "macros": {
+              "protein": 4.599,
+              "carbs": 28.107,
+              "fat": 5.914
+            },
+            "low": 171,
+            "high": 183.524
+          },
+          "name": "Mooli paratha (stuffed whole-wheat paratha with grated radish, pan-fried)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 295,
+            "protein": 5.5,
+            "carbs": 39,
+            "fat": 13
+          },
+          "modelCalories": 295,
+          "servingGrams": 120,
+          "calorieError": 0.6642032697363225
+        },
+        {
+          "key": "puri",
+          "query": "puri",
+          "ref": {
+            "kind": "point",
+            "calories": 387.5,
+            "macros": {
+              "protein": 7.02,
+              "carbs": 37.9345,
+              "fat": 23.62
+            },
+            "low": 366,
+            "high": 409
+          },
+          "name": "Puri (deep-fried whole-wheat or all-purpose dough bread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 406,
+            "protein": 7,
+            "carbs": 45,
+            "fat": 22
+          },
+          "modelCalories": 406,
+          "servingGrams": 25,
+          "calorieError": 0.04774193548387097
+        },
+        {
+          "key": "samosa",
+          "query": "vegetable samosa",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": "Vegetable samosa (potato & pea filled pastry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 329,
+            "protein": 4.5,
+            "carbs": 35,
+            "fat": 19
+          },
+          "modelCalories": 329,
+          "servingGrams": 100,
+          "calorieError": 0.06129032258064516
+        },
+        {
+          "key": "masala-dosa",
+          "query": "masala dosa",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": "Masala dosa (rice-lentil crepe with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 190,
+            "protein": 4,
+            "carbs": 30,
+            "fat": 6
+          },
+          "modelCalories": 190,
+          "servingGrams": 200,
+          "calorieError": 0.09012149117145017
+        },
+        {
+          "key": "mutton-biryani",
+          "query": "mutton biryani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": "Mutton biryani (spiced rice with goat/lamb pieces)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 241,
+            "protein": 8,
+            "carbs": 23,
+            "fat": 13
+          },
+          "modelCalories": 241,
+          "servingGrams": 250,
+          "calorieError": 0.2358974358974359
+        },
+        {
+          "key": "veg-pulao",
+          "query": "vegetable pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": "Vegetable pulao (mixed vegetable pilaf)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 142,
+            "protein": 3.5,
+            "carbs": 24,
+            "fat": 3.5
+          },
+          "modelCalories": 142,
+          "servingGrams": 200,
+          "calorieError": 0.2619473981221867
+        },
+        {
+          "key": "mushroom-pulao",
+          "query": "mushroom pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 131.143,
+            "macros": {
+              "protein": 2.5115,
+              "carbs": 20.649,
+              "fat": 3.7645
+            },
+            "low": 124.286,
+            "high": 138
+          },
+          "name": "Mushroom pulao (mushroom pilaf)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 128,
+            "protein": 3,
+            "carbs": 20,
+            "fat": 4
+          },
+          "modelCalories": 128,
+          "servingGrams": 200,
+          "calorieError": 0.023966204829842238
+        },
+        {
+          "key": "plain-pulao",
+          "query": "plain pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 137.06933333333333,
+            "macros": {
+              "protein": 2.7096666666666667,
+              "carbs": 22.881666666666664,
+              "fat": 3.7840000000000003
+            },
+            "low": 134,
+            "high": 140.208
+          },
+          "name": "Plain pulao (rice pilaf)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 168,
+            "protein": 3.5,
+            "carbs": 30,
+            "fat": 3.8
+          },
+          "modelCalories": 168,
+          "servingGrams": 200,
+          "calorieError": 0.2256570883834945
+        },
+        {
+          "key": "rajma",
+          "query": "rajma",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": "Rajma (kidney bean curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 129,
+            "protein": 6,
+            "carbs": 16,
+            "fat": 4.5
+          },
+          "modelCalories": 129,
+          "servingGrams": 150,
+          "calorieError": 0
+        },
+        {
+          "key": "chicken-korma",
+          "query": "chicken korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": "Chicken korma (creamy spiced chicken curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 186,
+            "protein": 12,
+            "carbs": 4,
+            "fat": 13.5
+          },
+          "modelCalories": 186,
+          "servingGrams": 200,
+          "calorieError": 0.3529339026324022
+        },
+        {
+          "key": "palak-paneer",
+          "query": "palak paneer",
+          "ref": {
+            "kind": "range",
+            "low": 77.683,
+            "high": 101,
+            "macros": {
+              "protein": 4.727,
+              "carbs": 4.355,
+              "fat": 5.8915
+            }
+          },
+          "name": "Palak paneer (spinach and paneer curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 131,
+            "protein": 6.5,
+            "carbs": 6,
+            "fat": 9
+          },
+          "modelCalories": 131,
+          "servingGrams": 150,
+          "calorieError": 0.297029702970297
+        },
+        {
+          "key": "paneer",
+          "query": "paneer",
+          "ref": {
+            "kind": "point",
+            "calories": 313.5,
+            "macros": {
+              "protein": 20.93,
+              "carbs": 11.6585,
+              "fat": 20.009999999999998
+            },
+            "low": 299,
+            "high": 328
+          },
+          "name": "Paneer (Indian fresh cheese)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 264,
+            "protein": 18,
+            "carbs": 3,
+            "fat": 20
+          },
+          "modelCalories": 264,
+          "servingGrams": 50,
+          "calorieError": 0.15789473684210525
+        },
+        {
+          "key": "cucumber-raita",
+          "query": "cucumber raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": "Cucumber raita (yogurt with cucumber and spices)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 66,
+            "protein": 3.5,
+            "carbs": 5,
+            "fat": 3.5
+          },
+          "modelCalories": 66,
+          "servingGrams": 100,
+          "calorieError": 0.13670613562970937
+        },
+        {
+          "key": "egg-curry",
+          "query": "egg curry",
+          "ref": {
+            "kind": "range",
+            "low": 117.521,
+            "high": 149,
+            "macros": {
+              "protein": 5.3415,
+              "carbs": 4.4245,
+              "fat": 10.5045
+            }
+          },
+          "name": "Egg curry (boiled egg in spiced tomato-onion gravy)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 171,
+            "protein": 7.5,
+            "carbs": 6,
+            "fat": 13
+          },
+          "modelCalories": 171,
+          "servingGrams": 150,
+          "calorieError": 0.1476510067114094
+        },
+        {
+          "key": "fish-curry",
+          "query": "fish curry",
+          "ref": {
+            "kind": "range",
+            "low": 93,
+            "high": 139,
+            "macros": {
+              "protein": 8.334000000000001,
+              "carbs": 4.801666666666667,
+              "fat": 7.236999999999999
+            }
+          },
+          "name": "Fish curry (fish pieces in spiced gravy, home-style)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 132,
+            "protein": 12,
+            "carbs": 3,
+            "fat": 8
+          },
+          "modelCalories": 132,
+          "servingGrams": 150,
+          "calorieError": 0
+        },
+        {
+          "key": "veg-curry",
+          "query": "vegetable curry",
+          "ref": {
+            "kind": "point",
+            "calories": 88,
+            "macros": {
+              "protein": 2.05,
+              "fat": 5.685
+            },
+            "low": 86,
+            "high": 90
+          },
+          "name": "Vegetable curry (mixed vegetables in spiced tomato/onion gravy)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 104,
+            "protein": 2.5,
+            "carbs": 10,
+            "fat": 6
+          },
+          "modelCalories": 104,
+          "servingGrams": 200,
+          "calorieError": 0.18181818181818182
+        },
+        {
+          "key": "aloo-gobi",
+          "query": "aloo gobi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": "Aloo gobi (potato and cauliflower dry curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 145,
+            "protein": 2.5,
+            "carbs": 18,
+            "fat": 7
+          },
+          "modelCalories": 145,
+          "servingGrams": 180,
+          "calorieError": 0.366783393110469
+        },
+        {
+          "key": "aloo-matar",
+          "query": "aloo matar",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": "Aloo matar (potato and green peas curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 128,
+            "protein": 2.5,
+            "carbs": 16,
+            "fat": 6
+          },
+          "modelCalories": 128,
+          "servingGrams": 200,
+          "calorieError": 0.3269542770950068
+        },
+        {
+          "key": "whole-moong",
+          "query": "whole moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 53.699,
+            "high": 74,
+            "macros": {
+              "protein": 3.2245,
+              "carbs": 7.172000000000001,
+              "fat": 2.682
+            }
+          },
+          "name": "Whole moong dal (whole mung beans, cooked)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 108,
+            "protein": 7,
+            "carbs": 18.7,
+            "fat": 0.6
+          },
+          "modelCalories": 108,
+          "servingGrams": 100,
+          "calorieError": 0.4594594594594595
+        },
+        {
+          "key": "moong-dal",
+          "query": "moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": "Moong dal (split yellow mung dal, cooked)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 105,
+            "protein": 7,
+            "carbs": 17,
+            "fat": 1
+          },
+          "modelCalories": 105,
+          "servingGrams": 100,
+          "calorieError": 0.4189189189189189
+        },
+        {
+          "key": "barfi",
+          "query": "barfi",
+          "ref": {
+            "kind": "range",
+            "low": 284,
+            "high": 408.324,
+            "macros": {
+              "protein": 7.618,
+              "carbs": 35.657,
+              "fat": 19.662
+            }
+          },
+          "name": "Barfi (milk-based Indian sweet)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 442,
+            "protein": 6,
+            "carbs": 55,
+            "fat": 22
+          },
+          "modelCalories": 442,
+          "servingGrams": 30,
+          "calorieError": 0.0824737218483361
+        },
+        {
+          "key": "veg-fried-rice",
+          "query": "veg fried rice",
+          "ref": {
+            "kind": "range",
+            "low": 120.584,
+            "high": 174,
+            "macros": {
+              "protein": 4.051,
+              "carbs": 23.096,
+              "fat": 4.1975
+            }
+          },
+          "name": "Vegetable fried rice (rice stir-fried with oil, vegetables and soy sauce)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 185,
+            "protein": 3.5,
+            "carbs": 28,
+            "fat": 6.5
+          },
+          "modelCalories": 185,
+          "servingGrams": 200,
+          "calorieError": 0.06321839080459771
+        },
+        {
+          "key": "chicken-chow-mein",
+          "query": "chicken chow mein",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": "Chicken chow mein (stir-fried noodles with chicken and vegetables)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 163,
+            "protein": 8,
+            "carbs": 17,
+            "fat": 7
+          },
+          "modelCalories": 163,
+          "servingGrams": 300,
+          "calorieError": 0.13897338668728773
+        },
+        {
+          "key": "scrambled-eggs",
+          "query": "scrambled eggs",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": "Scrambled eggs (made with whole eggs, a splash of milk and a little butter)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 154,
+            "protein": 10,
+            "carbs": 1.5,
+            "fat": 12
+          },
+          "modelCalories": 154,
+          "servingGrams": 120,
+          "calorieError": 0.011005074720277647
+        },
+        {
+          "key": "shepherds-pie",
+          "query": "shepherd's pie",
+          "ref": {
+            "kind": "range",
+            "low": 107,
+            "high": 142.777,
+            "macros": {
+              "protein": 6.996333333333332,
+              "carbs": 8.754,
+              "fat": 6.859333333333333
+            }
+          },
+          "name": "Shepherd's pie (minced lamb with vegetables and mashed potato topping)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 190,
+            "protein": 6,
+            "carbs": 19,
+            "fat": 10
+          },
+          "modelCalories": 190,
+          "servingGrams": 250,
+          "calorieError": 0.3307465488138847
+        },
+        {
+          "key": "chilli-con-carne",
+          "query": "chilli con carne",
+          "ref": {
+            "kind": "point",
+            "calories": 113.5,
+            "macros": {
+              "protein": 7.5,
+              "carbs": 9.208,
+              "fat": 5.485
+            },
+            "low": 107,
+            "high": 120
+          },
+          "name": "Chilli con carne (beef and bean chilli in tomato sauce)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 134,
+            "protein": 8,
+            "carbs": 12,
+            "fat": 6
+          },
+          "modelCalories": 134,
+          "servingGrams": 250,
+          "calorieError": 0.18061674008810572
+        },
+        {
+          "key": "cheese-quiche",
+          "query": "cheese quiche",
+          "ref": {
+            "kind": "range",
+            "low": 305,
+            "high": 365,
+            "macros": {
+              "protein": 12.205,
+              "carbs": 14.189,
+              "fat": 25.765
+            }
+          },
+          "name": "Cheese quiche (pastry crust with egg, cream and cheese)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 308,
+            "protein": 10,
+            "carbs": 13,
+            "fat": 24
+          },
+          "modelCalories": 308,
+          "servingGrams": 125,
+          "calorieError": 0
+        },
+        {
+          "key": "beef-stew",
+          "query": "beef stew",
+          "ref": {
+            "kind": "point",
+            "calories": 106,
+            "macros": {
+              "protein": 10.33,
+              "carbs": 5.9415,
+              "fat": 4.835
+            },
+            "low": 105,
+            "high": 107
+          },
+          "name": "Beef stew (meat and vegetables in gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 125,
+            "protein": 7.5,
+            "carbs": 8,
+            "fat": 7
+          },
+          "modelCalories": 125,
+          "servingGrams": 250,
+          "calorieError": 0.1792452830188679
+        },
+        {
+          "key": "beef-stroganoff",
+          "query": "beef stroganoff",
+          "ref": {
+            "kind": "point",
+            "calories": 160.5,
+            "macros": {
+              "protein": 12.68,
+              "carbs": 4.608,
+              "fat": 10.265
+            },
+            "low": 150,
+            "high": 171
+          },
+          "name": "Beef stroganoff (beef in creamy mushroom sauce, with noodles)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 176,
+            "protein": 8,
+            "carbs": 9,
+            "fat": 12
+          },
+          "modelCalories": 176,
+          "servingGrams": 250,
+          "calorieError": 0.09657320872274143
+        },
+        {
+          "key": "ratatouille",
+          "query": "ratatouille",
+          "ref": {
+            "kind": "range",
+            "low": 67,
+            "high": 82,
+            "macros": {
+              "protein": 1.145,
+              "carbs": 5.5335,
+              "fat": 5.865
+            }
+          },
+          "name": "Ratatouille (stewed eggplant, zucchini, peppers, tomatoes, olive oil)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 75,
+            "protein": 1.5,
+            "carbs": 6,
+            "fat": 5
+          },
+          "modelCalories": 75,
+          "servingGrams": 200,
+          "calorieError": 0
+        },
+        {
+          "key": "apple-crumble",
+          "query": "apple crumble",
+          "ref": {
+            "kind": "range",
+            "low": 161,
+            "high": 201,
+            "macros": {
+              "protein": 1.725,
+              "carbs": 32.5085,
+              "fat": 4.915
+            }
+          },
+          "name": "Apple crumble (baked apples with butter-flour-sugar crumb topping)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 242,
+            "protein": 2,
+            "carbs": 36,
+            "fat": 10
+          },
+          "modelCalories": 242,
+          "servingGrams": 125,
+          "calorieError": 0.20398009950248755
+        },
+        {
+          "key": "coleslaw",
+          "query": "coleslaw",
+          "ref": {
+            "kind": "range",
+            "low": 117,
+            "high": 173,
+            "macros": {
+              "protein": 0.87,
+              "carbs": 8.7915,
+              "fat": 12.14
+            }
+          },
+          "name": "Coleslaw (shredded cabbage and carrot with mayonnaise dressing)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 199,
+            "protein": 1.5,
+            "carbs": 10,
+            "fat": 17
+          },
+          "modelCalories": 199,
+          "servingGrams": 75,
+          "calorieError": 0.15028901734104047
+        },
+        {
+          "key": "trifle",
+          "query": "trifle",
+          "ref": {
+            "kind": "point",
+            "calories": 168,
+            "macros": {
+              "protein": 3.1100000000000003,
+              "carbs": 21.7725,
+              "fat": 7.525
+            },
+            "low": 167,
+            "high": 169
+          },
+          "name": "Trifle (British layered dessert with sponge, custard, jelly, cream)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 212,
+            "protein": 3,
+            "carbs": 24,
+            "fat": 12
+          },
+          "modelCalories": 212,
+          "servingGrams": 200,
+          "calorieError": 0.2619047619047619
+        },
+        {
+          "key": "scone",
+          "query": "plain scone",
+          "ref": {
+            "kind": "point",
+            "calories": 367,
+            "macros": {
+              "protein": 6.9350000000000005,
+              "carbs": 50.760999999999996,
+              "fat": 15.525
+            },
+            "low": 352,
+            "high": 382
+          },
+          "name": "Plain scone (wheat flour, butter, milk, sugar)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 409,
+            "protein": 7,
+            "carbs": 50,
+            "fat": 21
+          },
+          "modelCalories": 409,
+          "servingGrams": 70,
+          "calorieError": 0.11444141689373297
+        },
+        {
+          "key": "cheesecake",
+          "query": "cheesecake",
+          "ref": {
+            "kind": "range",
+            "low": 325,
+            "high": 399,
+            "macros": {
+              "protein": 5.745,
+              "carbs": 29.639,
+              "fat": 24.66
+            }
+          },
+          "name": "Cheesecake (plain / New York style)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 404,
+            "protein": 6,
+            "carbs": 24,
+            "fat": 32
+          },
+          "modelCalories": 404,
+          "servingGrams": 125,
+          "calorieError": 0.012531328320802004
+        },
+        {
+          "key": "guacamole",
+          "query": "guacamole",
+          "ref": {
+            "kind": "range",
+            "low": 128,
+            "high": 155,
+            "macros": {
+              "protein": 1.6749999999999998,
+              "carbs": 6.093999999999999,
+              "fat": 13.44
+            }
+          },
+          "name": "Guacamole (mashed avocado with lime, salt, onion/tomato)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 153,
+            "protein": 2,
+            "carbs": 9,
+            "fat": 15
+          },
+          "modelCalories": 153,
+          "servingGrams": 30,
+          "calorieError": 0
+        },
+        {
+          "key": "minestrone",
+          "query": "minestrone soup",
+          "ref": {
+            "kind": "range",
+            "low": 40,
+            "high": 60,
+            "macros": {
+              "protein": 4.371333333333333,
+              "carbs": 6.234333333333333,
+              "fat": 4.6290000000000004
+            }
+          },
+          "name": "Minestrone soup (vegetable, beans, tomato, small pasta)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 47.5,
+            "protein": 3,
+            "carbs": 8,
+            "fat": 1.5
+          },
+          "modelCalories": 47.5,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "cheese-pizza",
+          "query": "cheese pizza",
+          "ref": {
+            "kind": "point",
+            "calories": 262.499,
+            "macros": {
+              "protein": 9.793666666666667,
+              "carbs": 33.276,
+              "fat": 10.641666666666667
+            },
+            "low": 249.497,
+            "high": 272
+          },
+          "name": "Cheese pizza (regular crust, tomato sauce, mozzarella)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 266,
+            "protein": 11,
+            "carbs": 33,
+            "fat": 10
+          },
+          "modelCalories": 266,
+          "servingGrams": 125,
+          "calorieError": 0.013337193665499587
+        }
+      ],
+      "errors": []
+    },
+    {
+      "run": 3,
+      "summary": {
+        "eligible": 41,
+        "scored": 41,
+        "coverage": 1,
+        "calorieMaeKcal": 27.420022727272727,
+        "calorieMape": 0.15691113618521635,
+        "calorieMedianError": 0.10487846336902928,
+        "within10": 0.4634146341463415,
+        "within20": 0.7560975609756098,
+        "over50": 3,
+        "macroMaeGrams": {
+          "protein": 1.1714715447154473,
+          "carbs": 4.049859649122809,
+          "fat": 2.4334626016260166
+        },
+        "matchedCatalog": 1,
+        "calls": {
+          "total": 9,
+          "failed": 0,
+          "models": [
+            "gpt-5-mini"
+          ]
+        },
+        "latencyMs": {
+          "median": 34131,
+          "p90": 41267,
+          "max": 41267
+        },
+        "tokens": {
+          "input": 7391,
+          "output": 23448
+        },
+        "costUsd": 0.04874375
+      },
+      "rows": [
+        {
+          "key": "naan",
+          "query": "naan",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": "Naan (leavened flatbread, cooked in tandoor or skillet, often brushed with butter)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 325,
+            "protein": 9,
+            "carbs": 52,
+            "fat": 9
+          },
+          "modelCalories": 325,
+          "servingGrams": 80,
+          "calorieError": 0.10487846336902928
+        },
+        {
+          "key": "chapati",
+          "query": "chapati",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Chapati / Roti (whole wheat flatbread, cooked on tawa)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 295,
+            "protein": 8,
+            "carbs": 50,
+            "fat": 7
+          },
+          "modelCalories": 295,
+          "servingGrams": 40,
+          "calorieError": 0
+        },
+        {
+          "key": "paratha",
+          "query": "paratha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": "Paratha (layered or stuffed, pan-fried with oil/ghee)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 323,
+            "protein": 7,
+            "carbs": 40,
+            "fat": 15
+          },
+          "modelCalories": 323,
+          "servingGrams": 80,
+          "calorieError": 0.012220816650144593
+        },
+        {
+          "key": "mooli-paratha",
+          "query": "mooli paratha",
+          "ref": {
+            "kind": "point",
+            "calories": 177.262,
+            "macros": {
+              "protein": 4.599,
+              "carbs": 28.107,
+              "fat": 5.914
+            },
+            "low": 171,
+            "high": 183.524
+          },
+          "name": "Mooli paratha (stuffed radish paratha, pan-fried with oil/ghee)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 319,
+            "protein": 6,
+            "carbs": 40,
+            "fat": 15
+          },
+          "modelCalories": 319,
+          "servingGrams": 120,
+          "calorieError": 0.7995960781216505
+        },
+        {
+          "key": "puri",
+          "query": "puri",
+          "ref": {
+            "kind": "point",
+            "calories": 387.5,
+            "macros": {
+              "protein": 7.02,
+              "carbs": 37.9345,
+              "fat": 23.62
+            },
+            "low": 366,
+            "high": 409
+          },
+          "name": "Puri (deep‑fried unleavened wheat bread)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 370,
+            "protein": 7,
+            "carbs": 45,
+            "fat": 18
+          },
+          "modelCalories": 370,
+          "servingGrams": 30,
+          "calorieError": 0.04516129032258064
+        },
+        {
+          "key": "samosa",
+          "query": "vegetable samosa",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": "Vegetable samosa (potato & pea filling, deep-fried)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 326,
+            "protein": 5,
+            "carbs": 36,
+            "fat": 18
+          },
+          "modelCalories": 326,
+          "servingGrams": 100,
+          "calorieError": 0.05161290322580645
+        },
+        {
+          "key": "masala-dosa",
+          "query": "masala dosa",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": "Masala dosa (rice/urad crepe with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 160,
+            "protein": 4,
+            "carbs": 28,
+            "fat": 3.5556
+          },
+          "modelCalories": 160,
+          "servingGrams": 200,
+          "calorieError": 0.08200295480298932
+        },
+        {
+          "key": "mutton-biryani",
+          "query": "mutton biryani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": "Mutton biryani (meat and spiced rice, cooked with oil/ghee)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 223,
+            "protein": 9,
+            "carbs": 22,
+            "fat": 11
+          },
+          "modelCalories": 223,
+          "servingGrams": 200,
+          "calorieError": 0.14358974358974358
+        },
+        {
+          "key": "veg-pulao",
+          "query": "vegetable pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": "Vegetable pulao (rice cooked with mixed vegetables and oil)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 140,
+            "protein": 3,
+            "carbs": 22,
+            "fat": 4.4444
+          },
+          "modelCalories": 140,
+          "servingGrams": 200,
+          "calorieError": 0.24417349110638123
+        },
+        {
+          "key": "mushroom-pulao",
+          "query": "mushroom pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 131.143,
+            "macros": {
+              "protein": 2.5115,
+              "carbs": 20.649,
+              "fat": 3.7645
+            },
+            "low": 124.286,
+            "high": 138
+          },
+          "name": "Mushroom pulao (rice cooked with mushrooms and spices)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 134,
+            "protein": 3.5,
+            "carbs": 21,
+            "fat": 4
+          },
+          "modelCalories": 134,
+          "servingGrams": 200,
+          "calorieError": 0.021785379318758905
+        },
+        {
+          "key": "plain-pulao",
+          "query": "plain pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 137.06933333333333,
+            "macros": {
+              "protein": 2.7096666666666667,
+              "carbs": 22.881666666666664,
+              "fat": 3.7840000000000003
+            },
+            "low": 134,
+            "high": 140.208
+          },
+          "name": "Plain pulao (rice cooked with mild spices and oil)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 165,
+            "protein": 3,
+            "carbs": 28,
+            "fat": 4.5
+          },
+          "modelCalories": 165,
+          "servingGrams": 150,
+          "calorieError": 0.20377035466236065
+        },
+        {
+          "key": "rajma",
+          "query": "rajma",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": "Rajma (kidney bean curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 132,
+            "protein": 7,
+            "carbs": 18,
+            "fat": 3.5
+          },
+          "modelCalories": 132,
+          "servingGrams": 150,
+          "calorieError": 0
+        },
+        {
+          "key": "chicken-korma",
+          "query": "chicken korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": "Chicken korma (creamy spiced chicken curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 221,
+            "protein": 12,
+            "carbs": 5,
+            "fat": 17
+          },
+          "modelCalories": 221,
+          "servingGrams": 150,
+          "calorieError": 0.6075182391492521
+        },
+        {
+          "key": "palak-paneer",
+          "query": "palak paneer",
+          "ref": {
+            "kind": "range",
+            "low": 77.683,
+            "high": 101,
+            "macros": {
+              "protein": 4.727,
+              "carbs": 4.355,
+              "fat": 5.8915
+            }
+          },
+          "name": "Palak paneer (spinach curry with paneer)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 140,
+            "protein": 6,
+            "carbs": 6,
+            "fat": 10
+          },
+          "modelCalories": 140,
+          "servingGrams": 150,
+          "calorieError": 0.38613861386138615
+        },
+        {
+          "key": "paneer",
+          "query": "paneer",
+          "ref": {
+            "kind": "point",
+            "calories": 313.5,
+            "macros": {
+              "protein": 20.93,
+              "carbs": 11.6585,
+              "fat": 20.009999999999998
+            },
+            "low": 299,
+            "high": 328
+          },
+          "name": "Paneer (Indian cottage cheese, full-fat)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 265,
+            "protein": 18,
+            "carbs": 2,
+            "fat": 20
+          },
+          "modelCalories": 265,
+          "servingGrams": 50,
+          "calorieError": 0.1547049441786284
+        },
+        {
+          "key": "cucumber-raita",
+          "query": "cucumber raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": "Cucumber raita (yoghurt with cucumber)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 61.5,
+            "protein": 3.5,
+            "carbs": 4,
+            "fat": 3.5
+          },
+          "modelCalories": 61.5,
+          "servingGrams": 100,
+          "calorieError": 0.059203444564047365
+        },
+        {
+          "key": "egg-curry",
+          "query": "egg curry",
+          "ref": {
+            "kind": "range",
+            "low": 117.521,
+            "high": 149,
+            "macros": {
+              "protein": 5.3415,
+              "carbs": 4.4245,
+              "fat": 10.5045
+            }
+          },
+          "name": "Egg curry (boiled eggs in spiced onion-tomato gravy)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 164,
+            "protein": 8,
+            "carbs": 6,
+            "fat": 12
+          },
+          "modelCalories": 164,
+          "servingGrams": 250,
+          "calorieError": 0.10067114093959731
+        },
+        {
+          "key": "fish-curry",
+          "query": "fish curry",
+          "ref": {
+            "kind": "range",
+            "low": 93,
+            "high": 139,
+            "macros": {
+              "protein": 8.334000000000001,
+              "carbs": 4.801666666666667,
+              "fat": 7.236999999999999
+            }
+          },
+          "name": "Fish curry (home-style fish in spiced gravy, with some coconut/tomato)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 127,
+            "protein": 12,
+            "carbs": 4,
+            "fat": 7
+          },
+          "modelCalories": 127,
+          "servingGrams": 200,
+          "calorieError": 0
+        },
+        {
+          "key": "veg-curry",
+          "query": "vegetable curry",
+          "ref": {
+            "kind": "point",
+            "calories": 88,
+            "macros": {
+              "protein": 2.05,
+              "fat": 5.685
+            },
+            "low": 86,
+            "high": 90
+          },
+          "name": "Mixed vegetable curry (home-style mixed veg in spiced gravy)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 95,
+            "protein": 2.5,
+            "carbs": 10,
+            "fat": 5
+          },
+          "modelCalories": 95,
+          "servingGrams": 200,
+          "calorieError": 0.07954545454545454
+        },
+        {
+          "key": "aloo-gobi",
+          "query": "aloo gobi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": "Aloo gobi (potato and cauliflower dry curry)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 124.5,
+            "protein": 2.5,
+            "carbs": 14,
+            "fat": 6.5
+          },
+          "modelCalories": 124.5,
+          "servingGrams": 150,
+          "calorieError": 0.17354849960174748
+        },
+        {
+          "key": "aloo-matar",
+          "query": "aloo matar",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": "Aloo matar (potato and peas curry, home-style)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 130,
+            "protein": 2.5,
+            "carbs": 17.5,
+            "fat": 5.5
+          },
+          "modelCalories": 130,
+          "servingGrams": 150,
+          "calorieError": 0.3476879376746163
+        },
+        {
+          "key": "whole-moong",
+          "query": "whole moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 53.699,
+            "high": 74,
+            "macros": {
+              "protein": 3.2245,
+              "carbs": 7.172000000000001,
+              "fat": 2.682
+            }
+          },
+          "name": "Whole moong dal, cooked (green gram, with light seasoning and oil)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 112,
+            "protein": 6.5,
+            "carbs": 18,
+            "fat": 1.5
+          },
+          "modelCalories": 112,
+          "servingGrams": 100,
+          "calorieError": 0.5135135135135135
+        },
+        {
+          "key": "moong-dal",
+          "query": "moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": "Moong dal (split yellow moong, cooked, typical home-style dal)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 109,
+            "protein": 6,
+            "carbs": 18.5,
+            "fat": 1.2
+          },
+          "modelCalories": 109,
+          "servingGrams": 100,
+          "calorieError": 0.47297297297297297
+        },
+        {
+          "key": "barfi",
+          "query": "barfi",
+          "ref": {
+            "kind": "range",
+            "low": 284,
+            "high": 408.324,
+            "macros": {
+              "protein": 7.618,
+              "carbs": 35.657,
+              "fat": 19.662
+            }
+          },
+          "name": "Barfi (Indian milk-based sweet, typical milk/khoya and sugar recipe)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 480,
+            "protein": 8,
+            "carbs": 58,
+            "fat": 24
+          },
+          "modelCalories": 480,
+          "servingGrams": 40,
+          "calorieError": 0.1755370735004555
+        },
+        {
+          "key": "veg-fried-rice",
+          "query": "veg fried rice",
+          "ref": {
+            "kind": "range",
+            "low": 120.584,
+            "high": 174,
+            "macros": {
+              "protein": 4.051,
+              "carbs": 23.096,
+              "fat": 4.1975
+            }
+          },
+          "name": "Vegetable fried rice (white rice stir-fried with oil, mixed vegetables and soy sauce)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 214,
+            "protein": 4.5,
+            "carbs": 32,
+            "fat": 7.5
+          },
+          "modelCalories": 214,
+          "servingGrams": 200,
+          "calorieError": 0.22988505747126436
+        },
+        {
+          "key": "chicken-chow-mein",
+          "query": "chicken chow mein",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": "Lo mein, with chicken",
+          "sameAs": "Lo mein, with chicken",
+          "confidence": "medium",
+          "estimate": {
+            "calories": 130,
+            "protein": 9.15,
+            "carbs": 16.15,
+            "fat": 3.15
+          },
+          "modelCalories": 150,
+          "servingGrams": 300,
+          "calorieError": 0.09161631736596683
+        },
+        {
+          "key": "scrambled-eggs",
+          "query": "scrambled eggs",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": "Scrambled eggs (eggs cooked with butter/milk)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 155,
+            "protein": 10.5,
+            "carbs": 1.6,
+            "fat": 12
+          },
+          "modelCalories": 155,
+          "servingGrams": 120,
+          "calorieError": 0.01757004273794179
+        },
+        {
+          "key": "shepherds-pie",
+          "query": "shepherd's pie",
+          "ref": {
+            "kind": "range",
+            "low": 107,
+            "high": 142.777,
+            "macros": {
+              "protein": 6.996333333333332,
+              "carbs": 8.754,
+              "fat": 6.859333333333333
+            }
+          },
+          "name": "Shepherd's pie (minced lamb with vegetables and mashed potato topping)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 170,
+            "protein": 6.5,
+            "carbs": 16,
+            "fat": 8.5
+          },
+          "modelCalories": 170,
+          "servingGrams": 300,
+          "calorieError": 0.19066796472821262
+        },
+        {
+          "key": "chilli-con-carne",
+          "query": "chilli con carne",
+          "ref": {
+            "kind": "point",
+            "calories": 113.5,
+            "macros": {
+              "protein": 7.5,
+              "carbs": 9.208,
+              "fat": 5.485
+            },
+            "low": 107,
+            "high": 120
+          },
+          "name": "Chilli con carne (beef, beans and tomato chilli stew)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 130,
+            "protein": 8,
+            "carbs": 10.5,
+            "fat": 6.5
+          },
+          "modelCalories": 130,
+          "servingGrams": 250,
+          "calorieError": 0.14537444933920704
+        },
+        {
+          "key": "cheese-quiche",
+          "query": "cheese quiche",
+          "ref": {
+            "kind": "range",
+            "low": 305,
+            "high": 365,
+            "macros": {
+              "protein": 12.205,
+              "carbs": 14.189,
+              "fat": 25.765
+            }
+          },
+          "name": "Cheese quiche (egg custard and cheese in pastry crust)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 320,
+            "protein": 8.5,
+            "carbs": 16,
+            "fat": 25
+          },
+          "modelCalories": 320,
+          "servingGrams": 125,
+          "calorieError": 0
+        },
+        {
+          "key": "beef-stew",
+          "query": "beef stew",
+          "ref": {
+            "kind": "point",
+            "calories": 106,
+            "macros": {
+              "protein": 10.33,
+              "carbs": 5.9415,
+              "fat": 4.835
+            },
+            "low": 105,
+            "high": 107
+          },
+          "name": "Beef stew (home-style, with vegetables and broth)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 127,
+            "protein": 7,
+            "carbs": 9,
+            "fat": 7
+          },
+          "modelCalories": 127,
+          "servingGrams": 250,
+          "calorieError": 0.19811320754716982
+        },
+        {
+          "key": "beef-stroganoff",
+          "query": "beef stroganoff",
+          "ref": {
+            "kind": "point",
+            "calories": 160.5,
+            "macros": {
+              "protein": 12.68,
+              "carbs": 4.608,
+              "fat": 10.265
+            },
+            "low": 150,
+            "high": 171
+          },
+          "name": "Beef stroganoff (beef, mushrooms, sour cream/cream sauce)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 185,
+            "protein": 8,
+            "carbs": 9,
+            "fat": 13
+          },
+          "modelCalories": 185,
+          "servingGrams": 250,
+          "calorieError": 0.1526479750778816
+        },
+        {
+          "key": "ratatouille",
+          "query": "ratatouille",
+          "ref": {
+            "kind": "range",
+            "low": 67,
+            "high": 82,
+            "macros": {
+              "protein": 1.145,
+              "carbs": 5.5335,
+              "fat": 5.865
+            }
+          },
+          "name": "Ratatouille (stewed eggplant, zucchini, tomato, onion, olive oil)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 90,
+            "protein": 1.3,
+            "carbs": 6.5,
+            "fat": 6.5
+          },
+          "modelCalories": 90,
+          "servingGrams": 200,
+          "calorieError": 0.0975609756097561
+        },
+        {
+          "key": "apple-crumble",
+          "query": "apple crumble",
+          "ref": {
+            "kind": "range",
+            "low": 161,
+            "high": 201,
+            "macros": {
+              "protein": 1.725,
+              "carbs": 32.5085,
+              "fat": 4.915
+            }
+          },
+          "name": "Apple crumble (baked apples with crumb topping of flour/butter/sugar, typical recipe)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 252,
+            "protein": 2.5,
+            "carbs": 38,
+            "fat": 10
+          },
+          "modelCalories": 252,
+          "servingGrams": 150,
+          "calorieError": 0.2537313432835821
+        },
+        {
+          "key": "coleslaw",
+          "query": "coleslaw",
+          "ref": {
+            "kind": "range",
+            "low": 117,
+            "high": 173,
+            "macros": {
+              "protein": 0.87,
+              "carbs": 8.7915,
+              "fat": 12.14
+            }
+          },
+          "name": "Coleslaw (shredded cabbage and carrot with mayonnaise dressing)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 169,
+            "protein": 1.5,
+            "carbs": 7,
+            "fat": 15
+          },
+          "modelCalories": 169,
+          "servingGrams": 75,
+          "calorieError": 0
+        },
+        {
+          "key": "trifle",
+          "query": "trifle",
+          "ref": {
+            "kind": "point",
+            "calories": 168,
+            "macros": {
+              "protein": 3.1100000000000003,
+              "carbs": 21.7725,
+              "fat": 7.525
+            },
+            "low": 167,
+            "high": 169
+          },
+          "name": "Trifle (British layered dessert with sponge, custard, fruit and whipped cream)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 186,
+            "protein": 4,
+            "carbs": 20,
+            "fat": 10
+          },
+          "modelCalories": 186,
+          "servingGrams": 200,
+          "calorieError": 0.10714285714285714
+        },
+        {
+          "key": "scone",
+          "query": "plain scone",
+          "ref": {
+            "kind": "point",
+            "calories": 367,
+            "macros": {
+              "protein": 6.9350000000000005,
+              "carbs": 50.760999999999996,
+              "fat": 15.525
+            },
+            "low": 352,
+            "high": 382
+          },
+          "name": "Plain scone (basic wheat scone made with butter, milk and a little sugar)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 410,
+            "protein": 6.5,
+            "carbs": 50,
+            "fat": 20.4
+          },
+          "modelCalories": 410,
+          "servingGrams": 80,
+          "calorieError": 0.11716621253405994
+        },
+        {
+          "key": "cheesecake",
+          "query": "cheesecake",
+          "ref": {
+            "kind": "range",
+            "low": 325,
+            "high": 399,
+            "macros": {
+              "protein": 5.745,
+              "carbs": 29.639,
+              "fat": 24.66
+            }
+          },
+          "name": "Cheesecake (cream cheese-based dessert, typical baked style)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 354,
+            "protein": 6,
+            "carbs": 24,
+            "fat": 26
+          },
+          "modelCalories": 354,
+          "servingGrams": 125,
+          "calorieError": 0
+        },
+        {
+          "key": "guacamole",
+          "query": "guacamole",
+          "ref": {
+            "kind": "range",
+            "low": 128,
+            "high": 155,
+            "macros": {
+              "protein": 1.6749999999999998,
+              "carbs": 6.093999999999999,
+              "fat": 13.44
+            }
+          },
+          "name": "Guacamole (mashed avocado with lime, salt, onion and tomato)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 161,
+            "protein": 2,
+            "carbs": 9,
+            "fat": 13
+          },
+          "modelCalories": 161,
+          "servingGrams": 30,
+          "calorieError": 0.03870967741935484
+        },
+        {
+          "key": "minestrone",
+          "query": "minestrone soup",
+          "ref": {
+            "kind": "range",
+            "low": 40,
+            "high": 60,
+            "macros": {
+              "protein": 4.371333333333333,
+              "carbs": 6.234333333333333,
+              "fat": 4.6290000000000004
+            }
+          },
+          "name": "Minestrone soup (vegetable soup with beans, pasta and tomato broth)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 46,
+            "protein": 2,
+            "carbs": 6,
+            "fat": 1.5
+          },
+          "modelCalories": 46,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "cheese-pizza",
+          "query": "cheese pizza",
+          "ref": {
+            "kind": "point",
+            "calories": 262.499,
+            "macros": {
+              "protein": 9.793666666666667,
+              "carbs": 33.276,
+              "fat": 10.641666666666667
+            },
+            "low": 249.497,
+            "high": 272
+          },
+          "name": "Cheese pizza (regular crust, tomato sauce, mozzarella)",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 266,
+            "protein": 11,
+            "carbs": 33,
+            "fat": 10
+          },
+          "modelCalories": 266,
+          "servingGrams": 120,
+          "calorieError": 0.013337193665499587
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

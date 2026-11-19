@@ -1,0 +1,3973 @@
+{
+  "config": {
+    "label": "m1-C-gemini-lite",
+    "at": "2026-11-19T11:09:32.302Z",
+    "set": {
+      "name": "C",
+      "version": "1",
+      "sha256": "16f0014957bab5ef1bb67ccbc33a702993189e154a0d21959620328a6860900b",
+      "items": 41
+    },
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "variant": "baseline",
+    "promptVersion": "f2d48adc5786",
+    "runs": 3,
+    "concurrency": 1,
+    "paceMs": 4000,
+    "aiTimeoutMs": 60000,
+    "gitCommit": "550fb11",
+    "gitDirty": true,
+    "catalogBuild": "2026-11-19T10:19:26.486Z",
+    "price": {
+      "input": 0.3,
+      "output": 2.5,
+      "source": "https://aistudio.google.com/docs/pricing",
+      "checked": "2026-11-19"
+    }
+  },
+  "across": {
+    "coverage": {
+      "mean": 1,
+      "min": 1,
+      "max": 1,
+      "runs": 3
+    },
+    "calorieMaeKcal": {
+      "mean": 16.518319444444447,
+      "min": 15.455013888888892,
+      "max": 18.51351388888889,
+      "runs": 3
+    },
+    "calorieMape": {
+      "mean": 0.09561856398762851,
+      "min": 0.09004177910929498,
+      "max": 0.1009729120321021,
+      "runs": 3
+    },
+    "calorieMedianError": {
+      "mean": 0.04119204679297189,
+      "min": 0.034157490695194165,
+      "max": 0.05331554714058274,
+      "runs": 3
+    },
+    "within10": {
+      "mean": 0.6666666666666666,
+      "min": 0.6585365853658537,
+      "max": 0.6829268292682927,
+      "runs": 3
+    },
+    "within20": {
+      "mean": 0.804878048780488,
+      "min": 0.7560975609756098,
+      "max": 0.8536585365853658,
+      "runs": 3
+    },
+    "over50": {
+      "mean": 0.3333333333333333,
+      "min": 0,
+      "max": 1,
+      "runs": 3
+    },
+    "macroMaeGrams.protein": {
+      "mean": 0.8599457994579947,
+      "min": 0.8259349593495936,
+      "max": 0.8903658536585366,
+      "runs": 3
+    },
+    "macroMaeGrams.carbs": {
+      "mean": 2.6010873015873024,
+      "min": 2.4732809523809536,
+      "max": 2.710985714285715,
+      "runs": 3
+    },
+    "macroMaeGrams.fat": {
+      "mean": 1.639966124661247,
+      "min": 1.5987195121951223,
+      "max": 1.7219878048780495,
+      "runs": 3
+    },
+    "matchedCatalog": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "latencyMs.median": {
+      "mean": 3099.6666666666665,
+      "min": 3022,
+      "max": 3209,
+      "runs": 3
+    },
+    "latencyMs.p90": {
+      "mean": 5706,
+      "min": 3320,
+      "max": 7904,
+      "runs": 3
+    },
+    "tokens.input": {
+      "mean": 4924,
+      "min": 4924,
+      "max": 4924,
+      "runs": 3
+    },
+    "tokens.output": {
+      "mean": 7795.333333333333,
+      "min": 7732,
+      "max": 7834,
+      "runs": 3
+    },
+    "costUsd": {
+      "mean": 0.02096553333333333,
+      "min": 0.0208072,
+      "max": 0.0210622,
+      "runs": 3
+    }
+  },
+  "matching": {
+    "matchedRate": 0.660377358490566,
+    "byKind": {
+      "typo": "2/10",
+      "variant": "3/5",
+      "regional": "8/13",
+      "hinglish": "11/14",
+      "multi": "11/11"
+    },
+    "rows": [
+      {
+        "phrase": "nan",
+        "kind": "typo",
+        "dish": "naan",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "nan"
+        ]
+      },
+      {
+        "phrase": "naan bread",
+        "kind": "variant",
+        "dish": "naan",
+        "matched": true,
+        "food": "Bread, naan",
+        "unmatched": []
+      },
+      {
+        "phrase": "chapathi",
+        "kind": "regional",
+        "dish": "chapati",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "chapathi"
+        ]
+      },
+      {
+        "phrase": "phulka",
+        "kind": "regional",
+        "dish": "chapati",
+        "matched": true,
+        "food": "Chapati/Roti",
+        "unmatched": []
+      },
+      {
+        "phrase": "roti",
+        "kind": "hinglish",
+        "dish": "chapati",
+        "matched": true,
+        "food": "Bread, chapati or roti, plain, commercially prepared",
+        "unmatched": []
+      },
+      {
+        "phrase": "parantha",
+        "kind": "regional",
+        "dish": "paratha",
+        "matched": true,
+        "food": "Plain parantha/paratha",
+        "unmatched": []
+      },
+      {
+        "phrase": "plain prantha",
+        "kind": "typo",
+        "dish": "paratha",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "plain prantha"
+        ]
+      },
+      {
+        "phrase": "mooli parantha",
+        "kind": "regional",
+        "dish": "mooli-paratha",
+        "matched": true,
+        "food": "Radish parantha/paratha (Mooli ka parantha/paratha)",
+        "unmatched": []
+      },
+      {
+        "phrase": "poori",
+        "kind": "regional",
+        "dish": "puri",
+        "matched": true,
+        "food": "Bread, puri",
+        "unmatched": []
+      },
+      {
+        "phrase": "samose",
+        "kind": "hinglish",
+        "dish": "samosa",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "samose"
+        ]
+      },
+      {
+        "phrase": "aloo samosa",
+        "kind": "variant",
+        "dish": "samosa",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "aloo samosa"
+        ]
+      },
+      {
+        "phrase": "masala dosai",
+        "kind": "regional",
+        "dish": "masala-dosa",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "masala dosai"
+        ]
+      },
+      {
+        "phrase": "masaala dosa",
+        "kind": "typo",
+        "dish": "masala-dosa",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "masaala dosa"
+        ]
+      },
+      {
+        "phrase": "veg pulav",
+        "kind": "hinglish",
+        "dish": "veg-pulao",
+        "matched": true,
+        "food": "Pilau, vegetable, homemade",
+        "unmatched": []
+      },
+      {
+        "phrase": "mix veg pulao",
+        "kind": "hinglish",
+        "dish": "veg-pulao",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "mix veg pulao"
+        ]
+      },
+      {
+        "phrase": "mutton biriyani",
+        "kind": "typo",
+        "dish": "mutton-biryani",
+        "matched": true,
+        "food": "Mutton biryani/biriyani",
+        "unmatched": []
+      },
+      {
+        "phrase": "gosht biryani",
+        "kind": "regional",
+        "dish": "mutton-biryani",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "gosht biryani"
+        ]
+      },
+      {
+        "phrase": "rajmah",
+        "kind": "typo",
+        "dish": "rajma",
+        "matched": true,
+        "food": "Curry, red kidney bean, Punjabi, homemade",
+        "unmatched": []
+      },
+      {
+        "phrase": "rajma curry",
+        "kind": "variant",
+        "dish": "rajma",
+        "matched": true,
+        "food": "Curry, red kidney bean, Punjabi, homemade",
+        "unmatched": []
+      },
+      {
+        "phrase": "chiken korma",
+        "kind": "typo",
+        "dish": "chicken-korma",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "chiken korma"
+        ]
+      },
+      {
+        "phrase": "murgh korma",
+        "kind": "regional",
+        "dish": "chicken-korma",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "murgh korma"
+        ]
+      },
+      {
+        "phrase": "palak panir",
+        "kind": "typo",
+        "dish": "palak-paneer",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "palak panir"
+        ]
+      },
+      {
+        "phrase": "panir",
+        "kind": "typo",
+        "dish": "paneer",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "panir"
+        ]
+      },
+      {
+        "phrase": "kheere ka raita",
+        "kind": "hinglish",
+        "dish": "cucumber-raita",
+        "matched": true,
+        "food": "Cucumber raita (Kheere ka raita)",
+        "unmatched": []
+      },
+      {
+        "phrase": "kakdi raita",
+        "kind": "regional",
+        "dish": "cucumber-raita",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "kakdi raita"
+        ]
+      },
+      {
+        "phrase": "anda curry",
+        "kind": "hinglish",
+        "dish": "egg-curry",
+        "matched": true,
+        "food": "Egg curry (Anda curry)",
+        "unmatched": []
+      },
+      {
+        "phrase": "machli curry",
+        "kind": "hinglish",
+        "dish": "fish-curry",
+        "matched": true,
+        "food": "Fish curry (Machli curry)",
+        "unmatched": []
+      },
+      {
+        "phrase": "mixed veg curry",
+        "kind": "variant",
+        "dish": "veg-curry",
+        "matched": true,
+        "food": "Curry, vegetable, frozen mixed vegetables, homemade",
+        "unmatched": []
+      },
+      {
+        "phrase": "aloo gobhi",
+        "kind": "regional",
+        "dish": "aloo-gobi",
+        "matched": true,
+        "food": "Potato cauliflower (Aloo gobhi)",
+        "unmatched": []
+      },
+      {
+        "phrase": "gobi aloo sabzi",
+        "kind": "hinglish",
+        "dish": "aloo-gobi",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "gobi aloo sabzi"
+        ]
+      },
+      {
+        "phrase": "aloo mutter",
+        "kind": "regional",
+        "dish": "aloo-matar",
+        "matched": true,
+        "food": "Curry, potato and pea, homemade",
+        "unmatched": []
+      },
+      {
+        "phrase": "matar aloo ki sabzi",
+        "kind": "hinglish",
+        "dish": "aloo-matar",
+        "matched": true,
+        "food": "Pea curry (Matar ki sabzi)",
+        "unmatched": []
+      },
+      {
+        "phrase": "sabut moong",
+        "kind": "hinglish",
+        "dish": "whole-moong",
+        "matched": true,
+        "food": "Green gram whole with baghar (Sabut moong dal with tadka)",
+        "unmatched": []
+      },
+      {
+        "phrase": "dhuli moong dal",
+        "kind": "hinglish",
+        "dish": "moong-dal",
+        "matched": true,
+        "food": "Washed moong dal (Dhuli moong ki dal)",
+        "unmatched": []
+      },
+      {
+        "phrase": "yellow moong daal",
+        "kind": "typo",
+        "dish": "moong-dal",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "yellow moong daal"
+        ]
+      },
+      {
+        "phrase": "burfi",
+        "kind": "regional",
+        "dish": "barfi",
+        "matched": true,
+        "food": "Plain burfi (Burfi)",
+        "unmatched": []
+      },
+      {
+        "phrase": "veg fried rice",
+        "kind": "variant",
+        "dish": "veg-fried-rice",
+        "matched": false,
+        "food": "Rissoles, brown rice, fried in vegetable oil",
+        "unmatched": []
+      },
+      {
+        "phrase": "chicken chowmein",
+        "kind": "regional",
+        "dish": "chicken-chow-mein",
+        "matched": true,
+        "food": "Chicken chowmein",
+        "unmatched": []
+      },
+      {
+        "phrase": "chicken chowmin",
+        "kind": "typo",
+        "dish": "chicken-chow-mein",
+        "matched": false,
+        "food": null,
+        "unmatched": [
+          "chicken chowmin"
+        ]
+      },
+      {
+        "phrase": "anda bhurji",
+        "kind": "hinglish",
+        "dish": "scrambled-eggs",
+        "matched": true,
+        "food": "Scrambled egg (Ande ki bhurji)",
+        "unmatched": []
+      },
+      {
+        "phrase": "egg bhurji",
+        "kind": "hinglish",
+        "dish": "scrambled-eggs",
+        "matched": true,
+        "food": "Scrambled egg (Ande ki bhurji)",
+        "unmatched": []
+      },
+      {
+        "phrase": "chole",
+        "kind": "hinglish",
+        "dish": "chole",
+        "matched": true,
+        "food": "Curry, chick pea, whole and tomato, Punjabi, with vegetable oil, homemade",
+        "unmatched": []
+      },
+      {
+        "phrase": "2 roti and aloo gobi",
+        "kind": "multi",
+        "dish": "chapati",
+        "matched": true,
+        "food": "Bread, chapati or roti, plain, commercially prepared",
+        "unmatched": []
+      },
+      {
+        "phrase": "2 roti and aloo gobi",
+        "kind": "multi",
+        "dish": "aloo-gobi",
+        "matched": true,
+        "food": "Curry, cauliflower and potato, homemade",
+        "unmatched": []
+      },
+      {
+        "phrase": "1 katori rajma with 2 chapati",
+        "kind": "multi",
+        "dish": "rajma",
+        "matched": true,
+        "food": "Curry, red kidney bean, Punjabi, homemade",
+        "unmatched": []
+      },
+      {
+        "phrase": "1 katori rajma with 2 chapati",
+        "kind": "multi",
+        "dish": "chapati",
+        "matched": true,
+        "food": "Bread, chapati or roti, plain, commercially prepared",
+        "unmatched": []
+      },
+      {
+        "phrase": "masala dosa, sambar",
+        "kind": "multi",
+        "dish": "masala-dosa",
+        "matched": true,
+        "food": "Dosa, with filling",
+        "unmatched": []
+      },
+      {
+        "phrase": "masala dosa, sambar",
+        "kind": "multi",
+        "dish": "sambar",
+        "matched": true,
+        "food": "Sambar, vegetable stew",
+        "unmatched": []
+      },
+      {
+        "phrase": "2 paratha with raita",
+        "kind": "multi",
+        "dish": "paratha",
+        "matched": true,
+        "food": "Bread, paratha",
+        "unmatched": []
+      },
+      {
+        "phrase": "2 paratha with raita",
+        "kind": "multi",
+        "dish": "cucumber-raita",
+        "matched": true,
+        "food": "Cucumber raita (Kheere ka raita)",
+        "unmatched": []
+      },
+      {
+        "phrase": "veg pulao and boondi raita",
+        "kind": "multi",
+        "dish": "veg-pulao",
+        "matched": true,
+        "food": "Pilau, vegetable, homemade",
+        "unmatched": [
+          "boondi raita"
+        ]
+      },
+      {
+        "phrase": "anda curry with 3 roti",
+        "kind": "multi",
+        "dish": "egg-curry",
+        "matched": true,
+        "food": "Egg curry (Anda curry)",
+        "unmatched": []
+      },
+      {
+        "phrase": "anda curry with 3 roti",
+        "kind": "multi",
+        "dish": "chapati",
+        "matched": true,
+        "food": "Bread, chapati or roti, plain, commercially prepared",
+        "unmatched": []
+      }
+    ]
+  },
+  "runs": [
+    {
+      "run": 1,
+      "summary": {
+        "eligible": 41,
+        "scored": 41,
+        "coverage": 1,
+        "calorieMaeKcal": 15.455013888888892,
+        "calorieMape": 0.09584100082148847,
+        "calorieMedianError": 0.034157490695194165,
+        "within10": 0.6585365853658537,
+        "within20": 0.8048780487804879,
+        "over50": 0,
+        "macroMaeGrams": {
+          "protein": 0.8635365853658535,
+          "carbs": 2.710985714285715,
+          "fat": 1.7219878048780495
+        },
+        "matchedCatalog": 0,
+        "calls": {
+          "total": 9,
+          "failed": 0,
+          "models": [
+            "gemini-3.5-flash-lite"
+          ]
+        },
+        "latencyMs": {
+          "median": 3068,
+          "p90": 5894,
+          "max": 5894
+        },
+        "tokens": {
+          "input": 4924,
+          "output": 7732
+        },
+        "costUsd": 0.0208072
+      },
+      "rows": [
+        {
+          "key": "nan",
+          "query": "nan",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": "Naan (Indian flatbread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 310,
+            "protein": 8.5,
+            "carbs": 52,
+            "fat": 7.5
+          },
+          "modelCalories": 310,
+          "servingGrams": 90,
+          "calorieError": 0.05388407275199716
+        },
+        {
+          "key": "naan bread",
+          "query": "naan bread",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": "Naan bread",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 310,
+            "protein": 8.5,
+            "carbs": 52,
+            "fat": 7.5
+          },
+          "modelCalories": 310,
+          "servingGrams": 90,
+          "calorieError": 0.05388407275199716
+        },
+        {
+          "key": "chapathi",
+          "query": "chapathi",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Chapati (whole wheat flatbread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 297,
+            "protein": 9,
+            "carbs": 47,
+            "fat": 8
+          },
+          "modelCalories": 297,
+          "servingGrams": 40,
+          "calorieError": 0
+        },
+        {
+          "key": "phulka",
+          "query": "phulka",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Phulka (unleavened whole wheat flatbread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 275,
+            "protein": 9.2,
+            "carbs": 49,
+            "fat": 4
+          },
+          "modelCalories": 275,
+          "servingGrams": 30,
+          "calorieError": 0
+        },
+        {
+          "key": "roti",
+          "query": "roti",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Roti (whole wheat flatbread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 297,
+            "protein": 9,
+            "carbs": 47,
+            "fat": 8
+          },
+          "modelCalories": 297,
+          "servingGrams": 40,
+          "calorieError": 0
+        },
+        {
+          "key": "parantha",
+          "query": "parantha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": "Paratha (wheat flatbread cooked with ghee or oil)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 320,
+            "protein": 6.5,
+            "carbs": 40,
+            "fat": 15
+          },
+          "modelCalories": 320,
+          "servingGrams": 60,
+          "calorieError": 0.0028193849165519197
+        },
+        {
+          "key": "plain prantha",
+          "query": "plain prantha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": "Plain paratha (layered wheat flatbread with ghee or oil)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 330,
+            "protein": 6,
+            "carbs": 41,
+            "fat": 16
+          },
+          "modelCalories": 330,
+          "servingGrams": 60,
+          "calorieError": 0.034157490695194165
+        },
+        {
+          "key": "mooli parantha",
+          "query": "mooli parantha",
+          "ref": {
+            "kind": "point",
+            "calories": 177.262,
+            "macros": {
+              "protein": 4.599,
+              "carbs": 28.107,
+              "fat": 5.914
+            },
+            "low": 171,
+            "high": 183.524
+          },
+          "name": "Mooli paratha (whole wheat flatbread stuffed with spiced grated radish)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 220,
+            "protein": 5.5,
+            "carbs": 30,
+            "fat": 9
+          },
+          "modelCalories": 220,
+          "servingGrams": 100,
+          "calorieError": 0.2411007435321727
+        },
+        {
+          "key": "poori",
+          "query": "poori",
+          "ref": {
+            "kind": "point",
+            "calories": 387.5,
+            "macros": {
+              "protein": 7.02,
+              "carbs": 37.9345,
+              "fat": 23.62
+            },
+            "low": 366,
+            "high": 409
+          },
+          "name": "Poori (deep-fried unleavened wheat bread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 395,
+            "protein": 7,
+            "carbs": 47,
+            "fat": 20
+          },
+          "modelCalories": 395,
+          "servingGrams": 30,
+          "calorieError": 0.01935483870967742
+        },
+        {
+          "key": "samose",
+          "query": "samose",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": "Samosa (deep-fried pastry with spiced potato and pea filling)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 260,
+            "protein": 4.5,
+            "carbs": 30,
+            "fat": 14
+          },
+          "modelCalories": 260,
+          "servingGrams": 90,
+          "calorieError": 0
+        },
+        {
+          "key": "aloo samosa",
+          "query": "aloo samosa",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": "Aloo samosa (deep-fried spiced potato pastry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 262,
+            "protein": 4.5,
+            "carbs": 30,
+            "fat": 14
+          },
+          "modelCalories": 262,
+          "servingGrams": 70,
+          "calorieError": 0
+        },
+        {
+          "key": "masala dosai",
+          "query": "masala dosai",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": "Masala dosa (crispy crepe with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 168,
+            "protein": 3.5,
+            "carbs": 23,
+            "fat": 7
+          },
+          "modelCalories": 168,
+          "servingGrams": 150,
+          "calorieError": 0.03610310254313879
+        },
+        {
+          "key": "masaala dosa",
+          "query": "masaala dosa",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": "Masala dosa (crispy crepe with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 168,
+            "protein": 3.5,
+            "carbs": 23,
+            "fat": 7
+          },
+          "modelCalories": 168,
+          "servingGrams": 150,
+          "calorieError": 0.03610310254313879
+        },
+        {
+          "key": "veg pulav",
+          "query": "veg pulav",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": "Vegetable pulao (spiced rice with mixed vegetables)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 135,
+            "protein": 3,
+            "carbs": 21,
+            "fat": 4.5
+          },
+          "modelCalories": 135,
+          "servingGrams": 250,
+          "calorieError": 0.19973872356686762
+        },
+        {
+          "key": "mix veg pulao",
+          "query": "mix veg pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": "Mixed vegetable pulao",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 135,
+            "protein": 3,
+            "carbs": 21,
+            "fat": 4.5
+          },
+          "modelCalories": 135,
+          "servingGrams": 250,
+          "calorieError": 0.19973872356686762
+        },
+        {
+          "key": "mutton biriyani",
+          "query": "mutton biriyani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": "Mutton Biryani",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 185,
+            "protein": 8.5,
+            "carbs": 20.5,
+            "fat": 7.2
+          },
+          "modelCalories": 185,
+          "servingGrams": 350,
+          "calorieError": 0
+        },
+        {
+          "key": "gosht biryani",
+          "query": "gosht biryani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": "Gosht Biryani",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 185,
+            "protein": 8.5,
+            "carbs": 20.5,
+            "fat": 7.2
+          },
+          "modelCalories": 185,
+          "servingGrams": 350,
+          "calorieError": 0
+        },
+        {
+          "key": "rajmah",
+          "query": "rajmah",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": "Rajma Curry",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 115,
+            "protein": 5.5,
+            "carbs": 14.5,
+            "fat": 4
+          },
+          "modelCalories": 115,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "rajma curry",
+          "query": "rajma curry",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": "Rajma Curry",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 115,
+            "protein": 5.5,
+            "carbs": 14.5,
+            "fat": 4
+          },
+          "modelCalories": 115,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "chiken korma",
+          "query": "chiken korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": "Chicken Korma",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 160,
+            "protein": 11,
+            "carbs": 4.5,
+            "fat": 11.5
+          },
+          "modelCalories": 160,
+          "servingGrams": 250,
+          "calorieError": 0.16381410979131372
+        },
+        {
+          "key": "murgh korma",
+          "query": "murgh korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": "Murgh korma (chicken in rich yogurt and nut gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 165,
+            "protein": 12,
+            "carbs": 4.5,
+            "fat": 11
+          },
+          "modelCalories": 165,
+          "servingGrams": 250,
+          "calorieError": 0.20018330072229226
+        },
+        {
+          "key": "palak panir",
+          "query": "palak panir",
+          "ref": {
+            "kind": "range",
+            "low": 77.683,
+            "high": 101,
+            "macros": {
+              "protein": 4.727,
+              "carbs": 4.355,
+              "fat": 5.8915
+            }
+          },
+          "name": "Palak paneer (cottage cheese in spinach gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 150,
+            "protein": 7.5,
+            "carbs": 4,
+            "fat": 12
+          },
+          "modelCalories": 150,
+          "servingGrams": 200,
+          "calorieError": 0.48514851485148514
+        },
+        {
+          "key": "panir",
+          "query": "panir",
+          "ref": {
+            "kind": "point",
+            "calories": 313.5,
+            "macros": {
+              "protein": 20.93,
+              "carbs": 11.6585,
+              "fat": 20.009999999999998
+            },
+            "low": 299,
+            "high": 328
+          },
+          "name": "Paneer (Indian cottage cheese)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 265,
+            "protein": 18.3,
+            "carbs": 3.6,
+            "fat": 22
+          },
+          "modelCalories": 265,
+          "servingGrams": 50,
+          "calorieError": 0.1547049441786284
+        },
+        {
+          "key": "kheere ka raita",
+          "query": "kheere ka raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": "Kheere ka raita (cucumber yogurt dip)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 60,
+            "protein": 3.5,
+            "carbs": 4.5,
+            "fat": 3.2
+          },
+          "modelCalories": 60,
+          "servingGrams": 100,
+          "calorieError": 0.03336921420882669
+        },
+        {
+          "key": "kakdi raita",
+          "query": "kakdi raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": "Kakdi raita (cucumber yogurt dip)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 60,
+            "protein": 3.5,
+            "carbs": 4.5,
+            "fat": 3.2
+          },
+          "modelCalories": 60,
+          "servingGrams": 100,
+          "calorieError": 0.03336921420882669
+        },
+        {
+          "key": "anda curry",
+          "query": "anda curry",
+          "ref": {
+            "kind": "range",
+            "low": 117.521,
+            "high": 149,
+            "macros": {
+              "protein": 5.3415,
+              "carbs": 4.4245,
+              "fat": 10.5045
+            }
+          },
+          "name": "Anda curry (boiled egg curry in spiced tomato-onion gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 115,
+            "protein": 6.5,
+            "carbs": 4,
+            "fat": 8.5
+          },
+          "modelCalories": 115,
+          "servingGrams": 250,
+          "calorieError": 0.02145148526646302
+        },
+        {
+          "key": "machli curry",
+          "query": "machli curry",
+          "ref": {
+            "kind": "range",
+            "low": 93,
+            "high": 139,
+            "macros": {
+              "protein": 8.334000000000001,
+              "carbs": 4.801666666666667,
+              "fat": 7.236999999999999
+            }
+          },
+          "name": "Machli curry (fish curry in traditional spiced gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 105,
+            "protein": 11,
+            "carbs": 2.5,
+            "fat": 6
+          },
+          "modelCalories": 105,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "mixed veg curry",
+          "query": "mixed veg curry",
+          "ref": {
+            "kind": "point",
+            "calories": 88,
+            "macros": {
+              "protein": 2.05,
+              "fat": 5.685
+            },
+            "low": 86,
+            "high": 90
+          },
+          "name": "Mixed vegetable curry in spiced tomato gravy",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 85,
+            "protein": 2,
+            "carbs": 8,
+            "fat": 5
+          },
+          "modelCalories": 85,
+          "servingGrams": 200,
+          "calorieError": 0.03409090909090909
+        },
+        {
+          "key": "aloo gobhi",
+          "query": "aloo gobhi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": "Aloo gobhi (potato and cauliflower dry sabzi)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 2.2,
+            "carbs": 9.5,
+            "fat": 5.5
+          },
+          "modelCalories": 95,
+          "servingGrams": 150,
+          "calorieError": 0.10452122520348586
+        },
+        {
+          "key": "gobi aloo sabzi",
+          "query": "gobi aloo sabzi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": "Gobi aloo sabzi (cauliflower and potato dry curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 2.2,
+            "carbs": 9.5,
+            "fat": 5.5
+          },
+          "modelCalories": 95,
+          "servingGrams": 150,
+          "calorieError": 0.10452122520348586
+        },
+        {
+          "key": "aloo mutter",
+          "query": "aloo mutter",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": "Aloo matar (potato and green pea curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 2.5,
+            "carbs": 12.5,
+            "fat": 4
+          },
+          "modelCalories": 95,
+          "servingGrams": 200,
+          "calorieError": 0.015151122468549638
+        },
+        {
+          "key": "matar aloo ki sabzi",
+          "query": "matar aloo ki sabzi",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": "Matar aloo ki sabzi (potato and green pea curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 2.5,
+            "carbs": 12.5,
+            "fat": 4
+          },
+          "modelCalories": 95,
+          "servingGrams": 200,
+          "calorieError": 0.015151122468549638
+        },
+        {
+          "key": "sabut moong",
+          "query": "sabut moong",
+          "ref": {
+            "kind": "range",
+            "low": 53.699,
+            "high": 74,
+            "macros": {
+              "protein": 3.2245,
+              "carbs": 7.172000000000001,
+              "fat": 2.682
+            }
+          },
+          "name": "Sabut moong dal (whole green gram curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 105,
+            "protein": 6,
+            "carbs": 15,
+            "fat": 3
+          },
+          "modelCalories": 105,
+          "servingGrams": 200,
+          "calorieError": 0.4189189189189189
+        },
+        {
+          "key": "dhuli moong dal",
+          "query": "dhuli moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": "Dhuli moong dal (split yellow moong lentil soup)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 98,
+            "protein": 6.5,
+            "carbs": 13,
+            "fat": 2.5
+          },
+          "modelCalories": 98,
+          "servingGrams": 200,
+          "calorieError": 0.32432432432432434
+        },
+        {
+          "key": "yellow moong daal",
+          "query": "yellow moong daal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": "Yellow moong dal (cooked split yellow moong lentils)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 98,
+            "protein": 6.5,
+            "carbs": 13,
+            "fat": 2.5
+          },
+          "modelCalories": 98,
+          "servingGrams": 200,
+          "calorieError": 0.32432432432432434
+        },
+        {
+          "key": "burfi",
+          "query": "burfi",
+          "ref": {
+            "kind": "range",
+            "low": 284,
+            "high": 408.324,
+            "macros": {
+              "protein": 7.618,
+              "carbs": 35.657,
+              "fat": 19.662
+            }
+          },
+          "name": "Barfi (Indian milk-based sweet)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 420,
+            "protein": 8,
+            "carbs": 56,
+            "fat": 18
+          },
+          "modelCalories": 420,
+          "servingGrams": 30,
+          "calorieError": 0.02859493931289855
+        },
+        {
+          "key": "veg fried rice",
+          "query": "veg fried rice",
+          "ref": {
+            "kind": "range",
+            "low": 120.584,
+            "high": 174,
+            "macros": {
+              "protein": 4.051,
+              "carbs": 23.096,
+              "fat": 4.1975
+            }
+          },
+          "name": "Vegetable fried rice",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 165,
+            "protein": 3.5,
+            "carbs": 23.5,
+            "fat": 6.5
+          },
+          "modelCalories": 165,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "chicken chowmein",
+          "query": "chicken chowmein",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": "Chicken chow mein",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 150,
+            "protein": 8,
+            "carbs": 18,
+            "fat": 5
+          },
+          "modelCalories": 150,
+          "servingGrams": 300,
+          "calorieError": 0.04813501842388443
+        },
+        {
+          "key": "chicken chowmin",
+          "query": "chicken chowmin",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": "Chicken chow mein",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 150,
+            "protein": 8,
+            "carbs": 18,
+            "fat": 5
+          },
+          "modelCalories": 150,
+          "servingGrams": 300,
+          "calorieError": 0.04813501842388443
+        },
+        {
+          "key": "anda bhurji",
+          "query": "anda bhurji",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": "Anda bhurji (Indian spiced scrambled eggs)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 195,
+            "protein": 11,
+            "carbs": 3.5,
+            "fat": 15
+          },
+          "modelCalories": 195,
+          "servingGrams": 150,
+          "calorieError": 0.2801687634445074
+        },
+        {
+          "key": "egg bhurji",
+          "query": "egg bhurji",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": "Egg Bhurji (Indian scrambled eggs)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 185,
+            "protein": 11.5,
+            "carbs": 4.1,
+            "fat": 13.2
+          },
+          "modelCalories": 185,
+          "servingGrams": 150,
+          "calorieError": 0.214519083267866
+        }
+      ],
+      "errors": []
+    },
+    {
+      "run": 2,
+      "summary": {
+        "eligible": 41,
+        "scored": 41,
+        "coverage": 1,
+        "calorieMaeKcal": 15.586430555555559,
+        "calorieMape": 0.09004177910929498,
+        "calorieMedianError": 0.03610310254313879,
+        "within10": 0.6829268292682927,
+        "within20": 0.8536585365853658,
+        "over50": 1,
+        "macroMaeGrams": {
+          "protein": 0.8259349593495936,
+          "carbs": 2.618995238095239,
+          "fat": 1.5987195121951223
+        },
+        "matchedCatalog": 0,
+        "calls": {
+          "total": 9,
+          "failed": 0,
+          "models": [
+            "gemini-3.5-flash-lite"
+          ]
+        },
+        "latencyMs": {
+          "median": 3022,
+          "p90": 3320,
+          "max": 3320
+        },
+        "tokens": {
+          "input": 4924,
+          "output": 7834
+        },
+        "costUsd": 0.0210622
+      },
+      "rows": [
+        {
+          "key": "nan",
+          "query": "nan",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": "Naan flatbread",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 310,
+            "protein": 8.5,
+            "carbs": 52,
+            "fat": 7.5
+          },
+          "modelCalories": 310,
+          "servingGrams": 90,
+          "calorieError": 0.05388407275199716
+        },
+        {
+          "key": "naan bread",
+          "query": "naan bread",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": "Naan flatbread",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 310,
+            "protein": 8.5,
+            "carbs": 52,
+            "fat": 7.5
+          },
+          "modelCalories": 310,
+          "servingGrams": 90,
+          "calorieError": 0.05388407275199716
+        },
+        {
+          "key": "chapathi",
+          "query": "chapathi",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Chapati whole wheat flatbread",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 297,
+            "protein": 9,
+            "carbs": 49,
+            "fat": 7
+          },
+          "modelCalories": 297,
+          "servingGrams": 40,
+          "calorieError": 0
+        },
+        {
+          "key": "phulka",
+          "query": "phulka",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Phulka whole wheat flatbread (un-oiled)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 285,
+            "protein": 9.5,
+            "carbs": 53,
+            "fat": 3.5
+          },
+          "modelCalories": 285,
+          "servingGrams": 30,
+          "calorieError": 0
+        },
+        {
+          "key": "roti",
+          "query": "roti",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Roti whole wheat flatbread",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 297,
+            "protein": 9,
+            "carbs": 49,
+            "fat": 7
+          },
+          "modelCalories": 297,
+          "servingGrams": 40,
+          "calorieError": 0
+        },
+        {
+          "key": "parantha",
+          "query": "parantha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": "Parantha (layered whole wheat flatbread cooked with ghee or oil)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 320,
+            "protein": 6.5,
+            "carbs": 40,
+            "fat": 15
+          },
+          "modelCalories": 320,
+          "servingGrams": 70,
+          "calorieError": 0.0028193849165519197
+        },
+        {
+          "key": "plain prantha",
+          "query": "plain prantha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": "Plain parantha (layered whole wheat flatbread cooked with ghee or oil)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 320,
+            "protein": 6.5,
+            "carbs": 40,
+            "fat": 15
+          },
+          "modelCalories": 320,
+          "servingGrams": 70,
+          "calorieError": 0.0028193849165519197
+        },
+        {
+          "key": "mooli parantha",
+          "query": "mooli parantha",
+          "ref": {
+            "kind": "point",
+            "calories": 177.262,
+            "macros": {
+              "protein": 4.599,
+              "carbs": 28.107,
+              "fat": 5.914
+            },
+            "low": 171,
+            "high": 183.524
+          },
+          "name": "Mooli parantha (whole wheat flatbread stuffed with spiced grated radish)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 240,
+            "protein": 5.5,
+            "carbs": 33,
+            "fat": 10
+          },
+          "modelCalories": 240,
+          "servingGrams": 100,
+          "calorieError": 0.35392808385327934
+        },
+        {
+          "key": "poori",
+          "query": "poori",
+          "ref": {
+            "kind": "point",
+            "calories": 387.5,
+            "macros": {
+              "protein": 7.02,
+              "carbs": 37.9345,
+              "fat": 23.62
+            },
+            "low": 366,
+            "high": 409
+          },
+          "name": "Poori (deep-fried unleavened whole wheat bread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 395,
+            "protein": 7,
+            "carbs": 44,
+            "fat": 22
+          },
+          "modelCalories": 395,
+          "servingGrams": 60,
+          "calorieError": 0.01935483870967742
+        },
+        {
+          "key": "samose",
+          "query": "samose",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": "Samosa (crispy pastry filled with spiced potatoes and peas)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 262,
+            "protein": 4.5,
+            "carbs": 31,
+            "fat": 14
+          },
+          "modelCalories": 262,
+          "servingGrams": 90,
+          "calorieError": 0
+        },
+        {
+          "key": "aloo samosa",
+          "query": "aloo samosa",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": "Aloo samosa (spiced potato stuffed pastry, deep-fried)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 262,
+            "protein": 4.1,
+            "carbs": 31.2,
+            "fat": 13.5
+          },
+          "modelCalories": 262,
+          "servingGrams": 80,
+          "calorieError": 0
+        },
+        {
+          "key": "masala dosai",
+          "query": "masala dosai",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": "Masala dosa (crispy rice crepe with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 168,
+            "protein": 3.2,
+            "carbs": 22.4,
+            "fat": 7.5
+          },
+          "modelCalories": 168,
+          "servingGrams": 150,
+          "calorieError": 0.03610310254313879
+        },
+        {
+          "key": "masaala dosa",
+          "query": "masaala dosa",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": "Masala dosa (crispy rice crepe with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 168,
+            "protein": 3.2,
+            "carbs": 22.4,
+            "fat": 7.5
+          },
+          "modelCalories": 168,
+          "servingGrams": 150,
+          "calorieError": 0.03610310254313879
+        },
+        {
+          "key": "veg pulav",
+          "query": "veg pulav",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": "Vegetable pulao (spiced basmati rice with mixed vegetables)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 135,
+            "protein": 2.8,
+            "carbs": 21.5,
+            "fat": 4.2
+          },
+          "modelCalories": 135,
+          "servingGrams": 200,
+          "calorieError": 0.19973872356686762
+        },
+        {
+          "key": "mix veg pulao",
+          "query": "mix veg pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": "Mixed vegetable pulao (spiced basmati rice with mixed vegetables)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 135,
+            "protein": 2.8,
+            "carbs": 21.5,
+            "fat": 4.2
+          },
+          "modelCalories": 135,
+          "servingGrams": 200,
+          "calorieError": 0.19973872356686762
+        },
+        {
+          "key": "mutton biriyani",
+          "query": "mutton biriyani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": "Mutton Biryani",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 185,
+            "protein": 8.5,
+            "carbs": 19,
+            "fat": 7.5
+          },
+          "modelCalories": 185,
+          "servingGrams": 350,
+          "calorieError": 0
+        },
+        {
+          "key": "gosht biryani",
+          "query": "gosht biryani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": "Gosht Biryani (Mutton Biryani)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 185,
+            "protein": 8.5,
+            "carbs": 19,
+            "fat": 7.5
+          },
+          "modelCalories": 185,
+          "servingGrams": 350,
+          "calorieError": 0
+        },
+        {
+          "key": "rajmah",
+          "query": "rajmah",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": "Rajma (Red Kidney Bean Curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 115,
+            "protein": 5.5,
+            "carbs": 14.5,
+            "fat": 4
+          },
+          "modelCalories": 115,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "rajma curry",
+          "query": "rajma curry",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": "Rajma Curry",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 115,
+            "protein": 5.5,
+            "carbs": 14.5,
+            "fat": 4
+          },
+          "modelCalories": 115,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "chiken korma",
+          "query": "chiken korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": "Chicken Korma",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 160,
+            "protein": 11,
+            "carbs": 5,
+            "fat": 10.5
+          },
+          "modelCalories": 160,
+          "servingGrams": 250,
+          "calorieError": 0.16381410979131372
+        },
+        {
+          "key": "murgh korma",
+          "query": "murgh korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": "Murgh korma (chicken braised in yogurt and spices gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 165,
+            "protein": 13.5,
+            "carbs": 3.5,
+            "fat": 11
+          },
+          "modelCalories": 165,
+          "servingGrams": 250,
+          "calorieError": 0.20018330072229226
+        },
+        {
+          "key": "palak panir",
+          "query": "palak panir",
+          "ref": {
+            "kind": "range",
+            "low": 77.683,
+            "high": 101,
+            "macros": {
+              "protein": 4.727,
+              "carbs": 4.355,
+              "fat": 5.8915
+            }
+          },
+          "name": "Palak paneer (cottage cheese in smooth spinach gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 155,
+            "protein": 7.5,
+            "carbs": 5,
+            "fat": 12
+          },
+          "modelCalories": 155,
+          "servingGrams": 200,
+          "calorieError": 0.5346534653465347
+        },
+        {
+          "key": "panir",
+          "query": "panir",
+          "ref": {
+            "kind": "point",
+            "calories": 313.5,
+            "macros": {
+              "protein": 20.93,
+              "carbs": 11.6585,
+              "fat": 20.009999999999998
+            },
+            "low": 299,
+            "high": 328
+          },
+          "name": "Paneer (Indian cottage cheese)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 296,
+            "protein": 18.3,
+            "carbs": 3.6,
+            "fat": 25
+          },
+          "modelCalories": 296,
+          "servingGrams": 50,
+          "calorieError": 0.05582137161084529
+        },
+        {
+          "key": "kheere ka raita",
+          "query": "kheere ka raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": "Kheere ka raita (cucumber yogurt dip)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 60,
+            "protein": 3.5,
+            "carbs": 4.5,
+            "fat": 3.2
+          },
+          "modelCalories": 60,
+          "servingGrams": 100,
+          "calorieError": 0.03336921420882669
+        },
+        {
+          "key": "kakdi raita",
+          "query": "kakdi raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": "Kakdi raita (cucumber yogurt dip)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 60,
+            "protein": 3.5,
+            "carbs": 4.5,
+            "fat": 3.2
+          },
+          "modelCalories": 60,
+          "servingGrams": 100,
+          "calorieError": 0.03336921420882669
+        },
+        {
+          "key": "anda curry",
+          "query": "anda curry",
+          "ref": {
+            "kind": "range",
+            "low": 117.521,
+            "high": 149,
+            "macros": {
+              "protein": 5.3415,
+              "carbs": 4.4245,
+              "fat": 10.5045
+            }
+          },
+          "name": "Anda curry (boiled egg curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 115,
+            "protein": 6.5,
+            "carbs": 4.5,
+            "fat": 8
+          },
+          "modelCalories": 115,
+          "servingGrams": 250,
+          "calorieError": 0.02145148526646302
+        },
+        {
+          "key": "machli curry",
+          "query": "machli curry",
+          "ref": {
+            "kind": "range",
+            "low": 93,
+            "high": 139,
+            "macros": {
+              "protein": 8.334000000000001,
+              "carbs": 4.801666666666667,
+              "fat": 7.236999999999999
+            }
+          },
+          "name": "Machli curry (fish curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 110,
+            "protein": 9,
+            "carbs": 3.5,
+            "fat": 7
+          },
+          "modelCalories": 110,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "mixed veg curry",
+          "query": "mixed veg curry",
+          "ref": {
+            "kind": "point",
+            "calories": 88,
+            "macros": {
+              "protein": 2.05,
+              "fat": 5.685
+            },
+            "low": 86,
+            "high": 90
+          },
+          "name": "Mixed vegetable curry",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 85,
+            "protein": 2,
+            "carbs": 8.5,
+            "fat": 5
+          },
+          "modelCalories": 85,
+          "servingGrams": 200,
+          "calorieError": 0.03409090909090909
+        },
+        {
+          "key": "aloo gobhi",
+          "query": "aloo gobhi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": "Aloo gobhi (potato and cauliflower dry curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 2.2,
+            "carbs": 10,
+            "fat": 5.5
+          },
+          "modelCalories": 95,
+          "servingGrams": 150,
+          "calorieError": 0.10452122520348586
+        },
+        {
+          "key": "gobi aloo sabzi",
+          "query": "gobi aloo sabzi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": "Gobi aloo sabzi (cauliflower and potato curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 2.2,
+            "carbs": 10,
+            "fat": 5.5
+          },
+          "modelCalories": 95,
+          "servingGrams": 150,
+          "calorieError": 0.10452122520348586
+        },
+        {
+          "key": "aloo mutter",
+          "query": "aloo mutter",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": "Aloo matar (potato and green pea curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 105,
+            "protein": 2.5,
+            "carbs": 14,
+            "fat": 4.5
+          },
+          "modelCalories": 105,
+          "servingGrams": 200,
+          "calorieError": 0.08851718042949777
+        },
+        {
+          "key": "matar aloo ki sabzi",
+          "query": "matar aloo ki sabzi",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": "Matar aloo ki sabzi (potato and green pea curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 105,
+            "protein": 2.5,
+            "carbs": 14,
+            "fat": 4.5
+          },
+          "modelCalories": 105,
+          "servingGrams": 200,
+          "calorieError": 0.08851718042949777
+        },
+        {
+          "key": "sabut moong",
+          "query": "sabut moong",
+          "ref": {
+            "kind": "range",
+            "low": 53.699,
+            "high": 74,
+            "macros": {
+              "protein": 3.2245,
+              "carbs": 7.172000000000001,
+              "fat": 2.682
+            }
+          },
+          "name": "Sabut moong dal (whole green gram curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 6,
+            "carbs": 12.5,
+            "fat": 3
+          },
+          "modelCalories": 95,
+          "servingGrams": 200,
+          "calorieError": 0.28378378378378377
+        },
+        {
+          "key": "dhuli moong dal",
+          "query": "dhuli moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": "Dhuli moong dal (split yellow mung bean soup)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 85,
+            "protein": 5.5,
+            "carbs": 10.5,
+            "fat": 2.5
+          },
+          "modelCalories": 85,
+          "servingGrams": 200,
+          "calorieError": 0.14864864864864866
+        },
+        {
+          "key": "yellow moong daal",
+          "query": "yellow moong daal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": "Yellow moong dal (split yellow mung bean curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 85,
+            "protein": 5.5,
+            "carbs": 10.5,
+            "fat": 2.5
+          },
+          "modelCalories": 85,
+          "servingGrams": 200,
+          "calorieError": 0.14864864864864866
+        },
+        {
+          "key": "burfi",
+          "query": "burfi",
+          "ref": {
+            "kind": "range",
+            "low": 284,
+            "high": 408.324,
+            "macros": {
+              "protein": 7.618,
+              "carbs": 35.657,
+              "fat": 19.662
+            }
+          },
+          "name": "Barfi (Indian milk-based sweet fudge)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 420,
+            "protein": 8,
+            "carbs": 56,
+            "fat": 18
+          },
+          "modelCalories": 420,
+          "servingGrams": 30,
+          "calorieError": 0.02859493931289855
+        },
+        {
+          "key": "veg fried rice",
+          "query": "veg fried rice",
+          "ref": {
+            "kind": "range",
+            "low": 120.584,
+            "high": 174,
+            "macros": {
+              "protein": 4.051,
+              "carbs": 23.096,
+              "fat": 4.1975
+            }
+          },
+          "name": "Vegetable fried rice",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 165,
+            "protein": 3.5,
+            "carbs": 23.5,
+            "fat": 6.5
+          },
+          "modelCalories": 165,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "chicken chowmein",
+          "query": "chicken chowmein",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": "Chicken chow mein (stir-fried noodles with chicken and vegetables)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 155,
+            "protein": 8,
+            "carbs": 17,
+            "fat": 6
+          },
+          "modelCalories": 155,
+          "servingGrams": 300,
+          "calorieError": 0.08307285237134725
+        },
+        {
+          "key": "chicken chowmin",
+          "query": "chicken chowmin",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": "Chicken chow mein (stir-fried noodles with chicken and vegetables)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 155,
+            "protein": 8,
+            "carbs": 17,
+            "fat": 6
+          },
+          "modelCalories": 155,
+          "servingGrams": 300,
+          "calorieError": 0.08307285237134725
+        },
+        {
+          "key": "anda bhurji",
+          "query": "anda bhurji",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": "Anda bhurji (Indian-style spiced scrambled eggs)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 195,
+            "protein": 11,
+            "carbs": 3.5,
+            "fat": 15
+          },
+          "modelCalories": 195,
+          "servingGrams": 150,
+          "calorieError": 0.2801687634445074
+        },
+        {
+          "key": "egg bhurji",
+          "query": "egg bhurji",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": "Egg bhurji (Indian spiced scrambled eggs)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 185,
+            "protein": 11.5,
+            "carbs": 4.2,
+            "fat": 13.5
+          },
+          "modelCalories": 185,
+          "servingGrams": 150,
+          "calorieError": 0.214519083267866
+        }
+      ],
+      "errors": []
+    },
+    {
+      "run": 3,
+      "summary": {
+        "eligible": 41,
+        "scored": 41,
+        "coverage": 1,
+        "calorieMaeKcal": 18.51351388888889,
+        "calorieMape": 0.1009729120321021,
+        "calorieMedianError": 0.05331554714058274,
+        "within10": 0.6585365853658537,
+        "within20": 0.7560975609756098,
+        "over50": 0,
+        "macroMaeGrams": {
+          "protein": 0.8903658536585366,
+          "carbs": 2.4732809523809536,
+          "fat": 1.5991910569105692
+        },
+        "matchedCatalog": 0,
+        "calls": {
+          "total": 9,
+          "failed": 0,
+          "models": [
+            "gemini-3.5-flash-lite"
+          ]
+        },
+        "latencyMs": {
+          "median": 3209,
+          "p90": 7904,
+          "max": 7904
+        },
+        "tokens": {
+          "input": 4924,
+          "output": 7820
+        },
+        "costUsd": 0.0210272
+      },
+      "rows": [
+        {
+          "key": "nan",
+          "query": "nan",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": "Naan (Indian flatbread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 310,
+            "protein": 8.5,
+            "carbs": 52,
+            "fat": 7.5
+          },
+          "modelCalories": 310,
+          "servingGrams": 90,
+          "calorieError": 0.05388407275199716
+        },
+        {
+          "key": "naan bread",
+          "query": "naan bread",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": "Naan bread",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 310,
+            "protein": 8.5,
+            "carbs": 52,
+            "fat": 7.5
+          },
+          "modelCalories": 310,
+          "servingGrams": 90,
+          "calorieError": 0.05388407275199716
+        },
+        {
+          "key": "chapathi",
+          "query": "chapathi",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Chapati (whole wheat flatbread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 297,
+            "protein": 9,
+            "carbs": 46,
+            "fat": 8.5
+          },
+          "modelCalories": 297,
+          "servingGrams": 40,
+          "calorieError": 0
+        },
+        {
+          "key": "phulka",
+          "query": "phulka",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Phulka (unleavened whole wheat flatbread, cooked on flame)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 280,
+            "protein": 9.5,
+            "carbs": 51,
+            "fat": 4
+          },
+          "modelCalories": 280,
+          "servingGrams": 30,
+          "calorieError": 0
+        },
+        {
+          "key": "roti",
+          "query": "roti",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": "Roti (whole wheat flatbread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 290,
+            "protein": 9.2,
+            "carbs": 48,
+            "fat": 6.5
+          },
+          "modelCalories": 290,
+          "servingGrams": 35,
+          "calorieError": 0
+        },
+        {
+          "key": "parantha",
+          "query": "parantha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": "Paratha (wheat flatbread pan-fried with ghee or oil)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 326,
+            "protein": 6.5,
+            "carbs": 40.8,
+            "fat": 15.2
+          },
+          "modelCalories": 326,
+          "servingGrams": 70,
+          "calorieError": 0.021622248383737268
+        },
+        {
+          "key": "plain prantha",
+          "query": "plain prantha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": "Plain paratha (layered wheat flatbread cooked with ghee or oil)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 330,
+            "protein": 6.2,
+            "carbs": 39.5,
+            "fat": 16
+          },
+          "modelCalories": 330,
+          "servingGrams": 75,
+          "calorieError": 0.034157490695194165
+        },
+        {
+          "key": "mooli parantha",
+          "query": "mooli parantha",
+          "ref": {
+            "kind": "point",
+            "calories": 177.262,
+            "macros": {
+              "protein": 4.599,
+              "carbs": 28.107,
+              "fat": 5.914
+            },
+            "low": 171,
+            "high": 183.524
+          },
+          "name": "Mooli paratha (whole wheat flatbread stuffed with spiced grated radish)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 240,
+            "protein": 5.8,
+            "carbs": 33.2,
+            "fat": 9.5
+          },
+          "modelCalories": 240,
+          "servingGrams": 100,
+          "calorieError": 0.35392808385327934
+        },
+        {
+          "key": "poori",
+          "query": "poori",
+          "ref": {
+            "kind": "point",
+            "calories": 387.5,
+            "macros": {
+              "protein": 7.02,
+              "carbs": 37.9345,
+              "fat": 23.62
+            },
+            "low": 366,
+            "high": 409
+          },
+          "name": "Poori (deep-fried unleavened wheat bread)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 385,
+            "protein": 7,
+            "carbs": 44,
+            "fat": 20
+          },
+          "modelCalories": 385,
+          "servingGrams": 30,
+          "calorieError": 0.0064516129032258064
+        },
+        {
+          "key": "samose",
+          "query": "samose",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": "Samosa (crispy pastry filled with spiced potatoes and peas)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 262,
+            "protein": 4.5,
+            "carbs": 30.5,
+            "fat": 14
+          },
+          "modelCalories": 262,
+          "servingGrams": 90,
+          "calorieError": 0
+        },
+        {
+          "key": "aloo samosa",
+          "query": "aloo samosa",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": "Aloo samosa (fried pastry with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 262,
+            "protein": 4.5,
+            "carbs": 31,
+            "fat": 13.5
+          },
+          "modelCalories": 262,
+          "servingGrams": 80,
+          "calorieError": 0
+        },
+        {
+          "key": "masala dosai",
+          "query": "masala dosai",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": "Masala dosa (crispy rice crepe with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 165,
+            "protein": 3.2,
+            "carbs": 24,
+            "fat": 6.8
+          },
+          "modelCalories": 165,
+          "servingGrams": 180,
+          "calorieError": 0.05331554714058274
+        },
+        {
+          "key": "masaala dosa",
+          "query": "masaala dosa",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": "Masala dosa (crispy rice crepe with spiced potato filling)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 165,
+            "protein": 3.2,
+            "carbs": 24,
+            "fat": 6.8
+          },
+          "modelCalories": 165,
+          "servingGrams": 180,
+          "calorieError": 0.05331554714058274
+        },
+        {
+          "key": "veg pulav",
+          "query": "veg pulav",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": "Vegetable pulao (spiced rice with mixed vegetables)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 145,
+            "protein": 2.8,
+            "carbs": 22.5,
+            "fat": 5
+          },
+          "modelCalories": 145,
+          "servingGrams": 250,
+          "calorieError": 0.28860825864589484
+        },
+        {
+          "key": "mix veg pulao",
+          "query": "mix veg pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": "Mixed vegetable pulao (spiced rice with mixed vegetables)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 145,
+            "protein": 2.8,
+            "carbs": 22.5,
+            "fat": 5
+          },
+          "modelCalories": 145,
+          "servingGrams": 250,
+          "calorieError": 0.28860825864589484
+        },
+        {
+          "key": "mutton biriyani",
+          "query": "mutton biriyani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": "Mutton Biryani",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 185,
+            "protein": 8.5,
+            "carbs": 18,
+            "fat": 8
+          },
+          "modelCalories": 185,
+          "servingGrams": 350,
+          "calorieError": 0
+        },
+        {
+          "key": "gosht biryani",
+          "query": "gosht biryani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": "Gosht Biryani (Mutton Biryani)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 185,
+            "protein": 8.5,
+            "carbs": 18,
+            "fat": 8
+          },
+          "modelCalories": 185,
+          "servingGrams": 350,
+          "calorieError": 0
+        },
+        {
+          "key": "rajmah",
+          "query": "rajmah",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": "Rajma (Kidney Bean Curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 115,
+            "protein": 5.5,
+            "carbs": 14.5,
+            "fat": 4
+          },
+          "modelCalories": 115,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "rajma curry",
+          "query": "rajma curry",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": "Rajma Curry",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 115,
+            "protein": 5.5,
+            "carbs": 14.5,
+            "fat": 4
+          },
+          "modelCalories": 115,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "chiken korma",
+          "query": "chiken korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": "Chicken Korma",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 160,
+            "protein": 11,
+            "carbs": 4.5,
+            "fat": 10.5
+          },
+          "modelCalories": 160,
+          "servingGrams": 250,
+          "calorieError": 0.16381410979131372
+        },
+        {
+          "key": "murgh korma",
+          "query": "murgh korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": "Murgh korma (chicken in creamy yogurt and spice gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 165,
+            "protein": 12,
+            "carbs": 4.5,
+            "fat": 11
+          },
+          "modelCalories": 165,
+          "servingGrams": 250,
+          "calorieError": 0.20018330072229226
+        },
+        {
+          "key": "palak panir",
+          "query": "palak panir",
+          "ref": {
+            "kind": "range",
+            "low": 77.683,
+            "high": 101,
+            "macros": {
+              "protein": 4.727,
+              "carbs": 4.355,
+              "fat": 5.8915
+            }
+          },
+          "name": "Palak paneer (cottage cheese in spinach gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 150,
+            "protein": 7.5,
+            "carbs": 4.5,
+            "fat": 12
+          },
+          "modelCalories": 150,
+          "servingGrams": 250,
+          "calorieError": 0.48514851485148514
+        },
+        {
+          "key": "panir",
+          "query": "panir",
+          "ref": {
+            "kind": "point",
+            "calories": 313.5,
+            "macros": {
+              "protein": 20.93,
+              "carbs": 11.6585,
+              "fat": 20.009999999999998
+            },
+            "low": 299,
+            "high": 328
+          },
+          "name": "Paneer (Indian cottage cheese)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 265,
+            "protein": 18.3,
+            "carbs": 3.6,
+            "fat": 20.8
+          },
+          "modelCalories": 265,
+          "servingGrams": 50,
+          "calorieError": 0.1547049441786284
+        },
+        {
+          "key": "kheere ka raita",
+          "query": "kheere ka raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": "Kheere ka raita (cucumber yogurt dip)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 55,
+            "protein": 3.2,
+            "carbs": 4,
+            "fat": 3
+          },
+          "modelCalories": 55,
+          "servingGrams": 150,
+          "calorieError": 0.0527448869752422
+        },
+        {
+          "key": "kakdi raita",
+          "query": "kakdi raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": "Kakdi raita (cucumber yogurt salad)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 55,
+            "protein": 3.2,
+            "carbs": 4,
+            "fat": 3
+          },
+          "modelCalories": 55,
+          "servingGrams": 150,
+          "calorieError": 0.0527448869752422
+        },
+        {
+          "key": "anda curry",
+          "query": "anda curry",
+          "ref": {
+            "kind": "range",
+            "low": 117.521,
+            "high": 149,
+            "macros": {
+              "protein": 5.3415,
+              "carbs": 4.4245,
+              "fat": 10.5045
+            }
+          },
+          "name": "Anda curry (boiled egg curry in spiced onion-tomato gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 115,
+            "protein": 6.5,
+            "carbs": 4.5,
+            "fat": 8
+          },
+          "modelCalories": 115,
+          "servingGrams": 250,
+          "calorieError": 0.02145148526646302
+        },
+        {
+          "key": "machli curry",
+          "query": "machli curry",
+          "ref": {
+            "kind": "range",
+            "low": 93,
+            "high": 139,
+            "macros": {
+              "protein": 8.334000000000001,
+              "carbs": 4.801666666666667,
+              "fat": 7.236999999999999
+            }
+          },
+          "name": "Machli curry (fish curry in spiced gravy)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 105,
+            "protein": 10,
+            "carbs": 3.5,
+            "fat": 6
+          },
+          "modelCalories": 105,
+          "servingGrams": 250,
+          "calorieError": 0
+        },
+        {
+          "key": "mixed veg curry",
+          "query": "mixed veg curry",
+          "ref": {
+            "kind": "point",
+            "calories": 88,
+            "macros": {
+              "protein": 2.05,
+              "fat": 5.685
+            },
+            "low": 86,
+            "high": 90
+          },
+          "name": "Mixed vegetable curry",
+          "sameAs": null,
+          "confidence": "medium",
+          "estimate": {
+            "calories": 85,
+            "protein": 2,
+            "carbs": 8,
+            "fat": 5
+          },
+          "modelCalories": 85,
+          "servingGrams": 200,
+          "calorieError": 0.03409090909090909
+        },
+        {
+          "key": "aloo gobhi",
+          "query": "aloo gobhi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": "Aloo gobhi (potato and cauliflower dry curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 2,
+            "carbs": 10,
+            "fat": 5.5
+          },
+          "modelCalories": 95,
+          "servingGrams": 150,
+          "calorieError": 0.10452122520348586
+        },
+        {
+          "key": "gobi aloo sabzi",
+          "query": "gobi aloo sabzi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": "Gobi aloo sabzi (cauliflower and potato stir-fry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 2,
+            "carbs": 10,
+            "fat": 5.5
+          },
+          "modelCalories": 95,
+          "servingGrams": 150,
+          "calorieError": 0.10452122520348586
+        },
+        {
+          "key": "aloo mutter",
+          "query": "aloo mutter",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": "Aloo matar (potato and green pea curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 105,
+            "protein": 2.5,
+            "carbs": 14,
+            "fat": 4.5
+          },
+          "modelCalories": 105,
+          "servingGrams": 200,
+          "calorieError": 0.08851718042949777
+        },
+        {
+          "key": "matar aloo ki sabzi",
+          "query": "matar aloo ki sabzi",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": "Matar aloo ki sabzi (potato and pea curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 105,
+            "protein": 2.5,
+            "carbs": 14,
+            "fat": 4.5
+          },
+          "modelCalories": 105,
+          "servingGrams": 200,
+          "calorieError": 0.08851718042949777
+        },
+        {
+          "key": "sabut moong",
+          "query": "sabut moong",
+          "ref": {
+            "kind": "range",
+            "low": 53.699,
+            "high": 74,
+            "macros": {
+              "protein": 3.2245,
+              "carbs": 7.172000000000001,
+              "fat": 2.682
+            }
+          },
+          "name": "Sabut moong dal (whole green gram curry)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 95,
+            "protein": 6.5,
+            "carbs": 11.5,
+            "fat": 3
+          },
+          "modelCalories": 95,
+          "servingGrams": 200,
+          "calorieError": 0.28378378378378377
+        },
+        {
+          "key": "dhuli moong dal",
+          "query": "dhuli moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": "Dhuli moong dal (split yellow mung dal)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 90,
+            "protein": 6,
+            "carbs": 10,
+            "fat": 3
+          },
+          "modelCalories": 90,
+          "servingGrams": 200,
+          "calorieError": 0.21621621621621623
+        },
+        {
+          "key": "yellow moong daal",
+          "query": "yellow moong daal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": "Yellow moong dal cooked curry",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 90,
+            "protein": 6,
+            "carbs": 10,
+            "fat": 3
+          },
+          "modelCalories": 90,
+          "servingGrams": 200,
+          "calorieError": 0.21621621621621623
+        },
+        {
+          "key": "burfi",
+          "query": "burfi",
+          "ref": {
+            "kind": "range",
+            "low": 284,
+            "high": 408.324,
+            "macros": {
+              "protein": 7.618,
+              "carbs": 35.657,
+              "fat": 19.662
+            }
+          },
+          "name": "Burfi (Indian milk-based sweet)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 410,
+            "protein": 8.5,
+            "carbs": 53,
+            "fat": 18
+          },
+          "modelCalories": 410,
+          "servingGrams": 30,
+          "calorieError": 0.0041045836149723935
+        },
+        {
+          "key": "veg fried rice",
+          "query": "veg fried rice",
+          "ref": {
+            "kind": "range",
+            "low": 120.584,
+            "high": 174,
+            "macros": {
+              "protein": 4.051,
+              "carbs": 23.096,
+              "fat": 4.1975
+            }
+          },
+          "name": "Vegetable fried rice",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 165,
+            "protein": 3.5,
+            "carbs": 24,
+            "fat": 6.5
+          },
+          "modelCalories": 165,
+          "servingGrams": 150,
+          "calorieError": 0
+        },
+        {
+          "key": "chicken chowmein",
+          "query": "chicken chowmein",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": "Chicken chow mein",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 155,
+            "protein": 8,
+            "carbs": 18,
+            "fat": 5.5
+          },
+          "modelCalories": 155,
+          "servingGrams": 300,
+          "calorieError": 0.08307285237134725
+        },
+        {
+          "key": "chicken chowmin",
+          "query": "chicken chowmin",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": "Chicken chow mein",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 155,
+            "protein": 8,
+            "carbs": 18,
+            "fat": 5.5
+          },
+          "modelCalories": 155,
+          "servingGrams": 300,
+          "calorieError": 0.08307285237134725
+        },
+        {
+          "key": "anda bhurji",
+          "query": "anda bhurji",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": "Anda bhurji (Indian spiced scrambled eggs)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 195,
+            "protein": 11.5,
+            "carbs": 3.5,
+            "fat": 14
+          },
+          "modelCalories": 195,
+          "servingGrams": 150,
+          "calorieError": 0.2801687634445074
+        },
+        {
+          "key": "egg bhurji",
+          "query": "egg bhurji",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": "Egg bhurji (Indian scrambled eggs with onions and spices)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 185,
+            "protein": 11.5,
+            "carbs": 3.2,
+            "fat": 13.5
+          },
+          "modelCalories": 185,
+          "servingGrams": 150,
+          "calorieError": 0.214519083267866
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

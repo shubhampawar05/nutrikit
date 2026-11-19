@@ -3,7 +3,7 @@
 import { foods } from './db.ts';
 import { lookup } from './lookup.ts';
 import { headSegments } from './names.ts';
-import { closestWord, vocabulary } from './spelling.ts';
+import { catalogSpelling, closestWord, vocabulary } from './spelling.ts';
 
 interface SearchRow {
   id: number;
@@ -37,16 +37,18 @@ export interface SearchResult {
   match?: SearchMatch; // absent when nothing matched
   /** Set when the query as typed found no good match: the respelled query these results are for. */
   didYouMean?: string;
+  /** Set when the query matched through an equivalent form ("murgh korma" as "chicken korma"): that form. */
+  matchedAs?: string;
   total: number;
   results: SearchHit[];
 }
 
 // Everyday words -> the wording USDA uses.
 const SYNONYMS: Record<string, string> = lookup({
-  soda: 'soft drink', pop: 'soft drink', fries: 'french fries', chips: 'potato chips', ketchup: 'catsup',
+  soda: 'soft drink', pop: 'soft drink', fries: 'french fries', ketchup: 'catsup',
   yoghurt: 'yogurt', burger: 'hamburger', pb: 'peanut butter',
   oj: 'orange juice', espresso: 'coffee espresso', latte: 'coffee latte',
-  toast: 'bread toasted', aubergine: 'eggplant', courgette: 'zucchini', prawns: 'shrimp', prawn: 'shrimp', mince: 'ground beef',
+  aubergine: 'eggplant', courgette: 'zucchini', prawns: 'shrimp', prawn: 'shrimp', mince: 'ground beef',
   donut: 'doughnut', donuts: 'doughnut',
   // Indian English: curd and dahi are plain, unsweetened yogurt, whole milk unless a fat level is given (PHRASES keeps
   // "low fat curd" low fat; "bean curd" is tofu).
@@ -114,7 +116,166 @@ const BARE_DEFAULTS: Record<string, string> = lookup({
   khichdi: 'Khichadi, with butter ghee',
   khichri: 'Khichadi, with butter ghee',
   'moong dal': 'Curry, mung bean dahl and tomato, homemade',
+  // Roti and chapati as eaten in Indian homes: INDB "Chapati/Roti" (Indian Nutrient Databank published total, food
+  // id 878591004: 202 kcal per 100 g, 1 chapati = 36 g). CoFID 2021 11-459 "Chapatis, made without fat" agrees at
+  // 202 kcal per 100 g (benchmark set A, data/eval/sets/A.json). USDA's "Bread, chapati or roti, plain, commercially
+  // prepared" (297 kcal, 68 g a piece) is a packaged product: about 2.8x the energy of 2 home rotis. It stays
+  // searchable by name ("chapati commercially prepared"). Owner-approved 2026-11-19 (audit P0-3).
+  roti: 'Chapati/Roti', rotis: 'Chapati/Roti', chapati: 'Chapati/Roti', chapatis: 'Chapati/Roti',
+  chapathi: 'Chapati/Roti', phulka: 'Chapati/Roti', phulkas: 'Chapati/Roti',
+  // "Plain rice" is how Indian English names steamed white rice.
+  'plain rice': 'Rice, cooked, NFS',
+  // Chips alone are potato chips; "corn chips" or "tortilla chips" are not (no synonym rewrites them any more).
+  chips: 'Potato chips, NFS',
+  // Toast alone is toasted bread; "french toast" is not (no synonym rewrites it any more).
+  toast: 'Bread, white, toasted',
+  // Palak alone is the spinach itself, not palak paneer.
+  palak: 'Spinach, cooked, boiled, drained, without salt',
+  // Other spellings of dal alone mean plain dal too, not dal baati.
+  daal: 'Dal',
+  dhal: 'Dal',
 });
+
+// Bare words with no single defensible food (audit P0-4): "chicken" could be breast, leg or thigh, roasted, curried or
+// raw mince, at very different weights and fat. Logging asks instead, offering these reviewed catalog foods; a more
+// specific phrase ("chicken breast", "chicken curry", "grilled chicken") is matched as usual.
+const AMBIGUOUS_BARE: Record<string, string[]> = lookup({
+  chicken: [
+    'Chicken breast, baked, broiled, or roasted, skin not eaten, from raw',
+    'Chicken thigh, baked, broiled, or roasted, skin not eaten, from raw',
+    'Chicken drumstick, baked, broiled, or roasted, skin not eaten, from raw',
+    'Chicken curry',
+    'Tandoori chicken',
+  ],
+});
+
+/** For a bare word with no single defensible food, the reviewed foods to suggest instead; else null. */
+export function ambiguousBare(food: string): { id: number; name: string }[] | null {
+  const tokens = normalizeQuery(food).split(' ').filter(Boolean);
+  const names = AMBIGUOUS_BARE[tokens.join(' ')] ?? AMBIGUOUS_BARE[tokens.map(singular).join(' ')];
+  if (!names) return null;
+  const byName = foods().prepare('SELECT id, name FROM foods WHERE name = ?');
+  return names.map((n) => byName.get(n) as { id: number; name: string } | undefined).filter((r): r is { id: number; name: string } => !!r);
+}
+
+// Hindi and Indian-English words for the catalog's English ones (M7.3). Each is the same food, so a phrase using
+// them may match on the English word; they are only tried when the phrase as typed matches no food on all its words.
+const HINDI_WORDS: Record<string, string> = lookup({
+  murgh: 'chicken', murg: 'chicken', gosht: 'mutton', anda: 'egg', ande: 'egg',
+  kakdi: 'cucumber', kakri: 'cucumber', kheera: 'cucumber', khira: 'cucumber',
+  aloo: 'potato', alu: 'potato', gobi: 'cauliflower', gobhi: 'cauliflower', matar: 'pea', mattar: 'pea', mutter: 'pea', muttar: 'pea',
+  palak: 'spinach', methi: 'fenugreek', baingan: 'brinjal', bengan: 'brinjal', baigan: 'brinjal', bhindi: 'okra', chawal: 'rice',
+  dahl: 'dal', nan: 'naan', phulka: 'chapati', veg: 'vegetable', mix: 'mixed',
+});
+// Words that join a Hindi dish name without naming any food: "matar aloo ki sabzi" is the dish "matar aloo". The
+// genitive ki/ka/ke may go anywhere; "sabzi" only right after one ("… ki sabzi", a dish of …). A sabzi on its own is
+// a food: "roti sabzi" is roti and a sabzi, never roti alone. Only dropped in the last equivalent forms, and only when
+// every remaining word still names the food.
+const GENITIVES = new Set(['ki', 'ka', 'ke']);
+const SABZI = new Set(['sabzi', 'sabji', 'subzi', 'subji']);
+// Whole-phrase equivalences.
+const EQUIVALENT_PHRASES: [RegExp, string][] = [
+  [/\byellow (moong|mung)\b/g, 'washed $1'], // yellow moong dal is dhuli (washed, split) moong dal
+];
+
+/**
+ * True when every word of `form` is in what identifies the food: its first two name segments ("Curry, chicken
+ * korma"; "Bread, chapati or roti"), a bracketed other name ("(Matar paneer)") or a reviewed alias. A word found only
+ * further on, in a description ("fried in vegetable oil"), doesn't count.
+ */
+function identifiedBy(form: string, hit: { id: number; name: string }): boolean {
+  const row = foods().prepare('SELECT aliases FROM foods WHERE id = ?').get(hit.id) as { aliases: string | null } | undefined;
+  const aliases = row?.aliases?.split('|').filter(Boolean) ?? [];
+  const brackets = [...hit.name.matchAll(/\(([^()]*)\)/g)].flatMap((m) => m[1].split('/'));
+  const segments = hit.name.replace(/\([^()]*\)/g, ' ').split(',').map((x) => x.trim().toLowerCase());
+  const identity = `${segments.slice(0, 2).join(' ')} ${brackets.join(' ')} ${aliases.join(' ')}`;
+  if (wordCoverage(form, identity) < 1) return false;
+  // And one of the food's names must be the form's whole subject, so one word can't stand for a longer dish
+  // ("paaner" is not "Paaner do pyaza"). A category-led name is named by its dish segment ("Curry, chicken korma").
+  const names = [segments[0], ...(GENERIC_HEADS.has(segments[0]) && segments[1] ? segments[1].split(/\s+or\s+/) : []), ...brackets, ...aliases];
+  const typed = form.toLowerCase().split(/\s+/).filter(Boolean).flatMap((w) => [w, ...normalizeQuery(w).split(' ')]).map(singular);
+  return names.some((n) => {
+    const words = n.toLowerCase().split(/[^a-z0-9']+/).filter((w) => w && !LINK_WORDS.has(w) && !DISH_WORDS.has(w)).map(singular);
+    return words.length > 0 && words.every((w) => typed.includes(w));
+  });
+}
+// Leading name segments that are a category, not the dish: the dish is the next segment ("Curry, chicken korma").
+const GENERIC_HEADS = new Set(['curry', 'bread', 'cheese', 'soup', 'stew', 'bhaji', 'biryani', 'pilau', 'pakora/bhajia']);
+// Words a dish name may carry that say what kind of dish it is, not what it is made of.
+const DISH_WORDS = new Set(['curry', 'homemade', 'sabzi', 'sabji', 'subji', 'dish']);
+
+// Words USDA puts late in a name ("Tea, hot, leaf, green"; "Rice, white, long grain, raw") that describe how the
+// food is prepared or sold, not which food it is: an exact match may find them anywhere in the name.
+const DESCRIPTORS = new Set(['raw', 'cooked', 'plain', 'boiled', 'poached', 'steamed', 'baked', 'roasted', 'grilled',
+  'toasted', 'toast', 'green', 'black', 'hot', 'whole', 'unsalted', 'salted', 'sweetened', 'unsweetened', 'regular', 'nfs',
+  'commercially', 'prepared', 'homemade']);
+
+/**
+ * True when a food found by an exact (all-words) match is the food the phrase names: every word the search used is in
+ * what identifies the food (its first two name segments, a bracketed name or an alias), or is a descriptor USDA puts
+ * later ("green" tea). Exempt: a reviewed alias or a bare-word default for exactly this phrase, which name the food
+ * outright. "vegetable fried rice" is not "Rissoles, brown rice, fried in vegetable oil": "vegetable" and "fried" are
+ * only in its description. Not the M7.1 head rule, which would refuse correct names like "Curry, chicken korma".
+ */
+export function namesFoodExactly(query: string, hit: { id: number; name: string }): boolean {
+  const typed = String(query ?? '');
+  if (aliasedFood(typed) === hit.id) return true;
+  const normalized = normalizeQuery(typed).split(' ').filter(Boolean);
+  const preferred = BARE_DEFAULTS[normalized.join(' ')] ?? BARE_DEFAULTS[normalized.map(singular).join(' ')];
+  if (preferred === hit.name) return true;
+  const row = foods().prepare('SELECT aliases FROM foods WHERE id = ?').get(hit.id) as { aliases: string | null } | undefined;
+  const brackets = [...hit.name.matchAll(/\(([^()]*)\)/g)].map((m) => m[1]).join(' ');
+  const segments = hit.name.replace(/\([^()]*\)/g, ' ').split(',').map((s) => s.trim().toLowerCase());
+  const wordsOf = (s: string) => s.split(/[^a-z0-9']+/).filter(Boolean);
+  // Spellings of one word: as written, singular, without a plural s, and a light stem ("sprouts"/"sprouted",
+  // "fries"/"fried").
+  const forms = (w: string) => [w, singular(w), w.replace(/s$/, ''), w.replace(/(ies|ied|es|ed|ing|s)$/, '')];
+  const said = (ws: string[]) => new Set(ws.flatMap((t) => t.split('-')).filter(Boolean).flatMap(forms));
+  const typedWords = String(typed).toLowerCase().replace(/[^a-z0-9\s'-]/g, ' ').split(/\s+/).filter((w) => w && !LINK_WORDS.has(w));
+  const asked = said([...typedWords, ...normalized]);
+  // Named by its other name: every typed word is in a bracketed name or an alias ("rasam masala" for "Rasam powder
+  // (Rasam masala)", "besan burfi" for "Gram flour burfi (Besan burfi)").
+  const other = new Set(wordsOf(`${brackets} ${row?.aliases?.replaceAll('|', ' ') ?? ''}`.toLowerCase()).flatMap(forms));
+  if (typedWords.length && typedWords.every((w) => forms(w).some((f) => other.has(f)))) return true;
+  // A product form the phrase didn't ask for, as the main name's last word, is another product: "apple pie" is not
+  // "Apple pie filling" (while "Gram flour burfi" is a burfi, and "…, Pan Crust" is a pizza's crust).
+  const headLast = wordsOf(segments[0]).at(-1) ?? '';
+  if (PRODUCT_FORMS.has(headLast) && !forms(headLast).some((f) => asked.has(f))) return false;
+  // A USDA group prefix ("Snacks, rice cracker brown rice") names a product in its next segment; the phrase must name
+  // all of it: "plain rice" is not a rice cracker.
+  if (GROUP_PREFIXES.has(segments[0]) && segments[1] && !wordsOf(segments[1]).every((w) => DESCRIPTORS.has(w) || forms(w).some((f) => asked.has(f)))) return false;
+  const identity = `${segments.slice(0, 2).join(' ')} ${brackets} ${row?.aliases?.replaceAll('|', ' ') ?? ''}`;
+  const known = new Set(wordsOf(identity.toLowerCase()).flatMap(forms));
+  const covered = (ws: string[]) => ws.flatMap((t) => t.split('-')).filter((w) => w && !LINK_WORDS.has(w)).every((w) => DESCRIPTORS.has(w) || forms(w).some((f) => known.has(f)));
+  if (covered(typedWords) || covered(normalized)) return true;
+  // A reviewed phrase rewrite ("sweet curd" -> USDA's "yogurt … flavors other than fruit") names the food in USDA's
+  // own wording, which may run past the second segment: its words may be anywhere in the name.
+  if (PHRASES.some(([p]) => new RegExp(p.source).test(typed.toLowerCase()))) {
+    const all = new Set(wordsOf(hit.name.toLowerCase()).flatMap(forms));
+    return normalized.flatMap((t) => t.split('-')).filter(Boolean).every((w) => DESCRIPTORS.has(w) || forms(w).some((f) => all.has(f)));
+  }
+  return false;
+}
+// Forms of a food that are another product ("Apple pie filling", "Pancake mix"); an exact match must ask for them.
+const PRODUCT_FORMS = new Set(['filling', 'mix', 'powder', 'crumbs', 'flour', 'concentrate', 'syrup', 'extract', 'batter', 'dough', 'crust', 'stuffing', 'dressing', 'seasoning']);
+// USDA name prefixes that group products; the product is the next segment ("Snacks, rice cracker brown rice").
+const GROUP_PREFIXES = new Set(['snacks', 'babyfood']);
+
+/**
+ * Other ways of writing a phrase that name the same food, most faithful first: romanised spellings in the catalog's
+ * spelling, then without connector words, then with English names for Hindi words, then both. Empty when there is
+ * nothing to rewrite.
+ */
+export function equivalentQueries(query: string): string[] {
+  let base = String(query || '').toLowerCase().replace(/[^a-z0-9\s'-]/g, ' ').replace(/\s+/g, ' ').trim();
+  for (const [pattern, replacement] of EQUIVALENT_PHRASES) base = base.replace(pattern, replacement);
+  const words = base.split(' ').filter(Boolean);
+  const spelled = words.map((w) => catalogSpelling(w) ?? w);
+  const english = spelled.map((w) => HINDI_WORDS[w] ?? HINDI_WORDS[words[spelled.indexOf(w)]] ?? w);
+  const without = (ws: string[]) => ws.filter((w, i) => !GENITIVES.has(w) && !(SABZI.has(w) && GENITIVES.has(ws[i - 1])));
+  const forms = [spelled, without(spelled), english, without(english)].map((ws) => ws.join(' ')).filter((f) => f);
+  return [...new Set(forms)].filter((f) => f !== String(query || '').toLowerCase().trim());
+}
 
 const GENERIC = /\b(raw|nfs|plain|cooked|regular|fresh|boiled|baked|brewed|without salt|ns as to)\b/i;
 // The variety people mean by the bare staple name.
@@ -178,6 +339,26 @@ export function wordCoverage(query: string, name: string): number {
   const nameWords = new Set(name.toLowerCase().split(/[^a-z0-9']+/).filter(Boolean).map(singular));
   const covered = typed.filter((w) => [w, ...normalizeQuery(w).split(' ')].some((f) => nameWords.has(singular(f))));
   return covered.length / typed.length;
+}
+
+const LINK_WORDS = new Set(['and', 'with', 'or', 'in', 'of', 'the', 'a', 'an', 'on', 'style']);
+
+/**
+ * True when the phrase names the food's main dish: every word of its head (the name before the first comma, or the
+ * food segment of a category-led name: "Fish, salmon") is in the phrase, as typed, singular, through a synonym, or
+ * abbreviated (3+ letters: "veg" for "vegetable"). "veg fried rice" does not name "Rissoles, brown rice, fried in
+ * vegetable oil": its words are all in the name, but the dish, rissoles, is not in the phrase. A bracketed other name
+ * counts as a head ("poha aur dahi" names "Poha with curd (Poha aur dahi)").
+ */
+export function namesHead(query: string, name: string): boolean {
+  const typed = String(query || '').toLowerCase().replace(/[^a-z0-9\s'-]/g, ' ').split(/\s+/).filter(Boolean);
+  const forms = typed.flatMap((w) => [w, ...normalizeQuery(w).split(' ')]).filter(Boolean).map(singular);
+  // A bracketed name is the dish's own other name ("Poha with curd (Poha aur dahi)"), so it counts as a head too.
+  const bracketed = [...name.toLowerCase().matchAll(/\(([^()]*)\)/g)].flatMap((m) => m[1].split('/'));
+  return [...headSegments(name), ...bracketed].some((head) => {
+    const words = head.split(/[^a-z0-9']+/).filter((w) => w && !LINK_WORDS.has(w)).map(singular);
+    return words.length > 0 && words.every((w) => forms.some((f) => f === w || (f.length >= 3 && w.startsWith(f))));
+  });
 }
 
 // Category-led names ("Fish, salmon", "Cheese, paneer") also count the food segment as the head.
@@ -284,7 +465,17 @@ function aliasedFood(query: string): number | undefined {
  */
 export function searchFoods(query: string | null | undefined, opts: SearchOptions = {}): SearchResult {
   const asTyped = searchOnce(query, opts);
-  if (asTyped.match === 'all-words' || asTyped.match === 'prefix') return asTyped;
+  if (asTyped.match === 'all-words') return asTyped;
+  // Known equivalent forms (spellings, Hindi names, connector words) before any partial match: one that names a food
+  // on all its words is that food, written another way ("murgh korma" is chicken korma). A fuzzy respelling below is
+  // only ever a suggestion.
+  for (const form of equivalentQueries(String(query ?? ''))) {
+    const r = searchOnce(form, opts);
+    // Every word must also be in what identifies the food, not only in a description of it: "vegetable fried rice"
+    // has every word of "Rissoles, brown rice, fried in vegetable oil", but rissoles aren't what was eaten.
+    if (r.match === 'all-words' && r.results[0] && identifiedBy(normalizeQuery(form), r.results[0])) return { ...r, matchedAs: form };
+  }
+  if (asTyped.match === 'prefix') return asTyped;
   const respelled = correctSpelling(String(query ?? ''));
   if (!respelled) return asTyped;
   const fixed = searchOnce(respelled, opts);

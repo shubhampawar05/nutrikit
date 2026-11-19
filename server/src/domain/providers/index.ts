@@ -48,22 +48,35 @@ export interface FoodEstimate {
   /** False when the text is not a food or drink (gibberish, a brand the model doesn't know): nothing is logged. */
   known: boolean;
   name: string;
-  per100g: { calories: number; protein: number; fat: number; carbs: number; fiber: number; sugar: number; saturatedFat: number; sodium: number };
-  /** One typical serving: "1 bowl", unit "bowl", 250 g. */
-  serving: { label: string; unit: string; grams: number };
+  /** Calories, protein, fat and carbs are required; the others are null when the model can't support a value (never 0). */
+  per100g: { calories: number; protein: number; fat: number; carbs: number; fiber: number | null; sugar: number | null; saturatedFat: number | null; sodium: number | null };
+  /**
+   * One typical serving: "1 bowl", unit "bowl", 250 g. `quantity` is how many `unit`s it holds ("2 idlis": 2), and
+   * `grams` is the whole serving's weight, so one unit weighs grams / quantity. Estimates made before `quantity`
+   * existed lack it; their count is read from the label where that is unambiguous (servingCount in foodrequests.ts).
+   */
+  serving: { label: string; unit: string; grams: number; quantity?: number };
   confidence: 'high' | 'medium' | 'low';
   /** The id of a listed catalog food that is the same dish, when the request offered candidates; else null. */
   sameAs?: number | null;
 }
 
 /** A catalog food offered to the model as possibly the same dish as a food being estimated. */
-export interface CatalogCandidate { id: number; name: string; calories: number | null }
+export interface CatalogCandidate { id: number; name: string; calories: number | null; protein?: number | null; carbs?: number | null; fat?: number | null }
+
+/**
+ * A different system prompt and message for estimateFoods, with the same output schema. Only the evaluation
+ * (scripts/eval-estimates.ts) passes one, to measure prompt variants; logging always uses the built-in prompt.
+ */
+export interface EstimatePrompt { system: string; message: (foods: string[], candidates?: CatalogCandidate[][]) => string }
 
 export interface FoodEstimates {
   foods: FoodEstimate[];
   usage: AIUsage;
   /** The model that answered, when the provider tries more than one; else the provider's `model`. */
   model?: string;
+  /** The exact model version the provider's response reports ("gpt-5-mini-2025-08-07"), when it gives one. */
+  modelVersion?: string;
 }
 
 export interface AdvisorReply {
@@ -90,7 +103,7 @@ export interface AIProvider {
    * catalog foods that may be the same dish as `foods[i]` (the model may pick one: `sameAs`). `signal`, when given,
    * is the deadline to use instead of a fresh aiDeadline(), so several calls can share one.
    */
-  estimateFoods?(args: { foods: string[]; candidates?: CatalogCandidate[][]; signal?: AbortSignal }): Promise<FoodEstimates>;
+  estimateFoods?(args: { foods: string[]; candidates?: CatalogCandidate[][]; signal?: AbortSignal; prompt?: EstimatePrompt }): Promise<FoodEstimates>;
 }
 
 /** The capability methods a provider may implement. */
@@ -141,8 +154,11 @@ let active: AIProvider | undefined;
 
 export async function getProvider(): Promise<AIProvider> {
   if (active) return active;
+  // The OpenAI-compatible provider serves Gemini, and OpenAI only with NUTRIKIT_OPENAI_FALLBACK=1: an OPENAI_API_KEY
+  // alone (no Gemini) leaves AI off rather than spending on OpenAI (openaiKeyUsable in openai.ts).
+  const { openaiKeyUsable } = await import('./openai.ts');
   const name = process.env.NUTRIKIT_AI_PROVIDER
-    || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY ? 'openai' : 'none');
+    || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : process.env.GEMINI_API_KEY || openaiKeyUsable() ? 'openai' : 'none');
   if (name === 'anthropic') {
     const { createAnthropicProvider } = await import('./anthropic.ts');
     active = await createAnthropicProvider();

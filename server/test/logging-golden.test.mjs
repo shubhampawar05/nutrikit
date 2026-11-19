@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { logText } from '../src/domain/textlog.ts';
 
 const GOLDEN = {
-  '2 rotis and dal': [['Bread, chapati or roti, plain, commercially prepared', 136], ['Dal', 240]],
+  '2 rotis and dal': [['Chapati/Roti', 72], ['Dal', 240]], // home roti (audit P0-3)
   'rice with ghee': [['Rice, cooked, NFS', 158], ['Ghee, clarified butter', 14]],
   'a handful of almonds': [['Almonds, NFS', 28.4]],
   'a bowl of oatmeal with blueberries': [['Oatmeal, NFS', 240], ['Blueberries, raw', null]],
