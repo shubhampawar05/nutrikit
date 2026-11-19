@@ -96,7 +96,8 @@ export const CASES = [
   { input: '1 serving pongal', food: /^Ven pongal/, grams: [320, 335] },
   { input: '1 dal baati', food: /^Dal baati/, grams: [560, 580] },
   { input: '1 katori kadai paneer', food: /^Kadhai Paneer$/, grams: [230, 245] },
-  { input: '1 katori malai kofta', food: /^Paneer kofta curry$/, grams: [230, 245] },
+  // INDB's kofta curries count the frying oil as eaten (72 g fat per 100 g) and are left out of the catalog.
+  { input: '1 katori malai kofta', food: /kofta/i, gap: 'malai kofta (INDB value counts the frying oil)' },
   { input: '1 katori baingan bharta', food: /^Brinjal bhartha/, grams: [230, 245] },
   { input: '1 glass nimbu pani', food: /^Lemonade$/, grams: [230, 245] },
   // Portions: katori (taken in cups) and bowl
@@ -128,7 +129,10 @@ export const CASES = [
   { input: 'chiken curry', unmatched: true, didYouMean: 'chicken curry' },
 
   // Dishes the catalog doesn't have yet (need licensed recipes)
-  { input: '1 gulab jamun', food: /Gulab Jamun/ },
+  // INDB's gulab jamun counts the frying oil as eaten and is left out; no other source has it yet.
+  { input: '1 gulab jamun', food: /gulab jamun/i, gap: 'gulab jamun (INDB value counts the frying oil)' },
+  { input: '2 poori', food: /^Bread, puri/, grams: [60, 85] },
+  { input: '1 medu vada', food: /^Vada$/ },
   { input: '1 glass lassi', food: /^Lassi, sweet/ },
   { input: '1 glass chaas', food: /^Lassi.*salted/i },
   { input: '1 masala dosa', food: /^Dosa, with filling/ },

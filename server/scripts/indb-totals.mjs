@@ -92,6 +92,31 @@ const VESSELS = [
   [/(^|\s)bowl$/, 'bowl', 80, 600],
   [/(^|\s)plate$/, 'plate', 80, 700],
 ];
+/**
+ * [pattern on the INDB serving name, lowest and highest believable grams for one piece]. INDB's per-serving weight
+ * is the cooked recipe divided by the cookbook's serving count, which often covers several pieces plus syrup or
+ * gravy ("1 rasgulla" = 342 g). A piece outside its range stays "1 serving" so "1 rasgulla" never claims that
+ * weight for one piece. These are sanity bounds, not data: they decide only whether INDB's own weight is kept.
+ */
+const PIECES = [
+  [/jamun|rasgull|chum chum|rasmalai|rajbogh|rasbhari|dil bahar/, 15, 80],
+  [/cutlet|tikki|patty|patties/, 30, 150],
+  [/ladoo|laddu/, 15, 80],
+  [/burfi|barfi/, 10, 80],
+  [/samosa/, 20, 160],
+  [/^(roti|chapati|phulka|thepla|pesarattu)$/, 20, 100],
+  [/parantha|paratha/, 40, 160],
+  [/^(naan|bhatura|poori|puri|kachori)$/, 15, 160],
+  [/^idli$/, 20, 70],
+  [/^(dosa|uttapam|appam|cheela)$/, 25, 300],
+  [/^(vada|bonda|pakora|mulik\/fritter)$/, 8, 120],
+  [/^(biscuit|cookie|cookies|gingerman)$/, 4, 60],
+  [/^egg$/, 40, 200],
+  [/slice$/, 15, 200],
+  [/^(large )?piece$/, 5, 200],
+  [/^(kofta|kabab|kebab)$/, 15, 150],
+  [/^kulfi$/, 30, 150],
+];
 const singular = (w) => (/[^s]s$/.test(w) && w.length > 3 ? w.slice(0, -1) : w);
 
 /**
@@ -112,7 +137,45 @@ export function indbServing(name, grams) {
   // A piece of something ("idli", "large slice", "kaathi roll"): its last word is the unit, so "2 idli" or
   // "1 slice" finds it.
   if (grams < 5) return { label: '1 serving', unit: 'serving', flagged: `1 ${unitName} = ${grams} g (under 5 g)` };
+  const piece = PIECES.find(([pattern]) => pattern.test(unitName));
+  if (piece && (grams < piece[1] || grams > piece[2])) {
+    return { label: '1 serving', unit: 'serving', flagged: `1 ${unitName} = ${grams} g (expected ${piece[1]}-${piece[2]} g)` };
+  }
   return { label: `1 ${unitName}`, unit: singular(unitName.split(' ').at(-1)), flagged: null };
+}
+
+// Deep-fried dishes. INDB's cookbook recipes list the whole frying medium ("Fat 480 ml", "Oil 2 C") as an
+// ingredient and its totals count all of it as eaten, so a poori is published at 78 g fat per 100 g (USDA: 25 g).
+// No published absorption figure exists for these recipes, so they are left out rather than corrected; USDA and
+// CoFID foods of the same names take their place. A dish is left out when its recipe has at least
+// FRYING_OIL_ML of oil or ghee and its published fat is at least FRYING_FAT_G per 100 g; pickles and dressings
+// keep their oil in the food and stay under the fat bound.
+export const FRYING_OIL_ML = 200;
+export const FRYING_FAT_G = 30;
+const ML_PER = { ml: 1, g: 1, tsp: 5, tbsp: 15, c: 240, cup: 240, cups: 240 };
+
+/** Oil and ghee in ml (or g) per INDB recipe code, from recipes.xlsx. */
+export function indbRecipeOil(dir) {
+  const file = path.join(dir, 'recipes.xlsx');
+  if (!fs.existsSync(file)) throw new Error(`INDB: ${file} is needed to find deep-fried dishes (see data/indb/README.md)`);
+  const rows = Object.values(readXlsx(file))[0];
+  const header = rows[0];
+  const col = (name) => header.indexOf(name);
+  const oil = new Map();
+  for (const row of rows.slice(1)) {
+    if (!/^(oil,|ghee)/i.test(String(row[col('food_name')] ?? ''))) continue;
+    const per = ML_PER[String(row[col('unit')] ?? '').trim().toLowerCase()];
+    const amount = num(row[col('amount')]);
+    if (per == null || amount == null) continue;
+    const code = String(row[col('recipe_code')]).trim();
+    oil.set(code, (oil.get(code) ?? 0) + amount * per);
+  }
+  return oil;
+}
+
+/** True when a dish's published totals count its frying oil as eaten (see FRYING_OIL_ML). */
+export function countsFryingOil(oilMl, fatPer100g) {
+  return (oilMl ?? 0) >= FRYING_OIL_ML && (fatPer100g ?? 0) >= FRYING_FAT_G;
 }
 
 /**
@@ -128,6 +191,8 @@ export function indbTotalFoods(dir) {
   const col = (name) => header.indexOf(name);
   const out = [];
   const flagged = [];
+  const fried = [];
+  const oilByCode = indbRecipeOil(dir);
   const codeById = new Map();
   for (const row of rows.slice(1)) {
     const code = String(row[col('food_code')] ?? '').trim();
@@ -141,6 +206,10 @@ export function indbTotalFoods(dir) {
     );
     const n = nutrientsFromIndbRow(cols);
     if (n.calories == null) continue;
+    if (countsFryingOil(oilByCode.get(code), n.fat)) {
+      fried.push(`${code} ${name}: ${Math.round(oilByCode.get(code))} ml oil, ${Math.round(n.fat)} g fat/100 g`);
+      continue;
+    }
     const per100 = cols.energy_kcal;
     const perServ = cols.unit_serving_energy_kcal;
     let grams = 200;
@@ -174,6 +243,11 @@ export function indbTotalFoods(dir) {
       aliases: indbDisplayAliases(name),
     });
   }
+  if (fried.length) {
+    console.warn(`INDB: left out ${fried.length} deep-fried dishes whose totals count the frying oil as eaten:`);
+    for (const f of fried) console.warn(`  ${f}`);
+  }
+  out.excludedFried = fried.length;
   if (flagged.length) {
     console.warn(`INDB: ${flagged.length} servings kept as "1 serving" because their weight is not believable for their name:`);
     for (const f of flagged) console.warn(`  ${f}`);

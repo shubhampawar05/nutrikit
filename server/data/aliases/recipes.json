@@ -1,5 +1,4 @@
 [
-  { "alias": "gulab jamun", "name": "Gulab Jamun with khoya", "reference": "https://en.wikipedia.org/wiki/Gulab_jamun" },
   { "alias": "murgh makhani", "name": "Butter chicken", "reference": "https://en.wikipedia.org/wiki/Butter_chicken" },
   { "alias": "butter chicken", "name": "Butter chicken", "reference": "https://en.wikipedia.org/wiki/Butter_chicken" },
   { "alias": "rasgulla", "name": "Rasgulla", "reference": "https://en.wikipedia.org/wiki/Rasgulla" },
@@ -9,17 +8,15 @@
   { "alias": "bharta", "name": "Brinjal bhartha (Baingan ka bhartha)", "reference": "https://en.wikipedia.org/wiki/Baingan_bharta" },
   { "alias": "egg bhurji", "name": "Scrambled egg (Ande ki bhurji)", "reference": "https://en.wikipedia.org/wiki/Egg_bhurji" },
   { "alias": "anda bhurji", "name": "Scrambled egg (Ande ki bhurji)", "reference": "https://en.wikipedia.org/wiki/Egg_bhurji" },
-  { "alias": "fish fry", "name": "Fried fish (Indian style) (Tali hui machli)", "reference": "https://en.wikipedia.org/wiki/Fried_fish" },
-  { "alias": "machli fry", "name": "Fried fish (Indian style) (Tali hui machli)", "reference": "https://en.wikipedia.org/wiki/Fried_fish" },
-  { "alias": "medu vada", "name": "Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada)", "reference": "https://en.wikipedia.org/wiki/Medu_vada" },
-  { "alias": "medu vadai", "name": "Plain urad dal vada (Uzunne vada/Minapa garelu/Ulundu vadai/Medu vada)", "reference": "https://en.wikipedia.org/wiki/Medu_vada" },
+  { "alias": "fish fry", "name": "Fish, NS as to type, fried", "reference": "https://en.wikipedia.org/wiki/Fried_fish" },
+  { "alias": "machli fry", "name": "Fish, NS as to type, fried", "reference": "https://en.wikipedia.org/wiki/Fried_fish" },
+  { "alias": "medu vada", "name": "Vada", "reference": "https://en.wikipedia.org/wiki/Medu_vada" },
+  { "alias": "medu vadai", "name": "Vada", "reference": "https://en.wikipedia.org/wiki/Medu_vada" },
   { "alias": "nimbu pani", "name": "Lemonade", "reference": "https://en.wikipedia.org/wiki/Lemonade" },
   { "alias": "shikanji", "name": "Lemonade", "reference": "https://en.wikipedia.org/wiki/Lemonade" },
   { "alias": "kadai paneer", "name": "Kadhai Paneer", "reference": "https://en.wikipedia.org/wiki/Kadai_paneer" },
   { "alias": "karahi paneer", "name": "Kadhai Paneer", "reference": "https://en.wikipedia.org/wiki/Kadai_paneer" },
   { "alias": "kadhai paneer", "name": "Kadhai Paneer", "reference": "https://en.wikipedia.org/wiki/Kadai_paneer" },
-  { "alias": "malai kofta", "name": "Paneer kofta curry", "reference": "https://en.wikipedia.org/wiki/Malai_kofta" },
-  { "alias": "paneer kofta", "name": "Paneer kofta curry", "reference": "https://en.wikipedia.org/wiki/Malai_kofta" },
   { "alias": "phulka", "name": "Chapati/Roti", "reference": "https://en.wikipedia.org/wiki/Chapati" },
   { "alias": "gobi paratha", "name": "Cauliflower parantha/paratha (Phoolgobhi ka parantha/paratha)", "reference": "https://en.wikipedia.org/wiki/Paratha" },
   { "alias": "gobhi paratha", "name": "Cauliflower parantha/paratha (Phoolgobhi ka parantha/paratha)", "reference": "https://en.wikipedia.org/wiki/Paratha" },
@@ -56,6 +53,6 @@
   { "alias": "porridge", "name": "Oatmeal, regular or quick, made with milk, no added fat", "reference": "https://en.wikipedia.org/wiki/Porridge", "note": "Oat porridge made with milk." },
   { "alias": "oats porridge", "name": "Oatmeal, regular or quick, made with milk, no added fat", "reference": "https://en.wikipedia.org/wiki/Oatmeal" },
   { "alias": "smoothie", "name": "Fruit smoothie, NFS", "reference": "https://en.wikipedia.org/wiki/Smoothie" },
-  { "alias": "spring roll", "name": "Spring roll", "reference": "https://en.wikipedia.org/wiki/Spring_roll", "note": "The INDB vegetable spring roll, as served in India." },
-  { "alias": "veg spring roll", "name": "Spring roll", "reference": "https://en.wikipedia.org/wiki/Spring_roll" }
+  { "alias": "poori", "name": "Bread, puri", "reference": "https://en.wikipedia.org/wiki/Puri_(food)" },
+  { "alias": "puri", "name": "Bread, puri", "reference": "https://en.wikipedia.org/wiki/Puri_(food)" }
 ]

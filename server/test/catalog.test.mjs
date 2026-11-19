@@ -32,7 +32,11 @@ test('the catalog holds USDA, CoFID, INDB totals and cited recipes', () => {
   const sources = foods().prepare('SELECT DISTINCT source FROM foods ORDER BY 1').all().map((r) => r.source);
   assert.deepEqual(sources, ['cofid', 'foundation', 'indb', 'recipe', 'sr_legacy', 'survey']);
   const indb = foods().prepare("SELECT count(*) c FROM foods WHERE source = 'indb'").get().c;
-  assert.ok(indb >= 1000, `${indb} INDB dish totals`);
+  // About 130 of INDB's ~1,014 dishes are left out because their totals count the frying oil as eaten.
+  assert.ok(indb >= 850, `${indb} INDB dish totals`);
+  assert.ok(JSON.parse(meta('indb_source')).excludedFried >= 100);
+  const fried = foods().prepare("SELECT name FROM foods WHERE source = 'indb' AND name IN ('Poori', 'Bhatura', 'Potato samosa (Aloo ka samosa)', 'Gulab Jamun with khoya', 'Vegetable cutlet')").all();
+  assert.deepEqual(fried, [], 'deep-fried INDB dishes are not in the catalog');
   const recipes = foods().prepare("SELECT count(*) c FROM foods WHERE source = 'recipe'").get().c;
   assert.ok(recipes < 50, `${recipes} cited compose recipes (no bulk USDA proxy dishes)`);
 });
