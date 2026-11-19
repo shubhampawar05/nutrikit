@@ -129,6 +129,14 @@ export function withUsage(err: unknown, usage: AIUsage | null | undefined): unkn
 /** The error a provider throws when its deadline passes: 504, and no usage, so nothing is charged. */
 export const aiTimeout = (): Error => Object.assign(new Error('the AI provider did not answer in time; try again'), { status: 504, code: 'ai_timeout' });
 
+/** Where providers report what they recover from (a model failing over to the next); the app sets its logger. */
+export interface AILog { warn(obj: object, msg: string): void }
+let log: AILog = { warn: () => {} };
+export const aiLog = (): AILog => log;
+export function setAILog(logger: AILog): void {
+  log = logger;
+}
+
 let active: AIProvider | undefined;
 
 export async function getProvider(): Promise<AIProvider> {

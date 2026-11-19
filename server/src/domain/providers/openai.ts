@@ -9,7 +9,7 @@
 // stand in for it (and serve the light work) on tight quotas such as a free tier. Lists come from
 // NUTRIKIT_<GEMINI|OPENAI>_MODEL_<TASK>, else NUTRIKIT_<GEMINI|OPENAI>_MODEL, else the built-in choice.
 import type { AIUsage } from '../types.ts';
-import { aiDeadline, aiTimeout, timeLeft, type AICapability, type AIProvider } from './index.ts';
+import { addUsage, aiDeadline, aiLog, aiTimeout, timeLeft, withUsage, type AICapability, type AIProvider } from './index.ts';
 import { ADVICE_SCHEMA, ADVICE_SYSTEM, ESTIMATE_SYSTEM, FOOD_ESTIMATES_SCHEMA, FOOD_ITEMS_SCHEMA, LABEL_SCHEMA, LABEL_SYSTEM, PHOTO_SYSTEM, TEXT_SYSTEM, adviceMessage, estimateMessage, type AdviceOutput, type FoodEstimatesOutput, type FoodItemsOutput, type LabelOutput } from './prompts.ts';
 
 const DEFAULT_MODEL = 'gpt-5-mini';
@@ -42,9 +42,26 @@ const isGemini = (baseUrl: string): boolean => {
   try { return new URL(baseUrl).hostname === 'generativelanguage.googleapis.com'; } catch { return false; }
 };
 
-interface Endpoint { baseUrl: string; apiKey: string }
+interface Endpoint { name: 'gemini' | 'openai'; baseUrl: string; apiKey: string }
 /** One model on one endpoint: an entry in a task's list. */
 interface Route { model: string; endpoint: Endpoint }
+
+/** A duration variable in ms: a number >= 0 (0 included), else `fallback`. */
+const envMs = (value: string | undefined, fallback: number): number => {
+  const n = Number(value);
+  return value != null && value.trim() !== '' && Number.isFinite(n) && n >= 0 ? n : fallback;
+};
+
+/**
+ * Why the AI keys can't be used as set, or null. With GEMINI_API_KEY set, OPENAI_API_KEY is the OpenAI fallback; an
+ * OPENAI_BASE_URL left pointing at Gemini (the setup without GEMINI_API_KEY) would send that key to Google instead.
+ */
+export function aiConfigProblem(env: NodeJS.ProcessEnv = process.env): string | null {
+  if (env.GEMINI_API_KEY && env.OPENAI_API_KEY && env.OPENAI_BASE_URL && isGemini(env.OPENAI_BASE_URL)) {
+    return 'GEMINI_API_KEY is set and OPENAI_BASE_URL points at Gemini, so OPENAI_API_KEY would be sent to Google: unset OPENAI_BASE_URL to use OpenAI as the fallback, or unset OPENAI_API_KEY';
+  }
+  return null;
+}
 
 /** A comma-separated list of models, in the order to try them; null when it names none. */
 const modelList = (value: string | undefined): string[] | null => {
@@ -69,8 +86,10 @@ function sleep(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 const fail = (message: string, status: number, usage?: AIUsage) => Object.assign(new Error(message), { status, usage });
-/** An error another model may not have: busy, rate limited, unreachable or unknown model. */
+/** An error another model may not have: busy, rate limited, unreachable or unknown model. The model rests a while. */
 const busy = (message: string, status: number) => Object.assign(fail(message, status), { fallback: true });
+/** A failure of this one answer (rejected by this model, truncated, malformed): the next model may do better. */
+const retryOther = <E extends Error>(err: E) => Object.assign(err, { retryOther: true });
 
 /**
  * The part of `signal` one model in a list may use before the next one is tried: at most `ms`, and never past
@@ -81,20 +100,25 @@ function slice(signal: AbortSignal, ms: number): AbortSignal {
   return Object.assign(AbortSignal.any([signal, AbortSignal.timeout(own)]), { endsAt: Date.now() + own });
 }
 
-/** Models per task on one endpoint: `<prefix>_<TASK>`, else `<prefix>`, else `builtIn`. */
-function modelsFor(prefix: string, builtIn: (task: AICapability) => string[]): Record<AICapability, string[]> {
+/**
+ * Models per task on one endpoint: `<prefix>_<TASK>`, else `<prefix>`, else `builtIn`. `main` is the endpoint's
+ * general model: the first of `<prefix>`, else the built-in one for light work.
+ */
+function modelsFor(prefix: string, builtIn: (task: AICapability) => string[]): { models: Record<AICapability, string[]>; main: string } {
   const all = modelList(process.env[prefix]);
-  return Object.fromEntries(TASKS.map((task) => [task, modelList(process.env[`${prefix}_${TASK_SUFFIX[task]}`]) ?? all ?? builtIn(task)])) as Record<AICapability, string[]>;
+  const models = Object.fromEntries(TASKS.map((task) => [task, modelList(process.env[`${prefix}_${TASK_SUFFIX[task]}`]) ?? all ?? builtIn(task)])) as Record<AICapability, string[]>;
+  return { models, main: all?.[0] ?? builtIn('advise')[0] };
 }
 
 export async function createOpenAIProvider(): Promise<AIProvider> {
+  const problem = aiConfigProblem();
+  if (problem) throw new Error(problem);
   const endpoints: { endpoint: Endpoint; models: Record<AICapability, string[]>; main: string }[] = [];
   const geminiKey = process.env.GEMINI_API_KEY;
   if (geminiKey) {
     endpoints.push({
-      endpoint: { baseUrl: (process.env.GEMINI_BASE_URL || GEMINI_URL).replace(/\/+$/, ''), apiKey: geminiKey },
-      models: modelsFor('NUTRIKIT_GEMINI_MODEL', (task) => GEMINI_MODELS[task]),
-      main: modelList(process.env.NUTRIKIT_GEMINI_MODEL)?.[0] ?? GEMINI_LIGHT[0],
+      endpoint: { name: 'gemini', baseUrl: (process.env.GEMINI_BASE_URL || GEMINI_URL).replace(/\/+$/, ''), apiKey: geminiKey },
+      ...modelsFor('NUTRIKIT_GEMINI_MODEL', (task) => GEMINI_MODELS[task]),
     });
   }
   const openaiKey = process.env.OPENAI_API_KEY;
@@ -102,9 +126,8 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
     const baseUrl = (process.env.OPENAI_BASE_URL || OPENAI_URL).replace(/\/+$/, '');
     const gemini = isGemini(baseUrl); // Gemini set up through OPENAI_BASE_URL gets its built-in models too
     endpoints.push({
-      endpoint: { baseUrl, apiKey: openaiKey },
-      models: modelsFor('NUTRIKIT_OPENAI_MODEL', (task) => (gemini ? GEMINI_MODELS[task] : [DEFAULT_MODEL])),
-      main: modelList(process.env.NUTRIKIT_OPENAI_MODEL)?.[0] ?? (gemini ? GEMINI_LIGHT[0] : DEFAULT_MODEL),
+      endpoint: { name: gemini ? 'gemini' : 'openai', baseUrl, apiKey: openaiKey },
+      ...modelsFor('NUTRIKIT_OPENAI_MODEL', (task) => (gemini ? GEMINI_MODELS[task] : [DEFAULT_MODEL])),
     });
   }
   if (!endpoints.length) throw new Error('NUTRIKIT_AI_PROVIDER=openai needs OPENAI_API_KEY or GEMINI_API_KEY');
@@ -112,49 +135,84 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
   const routes = Object.fromEntries(TASKS.map((task) =>
     [task, endpoints.flatMap(({ endpoint, models }) => models[task].map((model): Route => ({ model, endpoint })))])) as Record<AICapability, Route[]>;
   const models = Object.fromEntries(TASKS.map((task) => [task, routes[task].map((r) => r.model)])) as Record<AICapability, string[]>;
-  // The most a model that has others after it gets before the call moves on. It also gets no more than an even share
-  // of the time left, so the models after it (the fallback endpoint last) always have time to answer.
-  const fallbackAfter = Number(process.env.NUTRIKIT_AI_FALLBACK_AFTER_MS) || 20_000;
+  // The most a model that has others after it gets before the call moves on.
+  const fallbackAfter = envMs(process.env.NUTRIKIT_AI_FALLBACK_AFTER_MS, 20_000);
+  // A model that was busy, rate limited, gone or too slow is skipped this long (unless it is the last one left), so
+  // an overloaded model doesn't cost every call its wait, nor spend quota on answers nobody reads.
+  const cooldown = envMs(process.env.NUTRIKIT_AI_COOLDOWN_MS, 60_000);
+  const restingUntil = new Map<Route, number>();
+  const resting = (route: Route) => (restingUntil.get(route) ?? 0) > Date.now();
+
+  /**
+   * How long list[i] may take before the next model is tried. With a fallback endpoint after this one, this
+   * endpoint's models share half the call's time (`total`), so the fallback always keeps the other half; otherwise
+   * the models left share the time left evenly. Never more than NUTRIKIT_AI_FALLBACK_AFTER_MS.
+   */
+  function share(list: Route[], i: number, signal: AbortSignal, total: number): number {
+    const left = timeLeft(signal);
+    if (!Number.isFinite(left) || !Number.isFinite(total)) return fallbackAfter;
+    const { endpoint } = list[i];
+    const ahead = list.filter((r, at) => at > i && !resting(r));
+    const fallbackLater = ahead.some((r) => r.endpoint !== endpoint);
+    const pool = fallbackLater ? left - total / 2 : left;
+    const sharing = 1 + (fallbackLater ? ahead.filter((r) => r.endpoint === endpoint).length : ahead.length);
+    return Math.min(fallbackAfter, Math.max(0, pool) / sharing);
+  }
+
+  /** The answer's JSON and usage; a failed answer carries its usage (tokens were spent on it). */
+  function read<T>(response: ChatCompletion): { data: T; usage: AIUsage } {
+    const usage: AIUsage = { inputTokens: response.usage?.prompt_tokens ?? 0, outputTokens: response.usage?.completion_tokens ?? 0 };
+    const choice = response.choices?.[0];
+    // A refusal is the model's judgement of the request (e.g. a medical question), not a fault: no other model is asked.
+    if (choice?.message.refusal) throw fail('the AI provider declined this request', 422, usage);
+    if (choice?.finish_reason === 'length') throw retryOther(fail('the AI provider response was truncated', 502, usage));
+    if (!choice?.message.content) throw retryOther(fail('the AI provider returned no content', 502, usage));
+    try {
+      return { data: JSON.parse(choice.message.content), usage };
+    } catch {
+      throw retryOther(fail('the AI provider returned malformed output', 502, usage));
+    }
+  }
 
   // T is the shape `schema` describes; strict structured outputs guarantee the JSON matches it.
   async function call<T>(task: AICapability, name: string, system: string, content: ContentPart[], schema: object, deadline?: AbortSignal): Promise<{ data: T; usage: AIUsage; model: string }> {
     const signal = deadline ?? aiDeadline();
+    const total = timeLeft(signal);
     const list = routes[task];
-    let response: ChatCompletion | undefined;
-    let model = list[0].model;
-    for (let i = 0; !response; i++) {
-      const { endpoint } = list[i];
-      model = list[i].model;
+    let spent: AIUsage | undefined; // tokens of failed answers before this one: charged with the call
+    for (let i = 0; ; i++) {
+      const route = list[i];
+      const { endpoint, model } = route;
       const last = i === list.length - 1;
+      if (!last && resting(route)) continue;
       try {
-        response = await request(endpoint, last ? signal : slice(signal, Math.min(fallbackAfter, timeLeft(signal) / (list.length - i))), last ? MAX_RETRIES : 0, {
+        const response = await request(endpoint, last ? signal : slice(signal, share(list, i, signal, total)), last ? MAX_RETRIES : 0, {
           model,
           max_completion_tokens: 16000,
           response_format: { type: 'json_schema', json_schema: { name, strict: true, schema } },
           messages: [{ role: 'system', content: system }, { role: 'user', content }],
         });
+        const { data, usage } = read<T>(response);
+        return { data: data, usage: addUsage(spent, usage), model };
       } catch (err) {
-        if (last || signal.aborted) throw err;
-        // Only this model's share of the time ran out, or the model is busy: the next one gets the call. Any other
-        // error (a refused key, rejected input) would repeat on this endpoint, so the fallback endpoint gets it, with
-        // its own key and limits; with none, it is the answer.
-        const e = err as { fallback?: boolean; code?: string };
-        if (!(e.fallback || e.code === 'ai_timeout')) {
-          const next = list.findIndex((r, at) => at > i && r.endpoint !== endpoint);
-          if (next < 0) throw err;
-          i = next - 1;
+        if (last || signal.aborted) throw withUsage(err, spent);
+        const e = err as Error & { fallback?: boolean; retryOther?: boolean; code?: string; status?: number; usage?: AIUsage };
+        let next = i + 1;
+        if (e.fallback || e.code === 'ai_timeout') restingUntil.set(route, Date.now() + cooldown);
+        // Any other error (a refused key) would repeat on this endpoint: the fallback endpoint gets the call, with its
+        // own key and limits; with none, the error is the answer.
+        else if (!e.retryOther) {
+          next = list.findIndex((r, at) => at > i && r.endpoint !== endpoint);
+          if (next < 0) throw withUsage(err, spent);
         }
+        spent = addUsage(spent, e.usage);
+        const to = list[next];
+        aiLog().warn(
+          { task, model, endpoint: endpoint.name, status: e.status, code: e.code, error: e.message, next: to.model, nextEndpoint: to.endpoint.name },
+          to.endpoint === endpoint ? 'AI model failed; trying the next model' : `AI model failed; falling back to ${to.endpoint.name}`,
+        );
+        i = next - 1;
       }
-    }
-    const usage: AIUsage = { inputTokens: response.usage?.prompt_tokens ?? 0, outputTokens: response.usage?.completion_tokens ?? 0 };
-    const choice = response.choices?.[0];
-    if (choice?.message.refusal) throw fail('the AI provider declined this request', 422, usage);
-    if (choice?.finish_reason === 'length') throw fail('the AI provider response was truncated', 502, usage);
-    if (!choice?.message.content) throw fail('the AI provider returned no content', 502, usage);
-    try {
-      return { data: JSON.parse(choice.message.content), usage, model };
-    } catch {
-      throw fail('the AI provider returned malformed output', 502, usage);
     }
   }
 
@@ -191,7 +249,8 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
         await sleep(wait, signal);
         continue;
       }
-      if (res.status === 400) throw fail(`AI provider rejected the input: ${detail}`, 422);
+      // 400 may be this model's own limit (no JSON mode, image size): the next model is asked, without a rest.
+      if (res.status === 400) throw retryOther(fail(`AI provider rejected the input: ${detail}`, 422));
       if (res.status === 401 || res.status === 403) throw fail('AI provider credentials are invalid', 503);
       if (res.status === 429) throw busy('AI provider is rate limited; retry later', 503);
       // 404: the model is unknown or retired.

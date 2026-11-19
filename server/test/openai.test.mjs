@@ -20,6 +20,7 @@ const stub = http.createServer(async (req, res) => {
   requests.push({ path: req.url, auth: req.headers.authorization, body: sent });
   const answer = reply(requests.length, sent);
   if (answer.hang) return; // never answers: the provider's deadline has to end the call
+  if (answer.delay) await new Promise((r) => setTimeout(r, answer.delay));
   const { status, body, headers } = answer;
   res.writeHead(status, { 'content-type': 'application/json', ...headers });
   res.end(JSON.stringify(body));
@@ -190,8 +191,8 @@ test('each task uses its own models, and the rest use NUTRIKIT_OPENAI_MODEL', as
 });
 
 test('a busy or rate-limited model hands the call to the next one at once, which is reported as the model', async () => {
-  const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_ESTIMATE: 'big,small' });
   for (const status of [503, 429, 404]) {
+    const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_ESTIMATE: 'big,small' });
     const start = requests.length;
     reply = (n, body) => (body.model === 'big'
       ? { status, body: { error: { message: 'busy' } }, headers: { 'retry-after': '5' } }
@@ -308,5 +309,108 @@ test('GEMINI_API_KEY alone uses Gemini with its built-in models', async () => {
     assert.deepEqual(custom.models.parseMeal, ['gemini-x']);
   } finally {
     process.env.OPENAI_API_KEY = saved;
+  }
+});
+
+// Review fixes: config guard, fallback time, bad answers, 400s, resting models, logging.
+test('GEMINI_API_KEY with OPENAI_BASE_URL on Gemini is refused: the OpenAI key would go to Google', async () => {
+  const { aiConfigProblem } = await import('../src/domain/providers/openai.ts');
+  const env = { GEMINI_API_KEY: 'g', OPENAI_API_KEY: 'sk', OPENAI_BASE_URL: 'https://generativelanguage.googleapis.com/v1beta/openai' };
+  assert.match(aiConfigProblem(env), /OPENAI_API_KEY would be sent to Google/);
+  assert.equal(aiConfigProblem({ ...env, OPENAI_BASE_URL: undefined }), null);
+  assert.equal(aiConfigProblem({ ...env, GEMINI_API_KEY: undefined }), null);
+  const { configProblems } = await import('../src/app.ts');
+  assert.equal(configProblems({ ...env, NODE_ENV: 'development' }).length, 1);
+  await assert.rejects(routedProvider({ GEMINI_API_KEY: 'g', OPENAI_BASE_URL: env.OPENAI_BASE_URL }), /sent to Google/);
+});
+
+test('with a fallback endpoint, hanging Gemini models leave OpenAI half the deadline', async () => {
+  process.env.NUTRIKIT_AI_TIMEOUT_MS = '1000';
+  try {
+    const p = await routedProvider(both());
+    // OpenAI needs 400 ms: an even split of 1 s over four models (250 ms) would time it out.
+    reply = (n, body) => (body.model.startsWith('gemini') ? { hang: true } : { status: 200, body: estimate('dal'), delay: 400 });
+    const out = await p.estimateFoods({ foods: ['dal'] });
+    assert.equal(out.model, 'gpt-test');
+  } finally {
+    delete process.env.NUTRIKIT_AI_TIMEOUT_MS;
+  }
+});
+
+test('a truncated, empty or malformed answer goes to the next model, and its tokens are charged with the call', async () => {
+  for (const bad of [
+    completion({}, { finish_reason: 'length' }),
+    { choices: [{ finish_reason: 'stop', message: { content: null } }], usage: { prompt_tokens: 120, completion_tokens: 30 } },
+    { choices: [{ finish_reason: 'stop', message: { content: 'Sure! rice' } }], usage: { prompt_tokens: 120, completion_tokens: 30 } },
+  ]) {
+    const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_TEXT: 'big,small' });
+    reply = (n, body) => (body.model === 'big' ? { status: 200, body: bad } : { status: 200, body: completion({ meal: null, notes: '', items: [] }) });
+    const out = await p.parseMeal({ text: 'rice' });
+    assert.deepEqual(out.usage, { inputTokens: 240, outputTokens: 60 });
+  }
+  // The last model failing too: the error carries both answers' tokens.
+  const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_TEXT: 'big,small' });
+  reply = () => ({ status: 200, body: completion({}, { finish_reason: 'length' }) });
+  await assert.rejects(p.parseMeal({ text: 'rice' }), (err) => err.status === 502 && err.usage.inputTokens === 240);
+});
+
+test('a refusal is the answer: no other model is asked', async () => {
+  const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_ADVICE: 'big,small' });
+  const start = requests.length;
+  reply = () => ({ status: 200, body: { choices: [{ finish_reason: 'stop', message: { content: null, refusal: 'no' } }], usage: { prompt_tokens: 1, completion_tokens: 1 } } });
+  await assert.rejects(p.advise({ question: 'dose?' }), { status: 422, message: /declined/ });
+  assert.equal(requests.length - start, 1);
+});
+
+test('a 400 goes to the next model on the same endpoint (it may be that model\'s own limit)', async () => {
+  const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_PHOTO: 'no-json,small' });
+  reply = (n, body) => (body.model === 'no-json'
+    ? { status: 400, body: { error: { message: 'JSON mode is not enabled for this model' } } }
+    : { status: 200, body: completion({ meal: null, notes: '', items: [] }) });
+  await p.recognizeMeal({ image: 'AQID', mediaType: 'image/png' });
+  assert.equal(requests.at(-1).body.model, 'small');
+  // Bad input fails on every model: the last one's error is the answer.
+  reply = () => ({ status: 400, body: { error: { message: 'image too large' } } });
+  await assert.rejects(p.recognizeMeal({ image: 'AQID', mediaType: 'image/png' }), { status: 422, message: /image too large/ });
+});
+
+test('a busy model rests for NUTRIKIT_AI_COOLDOWN_MS, so later calls skip it; 0 turns that off', async () => {
+  const busyBig = (n, body) => (body.model === 'big' ? { status: 503, body: { error: { message: 'busy' } } } : { status: 200, body: estimate('dal') });
+  let p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_ESTIMATE: 'big,small' });
+  reply = busyBig;
+  await p.estimateFoods({ foods: ['dal'] });
+  let start = requests.length;
+  await p.estimateFoods({ foods: ['dal'] });
+  assert.deepEqual(requests.slice(start).map((r) => r.body.model), ['small']);
+
+  p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_ESTIMATE: 'big,small', NUTRIKIT_AI_COOLDOWN_MS: '0' });
+  await p.estimateFoods({ foods: ['dal'] });
+  start = requests.length;
+  await p.estimateFoods({ foods: ['dal'] });
+  assert.deepEqual(requests.slice(start).map((r) => r.body.model), ['big', 'small']);
+});
+
+test('NUTRIKIT_AI_FALLBACK_AFTER_MS=0 moves on from a model that has not answered at once', async () => {
+  const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_ESTIMATE: 'big,small', NUTRIKIT_AI_FALLBACK_AFTER_MS: '0' });
+  reply = (n, body) => (body.model === 'big' ? { hang: true } : { status: 200, body: estimate('dal') });
+  const started = Date.now();
+  assert.equal((await p.estimateFoods({ foods: ['dal'] })).model, 'small');
+  assert.ok(Date.now() - started < 150, `took ${Date.now() - started} ms`);
+});
+
+test('each fallback is logged, naming the endpoint it falls back to', async () => {
+  const { setAILog } = await import('../src/domain/providers/index.ts');
+  const logged = [];
+  setAILog({ warn: (obj, msg) => logged.push({ obj, msg }) });
+  try {
+    const p = await routedProvider(both());
+    reply = (n, body) => (body.model.startsWith('gemini') ? { status: 429, body: { error: { message: 'quota' } } } : { status: 200, body: completion({ answer: 'ok', declined: false }) });
+    await p.advise({ question: 'fiber?' });
+    assert.deepEqual(logged.map((l) => l.msg), ['AI model failed; trying the next model', 'AI model failed; falling back to openai']);
+    assert.equal(logged[1].obj.model, 'gemini-3.5-flash-lite');
+    assert.equal(logged[1].obj.next, 'gpt-test');
+    assert.equal(logged[1].obj.status, 503);
+  } finally {
+    setAILog({ warn: () => {} });
   }
 });
