@@ -1,6 +1,6 @@
 /* API reference page: Scalar sits below the site's sticky header (min-height 68px + 1px border)
    and takes its colours, fonts and radii from the site's tokens, which already switch for dark mode. */
-.reference-page { --scalar-custom-header-height: 69px; }
+.reference-page { --scalar-custom-header-height: var(--header-h); }
 
 .reference-scalar,
 .reference-scalar .light-mode,

@@ -27,6 +27,9 @@ function ErrorBox({ status, body, authView }: { status: number; body: ErrorBody;
     // Signed in without a key: the dashboard is the way forward. A pasted-key user just needs the field above.
     if (authView === 'no-key') actions = <Link className="btn btn-primary btn-sm" to="/dashboard">Create a key in your dashboard <span className="arrow">→</span></Link>;
     else if (authView === 'anonymous') actions = <><Link className="btn btn-primary btn-sm" to="/login?next=/playground">Log in</Link><Link className="btn btn-ghost btn-sm" to="/signup">Get a free key</Link></>;
+  } else if (e.code === 'unauthorized' && authView === 'anonymous') {
+    // A pasted key that doesn't work: signing in (or a fresh key) is the way out, so keep the links in reach.
+    actions = <><Link className="btn btn-primary btn-sm" to="/login?next=/playground">Log in</Link><Link className="btn btn-ghost btn-sm" to="/signup">Get a free key</Link></>;
   } else if (e.code === 'quota_exceeded') {
     actions = <Link className="btn btn-primary btn-sm" to="/dashboard">Open dashboard <span className="arrow">→</span></Link>;
   }

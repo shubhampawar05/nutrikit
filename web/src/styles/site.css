@@ -31,36 +31,12 @@
   --radius: 14px;
   --max: 1180px;
   --shadow: 0 1px 0 rgb(22 21 19 / 4%), 0 12px 32px -12px rgb(22 21 19 / 18%);
+  --header-h: 69px; /* sticky site header: 68px row + 1px border; sticky things below it offset by this */
   color-scheme: light;
 }
 
-/* Dark: the system setting, unless the visitor picked a theme with the header toggle
-   (html[data-theme], set before paint by public/theme.js and by components/ThemeToggle.tsx). */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #12110f;
-    --paper-2: #1a1916;
-    --card: #1c1b18;
-    --ink: #f1ebdf;
-    --ink-2: #d5cec1;
-    --muted: #9a9387;
-    --rule: #2e2c27;
-    --rule-strong: #f1ebdf;
-    --tomato: #ff6a4d;
-    --tomato-ink: #ff8a72;
-    --tomato-soft: #3a1c15;
-    --herb: #7cc39b;
-    --herb-soft: #17291f;
-    --night: #0b0b0a;
-    --night-2: #161513;
-    --danger: #ff8a80;
-    --danger-soft: #3a1714;
-    --warn: #f0b45a;
-    --shadow: 0 1px 0 rgb(0 0 0 / 30%), 0 16px 40px -16px rgb(0 0 0 / 60%);
-    color-scheme: dark;
-  }
-  :root:not([data-theme="light"]) .dev { border: 1px solid var(--rule); }
-}
+/* Dark. html[data-theme] always names the theme in use — the visitor's pick or the system setting — set before
+   paint by public/theme.js and kept current by src/theme.ts, so the dark tokens live in this one block. */
 :root[data-theme="dark"] {
   --paper: #12110f;
   --paper-2: #1a1916;
@@ -407,7 +383,8 @@ body:has(.auth-shell:not(.single)) .site-footer { margin-top: 0; }
 @media (max-width: 860px) { .auth-shell { grid-template-columns: 1fr; } .auth-aside { display: none; } body:has(.auth-shell) .site-footer { margin-top: 120px; } }
 /* Very wide screens: the two backgrounds still run edge to edge, but their content moves in to the page column,
    the pitch lining up with the logo and the form with the header's right edge, instead of sitting at the far sides. */
-.auth-shell:not(.single) { --edge: max(56px, calc((100vw - var(--max)) / 2 + 24px)); }
+/* Each panel is half the page, so 100% - max/2 is (page width - max) / 2; unlike 100vw it leaves out the scrollbar. */
+.auth-shell:not(.single) .auth-aside, .auth-shell:not(.single) .auth-main { --edge: max(56px, calc(100% - var(--max) / 2 + 24px)); }
 .auth-shell:not(.single) .auth-aside { padding-left: var(--edge); }
 .auth-shell:not(.single) .auth-aside > div:first-child { max-width: 520px; }
 @media (min-width: 1600px) {
@@ -494,8 +471,8 @@ kbd { font: 600 .72rem/1 var(--mono); padding: 2px 6px; border: 1px solid var(--
 .pg-rail a[aria-current="true"] .icon { color: var(--tomato); }
 
 /* The workbench: a request bar (method, path, cost, Send) over request and response side by side. */
-.pg-bench { background: var(--card); border: 1px solid var(--rule); border-radius: 18px; box-shadow: var(--shadow); }
-.pg-reqbar { position: sticky; top: 68px; z-index: 5; display: flex; align-items: center; gap: 12px 16px; padding: 12px 12px 12px 18px; background: var(--card); border-bottom: 1px solid var(--rule); border-radius: 18px 18px 0 0; }
+.pg-bench { --reqbar-h: 65px; background: var(--card); border: 1px solid var(--rule); border-radius: 18px; box-shadow: var(--shadow); }
+.pg-reqbar { position: sticky; top: calc(var(--header-h) - 1px); min-height: var(--reqbar-h); box-sizing: border-box; z-index: 5; display: flex; align-items: center; gap: 12px 16px; padding: 12px 12px 12px 18px; background: var(--card); border-bottom: 1px solid var(--rule); border-radius: 18px 18px 0 0; }
 .pg-reqbar .pg-endpoint { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; }
 .pg-reqbar .pg-endpoint code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pg-cost { font: 500 .78rem/1 var(--sans); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -506,7 +483,7 @@ kbd { font: 600 .72rem/1 var(--mono); padding: 2px 6px; border: 1px solid var(--
 .pg-desc { color: var(--muted); font-size: .9rem; margin: 0 0 22px; }
 .pg-shortcut { margin: 4px 0 0; }
 .pg-response { border-left: 1px solid var(--rule); background: color-mix(in srgb, var(--paper) 45%, var(--card)); border-radius: 0 0 18px 0; }
-.pg-response-inner { position: sticky; top: 140px; max-height: calc(100vh - 160px); display: flex; flex-direction: column; }
+.pg-response-inner { position: sticky; top: calc(var(--header-h) + var(--reqbar-h) + 8px); max-height: calc(100vh - var(--header-h) - var(--reqbar-h) - 24px); display: flex; flex-direction: column; }
 .pg-response-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 12px; border-bottom: 1px solid var(--rule); margin-bottom: 16px; }
 .pg-response-head .pg-meta { padding-bottom: 8px; }
 .pg-endpoint { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin: 0; font-size: .88rem; }

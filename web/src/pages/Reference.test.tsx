@@ -18,6 +18,6 @@ describe('Reference', () => {
     renderPage(<Reference />, { path: '/docs/reference' });
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('API reference');
     expect(screen.getByTestId('scalar')).toBeTruthy();
-    expect(received.at(-1)).toMatchObject({ url: '/openapi.json', theme: 'none' });
+    expect(received.at(-1)).toMatchObject({ url: '/openapi.json', theme: 'none', forceDarkModeState: 'light' });
   });
 });
