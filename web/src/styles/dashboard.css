@@ -1,6 +1,6 @@
 /* Dashboard additions on top of site.css: the recharts usage chart's tooltip and hover state. */
 .chart .recharts-wrapper, .chart .recharts-surface { outline: none; }
-.chart-tip { background: var(--ink); color: var(--paper); padding: 6px 10px; border-radius: 8px; font: 500 .78rem/1.4 var(--mono); box-shadow: var(--shadow); white-space: nowrap; }
+.chart-tip { background: var(--ink); color: var(--paper); padding: 6px 10px; border-radius: 8px; font: 500 .78rem/1.4 var(--sans); font-variant-numeric: tabular-nums; box-shadow: var(--shadow); white-space: nowrap; }
 
 /* Second line under a name in a table cell (email under a member, creator under a key date). */
 .dash .admin-sub { display: block; }
