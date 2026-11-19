@@ -5,6 +5,7 @@ import { Icon, Logo } from './Icon.tsx';
 import { useMe } from '../hooks.ts';
 import { usePageMeta } from '../seo.ts';
 import { PAYMENTS_VISIBLE } from '../features.ts';
+import { toggleTheme, useTheme } from '../theme.ts';
 
 const NAV: [string, string][] = [
   ['/docs', 'Docs'],
@@ -12,6 +13,16 @@ const NAV: [string, string][] = [
   ...(PAYMENTS_VISIBLE ? [['/pricing', 'Pricing'] as [string, string]] : []),
   ['/playground', 'Playground'],
 ];
+
+function ThemeToggle() {
+  const theme = useTheme();
+  const next = theme === 'dark' ? 'light' : 'dark';
+  return (
+    <button className="theme-btn" type="button" aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`} onClick={toggleTheme}>
+      <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
+    </button>
+  );
+}
 
 function Header() {
   const { pathname } = useLocation();
@@ -49,12 +60,13 @@ function Header() {
             <Link key={href} to={href} aria-current={here === href ? 'page' : undefined}>{label}</Link>
           ))}
         </nav>
+        <ThemeToggle />
         <div className="header-actions">
           {me.data ? (
             <Link className="btn btn-primary btn-sm" to="/dashboard">Dashboard <span className="arrow">→</span></Link>
           ) : (
             <>
-              <Link className="btn btn-ghost btn-sm" to="/login">Log in</Link>
+              <Link className="header-link" to="/login">Log in</Link>
               <Link className="btn btn-primary btn-sm" to="/signup">Get an API key</Link>
             </>
           )}
@@ -67,18 +79,28 @@ function Header() {
   );
 }
 
+const FOOTER_LINKS: [string, string, boolean][] = [
+  ['/docs', 'Documentation', false],
+  ['/docs/reference', 'API reference', false],
+  ...(PAYMENTS_VISIBLE ? [['/pricing', 'Pricing', false] as [string, string, boolean]] : []),
+  ['/openapi.json', 'OpenAPI', true],
+  ['https://www.npmjs.com/package/@nutrikit/sdk', 'SDK', true],
+  ['https://github.com/shubhampawar05/nutrikit', 'GitHub', true],
+  ['/privacy', 'Privacy', false],
+  ['/terms', 'Terms', false],
+];
+
 function Footer() {
   return (
     <footer className="site-footer">
       <div className="wrap">
-        <div className="footer-grid">
-          <div>
-            <Link className="logo" to="/"><Logo lines="#141412" />nutrikit</Link>
-            <p style={{ marginTop: 16, maxWidth: '30ch' }}>Nutrition data and food logging for developers. One key, one SDK, honest pricing.</p>
-          </div>
-          <div><h4>Product</h4><ul><li><Link to="/#how">How it works</Link></li>{PAYMENTS_VISIBLE ? <li><Link to="/pricing">Pricing</Link></li> : null}<li><Link to="/playground">Playground</Link></li></ul></div>
-          <div><h4>Developers</h4><ul><li><Link to="/docs">Documentation</Link></li><li><Link to="/docs/reference">API reference</Link></li><li><a href="/openapi.json">OpenAPI spec</a></li><li><a href="https://www.npmjs.com/package/@nutrikit/sdk" target="_blank" rel="noopener">JavaScript SDK (npm)</a></li><li><a href="https://github.com/shubhampawar05/nutrikit" target="_blank" rel="noopener">GitHub</a></li></ul></div>
-          <div><h4>Account</h4><ul><li><Link to="/signup">Sign up</Link></li><li><Link to="/login">Log in</Link></li><li><Link to="/dashboard">Dashboard</Link></li><li><Link to="/privacy">Privacy</Link></li><li><Link to="/terms">Terms</Link></li></ul></div>
+        <div className="footer-top">
+          <Link className="logo" to="/"><Logo />nutrikit</Link>
+          <nav className="footer-links" aria-label="Footer">
+            {FOOTER_LINKS.map(([href, label, external]) => external
+              ? <a key={href} href={href} {...(href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>{label}</a>
+              : <Link key={href} to={href}>{label}</Link>)}
+          </nav>
         </div>
         <div className="footer-bottom">
           <span>Food data: USDA FoodData Central (public domain) · Open Food Facts (ODbL)</span>

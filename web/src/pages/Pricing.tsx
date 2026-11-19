@@ -67,7 +67,6 @@ export function Pricing() {
     <main className="wrap">
       <section>
         <div className="page-head">
-          <span className="kicker">Pricing</span>
           <h1>Pay for <em>what you log</em>.</h1>
           <p className="lead">Every API call costs a published number of tokens. Pick a monthly allowance; move up when your users do.</p>
         </div>
@@ -75,7 +74,6 @@ export function Pricing() {
       </section>
 
       <section className="block" style={{ paddingBottom: 0 }}>
-        <span className="kicker">Token costs</span>
         <h2>What each call costs</h2>
         <div className="table-scroll">
           <table className="data">
@@ -97,7 +95,6 @@ export function Pricing() {
       </section>
 
       <section className="block" style={{ paddingBottom: 0 }}>
-        <span className="kicker">FAQ</span>
         <h2>Questions, answered</h2>
         <details className="faq"><summary>What happens when I run out of tokens?</summary><p>Calls return <code>429 quota_exceeded</code> until the next calendar month (UTC) or until you upgrade. Nothing is billed beyond your plan.</p></details>
         <details className="faq"><summary>How do I know what a call cost?</summary><p>Every metered response includes <code>X-Tokens-Charged</code> and, on metered plans, <code>X-Tokens-Remaining</code>. Your dashboard shows daily usage and a breakdown by endpoint.</p></details>

@@ -96,21 +96,3 @@ export function sourceText(items: Pick<DemoItem, 'food'>[]): string {
 export function labelTexts(totals: Totals): Record<string, string> {
   return Object.fromEntries([CALORIES, ...ROWS].map((row) => [row.key, valueText(totals, row)]));
 }
-
-// Decorative EAN-13 bars for 3017624010701, drawn from its real encoding.
-function ean13Bits(code: string): string {
-  const L = ['0001101', '0011001', '0010011', '0111101', '0100011', '0110001', '0101111', '0111011', '0110111', '0001011'];
-  const G = L.map((c) => [...c].map((b) => (b === '0' ? '1' : '0')).reverse().join(''));
-  const R = L.map((c) => [...c].map((b) => (b === '0' ? '1' : '0')).join(''));
-  const PARITY = ['LLLLLL', 'LLGLGG', 'LLGGLG', 'LLGGGL', 'LGLLGG', 'LGGLLG', 'LGGGLL', 'LGLGLG', 'LGLGGL', 'LGGLGL'];
-  const digits = code.split('').map(Number);
-  const parity = PARITY[digits[0]];
-  let bits = '101';
-  digits.slice(1, 7).forEach((d, i) => (bits += (parity[i] === 'L' ? L : G)[d]));
-  bits += '01010';
-  digits.slice(7).forEach((d) => (bits += R[d]));
-  bits += '101';
-  return bits;
-}
-
-export const BARCODE_BITS = ean13Bits('3017624010701');

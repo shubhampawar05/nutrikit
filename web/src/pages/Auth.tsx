@@ -119,7 +119,6 @@ function AuthForm({ mode }: { mode: Mode }) {
     <main className="auth-shell">
       <aside className="auth-aside" aria-hidden="true">
         <div>
-          <span className="kicker" style={{ color: 'var(--butter)' }}>Nutrikit</span>
           <h2>From “a bowl of oatmeal” to <em>numbers you can trust</em>.</h2>
           <p>Your first key works the moment you sign up — 2,000 free tokens every month.</p>
         </div>

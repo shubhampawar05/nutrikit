@@ -1,29 +1,39 @@
-// API reference: the legacy heading and intro, then Scalar rendering /openapi.json.
-import { Link } from 'react-router';
+// API reference: Scalar rendering /openapi.json, themed with the site's own tokens (styles/reference.css).
+// Scalar's header already shows the title, server, auth and an OpenAPI download, so the page adds no intro of its own.
+import { useEffect, useMemo } from 'react';
 import { ApiReferenceReact } from '@scalar/api-reference-react';
 import '@scalar/api-reference-react/style.css';
 import '../styles/reference.css';
+import { useTheme } from '../theme.ts';
 
 export function Reference() {
+  const theme = useTheme();
+
+  // Built once: a new configuration object makes Scalar re-apply it, and remounting it would drop what the
+  // visitor typed into its auth panel and test requests.
+  const configuration = useMemo(() => ({
+    url: '/openapi.json',
+    // Examples and "Test request" target this origin.
+    servers: [{ url: window.location.origin, description: 'This server' }],
+    showDeveloperTools: 'never' as const,
+    hideDarkModeToggle: true, // the site header has the toggle
+    forceDarkModeState: theme,
+    withDefaultFonts: false,
+    theme: 'none' as const, // colours, fonts and radii come from the site (reference.css)
+  }), []); // the initial theme only: later switches are followed below, not by re-configuring
+
+  // Scalar reads forceDarkModeState only when it mounts, then expresses the mode as a body class.
+  // Follow later theme switches by swapping that class the same way Scalar does.
+  useEffect(() => {
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+    document.body.classList.toggle('light-mode', theme === 'light');
+  }, [theme]);
+
   return (
     <main className="reference-page">
-      <div className="wrap reference-head">
-        <article className="docs-content">
-          <h1>API reference</h1>
-          <p className="lead">Generated from the <a href="/openapi.json">OpenAPI 3.1 spec</a>. Base URL: <code>{window.location.origin}</code>. Authenticate with <code>Authorization: Bearer nk_…</code> or an access token — see <Link to="/docs#authentication">Authentication</Link>.</p>
-        </article>
-      </div>
+      <h1 className="sr-only">API reference</h1>
       <div className="reference-scalar">
-        <ApiReferenceReact
-          configuration={{
-            url: '/openapi.json',
-            // Like the legacy page, examples and "Test request" target this origin.
-            servers: [{ url: window.location.origin, description: 'This server' }],
-            showDeveloperTools: 'never',
-            hideDarkModeToggle: true, // follow the system theme, as site.css does
-            withDefaultFonts: false,
-          }}
-        />
+        <ApiReferenceReact configuration={configuration} />
       </div>
     </main>
   );

@@ -44,7 +44,6 @@ describe('Playground', () => {
     stubFetch(() => json({}), false);
     renderPage(<Playground />, { path: '/playground' });
     expect(screen.getByRole('heading', { level: 1, name: 'Try every endpoint.' })).toBeTruthy();
-    expect(screen.getByText('Playground')).toBeTruthy();
     expect(screen.getByRole('navigation', { name: 'Endpoints' })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 2, name: 'Log from text' })).toBeTruthy();
     expect(screen.getByText('Send the request to see the result.')).toBeTruthy();
@@ -106,6 +105,18 @@ describe('Playground', () => {
     fireEvent.click(screen.getByRole('button', { name: /Send request/ }));
     expect(await screen.findByText('no_key')).toBeTruthy();
     expect(screen.getByText('Add an API key above (or log in) to send requests.')).toBeTruthy();
+  });
+
+  it('keeps Log in and Get a free key in reach when a pasted key is rejected', async () => {
+    stubFetch((url) => (url.includes('/v1/') ? json({ error: { code: 'unauthorized', message: 'missing or invalid API key' } }, 401) : json({})), false);
+    renderPage(<Playground />, { path: '/playground#search' });
+    const input = await screen.findByLabelText('API key or access token');
+    fireEvent.change(input, { target: { value: 'nk_wrong' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Use key' }));
+    fireEvent.click(screen.getByRole('button', { name: /Send request/ }));
+    expect(await screen.findByText('401 · unauthorized')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Log in' }).getAttribute('href')).toBe('/login?next=/playground');
+    expect(screen.getByRole('link', { name: 'Get a free key' }).getAttribute('href')).toBe('/signup');
   });
 
   it('uses a pasted key, saved for this tab', async () => {

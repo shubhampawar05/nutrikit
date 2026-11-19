@@ -27,11 +27,14 @@ function ErrorBox({ status, body, authView }: { status: number; body: ErrorBody;
     // Signed in without a key: the dashboard is the way forward. A pasted-key user just needs the field above.
     if (authView === 'no-key') actions = <Link className="btn btn-primary btn-sm" to="/dashboard">Create a key in your dashboard <span className="arrow">→</span></Link>;
     else if (authView === 'anonymous') actions = <><Link className="btn btn-primary btn-sm" to="/login?next=/playground">Log in</Link><Link className="btn btn-ghost btn-sm" to="/signup">Get a free key</Link></>;
+  } else if (e.code === 'unauthorized' && authView === 'anonymous') {
+    // A pasted key that doesn't work: signing in (or a fresh key) is the way out, so keep the links in reach.
+    actions = <><Link className="btn btn-primary btn-sm" to="/login?next=/playground">Log in</Link><Link className="btn btn-ghost btn-sm" to="/signup">Get a free key</Link></>;
   } else if (e.code === 'quota_exceeded') {
     actions = <Link className="btn btn-primary btn-sm" to="/dashboard">Open dashboard <span className="arrow">→</span></Link>;
   }
   return (
-    <div className="pg-error">
+    <div className={e.code === 'no_key' ? 'pg-gate' : 'pg-error'}>
       <b>{status ? `${status} · ` : ''}{e.code || 'error'}</b>
       <p>{sentence(e.message)}</p>
       {hint ? <p className="muted small">{hint}</p> : null}
@@ -299,12 +302,18 @@ export function Playground() {
     );
   }
 
+  const sendButton = (
+    <button className="btn btn-primary pg-send-btn" type="submit" form="pg-form" disabled={busy}>
+      {busy ? 'Sending… ' : 'Send request '}<span className="arrow">→</span>
+    </button>
+  );
+
   return (
     <main className="wrap pg">
       <div className="pg-head">
         <div>
-          <span className="kicker">Playground</span>
           <h1>Try every endpoint.</h1>
+          <p className="muted">Pick an endpoint, send a request, inspect the result.</p>
         </div>
         <div className="pg-auth" aria-live="polite">
           {authView === 'checking' ? <span className="muted small">Checking sign-in…</span>
@@ -323,13 +332,11 @@ export function Playground() {
                 <form className="pg-keyform" onSubmit={onKeySubmit} key={authView}>
                   <label className="sr-only" htmlFor="pg-key">API key or access token</label>
                   <PasswordInput noun="key" ref={keyInput} className="input" id="pg-key" autoComplete="off" placeholder="Paste nk_… or nkat_…" defaultValue={savedKey} />
-                  <button className="btn btn-primary btn-sm" type="submit">Use key</button>
+                  <button className="btn btn-ghost btn-sm" type="submit">Use key</button>
                 </form>
                 {me.data ? (
                   <button className="btn btn-ghost btn-sm" type="button" disabled={switching} onClick={backToAccount}>{switching ? 'Switching…' : 'Use my account'}</button>
-                ) : authView === 'manual' ? null : (
-                  <span className="small muted"><Link to="/login?next=/playground">Log in</Link> to skip this, or <Link to="/signup">get a free key</Link>.</span>
-                )}
+                ) : null}
               </>
             )}
         </div>
@@ -338,63 +345,72 @@ export function Playground() {
       <div className="pg-layout">
         <nav className="pg-rail" aria-label="Endpoints">{rail}</nav>
 
-        <section className="pg-panel pg-request" aria-labelledby="req-title">
-          <div className="pg-panel-head">
-            <div>
-              <h2 id="req-title">{current.title}</h2>
-              <p className="pg-endpoint"><span className={`method ${current.method.toLowerCase()}`}>{current.method}</span><code>{current.path}</code></p>
-            </div>
-            <span className="badge">{current.cost}</span>
+        <div className="pg-bench">
+          <div className="pg-reqbar">
+            <p className="pg-endpoint"><span className={`method ${current.method.toLowerCase()}`}>{current.method}</span><code>{current.path}</code></p>
+            <span className="pg-cost">{current.cost}</span>
+            {sendButton}
           </div>
-          <p className="muted small">{current.desc}</p>
-          <form noValidate onSubmit={(e) => { e.preventDefault(); void send(current, vals, images); }}>
-            {scanning ? <video ref={videoRef} className="pg-video" playsInline muted /> : null}
-            {current.fields.map(fieldControl)}
-            <div className="pg-send">
-              <button className="btn btn-primary" type="submit" disabled={busy}>{busy ? 'Sending… ' : 'Send request '}<span className="arrow">→</span></button>
-              <span className="muted small">{current.method} · {current.cost}</span>
-            </div>
-          </form>
-        </section>
 
-        <section className="pg-panel pg-response" aria-labelledby="res-title">
-          <div className="pg-panel-head">
-            <h2 id="res-title">Response</h2>
-            <div className="pg-meta">
-              {meta === 'sending' ? <span className="pg-chip">Sending…</span> : meta ? (
-                <>
-                  <span className={`pg-chip ${meta.ok ? 'ok' : 'bad'}`}>{meta.status} {meta.statusText || (meta.ok ? 'OK' : 'Error')}</span>
-                  <span className="pg-chip">{meta.ms} ms</span>
-                  {meta.charged != null ? <span className="pg-chip">{meta.charged} token{meta.charged === '1' ? '' : 's'}</span> : null}
-                  {meta.remaining != null ? <span className="pg-chip">{fmtN(meta.remaining)} left</span> : null}
-                </>
-              ) : null}
-            </div>
-          </div>
-          {/* The only live region in the panel: a short status, not the whole response. */}
-          <p className="sr-only" role="status" aria-live="polite">{statusLine}</p>
-          <TabList tabs={VIEWS} current={view} onChange={(id) => setView(id as View)} label="Response view" prefix={VIEW_PREFIX} className="pg-tabs" tabClassName="pg-tab" />
-          <div className="pg-out" {...panel('preview')}>
-            {out.kind === 'empty' ? (
-              <div className="pg-empty">
-                <Icon name={current.icon} />
-                <p>Send the request to see the result.<br /><span className="muted small">Tip: <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd> sends from anywhere.</span></p>
+          <div className="pg-split">
+            <section className="pg-pane pg-request" aria-labelledby="req-title">
+              <h2 id="req-title">{current.title}</h2>
+              <p className="pg-desc">{current.desc}</p>
+              <form id="pg-form" noValidate onSubmit={(e) => { e.preventDefault(); void send(current, vals, images); }}>
+                {scanning ? <video ref={videoRef} className="pg-video" playsInline muted /> : null}
+                {current.fields.map(fieldControl)}
+              </form>
+              <p className="pg-shortcut muted small"><kbd>⌘/Ctrl</kbd> + <kbd>Enter</kbd> sends from anywhere</p>
+            </section>
+
+            <section className="pg-pane pg-response" aria-labelledby="res-title">
+              <div className="pg-response-inner">
+                <div className="pg-response-head">
+                  <h2 id="res-title" className="sr-only">Response</h2>
+                  <TabList tabs={VIEWS} current={view} onChange={(id) => setView(id as View)} label="Response view" prefix={VIEW_PREFIX} className="pg-tabs" tabClassName="pg-tab" />
+                  <div className="pg-meta">
+                    {meta === 'sending' ? <span className="pg-chip">Sending…</span> : meta ? (
+                      <>
+                        <span className={`pg-chip ${meta.ok ? 'ok' : 'bad'}`}>{meta.status} {meta.statusText || (meta.ok ? 'OK' : 'Error')}</span>
+                        <span className="pg-chip">{meta.ms} ms</span>
+                        {meta.charged != null ? <span className="pg-chip">{meta.charged} token{meta.charged === '1' ? '' : 's'}</span> : null}
+                        {meta.remaining != null ? <span className="pg-chip">{fmtN(meta.remaining)} left</span> : null}
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+                {/* The only live region in the panel: a short status, not the whole response. */}
+                <p className="sr-only" role="status" aria-live="polite">{statusLine}</p>
+                <div className="pg-out" {...panel('preview')}>
+                  {out.kind === 'empty' ? (
+                    <div className="pg-empty">
+                      <Icon name={current.icon} />
+                      <p>Send the request to see the result.</p>
+                      {authView === 'anonymous' ? (
+                        <>
+                          <p className="muted small">Requests run on your API key. Log in and the playground uses your account — no copying keys.</p>
+                          <div className="row"><Link className="btn btn-primary btn-sm" to="/login?next=/playground">Log in</Link><Link className="btn btn-ghost btn-sm" to="/signup">Get a free key</Link></div>
+                        </>
+                      ) : null}
+                    </div>
+                  ) : out.kind === 'error' ? <ErrorBox status={out.status} body={out.body} authView={authView} />
+                    : out.kind === 'unpreviewable' ? <Unpreviewable status={out.status} onShowJson={() => setView('json')} /> : (
+                    <PreviewBoundary key={json ?? ''} fallback={<Unpreviewable status={meta && meta !== 'sending' ? meta.status : 200} onShowJson={() => setView('json')} />}>
+                      <Preview result={out.result} offset={out.offset} onUseFood={pickFood} />
+                    </PreviewBoundary>
+                  )}
+                </div>
+                <div className="pg-out" {...panel('json')}>
+                  <CodeBlock><code>{json == null ? '// No response yet' : <JsonText text={json} />}</code></CodeBlock>
+                </div>
+                <div className="pg-out" {...panel('curl')}>
+                  <CodeBlock><code>{curl}</code></CodeBlock>
+                  <p className="small muted">Uses <code>$NUTRIKIT_KEY</code> — export your API key first. Your real key or token is never shown here.</p>
+                </div>
               </div>
-            ) : out.kind === 'error' ? <ErrorBox status={out.status} body={out.body} authView={authView} />
-              : out.kind === 'unpreviewable' ? <Unpreviewable status={out.status} onShowJson={() => setView('json')} /> : (
-              <PreviewBoundary key={json ?? ''} fallback={<Unpreviewable status={meta && meta !== 'sending' ? meta.status : 200} onShowJson={() => setView('json')} />}>
-                <Preview result={out.result} offset={out.offset} onUseFood={pickFood} />
-              </PreviewBoundary>
-            )}
+            </section>
           </div>
-          <div className="pg-out" {...panel('json')}>
-            <CodeBlock><code>{json == null ? '// No response yet' : <JsonText text={json} />}</code></CodeBlock>
-          </div>
-          <div className="pg-out" {...panel('curl')}>
-            <CodeBlock><code>{curl}</code></CodeBlock>
-            <p className="small muted">Uses <code>$NUTRIKIT_KEY</code> — export your API key first. Your real key or token is never shown here.</p>
-          </div>
-        </section>
+        </div>
       </div>
     </main>
   );
