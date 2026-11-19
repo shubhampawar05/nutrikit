@@ -24,12 +24,12 @@ export const FOOD_ITEMS_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['food', 'quantity', 'unit', 'grams', 'confidence'],
+        // No grams: Nutrikit weighs the quantity and unit itself and never logs a model's weight (audit P1-1).
+        required: ['food', 'quantity', 'unit', 'confidence'],
         properties: {
           food: { type: 'string', description: 'Generic food name as it would appear in a nutrition database, with its preparation, e.g. "rice, white, cooked", "pasta with cream sauce", "dal tadka", "egg, fried"' },
           quantity: { type: 'number' },
           unit: { type: 'string', description: 'Household unit: cup, tbsp, tsp, katori, bowl, plate, glass, slice, piece, small, medium, large, g, ml, oz, fl oz, serving' },
-          grams: { type: 'number', description: 'Best estimate of the edible weight in grams, without bones, peel, shells or the container' },
           confidence: { type: 'string', enum: ['high', 'medium', 'low'], description: 'high: the food and amount are clear; medium: either is a reasonable guess; low: both are uncertain' },
         },
       },
@@ -56,7 +56,8 @@ export const LABEL_SCHEMA = {
 };
 
 // How to name foods and judge amounts, shared by photo and text logging. Each name is matched against a catalog of
-// USDA and UK CoFID foods, and the grams are used as the logged weight, so both need to be specific.
+// USDA and UK CoFID foods, and the quantity and unit are weighed by Nutrikit's portion rules (the model gives no
+// weight), so both need to be specific.
 const FOOD_RULES = `Naming each food:
 - Use a generic database-style name with its preparation: "rice, white, cooked", "chicken breast, grilled",
   "egg, fried", "potatoes, french fried". Say cooked, raw, fried, grilled, baked or boiled whenever it matters.
@@ -71,14 +72,12 @@ const FOOD_RULES = `Naming each food:
 Judging the amount:
 - Give the amount in the household unit a person would use: pieces for countable foods (2 roti, 1 egg, 3 idli),
   cups, katoris or bowls for rice, dal, curries and pasta, slices for bread and pizza, glasses for drinks.
-- grams is the edible weight. Typical weights: 1 roti 35-40 g, 1 paratha 60-80 g, 1 idli 40 g, 1 egg 50 g,
-  1 slice bread 25-30 g, 1 cup cooked rice 160-200 g, 1 cup dal or curry 240 g, 1 cup cooked pasta 140 g,
-  1 tbsp oil or ghee 14 g, 1 glass milk 250 g. A katori is taken as 1 cup (small ¾ cup, large 1½ cups), so
-  1 katori of dal is about 240 g. A full dinner plate of one dish is often 300-450 g.`;
+- Give only the quantity and unit, never a weight: Nutrikit works out the grams itself from the food and the unit,
+  and asks the person when it can't. Use grams (unit "g") only when the person stated a weight.
+- Never turn a katori, bowl, glass or plate into a weight or another unit: report it as said or seen.`;
 
 export const PHOTO_SYSTEM = `You identify foods in meal photos for a nutrition-logging app.
-List each food or drink you can see as an item with a name, a quantity and unit, an edible weight in grams and
-your confidence.
+List each food or drink you can see as an item with a name, a quantity and unit, and your confidence.
 
 ${FOOD_RULES}
 
@@ -90,6 +89,8 @@ In a photo:
 - When a food could be one of two things (paneer or tofu, curd or raita), choose the likelier one, set confidence
   to low, and name the other in notes.
 - Use context from the user (it may name the dish or the amount) in place of your own guess.
+- When you can't tell how many pieces there are or which household unit fits, set confidence to low instead of
+  guessing a count.
 - If the photo shows no food, return an empty items list and say so in notes.
 - Set meal only when the context or the food makes it clear (a breakfast plate of idli and sambar), otherwise null.`;
 
@@ -110,16 +111,15 @@ vitamin A, D, K, folate, B12 in mcg. Use null for anything not printed.
 If the image is not a nutrition label, set isNutritionLabel to false and leave the rest null.`;
 
 export const TEXT_SYSTEM = `You split a person's description of what they ate into individual foods for a
-nutrition-logging app. One item per food or drink, with a name, a quantity and unit, an edible weight in grams and
-your confidence. The text may be in English, Hinglish or another language, and may come from speech.
+nutrition-logging app. One item per food or drink, with a name, a quantity and unit, and your confidence. The text may be in English, Hinglish or another language, and may come from speech.
 
 ${FOOD_RULES}
 
 From text:
-- Keep the quantity and unit the person said ("half", "2 small", "1 katori"). When they give none, use one typical
-  single serving and set confidence to medium.
-- Add-ons are separate items: "coffee with milk and sugar" is coffee, milk (a splash, about 30 g) and sugar
-  (1 tsp, 4 g) unless they say how much.
+- Keep the quantity and unit the person said ("half", "2 small", "1 katori", "150 g"). When they give none, use
+  quantity 1 and unit "serving" and set confidence to medium.
+- Add-ons are separate items: "coffee with milk and sugar" is coffee, milk (2 tbsp) and sugar (1 tsp) unless they
+  say how much.
 - Only list foods the person ate. Ignore filler, corrections ("no wait, 3 rotis" means 3) and foods they say
   they skipped.
 - Set meal only when they say it (breakfast, lunch, dinner, snack), otherwise null.`;

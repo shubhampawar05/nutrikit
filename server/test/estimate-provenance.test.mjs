@@ -22,7 +22,7 @@ function provider(make) {
   const p = fakeProvider();
   p.model = 'fake-model';
   const asked = new Map();
-  p.parseMeal = async ({ text }) => ({ meal: null, notes: '', items: [{ food: text.replace(/^\d+\s+/, ''), quantity: 1, unit: 'bowl', grams: 0, confidence: 'medium' }], usage: { inputTokens: 1, outputTokens: 1 } });
+  p.parseMeal = async ({ text }) => ({ meal: null, notes: '', items: [{ food: text.replace(/^\d+\s+/, ''), quantity: 1, unit: null, grams: 0, confidence: 'medium' }], usage: { inputTokens: 1, outputTokens: 1 } });
   p.estimateFoods = async ({ foods }) => ({
     foods: foods.map((q) => { const n = (asked.get(q) ?? 0) + 1; asked.set(q, n); return make(q, n); }).filter(Boolean),
     usage: { inputTokens: 10, outputTokens: 10 }, model: 'fake-model', modelVersion: 'fake-model-2026-11-01',
@@ -92,7 +92,7 @@ test('unknown nutrients stay null: allowed for fiber, sugar, saturated fat and s
   assert.match(estimateProblem(answer('x', { per100g: { ...GOOD, calories: null } })), /missing/);
   assert.match(estimateProblem(answer('x', { per100g: { ...GOOD, sodium: -1 } })), /negative/);
   const stored = { ...unknownSodium, provider: 'fake', model: 'm', at: '2026-11-19T00:00:00.000Z' };
-  const item = estimateItem('1 bowl x', stored, { quantity: 1, unit: 'bowl' });
+  const item = estimateItem('x', stored, { quantity: null, unit: null });
   assert.equal(item.nutrients.sodium, undefined, 'unknown sodium is not reported');
   assert.equal(item.nutrients.sugar, undefined);
   assert.ok(item.nutrients.calories.amount > 0);
@@ -100,7 +100,7 @@ test('unknown nutrients stay null: allowed for fiber, sugar, saturated fat and s
 
 test('older estimates without provenance still read, with null versions', () => {
   const legacy = { name: 'Old stew', per100g: GOOD, serving: { label: '1 bowl', unit: 'bowl', grams: 250 }, confidence: 'medium', provider: 'openai', model: 'gpt-5-mini', at: '2026-10-01T00:00:00.000Z', sameAs: null };
-  const item = estimateItem('1 bowl old stew', legacy, { quantity: 1, unit: 'bowl' }, 'approved');
+  const item = estimateItem('old stew', legacy, { quantity: null, unit: null }, 'approved');
   assert.equal(item.grams, 250);
   assert.deepEqual(item.basis, { kind: 'ai-estimate', status: 'approved', provider: 'openai', model: 'gpt-5-mini', modelVersion: null, promptVersion: null, calcVersion: null, estimatedAt: '2026-10-01T00:00:00.000Z' });
 });
@@ -135,7 +135,7 @@ test('API: an approved estimate stays an AI estimate, never verified data', asyn
   const updated = await res.json();
   assert.ok(updated.estimateReviewedAt, 'the review time is recorded');
   assert.deepEqual(updated.estimate, before.estimate, 'approval does not change the estimate');
-  const r = await log(live, '2 bowls zandle curry'); // rules logging: no AI call
+  const r = await log(live, '2 zandle curry'); // rules logging: no AI call
   const [item] = r.items;
   assert.equal(item.food.source, 'ai-estimate');
   assert.equal(item.food.id, 0);

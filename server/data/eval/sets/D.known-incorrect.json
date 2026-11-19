@@ -1,0 +1,4 @@
+{
+ "about": "Set D cases that are incorrect today, each with the audit finding (openspec/changes/improve-ai-estimate-accuracy/nutrition-pipeline-audit.md) or the Portion & Logging v2 rule (openspec/changes/portion-logging-v2/serving-reference.md section D) it waits on. Remove a case once it is fixed; never remove one to make the gate pass.",
+ "cases": {}
+}

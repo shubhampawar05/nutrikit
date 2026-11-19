@@ -134,12 +134,69 @@ const BARE_DEFAULTS: Record<string, string> = lookup({
   // Other spellings of dal alone mean plain dal too, not dal baati.
   daal: 'Dal',
   dhal: 'Dal',
+  // Reviewed exact dishes (Set D food-matching review, 2026-11-20): the catalog food that is this dish, where ranking
+  // picked another one. Each names the dish itself, not an arbitrary variant.
+  // FNDDS chicken fried rice; the CoFID "Chicken, stir-fried with rice and vegetables" is a stir-fry, not fried rice.
+  'chicken fried rice': 'Rice, fried, with chicken',
+  // FNDDS's own entry for wings whose cooking isn't said, not a marinated barbecued (CoFID) or other prepared wing.
+  'chicken wings': 'Chicken wing, NS as to cooking method',
+  'chicken wing': 'Chicken wing, NS as to cooking method',
+  // "Mac" is macaroni: the generic FNDDS dish, not the Easy Mac packaged product that alone contains the word.
+  'mac and cheese': 'Macaroni or noodles with cheese',
+  'mac cheese': 'Macaroni or noodles with cheese', // "mac & cheese" once the ampersand is dropped
+  'macaroni and cheese': 'Macaroni or noodles with cheese',
+  // Fresh fruit with no dressing, not a variant with marshmallows, pudding or cream the phrase doesn't name. FNDDS has
+  // it including (56 kcal/100 g) and excluding (59 kcal/100 g) citrus; the phrase doesn't say, and the two differ by
+  // 3 kcal, so the broader mix is used. Both are in Set D's reviewed expectation.
+  'fruit salad': 'Fruit salad, fresh or raw, including citrus fruits, no dressing',
 });
+
+// A phrase that shares every word with a longer dish name but is a different dish: never an exact match for it.
+// "chicken tikka" (dry, from the tandoor) is not "Chicken tikka masala" (a curry); the catalog has no dry tikka, so
+// the phrase is asked about with the curry still offered.
+//
+// "tandoori chicken" is the dry dish, not "Curry, chicken tandoori". INDB's "Tandoori chicken" is the dish, but its only
+// portion is "1 chicken" (1441 g, a whole bird), so it isn't pinned: the phrase is asked about with INDB's dish offered
+// first, and grams the person gives still log it. (Data finding, serving-reference.md D9.)
+const NOT_THIS_DISH: Record<string, string[]> = lookup({
+  'chicken tikka': ['Chicken tikka masala'],
+  'tandoori chicken': ['Curry, chicken tandoori, retail, reheated'],
+  // A veg spring roll is never the catalog's only (meat) spring roll: a vegetarian would be logged eating meat.
+  'veg spring roll': ['Spring rolls, meat, takeaway'],
+  'vegetable spring roll': ['Spring rolls, meat, takeaway'],
+});
+
+/** True when a reviewed entry says this food is a different dish from the phrase (NOT_THIS_DISH), on any match path. */
+export function notThisDish(query: string, name: string): boolean {
+  const normalized = normalizeQuery(String(query ?? '')).split(' ').filter(Boolean);
+  const raw = String(query ?? '').toLowerCase().trim().split(/\s+/);
+  for (const key of [normalized.join(' '), normalized.map(singular).join(' '), raw.join(' '), raw.map(singular).join(' ')]) {
+    if (NOT_THIS_DISH[key]?.includes(name)) return true;
+  }
+  return false;
+}
 
 // Bare words with no single defensible food (audit P0-4): "chicken" could be breast, leg or thigh, roasted, curried or
 // raw mince, at very different weights and fat. Logging asks instead, offering these reviewed catalog foods; a more
 // specific phrase ("chicken breast", "chicken curry", "grilled chicken") is matched as usual.
 const AMBIGUOUS_BARE: Record<string, string[]> = lookup({
+  // Set D food-matching review (2026-11-20): words naming several different foods, none a default.
+  // Indian egg roll (a paratha roll) or Chinese egg roll, with or without meat; the catalog has only Chinese-style ones.
+  'egg roll': ['Egg roll, meatless', 'Egg rolls, vegetable, frozen, prepared', 'Egg roll, with chicken or turkey', 'Egg rolls, pork, refrigerated, heated'],
+  // Veg or meat: the catalog has only a meat spring roll, offered without being logged.
+  'spring roll': ['Spring rolls, meat, takeaway'],
+  // 76 oils and no generic cooking oil (owner decision, serving-reference.md D8).
+  oil: ['Oil, mustard', 'Oil, sunflower, linoleic, (approx. 65%)', 'Oil, peanut, salad or cooking', 'Oil, soybean, salad or cooking', 'Oil, rice bran', 'Oil, coconut', 'Oil, olive, salad or cooking'],
+  // 23 raitas and no generic raita (owner decision, serving-reference.md D8).
+  raita: ['Cucumber raita (Kheere ka raita)', 'Onion raita (Pyaaz ka raita)', 'Tomato onion raita (Tamatar aur pyaaz ka raita)', 'Mint raita (Pudinay ka raita)', 'Potato raita (Aloo ka raita)', 'Bottle gourd raita (Ghiya/Lauki ka raita)'],
+  // Fish and chips (2026-11-20): no catalog dish, and the fish is fried, not "Fish, NFS", while "chips" here means fries,
+  // not potato crisps. The phrase is kept whole by the meal splitter (textlog.ts) and asked about: which fish, and the
+  // fries, are offered; nothing is logged. "fish chips" is "fish & chips" with the ampersand dropped.
+  'fish and chips': ['Fish, cod, fried', 'Fish, haddock, fried', 'Fish, NS as to type, fried', 'Potato, french fries, NFS'],
+  'fish chips': ['Fish, cod, fried', 'Fish, haddock, fried', 'Fish, NS as to type, fried', 'Potato, french fries, NFS'],
+  'fish n chips': ['Fish, cod, fried', 'Fish, haddock, fried', 'Fish, NS as to type, fried', 'Potato, french fries, NFS'],
+  // A US biscuit is a bread roll (370 kcal/100 g); an Indian or British biscuit is a sweet biscuit (INDB 381, Marie 406).
+  biscuit: ['Sweet plain biscuit', 'Marie biscuit', 'Cookie, NFS', 'Biscuit, NFS'],
   chicken: [
     'Chicken breast, baked, broiled, or roasted, skin not eaten, from raw',
     'Chicken thigh, baked, broiled, or roasted, skin not eaten, from raw',
@@ -148,6 +205,21 @@ const AMBIGUOUS_BARE: Record<string, string[]> = lookup({
     'Tandoori chicken',
   ],
 });
+
+// Words whose sense depends on the food they are eaten with (reviewed, 2026-11-20). After a main ("egg and chips",
+// "steak, chips", "burger with chips") "chips" is french fries in British and Indian usage but potato crisps in American
+// usage, so it is asked about, offering both. Alone ("chips") it keeps its reviewed default, potato chips; with a
+// snack ("chips and salsa", "chips and dip") it is untouched.
+const CHIPS = { after: new Set(['egg', 'eggs', 'steak', 'steaks', 'burger', 'burgers', 'hamburger', 'hamburgers', 'fish', 'cod', 'haddock', 'chicken']), suggest: ['Potato, french fries, NFS', 'Potato chips, NFS'] };
+const AMBIGUOUS_AFTER: Record<string, { after: Set<string>; suggest: string[] }> = lookup({ chips: CHIPS, chip: CHIPS });
+
+/** For a word whose sense depends on the food just before it in the meal, the reviewed foods to suggest; else null. */
+export function ambiguousAfter(food: string, previous: string | null | undefined): { id: number; name: string }[] | null {
+  const rule = AMBIGUOUS_AFTER[String(food ?? '').trim().toLowerCase()];
+  if (!rule || !previous || !rule.after.has(String(previous).trim().toLowerCase())) return null;
+  const byName = foods().prepare('SELECT id, name FROM foods WHERE name = ?');
+  return rule.suggest.map((n) => byName.get(n) as { id: number; name: string } | undefined).filter((r): r is { id: number; name: string } => !!r);
+}
 
 /** For a bare word with no single defensible food, the reviewed foods to suggest instead; else null. */
 export function ambiguousBare(food: string): { id: number; name: string }[] | null {
@@ -221,6 +293,7 @@ export function namesFoodExactly(query: string, hit: { id: number; name: string 
   const typed = String(query ?? '');
   if (aliasedFood(typed) === hit.id) return true;
   const normalized = normalizeQuery(typed).split(' ').filter(Boolean);
+  if (notThisDish(typed, hit.name)) return false;
   const preferred = BARE_DEFAULTS[normalized.join(' ')] ?? BARE_DEFAULTS[normalized.map(singular).join(' ')];
   if (preferred === hit.name) return true;
   const row = foods().prepare('SELECT aliases FROM foods WHERE id = ?').get(hit.id) as { aliases: string | null } | undefined;

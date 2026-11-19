@@ -13,8 +13,8 @@ import { addUsage, aiDeadline, withUsage, type AIProvider, type AIUsage, type Ca
 import { ESTIMATE_PROMPT_VERSION, promptVersionOf } from './providers/prompts.ts';
 import { getFood } from './db.ts';
 import { ambiguousBare, searchFoods } from './search.ts';
-import { logText, providedPortion, splitMealText, type EstimateBasis, type LoggedItem, type TextLog, type Unmatched } from './textlog.ts';
-import { canonicalUnit, resolvePortion } from './units.ts';
+import { logText, splitMealText, type EstimateBasis, type LoggedItem, type TextLog, type Unmatched } from './textlog.ts';
+import { canonicalUnit, resolvePortion, unsupportedAmount } from './units.ts';
 import { scaleNutrients, sumNutrients } from './nutrients.ts';
 
 export type RequestStatus = 'open' | 'resolved' | 'ignored';
@@ -275,7 +275,7 @@ export function servingCount(serving: { label?: string; unit?: string; quantity?
 }
 
 /** A logged item from an estimate, with the amount the person gave (or the AI's grams, or one typical serving). */
-export function estimateItem(input: string, estimate: StoredEstimate, amount: { quantity: number | null; unit: string | null; grams?: number | null }, status: EstimateBasis['status'] = 'unstored'): LoggedItem {
+export function estimateItem(input: string, estimate: StoredEstimate, amount: { quantity: number | null; unit: string | null }, status: EstimateBasis['status'] = 'unstored'): LoggedItem {
   const catalog = estimate.sameAs ? getFood(estimate.sameAs.id) : undefined;
   const basis: EstimateBasis = {
     kind: catalog ? 'catalog-match' : 'ai-estimate',
@@ -289,7 +289,7 @@ export function estimateItem(input: string, estimate: StoredEstimate, amount: { 
   };
   if (catalog) {
     // The model matched an existing food: log it from real data, with its own portions.
-    const portion = amount.grams ? providedPortion(amount.grams, amount) : resolvePortion(catalog, amount.quantity, amount.unit);
+    const portion = resolvePortion(catalog, amount.quantity, amount.unit);
     const grams = Math.round(portion.grams * 10) / 10;
     return {
       input,
@@ -298,7 +298,7 @@ export function estimateItem(input: string, estimate: StoredEstimate, amount: { 
       unit: portion.unit,
       grams,
       portionBasis: portion.portion,
-      portionMethod: portion.method === 'provided-grams' ? 'provided-grams' : `ai-same-as-${portion.method}`,
+      portionMethod: `ai-same-as-${portion.method}`,
       confidence: 'medium',
       nutrients: scaleNutrients(catalog.per100g, grams),
       alternatives: [],
@@ -320,10 +320,10 @@ export function estimateItem(input: string, estimate: StoredEstimate, amount: { 
     portions = !amount.unit ? [each] : sameUnit(amount.unit, s.unit) ? [each, servingWhole] : [servingWhole, each];
   }
   const food = { name: estimate.name, portions };
-  const portion = amount.grams ? providedPortion(amount.grams, amount) : resolvePortion(food, amount.quantity, amount.unit);
+  const portion = resolvePortion(food, amount.quantity, amount.unit);
   const grams = Math.round(portion.grams * 10) / 10;
   // A serving whose count can't be read is used whole, as before, and said to be unclear rather than taken as one.
-  const unclear = !amount.grams && count.unclear != null;
+  const unclear = count.unclear != null;
   return {
     input,
     food: { id: 0, name: estimate.name, source: 'ai-estimate' },
@@ -331,7 +331,7 @@ export function estimateItem(input: string, estimate: StoredEstimate, amount: { 
     unit: portion.unit,
     grams,
     portionBasis: unclear ? `${portion.portion ?? s.label}; the serving's count is unclear (${count.unclear}), so the whole ${s.grams} g serving was used` : portion.portion,
-    portionMethod: portion.method === 'provided-grams' ? 'provided-grams' : unclear ? 'ai-estimate-unclear-serving-count' : `ai-estimate-${portion.method}`,
+    portionMethod: unclear ? 'ai-estimate-unclear-serving-count' : `ai-estimate-${portion.method}`,
     confidence: 'low',
     // A nutrient the estimate left unknown (null) is left out of the item, never counted as 0.
     nutrients: scaleNutrients(Object.fromEntries(Object.entries(estimate.per100g).filter(([, v]) => v != null)) as Record<string, number>, grams),
@@ -456,7 +456,8 @@ export interface Unknown {
   /** The phrase as unmatched. */
   unmatched: Unmatched;
   /** The amount to log: from the AI's parse when there was one, otherwise parsed from the phrase. */
-  amount: { quantity: number | null; unit: string | null; grams?: number | null };
+  /** No grams: a weight comes only from the quantity and unit through the portion rules (audit P1-1). */
+  amount: { quantity: number | null; unit: string | null };
   /** The food words. */
   food: string;
 }
@@ -471,6 +472,16 @@ export interface Unknown {
  */
 export async function coverUnknowns(sql: Sql, unknowns: Unknown[], provider: AIProvider | null, opts: { store: boolean; pending: boolean }): Promise<{ items: (LoggedItem | null)[]; usage: AIUsage | null }> {
   if (!unknowns.length) return { items: [], usage: null };
+  // A phrase whose food is known but whose amount isn't supported is asked about, never estimated: an estimate would
+  // log it at an amount nobody gave (P0-5, portion-logging-v2 D1).
+  // A reviewed ambiguity ("fish and chips", "chicken") is asked about too, never covered by a stored or new estimate.
+  const asked = (u: Unknown) => !!(u.unmatched.amountUnsupported || u.unmatched.askOnly);
+  if (unknowns.some(asked)) {
+    const open = unknowns.filter((u) => !asked(u));
+    const covered = await coverUnknowns(sql, open, provider, opts);
+    let k = 0;
+    return { items: unknowns.map((u) => (asked(u) ? null : covered.items[k++])), usage: covered.usage };
+  }
   const keyed = unknowns.map((u) => ({ ...u, key: requestKey(u.food) }));
   const keys = [...new Set(keyed.map((u) => u.key))];
   const stored = opts.store ? await storedEstimates(sql, keys, { pending: opts.pending }) : new Map<string, Held>();
@@ -543,8 +554,16 @@ export async function coverUnknowns(sql: Sql, unknowns: Unknown[], provider: AIP
     const items = keyed.map((u) => {
       const held = stored.get(u.key);
       if (!held) return null;
+      // An amount that can't be weighed (an AI parse of "a small katori", or a volume of a food with no cited density,
+      // such as a cup of an estimated dish) is not logged at 0 g or a guess: the phrase stays unmatched, as given,
+      // with the reason.
+      const item = estimateItem(u.unmatched.text, held.estimate, u.amount, held.status);
+      if (unsupportedAmount(item.portionMethod)) {
+        u.unmatched.note ??= item.portionBasis ?? undefined;
+        return null;
+      }
       used.add(u.key);
-      return estimateItem(u.unmatched.text, held.estimate, u.amount, held.status);
+      return item;
     });
     if (opts.store && used.size) await sql`UPDATE food_requests SET estimate_uses = estimate_uses + 1 WHERE phrase IN ${sql([...used])}`;
     return { items, usage };

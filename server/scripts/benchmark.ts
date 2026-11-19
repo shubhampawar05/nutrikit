@@ -3,7 +3,8 @@
 //   npm run benchmark -w server            (reads data/foods.db; no database or API key needed)
 //
 // Statuses: correct (the expected food) · wrong (a different food logged, or a phrase that should not log, logged)
-// · missed (unmatched though the catalog has the food) · unmatched-ok (rightly not logged) · gap (unmatched; the
+// · missed (unmatched though the catalog has the food) · unmatched-ok (rightly not logged; for an `ask` case, with
+// the right food suggested) · gap (unmatched; the
 // catalog lacks the food). `known` cases are Nutrikit's open bugs: scored, and `todo` in the tests.
 import { fileURLToPath } from 'node:url';
 import { logText } from '../src/domain/textlog.ts';
@@ -14,6 +15,8 @@ export interface BenchmarkCase {
   food?: RegExp;
   grams?: [number, number];
   unmatched?: boolean;
+  /** The food is right but its amount can't be supported (a volume with no cited density): not logged, and `food` must be suggested. */
+  ask?: boolean;
   didYouMean?: string;
   gap?: string;
   known?: string;
@@ -45,7 +48,13 @@ export function runCase(c: BenchmarkCase): Outcome {
   const top3 = !!c.food && names.slice(0, 3).some((n) => c.food!.test(n));
   let status: Status;
   let why = '';
-  if (c.unmatched) {
+  if (c.ask) {
+    // Rightly not logged only if the right food is offered, so the user can give the amount.
+    const offered = (um?.suggestions ?? []).some((s) => c.food?.test(s.name));
+    status = !item && offered ? 'unmatched-ok' : 'wrong';
+    if (item) why = `logged ${logged} ${item.grams} g (${item.portionMethod}): the amount can't be supported`;
+    else if (!offered) why = `the right food is not suggested (${(um?.suggestions ?? []).map((s) => s.name).join(', ') || 'none'})`;
+  } else if (c.unmatched) {
     status = item ? 'wrong' : 'unmatched-ok';
     if (item) why = `logged ${logged}`;
     else if (c.didYouMean && um?.didYouMean !== c.didYouMean) { status = 'wrong'; why = `didYouMean ${um?.didYouMean ?? 'none'}, expected ${c.didYouMean}`; }
@@ -63,8 +72,8 @@ export function runCase(c: BenchmarkCase): Outcome {
   return { c, status, top3, gramsOk, logged, grams: item?.grams ?? null, source: item?.food.source ?? null, portionMethod: item?.portionMethod ?? null, why };
 }
 
-// Weights that rest on an assumption rather than the food's own data (water density, a 100 g serving, 1 oz).
-const ESTIMATED_PORTIONS = new Set(['density-estimate', 'default-100g', 'estimate-1oz', 'add-on-cap']);
+// Weights that rest on an assumption rather than the food's own data (a provisional bowl, glass, mug or rice plate, a 100 g serving, 1 oz).
+const ESTIMATED_PORTIONS = new Set(['assumed-bowl', 'assumed-glass', 'assumed-mug', 'assumed-plate', 'default-100g', 'estimate-1oz', 'add-on-cap']);
 
 export interface Scores {
   cases: number;

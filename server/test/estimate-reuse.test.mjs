@@ -32,7 +32,8 @@ async function put(phrase, e, status = 'pending') {
   await sql`INSERT INTO food_requests (phrase, example, reason, estimate, estimate_status) VALUES (${phrase}, ${`1 bowl ${phrase}`}, 'no matching food', ${sql.json(e)}, ${status})`;
 }
 const row = async (phrase) => (await sql`SELECT * FROM food_requests WHERE phrase = ${phrase}`)[0];
-const cover = (phrase, p) => coverUnknowns(sql, [{ unmatched: { text: `1 bowl ${phrase}`, reason: 'no matching food' }, food: phrase, amount: { quantity: 1, unit: 'bowl' } }], p, { store: true, pending: true });
+// The dish named bare: its estimate's whole serving. (A bowl of an estimated dish is asked about: see the last tests.)
+const cover = (phrase, p) => coverUnknowns(sql, [{ unmatched: { text: phrase, reason: 'no matching food' }, food: phrase, amount: { quantity: null, unit: null } }], p, { store: true, pending: true });
 
 test('staleReason: age, prompt version, calculation version, today\'s checks; legacy estimates count as other versions', () => {
   assert.equal(staleReason(estimate()), null);
@@ -156,8 +157,13 @@ test('concurrent requests: one re-estimate, one history entry; the others serve 
   let open;
   const gate = new Promise((resolve) => { open = resolve; });
   const p = provider({ gate });
-  const runs = Array.from({ length: 6 }, () => cover('busy biryani', p));
-  await new Promise((r) => setTimeout(r, 50));
+  // Deterministic, not timed: the AI answer is held until the five requests that didn't claim the re-estimate have
+  // answered, which also proves they never wait on the AI. (A fixed 50 ms wait let a slow request start after the
+  // swap under full-suite load and, correctly, see the new estimate, failing the count below.)
+  let settled = 0;
+  const runs = Array.from({ length: 6 }, () => cover('busy biryani', p).then((r) => { settled++; return r; }));
+  for (const deadline = Date.now() + 10_000; settled < 5 && Date.now() < deadline;) await new Promise((r) => setTimeout(r, 5));
+  assert.equal(settled, 5, 'the five other requests answered without waiting for the AI');
   open();
   const results = await Promise.all(runs);
   assert.equal(p.calls, 1, 'exactly one request asked the AI');
@@ -220,7 +226,108 @@ test('legacy estimates without provenance: pending ones are made again once, saf
 
 test('rules logging (no provider) never re-estimates', async () => {
   await put('quiet korma', estimate({ at: iso(31 * DAY) }), 'approved');
-  const { items } = await coverUnknowns(sql, [{ unmatched: { text: '1 bowl quiet korma', reason: 'no matching food' }, food: 'quiet korma', amount: { quantity: 1, unit: 'bowl' } }], null, { store: true, pending: false });
+  const { items } = await coverUnknowns(sql, [{ unmatched: { text: 'quiet korma', reason: 'no matching food' }, food: 'quiet korma', amount: { quantity: null, unit: null } }], null, { store: true, pending: false });
   assert.equal(items[0].food.name, 'Old dish');
   assert.equal((await row('quiet korma')).reestimate_claimed_at, null);
+});
+
+test('a phrase whose amount is unsupported, or an AI amount in an unsized katori, is never estimated or logged', async () => {
+  await put('loud korma', estimate(), 'approved');
+  const p = provider();
+  const flagged = { unmatched: { text: '1 small katori loud korma', reason: 'no confident match', amountUnsupported: true }, food: 'loud korma', amount: { quantity: 1, unit: 'small katori' } };
+  const unsized = { unmatched: { text: 'a bowl of loud korma', reason: 'no matching food' }, food: 'loud korma', amount: { quantity: 1, unit: 'large katori' } };
+  const plain = { unmatched: { text: 'loud korma', reason: 'no matching food' }, food: 'loud korma', amount: { quantity: null, unit: null } };
+  const { items } = await coverUnknowns(sql, [flagged, unsized, plain], p, { store: true, pending: true });
+  assert.equal(items[0], null, 'a flagged amount stays asked about');
+  assert.equal(items[1], null, 'an unsized katori is not logged at 0 g or a guess');
+  assert.ok(items[2], 'the rest is still covered');
+  assert.equal(p.calls, 0, 'the stored estimate is reused; nothing new is estimated');
+});
+
+test('a volume of an estimated or estimate-matched food is never weighed: no item, the phrase kept with the reason', async () => {
+  // A stored estimate whose serving is the AI's own "1 cup = 240 g": a serving weight, not a cited density.
+  await put('quiet halwa', estimate({ name: 'Quiet halwa', serving: { label: '1 cup', unit: 'cup', quantity: 1, grams: 240 } }), 'approved');
+  // A stored estimate the AI matched to the kheer recipe (no cited density).
+  await put('quiet kheer', estimate({ sameAs: { id: 900000019, name: 'Kheer (rice pudding)' } }), 'approved');
+  const p = provider();
+  const text = { unmatched: { text: '1 katori quiet halwa', reason: 'no matching food' }, food: 'quiet halwa', amount: { quantity: 1, unit: 'katori' } };
+  const aiParsed = { unmatched: { text: 'a cup of quiet halwa', reason: 'no matching food' }, food: 'quiet halwa', amount: { quantity: 1, unit: 'cup' } };
+  const matched = { unmatched: { text: '2 katori quiet kheer', reason: 'no matching food' }, food: 'quiet kheer', amount: { quantity: 2, unit: 'katori' } };
+  const grams = { unmatched: { text: '150 g quiet kheer', reason: 'no matching food' }, food: 'quiet kheer', amount: { quantity: 150, unit: 'g', grams: 150 } };
+  const { items } = await coverUnknowns(sql, [text, aiParsed, matched, grams], p, { store: true, pending: true });
+  assert.deepEqual(items.slice(0, 3), [null, null, null], 'no volume of these is weighed');
+  assert.match(text.unmatched.note, /no cited density for Quiet halwa, so 1 katori can't be weighed/);
+  assert.match(aiParsed.unmatched.note, /so 1 cup can't be weighed/);
+  assert.match(matched.unmatched.note, /no cited density for Kheer \(rice pudding\), so 2 katori can't be weighed/);
+  assert.equal(text.unmatched.text, '1 katori quiet halwa', 'the phrase is kept as given');
+  assert.equal(items[3].grams, 150, 'given grams are still logged');
+  assert.equal(p.calls, 0, 'nothing is estimated');
+  assert.equal((await row('quiet halwa')).estimate_uses, 0, 'an estimate that logged nothing is not counted as used');
+});
+
+test('a bowl of an estimated dish is asked about, from text or an AI parse; a bowl of an estimate matched to USDA dal is weighed', async () => {
+  // The estimate's own "1 bowl = 250 g" serving is a serving weight, never a bowl size.
+  await put('still stew', estimate({ name: 'Still stew' }), 'approved');
+  // An estimate the AI matched to USDA "Dal": weighed through dal's density at the provisional 200 ml bowl.
+  await put('still dal', estimate({ sameAs: { id: 2707427, name: 'Dal' } }), 'approved');
+  const text = { unmatched: { text: '1 bowl still stew', reason: 'no matching food' }, food: 'still stew', amount: { quantity: 1, unit: 'bowl' } };
+  const aiParsed = { unmatched: { text: 'two bowls of still stew', reason: 'no matching food' }, food: 'still stew', amount: { quantity: 2, unit: 'bowls' } };
+  const dal = { unmatched: { text: '1 bowl still dal', reason: 'no matching food' }, food: 'still dal', amount: { quantity: 1, unit: 'bowl' } };
+  const { items } = await coverUnknowns(sql, [text, aiParsed, dal], null, { store: true, pending: false });
+  assert.equal(items[0], null);
+  assert.equal(items[1], null);
+  assert.match(text.unmatched.note, /no cited density for Still stew, so 1 bowl can't be weighed/);
+  assert.match(aiParsed.unmatched.note, /so 2 bowl can't be weighed/);
+  assert.equal(items[2].food.name, 'Dal');
+  assert.equal(items[2].grams, 202.9);
+  assert.equal(items[2].portionMethod, 'ai-same-as-assumed-bowl', 'the provisional bowl stays labelled');
+});
+
+test('a glass or mug of an estimated dish is asked about, even when the estimate\'s own serving is a glass; an AI match to USDA milk is weighed', async () => {
+  // The estimate's "1 glass = 300 g" is its own serving weight, never the measure.
+  await put('calm sherbet', estimate({ name: 'Calm sherbet', serving: { label: '1 glass', unit: 'glass', quantity: 1, grams: 300 } }), 'approved');
+  await put('calm milk', estimate({ sameAs: { id: 2705384, name: 'Milk, NFS' } }), 'approved');
+  const text = { unmatched: { text: '1 glass calm sherbet', reason: 'no matching food' }, food: 'calm sherbet', amount: { quantity: 1, unit: 'glass' } };
+  const aiParsed = { unmatched: { text: 'two mugs of calm sherbet', reason: 'no matching food' }, food: 'calm sherbet', amount: { quantity: 2, unit: 'mugs' } };
+  const milk = { unmatched: { text: '1 glass calm milk', reason: 'no matching food' }, food: 'calm milk', amount: { quantity: 1, unit: 'glass' } };
+  const bare = { unmatched: { text: 'calm sherbet', reason: 'no matching food' }, food: 'calm sherbet', amount: { quantity: null, unit: null } };
+  const { items } = await coverUnknowns(sql, [text, aiParsed, milk, bare], null, { store: true, pending: false });
+  assert.equal(items[0], null);
+  assert.equal(items[1], null);
+  assert.match(text.unmatched.note, /no cited density for Calm sherbet, so 1 glass can't be weighed/);
+  assert.match(aiParsed.unmatched.note, /so 2 mug can't be weighed/);
+  assert.equal(text.unmatched.text, '1 glass calm sherbet', 'kept as given');
+  assert.equal(items[2].food.name, 'Milk, NFS');
+  assert.equal(items[2].grams, 257.8);
+  assert.equal(items[2].portionMethod, 'ai-same-as-assumed-glass', 'the provisional glass stays labelled');
+  assert.equal(items[3].grams, 300, 'the dish named bare is its whole serving');
+});
+
+test('a plate of an estimated dish is asked about, even when the estimate\'s serving is a plate; an AI match to plain rice is the assumed 200 ml', async () => {
+  // The estimate's own "1 plate = 350 g" is its serving weight; no source defines a plate.
+  await put('fair pulao', estimate({ name: 'Fair pulao', serving: { label: '1 plate', unit: 'plate', quantity: 1, grams: 350 } }), 'approved');
+  await put('fair rice', estimate({ sameAs: { id: 2708402, name: 'Rice, cooked, NFS' } }), 'approved');
+  const text = { unmatched: { text: '1 plate fair pulao', reason: 'no matching food' }, food: 'fair pulao', amount: { quantity: 1, unit: 'plate' } };
+  const aiParsed = { unmatched: { text: 'half a plate of fair pulao', reason: 'no matching food' }, food: 'fair pulao', amount: { quantity: 0.5, unit: 'plates' } };
+  const rice = { unmatched: { text: '1 plate fair rice', reason: 'no matching food' }, food: 'fair rice', amount: { quantity: 1, unit: 'plate' } };
+  const bare = { unmatched: { text: 'fair pulao', reason: 'no matching food' }, food: 'fair pulao', amount: { quantity: null, unit: null } };
+  const { items } = await coverUnknowns(sql, [text, aiParsed, rice, bare], null, { store: true, pending: false });
+  assert.equal(items[0], null);
+  assert.equal(items[1], null);
+  assert.match(text.unmatched.note, /a plate has no standard size, so 1 plate of Fair pulao can't be weighed/);
+  assert.match(aiParsed.unmatched.note, /so 0\.5 plate of Fair pulao/);
+  assert.equal(text.unmatched.text, '1 plate fair pulao', 'kept as given');
+  assert.equal(items[2].food.name, 'Rice, cooked, NFS');
+  assert.equal(items[2].grams, 133.6);
+  assert.equal(items[2].portionMethod, 'ai-same-as-assumed-plate', 'the plate assumption stays labelled');
+  assert.equal(items[3].grams, 350, 'the dish named bare is its whole serving');
+});
+
+test('a reviewed ambiguity is never covered by an estimate, stored or new', async () => {
+  await put('fish and chips', estimate({ name: 'Fish and chips (estimated)' }), 'approved');
+  const p = provider();
+  const dish = { unmatched: { text: 'fish and chips', reason: 'no confident match', askOnly: true }, food: 'fish and chips', amount: { quantity: null, unit: null } };
+  const { items } = await coverUnknowns(sql, [dish], p, { store: true, pending: true });
+  assert.deepEqual(items, [null], 'the stored estimate is not used');
+  assert.equal(p.calls, 0, 'and nothing new is estimated');
 });

@@ -7,8 +7,8 @@ import { ok, errors, cost } from '../schemas.ts';
 import { foods, getFood } from '../domain/db.ts';
 import { RANKED_MATCHES, searchFoods } from '../domain/search.ts';
 import { NUTRIENTS, scaleNutrients, sumNutrients } from '../domain/nutrients.ts';
-import { resolvePortion } from '../domain/units.ts';
-import { resolvePhrase, type LoggedItem, type Unmatched } from '../domain/textlog.ts';
+import { resolvePortion, unsupportedAmount } from '../domain/units.ts';
+import { resolveAiMeal, type LoggedItem, type Unmatched } from '../domain/textlog.ts';
 import { isValidGtin, lookupBarcode } from '../domain/barcode.ts';
 import { COUNTRIES, searchPackaged } from '../domain/packaged.ts';
 import { parseLabelText, LABEL_WARNINGS } from '../domain/label.ts';
@@ -51,26 +51,31 @@ const isLive = (req: FastifyRequest) => req.key?.mode !== 'test';
  * when the provider can estimate foods, logged from an estimate (source "ai-estimate", low confidence).
  * A failure after the provider answered still charges its tokens (plugins/metering.ts reads `err.usage`).
  */
-async function aiItems(sql: Sql, req: FastifyRequest, provider: AIProvider, run: () => Promise<MealRecognition>) {
+type AiOrigin = { kind: 'photo' } | { kind: 'text'; text: string };
+
+async function aiItems(sql: Sql, req: FastifyRequest, provider: AIProvider, origin: AiOrigin, run: () => Promise<MealRecognition>) {
   const out = await run();
   try {
-    return await resolveAiItems(sql, req, provider, out);
+    return await resolveAiItems(sql, req, provider, out, origin);
   } catch (err) {
     throw withUsage(err, out.usage);
   }
 }
 
-async function resolveAiItems(sql: Sql, req: FastifyRequest, provider: AIProvider, out: MealRecognition) {
+// The AI's grams are never read (audit P1-1): resolveAiMeal weighs the AI's quantity and unit with the portion rules,
+// and from text or voice a weight the person stated in their own words wins over the AI's reading of it.
+async function resolveAiItems(sql: Sql, req: FastifyRequest, provider: AIProvider, out: MealRecognition, origin: AiOrigin) {
   type Item = LoggedItem & { recognition: { label: string; confidence: AIFoodItem['confidence'] } };
   // Resolve each AI item on its own so its recognition stays with it when an earlier item is unmatched.
   const slots: (Item | null)[] = [];
   const unknowns: (Unknown & { at: number; recognition: Item['recognition'] })[] = [];
-  for (const i of out.items) {
+  const meal = resolveAiMeal(out.items, origin);
+  for (const [k, i] of out.items.entries()) {
     const recognition = { label: i.food, confidence: i.confidence };
-    const r = resolvePhrase({ food: i.food, quantity: i.quantity, unit: i.unit, grams: i.grams, text: `${i.quantity} ${i.unit} ${i.food}` });
+    const r = meal.results[k];
     if ('item' in r) slots.push({ ...r.item, recognition });
     else {
-      unknowns.push({ unmatched: r.unmatched, food: i.food, amount: { quantity: i.quantity, unit: i.unit, grams: i.grams }, at: slots.length, recognition });
+      unknowns.push({ unmatched: r.unmatched, food: i.food, amount: { quantity: i.quantity, unit: i.unit }, at: slots.length, recognition });
       slots.push(null);
     }
   }
@@ -79,7 +84,7 @@ async function resolveAiItems(sql: Sql, req: FastifyRequest, provider: AIProvide
   const covered = await coverUnknowns(sql, unknowns, provider, { store: live, pending: true });
   covered.items.forEach((item, k) => { if (item) slots[unknowns[k].at] = { ...item, recognition: unknowns[k].recognition }; });
   const items = slots.filter((i): i is Item => i !== null);
-  const unmatched: Unmatched[] = unknowns.filter((_, k) => !covered.items[k]).map((u) => u.unmatched);
+  const unmatched: Unmatched[] = [...unknowns.filter((_, k) => !covered.items[k]).map((u) => u.unmatched), ...meal.extra];
   const totals = sumNutrients(items.map((i) => i.nutrients));
   return { meal: out.meal ?? null, items, unmatched, totals, notes: out.notes, provider: provider.name, usage: addUsage(out.usage, covered.usage) };
 }
@@ -217,6 +222,7 @@ export async function v1Routes(fastify: FastifyInstance) {
     const portion = g != null
       ? { grams: g, quantity: g, unit: 'g', portion: null, method: 'mass' }
       : resolvePortion(food, quantity ?? null, unit ?? null);
+    if (unsupportedAmount(portion.method)) throw new HttpError(400, 'unsupported_unit', portion.portion!);
     const grams = Math.round(portion.grams * 10) / 10;
     return { food: { id: food.id, name: food.name }, quantity: portion.quantity, unit: portion.unit, grams, portionBasis: portion.portion, portionMethod: portion.method, nutrients: scaleNutrients(food.per100g, grams) };
   });
@@ -232,7 +238,7 @@ export async function v1Routes(fastify: FastifyInstance) {
     const { text, ai } = req.body;
     if (ai) {
       const provider = await requireProvider('parseMeal', req);
-      return aiItems(fastify.sql, req, provider, () => provider.parseMeal({ text }));
+      return aiItems(fastify.sql, req, provider, { kind: 'text', text }, () => provider.parseMeal({ text }));
     }
     return { ...(await logTextWithRequests(fastify.sql, text, { live: isLive(req), log: req.log })), provider: 'rules' };
   });
@@ -250,7 +256,7 @@ export async function v1Routes(fastify: FastifyInstance) {
     let result;
     if (req.body.ai) {
       const provider = await requireProvider('parseMeal', req);
-      result = await aiItems(fastify.sql, req, provider, () => provider.parseMeal({ text }));
+      result = await aiItems(fastify.sql, req, provider, { kind: 'text', text }, () => provider.parseMeal({ text }));
     } else {
       result = { ...(await logTextWithRequests(fastify.sql, text, { live: isLive(req), log: req.log })), provider: 'rules' };
     }
@@ -270,7 +276,7 @@ export async function v1Routes(fastify: FastifyInstance) {
     const provider = await requireProvider('recognizeMeal', req);
     const { image, mediaType, fields } = readImage(req);
     const hint = typeof fields.hint === 'string' ? fields.hint.slice(0, 500) : undefined;
-    return aiItems(fastify.sql, req, provider, () => provider.recognizeMeal({ image, mediaType, hint }));
+    return aiItems(fastify.sql, req, provider, { kind: 'photo' }, () => provider.recognizeMeal({ image, mediaType, hint }));
   });
 
   app.get('/v1/barcodes/:code(^[0-9]+$)', {

@@ -19,7 +19,8 @@ function estimatingProvider() {
   const p = fakeProvider();
   p.parseMeal = async (args) => {
     p.calls.push(['parseMeal', args]);
-    return { meal: null, notes: '', items: [{ food: 'glorbix stew', quantity: 1, unit: 'bowl', grams: 300, confidence: 'medium' }], usage: { inputTokens: 300, outputTokens: 100 } };
+    // grams is sent but ignored (audit P1-1): the amount is the quantity and unit, weighed by the portion rules.
+    return { meal: null, notes: '', items: [{ food: 'glorbix stew', quantity: 1, unit: 'serving', grams: 300, confidence: 'medium' }], usage: { inputTokens: 300, outputTokens: 100 } };
   };
   p.estimateFoods = async (args) => {
     p.calls.push(['estimateFoods', args]);
@@ -91,8 +92,8 @@ test('with ai, an unknown food is logged from an estimate, stored as pending, an
   assert.equal(item.food.source, 'ai-estimate');
   assert.equal(item.food.name, 'Estimated glorbix stew');
   assert.equal(item.confidence, 'low');
-  assert.equal(item.grams, 300, "the AI parse's grams win over the estimate's serving");
-  assert.equal(item.nutrients.calories.amount, 360);
+  assert.equal(item.grams, 250, "the estimate's serving, never the AI parse's 300 g");
+  assert.equal(item.nutrients.calories.amount, 300);
   assert.equal(item.recognition.label, 'glorbix stew');
   const g = await row('glorbix stew');
   assert.equal(g.estimate_status, 'pending');
@@ -107,19 +108,23 @@ test('with ai, an unknown food is logged from an estimate, stored as pending, an
 });
 
 test('a pending estimate is not used by rules logging; an approved one is, and a rejected one stops', async () => {
-  const before = await log(live, '1 bowl glorbix stew');
+  const before = await log(live, 'glorbix stew');
   assert.equal(before.unmatched.length, 1, 'pending estimates need ai: true');
 
   const { id } = await row('glorbix stew');
   assert.equal((await admin('PATCH', `/v1/admin/food-requests/${id}`, { estimateStatus: 'approved' })).status, 200);
-  const approved = await log(live, '2 bowls glorbix stew');
+  const approved = await log(live, '2 glorbix stew');
   assert.equal(approved.unmatched.length, 0);
   assert.equal(approved.items[0].food.source, 'ai-estimate');
-  assert.equal(approved.items[0].grams, 500, "2 bowls at the estimate's 250 g bowl");
+  assert.equal(approved.items[0].grams, 500, "2 servings of the estimate's 250 g serving");
+  // A bowl of it is asked about: the estimate's "1 bowl = 250 g" is its own serving weight, not a bowl density.
+  const bowl = await log(live, '1 bowl glorbix stew');
+  assert.equal(bowl.items.length, 0);
+  assert.match(bowl.unmatched[0].note, /no cited density for Estimated glorbix stew, so 1 bowl can't be weighed/);
   assert.equal(approved.totals.calories.amount, 600);
 
   await admin('PATCH', `/v1/admin/food-requests/${id}`, { estimateStatus: 'rejected' });
-  assert.equal((await log(live, '1 bowl glorbix stew')).unmatched.length, 1);
+  assert.equal((await log(live, 'glorbix stew')).unmatched.length, 1);
   const asked = provider.calls.filter(([c]) => c === 'estimateFoods').length;
   const again = await log(live, 'glorbix stew', true);
   assert.equal(again.unmatched.length, 1, 'a rejected food is not estimated again, even with ai');
@@ -137,11 +142,11 @@ test('a query the AI says is not a food stays unmatched', async () => {
 
 test('test keys get the sample estimate and leave nothing behind', async () => {
   const before = (await sql`SELECT count(*)::int AS n FROM food_requests`)[0].n;
-  const r = await log(testKey, '2 eggs and a bowl of blimpo rolls', true);
+  const r = await log(testKey, '2 eggs and blimpo rolls', true);
   assert.equal(r.provider, 'test');
   const sample = r.items.find((i) => i.food.source === 'ai-estimate');
   assert.equal(sample.food.name, 'Sample estimate for "blimpo rolls"');
-  assert.equal(sample.grams, 200, "the sample estimate's 200 g bowl");
+  assert.equal(sample.grams, 200, "the sample estimate's 200 g serving");
   assert.equal(r.unmatched.length, 0);
   assert.equal((await sql`SELECT count(*)::int AS n FROM food_requests`)[0].n, before);
 });
@@ -301,6 +306,76 @@ test('when estimating fails after the meal was parsed, the parse\'s tokens are s
     const res = await fetch(`${base}/v1/log/text`, { method: 'POST', headers: { Authorization: `Bearer ${live}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ text: 'a bowl of vrintal bake', ai: true }) });
     assert.equal(res.status, 502);
     assert.ok(Number(res.headers.get('x-tokens-charged')) > 0, 'AI usage is charged');
+  } finally {
+    Object.assign(provider, saved);
+  }
+});
+
+test('P1-1 through the routes: photo, text and voice items are weighed by the rules; the AI\'s grams never log', async () => {
+  const saved = { parseMeal: provider.parseMeal, recognizeMeal: provider.recognizeMeal };
+  const items = [
+    { food: 'dal', quantity: 1, unit: 'katori', grams: 999, confidence: 'high' },
+    { food: 'milk', quantity: 1, unit: 'glass', grams: 999, confidence: 'high' },
+    { food: 'biryani', quantity: 1, unit: 'plate', grams: 450, confidence: 'high' },
+    { food: 'kheer', quantity: 1, unit: 'katori', grams: 240, confidence: 'high' },
+    { food: 'dal', quantity: 100, unit: 'g', grams: 300, confidence: 'high' },
+    { food: 'plonk stew', quantity: 1, unit: 'bowl', grams: 300, confidence: 'high' },
+  ];
+  provider.parseMeal = async () => ({ meal: null, notes: '', items, usage: { inputTokens: 1, outputTokens: 1 } });
+  provider.recognizeMeal = async () => ({ meal: null, notes: '', items, usage: { inputTokens: 1, outputTokens: 1 } });
+  try {
+    const headers = { Authorization: `Bearer ${live}`, 'Content-Type': 'application/json' };
+    const post = async (path, body) => {
+      const res = await fetch(`${base}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
+      assert.equal(res.status, 200, path);
+      return res.json();
+    };
+    const results = {
+      text: await post('/v1/log/text', { text: 'dal, milk, biryani, kheer, 100 g dal, plonk stew', ai: true }),
+      voice: await post('/v1/log/voice', { transcript: 'dal milk biryani kheer and plonk stew', ai: true }),
+      photo: await post('/v1/log/photo', { image: 'data:image/jpeg;base64,/9j/4AAQ' }),
+    };
+    for (const [origin, r] of Object.entries(results)) {
+      assert.deepEqual(r.items.map((i) => [i.food.name, i.grams, i.portionMethod]), [
+        ['Dal', 202.9, 'volume-conversion'], ['Milk, NFS', 257.8, 'assumed-glass'], ['Dal', 100, 'mass'],
+      ], `${origin}: only what the rules can weigh is logged, at the rules' grams`);
+      assert.ok(r.items.every((i) => i.portionMethod !== 'provided-grams'), origin);
+      // Biryani (no plate), kheer (no density) and a bowl of the plonk stew estimate (a serving weight) are asked.
+      assert.deepEqual(r.unmatched.map((u) => u.text), ['1 plate biryani', '1 katori kheer', '1 bowl plonk stew'], origin);
+      assert.match(r.unmatched[2].note, /no cited density for Estimated plonk stew, so 1 bowl can't be weighed/, origin);
+      const fromPhoto = r.items.every((i) => /^amount read from the photo by AI/.test(i.portionBasis));
+      assert.equal(fromPhoto, origin === 'photo', `${origin}: only photo items say they were read from a photo`);
+    }
+  } finally {
+    Object.assign(provider, saved);
+  }
+});
+
+test('P1-1 follow-up through the routes: a stated weight beats the AI\'s reading, the same for text and voice', async () => {
+  const saved = { parseMeal: provider.parseMeal, recognizeMeal: provider.recognizeMeal };
+  // The AI misreads both stated weights as "1 serving" (and sends grams, which are ignored).
+  const items = [
+    { food: 'rice', quantity: 1, unit: 'serving', grams: 200, confidence: 'medium' },
+    { food: 'kheer', quantity: 1, unit: 'serving', grams: 250, confidence: 'medium' },
+    { food: 'dal', quantity: 2, unit: 'katori', grams: 480, confidence: 'high' },
+  ];
+  provider.parseMeal = async () => ({ meal: null, notes: '', items, usage: { inputTokens: 1, outputTokens: 1 } });
+  provider.recognizeMeal = async () => ({ meal: null, notes: '', items: [{ food: 'rice', quantity: 1, unit: 'bowl', grams: 400, confidence: 'high' }], usage: { inputTokens: 1, outputTokens: 1 } });
+  try {
+    const headers = { Authorization: `Bearer ${live}`, 'Content-Type': 'application/json' };
+    const post = async (path, body) => (await fetch(`${base}${path}`, { method: 'POST', headers, body: JSON.stringify(body) })).json();
+    const said = '0.5 kg rice, 100 grams kheer and 2 katori dal';
+    const text = await post('/v1/log/text', { text: said, ai: true });
+    const voice = await post('/v1/log/voice', { transcript: `um so ${said}`, ai: true });
+    for (const r of [text, voice]) {
+      assert.deepEqual(r.items.map((i) => [i.food.name, i.grams, i.portionMethod]), [
+        ['Rice, cooked, NFS', 500, 'mass'], ['Kheer (rice pudding)', 100, 'mass'], ['Dal', 405.8, 'volume-conversion'],
+      ]);
+      assert.deepEqual(r.unmatched, []);
+    }
+    assert.equal(voice.transcript, `so ${said}`, 'voice reads the cleaned transcript ("um" removed)');
+    const photo = await post('/v1/log/photo', { image: 'data:image/jpeg;base64,/9j/4AAQ' });
+    assert.deepEqual(photo.items.map((i) => [i.food.name, i.grams, i.portionMethod]), [['Rice, cooked, NFS', 133.6, 'assumed-bowl']], 'photos are unchanged');
   } finally {
     Object.assign(provider, saved);
   }

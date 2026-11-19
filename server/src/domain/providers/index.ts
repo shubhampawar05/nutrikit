@@ -21,7 +21,8 @@ export interface AIFoodItem {
   food: string;
   quantity: number;
   unit: string;
-  grams: number;
+  /** Not asked for any more, and ignored if a provider sends it: a weight comes only from the portion rules (P1-1). */
+  grams?: number;
   confidence?: 'high' | 'medium' | 'low';
 }
 
