@@ -5,6 +5,7 @@ import { Icon, Logo } from './Icon.tsx';
 import { useMe } from '../hooks.ts';
 import { usePageMeta } from '../seo.ts';
 import { PAYMENTS_VISIBLE } from '../features.ts';
+import { toggleTheme, useTheme } from '../theme.ts';
 
 const NAV: [string, string][] = [
   ['/docs', 'Docs'],
@@ -12,6 +13,16 @@ const NAV: [string, string][] = [
   ...(PAYMENTS_VISIBLE ? [['/pricing', 'Pricing'] as [string, string]] : []),
   ['/playground', 'Playground'],
 ];
+
+function ThemeToggle() {
+  const theme = useTheme();
+  const next = theme === 'dark' ? 'light' : 'dark';
+  return (
+    <button className="theme-btn" type="button" aria-label={`Switch to ${next} mode`} title={`Switch to ${next} mode`} onClick={toggleTheme}>
+      <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
+    </button>
+  );
+}
 
 function Header() {
   const { pathname } = useLocation();
@@ -49,6 +60,7 @@ function Header() {
             <Link key={href} to={href} aria-current={here === href ? 'page' : undefined}>{label}</Link>
           ))}
         </nav>
+        <ThemeToggle />
         <div className="header-actions">
           {me.data ? (
             <Link className="btn btn-primary btn-sm" to="/dashboard">Dashboard <span className="arrow">→</span></Link>

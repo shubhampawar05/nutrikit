@@ -34,8 +34,10 @@
   color-scheme: light;
 }
 
+/* Dark: the system setting, unless the visitor picked a theme with the header toggle
+   (html[data-theme], set before paint by public/theme.js and by components/ThemeToggle.tsx). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #12110f;
     --paper-2: #1a1916;
     --card: #1c1b18;
@@ -57,8 +59,31 @@
     --shadow: 0 1px 0 rgb(0 0 0 / 30%), 0 16px 40px -16px rgb(0 0 0 / 60%);
     color-scheme: dark;
   }
-  .dev { border: 1px solid var(--rule); }
+  :root:not([data-theme="light"]) .dev { border: 1px solid var(--rule); }
 }
+:root[data-theme="dark"] {
+  --paper: #12110f;
+  --paper-2: #1a1916;
+  --card: #1c1b18;
+  --ink: #f1ebdf;
+  --ink-2: #d5cec1;
+  --muted: #9a9387;
+  --rule: #2e2c27;
+  --rule-strong: #f1ebdf;
+  --tomato: #ff6a4d;
+  --tomato-ink: #ff8a72;
+  --tomato-soft: #3a1c15;
+  --herb: #7cc39b;
+  --herb-soft: #17291f;
+  --night: #0b0b0a;
+  --night-2: #161513;
+  --danger: #ff8a80;
+  --danger-soft: #3a1714;
+  --warn: #f0b45a;
+  --shadow: 0 1px 0 rgb(0 0 0 / 30%), 0 16px 40px -16px rgb(0 0 0 / 60%);
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .dev { border: 1px solid var(--rule); }
 
 /* ---------------------------------------------------------------- base */
 * { box-sizing: border-box; }
@@ -108,17 +133,21 @@ pre code { background: none; border: 0; padding: 0; font-size: .84rem; }
 /* ---------------------------------------------------------------- header / footer */
 .site-header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--paper) 86%, transparent); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid transparent; transition: border-color .2s; }
 .site-header.scrolled { border-bottom-color: var(--rule); }
-.site-header .wrap { display: flex; align-items: center; gap: 28px; min-height: 68px; }
+.site-header .wrap { display: flex; align-items: center; gap: 8px; min-height: 68px; }
 .logo { display: inline-flex; align-items: center; gap: 9px; font: 600 1.32rem/1 var(--serif); letter-spacing: -0.03em; color: var(--ink); text-decoration: none; }
 .logo-mark { width: 26px; height: 26px; flex: none; }
-.nav { display: flex; gap: 2px; }
+.nav { display: flex; gap: 2px; margin-left: 20px; }
 .nav a { color: var(--ink-2); padding: 8px 12px; border-radius: 999px; font-weight: 500; font-size: .94rem; text-decoration: none; }
 .nav a:hover { color: var(--ink); background: var(--paper-2); }
 .nav a[aria-current="page"] { color: var(--ink); background: var(--paper-2); }
-.header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.theme-btn { margin-left: auto; display: inline-grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 999px; background: transparent; color: var(--ink-2); cursor: pointer; transition: background-color .15s, color .15s; }
+.theme-btn:hover { background: var(--paper-2); color: var(--ink); }
+.theme-btn .icon { width: 19px; height: 19px; transition: transform .35s var(--ease-out, ease); }
+.theme-btn:active .icon { transform: rotate(-30deg) scale(.9); }
 .header-link { color: var(--ink-2); font-weight: 500; font-size: .94rem; text-decoration: none; padding: 8px 12px; border-radius: 999px; }
 .header-link:hover { color: var(--ink); background: var(--paper-2); }
-.menu-btn { display: none; margin-left: auto; background: none; border: 1.5px solid var(--rule); border-radius: 999px; color: var(--ink); width: 44px; height: 44px; cursor: pointer; }
+.menu-btn { display: none; margin-left: 4px; background: none; border: 1.5px solid var(--rule); border-radius: 999px; color: var(--ink); width: 44px; height: 44px; cursor: pointer; }
 @media (max-width: 860px) {
   .menu-btn { display: inline-grid; place-items: center; }
   .nav, .header-actions { display: none; }

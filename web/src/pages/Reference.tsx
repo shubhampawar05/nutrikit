@@ -1,27 +1,27 @@
-// API reference: the legacy heading and intro, then Scalar rendering /openapi.json.
-import { Link } from 'react-router';
+// API reference: Scalar rendering /openapi.json, themed with the site's own tokens (styles/reference.css).
+// Scalar's header already shows the title, server, auth and an OpenAPI download, so the page adds no intro of its own.
 import { ApiReferenceReact } from '@scalar/api-reference-react';
 import '@scalar/api-reference-react/style.css';
 import '../styles/reference.css';
+import { useTheme } from '../theme.ts';
 
 export function Reference() {
+  const theme = useTheme();
   return (
     <main className="reference-page">
-      <div className="wrap reference-head">
-        <article className="docs-content">
-          <h1>API reference</h1>
-          <p className="lead">Generated from the <a href="/openapi.json">OpenAPI 3.1 spec</a>. Base URL: <code>{window.location.origin}</code>. Authenticate with <code>Authorization: Bearer nk_…</code> or an access token — see <Link to="/docs#authentication">Authentication</Link>.</p>
-        </article>
-      </div>
+      <h1 className="sr-only">API reference</h1>
       <div className="reference-scalar">
         <ApiReferenceReact
+          key={theme} // Scalar reads forceDarkModeState once, so a theme switch remounts it
           configuration={{
             url: '/openapi.json',
-            // Like the legacy page, examples and "Test request" target this origin.
+            // Examples and "Test request" target this origin.
             servers: [{ url: window.location.origin, description: 'This server' }],
             showDeveloperTools: 'never',
-            hideDarkModeToggle: true, // follow the system theme, as site.css does
+            hideDarkModeToggle: true, // the site header has the toggle
+            forceDarkModeState: theme,
             withDefaultFonts: false,
+            theme: 'none', // colours, fonts and radii come from the site (reference.css)
           }}
         />
       </div>

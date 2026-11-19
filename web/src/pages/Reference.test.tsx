@@ -14,11 +14,10 @@ vi.mock('@scalar/api-reference-react/style.css', () => ({}));
 const { Reference } = await import('./Reference.tsx');
 
 describe('Reference', () => {
-  it('renders the heading and Scalar pointed at /openapi.json', () => {
+  it('renders a heading and Scalar pointed at /openapi.json, themed by the site', () => {
     renderPage(<Reference />, { path: '/docs/reference' });
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('API reference');
-    expect(screen.getByRole('link', { name: 'OpenAPI 3.1 spec' }).getAttribute('href')).toBe('/openapi.json');
     expect(screen.getByTestId('scalar')).toBeTruthy();
-    expect(received.at(-1)).toMatchObject({ url: '/openapi.json' });
+    expect(received.at(-1)).toMatchObject({ url: '/openapi.json', theme: 'none' });
   });
 });

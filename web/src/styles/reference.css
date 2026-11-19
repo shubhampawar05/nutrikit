@@ -1,4 +1,59 @@
-/* API reference page: Scalar sits below the site's sticky header (min-height 68px + 1px border). */
+/* API reference page: Scalar sits below the site's sticky header (min-height 68px + 1px border)
+   and takes its colours, fonts and radii from the site's tokens, which already switch for dark mode. */
 .reference-page { --scalar-custom-header-height: 69px; }
-.reference-head { padding-top: 40px; }
-.reference-scalar { margin-top: 24px; }
+
+.reference-scalar,
+.reference-scalar .light-mode,
+.reference-scalar .dark-mode {
+  --scalar-font: var(--sans);
+  --scalar-font-code: var(--mono);
+
+  --scalar-background-1: var(--paper);
+  --scalar-background-2: var(--card);
+  --scalar-background-3: var(--paper-2);
+  --scalar-background-accent: var(--tomato-soft);
+  --scalar-border-color: var(--rule);
+
+  --scalar-color-1: var(--ink);
+  --scalar-color-2: var(--ink-2);
+  --scalar-color-3: var(--muted);
+  --scalar-color-accent: var(--tomato);
+  --scalar-link-color: var(--ink);
+  --scalar-focus-color: var(--tomato);
+
+  --scalar-color-green: var(--herb);
+  --scalar-color-red: var(--danger);
+  --scalar-color-orange: var(--tomato-ink);
+  --scalar-color-yellow: var(--warn);
+  --scalar-color-blue: var(--herb);
+  --scalar-color-purple: var(--tomato-ink);
+  --scalar-color-danger: var(--danger);
+  --scalar-background-danger: var(--danger-soft);
+
+  --scalar-button-1: var(--ink);
+  --scalar-button-1-color: var(--paper);
+  --scalar-button-1-hover: var(--tomato);
+
+  --scalar-sidebar-background-1: var(--paper);
+  --scalar-sidebar-border-color: var(--rule);
+  --scalar-sidebar-color-1: var(--ink);
+  --scalar-sidebar-color-2: var(--ink-2);
+  --scalar-sidebar-color-active: var(--tomato-ink);
+  --scalar-sidebar-item-hover-background: var(--paper-2);
+  --scalar-sidebar-item-hover-color: var(--ink);
+  --scalar-sidebar-item-active-background: var(--paper-2);
+  --scalar-sidebar-search-background: var(--card);
+  --scalar-sidebar-search-border-color: var(--rule);
+  --scalar-sidebar-search-color: var(--muted);
+
+  --scalar-radius: 8px;
+  --scalar-radius-lg: 12px;
+  --scalar-radius-xl: 14px;
+  --scalar-shadow-1: none;
+  --scalar-shadow-2: var(--shadow);
+}
+
+/* Section titles use the site's serif, like every other page heading. */
+.reference-scalar h1,
+.reference-scalar .section-header-label,
+.reference-scalar h2.section-header { font-family: var(--serif); font-weight: 500; letter-spacing: -0.02em; }
