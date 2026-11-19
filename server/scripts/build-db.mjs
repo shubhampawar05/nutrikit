@@ -18,7 +18,7 @@ import { loadRecipes, composeRecipe } from './recipes.mjs';
 import { readXlsx } from './xlsx.mjs';
 import { COFID_SOURCE, DISH_GROUPS, cofidFoods, convertCofid, cofidId, verifyCofidFile, cofidAliases } from './cofid.mjs';
 import { INDB_SOURCE, indbDataDir, indbRecipes } from './indb.mjs';
-import { INDB_TOTALS_SOURCE, indbTotalFoods } from './indb-totals.mjs';
+import { FRYING_FAT_G, FRYING_OIL_ML, INDB_TOTALS_SOURCE, indbTotalFoods } from './indb-totals.mjs';
 import { recipeAliases } from './recipe-aliases.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -240,7 +240,7 @@ if (useIndbTotals) {
       merged++;
     }
   }
-  indbTotalsMeta = { ...INDB_TOTALS_SOURCE, dishes: dishes.length, merged, mode: 'totals' };
+  indbTotalsMeta = { ...INDB_TOTALS_SOURCE, dishes: dishes.length, merged, excludedFried: dishes.excludedFried ?? 0, frying: { minOilMl: FRYING_OIL_ML, minFatG: FRYING_FAT_G }, mode: 'totals' };
 } else if (indbDir) {
   console.warn('INDB.xlsx not found; skipping INDB dish totals (only ingredient-compose fallback may run)');
 }

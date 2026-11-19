@@ -20,7 +20,8 @@
     "openapi": "node --import tsx scripts/openapi.mjs",
     "test": "node --env-file-if-exists=../.env --import tsx --test 'test/*.test.mjs'",
     "typecheck": "tsc -p . --noEmit",
-    "eval:estimates": "node --env-file-if-exists=../.env --import tsx scripts/eval-estimates.ts"
+    "eval:estimates": "node --env-file-if-exists=../.env --import tsx scripts/eval-estimates.ts",
+    "eval:sets": "node --import tsx scripts/eval/build-sets.ts"
   },
   "engines": {
     "node": ">=22.16"

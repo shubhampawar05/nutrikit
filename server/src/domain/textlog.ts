@@ -2,8 +2,9 @@
 // -> matched foods with portions and nutrients. Rule-based; the AI provider can supply the
 // item split instead (see providers/), and both paths resolve each phrase with resolvePhrase().
 import { getFood } from './db.ts';
-import { searchFoods, wordCoverage } from './search.ts';
+import { ambiguousBare, namesFoodExactly, namesHead, searchFoods, wordCoverage } from './search.ts';
 import { canonicalUnit, parseQuantity, resolvePortion } from './units.ts';
+import { countsPieces, implausiblePiece } from './portions.ts';
 import { scaleNutrients, sumNutrients } from './nutrients.ts';
 import type { Food, NutrientMap, ResolvedPortion } from './types.ts';
 import { lookup } from './lookup.ts';
@@ -38,6 +39,25 @@ export interface LoggedItem {
   confidence: 'high' | 'medium' | 'low';
   nutrients: NutrientMap;
   alternatives: { id: number; name: string }[];
+  /** Only on items logged from an AI estimate: how the estimate was produced (additive; absent for catalog items). */
+  basis?: EstimateBasis;
+}
+
+/**
+ * Provenance of an item logged from an AI estimate. kind: "ai-estimate" (the AI's own values) or "catalog-match" (the
+ * AI judged a catalog food the same dish and that food's values were used). status: "approved" (an operator reviewed
+ * it: still an AI estimate, not verified data), "pending" (not reviewed) or "unstored" (made for a test key, not
+ * kept). The version fields are null for estimates stored before they were recorded.
+ */
+export interface EstimateBasis {
+  kind: 'ai-estimate' | 'catalog-match';
+  status: 'approved' | 'pending' | 'unstored';
+  provider: string;
+  model: string | null;
+  modelVersion: string | null;
+  promptVersion: string | null;
+  calcVersion: string | null;
+  estimatedAt: string;
 }
 
 export interface Unmatched {
@@ -194,8 +214,11 @@ export function providedPortion(grams: number, amount: { quantity?: number | nul
  * A phrase may carry `grams` directly (e.g. AI portion estimates), which overrides unit parsing.
  */
 export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?: number } = {}): { item: LoggedItem } | { unmatched: Unmatched } {
-  const found = searchFoods(ph.food, { limit: alternatives + 1 });
   const text = ph.text || ph.food;
+  // A bare word with no single defensible food ("chicken") is asked about, never guessed (audit P0-4).
+  const ask = ambiguousBare(ph.food);
+  if (ask) return { unmatched: { text, reason: 'no confident match', suggestions: ask, note: `"${ph.food}" could be several foods; choose one` } };
+  const found = searchFoods(ph.food, { limit: alternatives + 1 });
   if (!found.results.length) return { unmatched: { text, reason: 'no matching food' } };
   // Only a respelling matched: suggest it rather than log a food the user may not have meant.
   if (found.didYouMean) {
@@ -204,9 +227,23 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
   }
   // A fallback match (prefix or any one word) is logged only when the food shares more than half of the phrase's
   // words; otherwise "butter chicken" would be logged as butter. Weaker hits are offered as suggestions instead.
-  if (found.match !== 'all-words' && wordCoverage(ph.food, found.results[0].name) <= 0.5) {
-    const suggestions = found.results.filter((r) => wordCoverage(ph.food, r.name) > 0).map((r) => ({ id: r.id, name: r.name }));
+  // A fallback match must also name the food's main dish: "veg fried rice" shares "fried" and "rice" with "Rissoles,
+  // brown rice, fried in vegetable oil", but rissoles are not what was eaten.
+  if (found.match !== 'all-words' && (wordCoverage(ph.food, found.results[0].name) <= 0.5 || !namesHead(ph.food, found.results[0].name))) {
+    // Foods whose main dish the phrase names come first ("veg fried rice": vegetable rice before rissoles).
+    const suggestions = found.results.filter((r) => wordCoverage(ph.food, r.name) > 0)
+      .sort((a, b) => Number(namesHead(ph.food, b.name)) - Number(namesHead(ph.food, a.name)))
+      .map((r) => ({ id: r.id, name: r.name }));
     return { unmatched: { text, reason: 'no confident match', ...(suggestions.length ? { suggestions } : {}) } };
+  }
+  // An exact match must name the food, not only share its words with a description of another one ("vegetable fried
+  // rice" is not "Rissoles, brown rice, fried in vegetable oil"). The next result is not tried instead: it may be just
+  // as wrong (a chicken stir-fry). Foods that do name it are suggested first. (Equivalent forms are checked in search.)
+  if (found.match === 'all-words' && !found.matchedAs && !namesFoodExactly(ph.food, found.results[0])) {
+    const suggestions = found.results
+      .sort((a, b) => Number(namesFoodExactly(ph.food, b)) - Number(namesFoodExactly(ph.food, a)))
+      .map((r) => ({ id: r.id, name: r.name }));
+    return { unmatched: { text, reason: 'no confident match', suggestions } };
   }
   let pick = found.results[0];
   let best = getFood(pick.id)!;
@@ -229,6 +266,12 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
     portion = addOnPortion(best);
   } else {
     portion = resolvePortion(best, ph.quantity, ph.unit);
+  }
+  // A count of a piece food whose only catalog weight can't be one piece (a recipe-yield serving: "1 rasgulla" =
+  // 342 g) is not logged at that weight: the amount is flagged and the food offered, never a made-up weight (P0-5).
+  if (!ph.grams && !['mass', 'volume-conversion', 'density-estimate'].includes(portion.method) && countsPieces(ph.unit, best.name)) {
+    const why = implausiblePiece(best.name, portion.quantity, portion.grams);
+    if (why) return { unmatched: { text, reason: 'no confident match', suggestions: [{ id: best.id, name: best.name }], note: why } };
   }
   const grams = Math.round(portion.grams * 10) / 10;
   return {

@@ -105,6 +105,10 @@
             "type": "string",
             "description": "Set when the query as typed matched no food well: the respelled query these results are for"
           },
+          "matchedAs": {
+            "type": "string",
+            "description": "Set when the query matched through an equivalent form (a romanised spelling, a Hindi name or connector words: \"murgh korma\" as \"chicken korma\"): that form"
+          },
           "total": {
             "type": "integer"
           },
@@ -256,6 +260,57 @@
                 },
                 "alternatives": {
                   "type": "array"
+                },
+                "basis": {
+                  "type": "object",
+                  "description": "Only on items logged from an AI estimate: kind (ai-estimate | catalog-match), status (approved | pending | unstored; approved means reviewed, not verified), provider, model, modelVersion, promptVersion, calcVersion (null for older estimates), estimatedAt",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "ai-estimate",
+                        "catalog-match"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "approved",
+                        "pending",
+                        "unstored"
+                      ]
+                    },
+                    "provider": {
+                      "type": "string"
+                    },
+                    "model": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "modelVersion": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "promptVersion": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "calcVersion": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "estimatedAt": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }

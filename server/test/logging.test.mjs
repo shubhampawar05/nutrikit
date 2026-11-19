@@ -109,8 +109,9 @@ test('a misspelled search returns the respelled foods with didYouMean', () => {
   assert.equal(r.didYouMean, 'paneer');
   assert.match(r.results[0].name, /paneer/i);
   assert.equal(searchFoods('chiken curry').didYouMean, 'chicken curry');
-  assert.equal(searchFoods('bananna').didYouMean, 'banana');
-  assert.equal(searchFoods('samosaa').didYouMean, 'samosa', 'the singular wins over the plural');
+  // Repeated letters and long vowels are one spelling (M7.3): matched as an equivalent form, not a guess.
+  assert.equal(searchFoods('bananna').matchedAs, 'banana');
+  assert.equal(searchFoods('samosaa').matchedAs, 'samosa');
 });
 
 test('correct spellings, partial typing and nonsense are not respelled', () => {

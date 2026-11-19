@@ -1,0 +1,517 @@
+{
+  "set": {
+    "version": "2",
+    "sha256": "fd88644a7f6b5981e6087d0c39fd21a6c2f7e3bc9df9a093273db896c2acb593"
+  },
+  "rows": [
+    {
+      "phrase": "nan",
+      "kind": "typo",
+      "dish": "naan",
+      "outcome": "matched",
+      "food": "Bread, naan"
+    },
+    {
+      "phrase": "naan bread",
+      "kind": "variant",
+      "dish": "naan",
+      "outcome": "matched",
+      "food": "Bread, naan"
+    },
+    {
+      "phrase": "chapathi",
+      "kind": "regional",
+      "dish": "chapati",
+      "outcome": "matched",
+      "food": "Bread, chapati or roti, plain, commercially prepared"
+    },
+    {
+      "phrase": "phulka",
+      "kind": "regional",
+      "dish": "chapati",
+      "outcome": "matched",
+      "food": "Chapati/Roti"
+    },
+    {
+      "phrase": "roti",
+      "kind": "hinglish",
+      "dish": "chapati",
+      "outcome": "matched",
+      "food": "Bread, chapati or roti, plain, commercially prepared"
+    },
+    {
+      "phrase": "parantha",
+      "kind": "regional",
+      "dish": "paratha",
+      "outcome": "matched",
+      "food": "Plain parantha/paratha"
+    },
+    {
+      "phrase": "plain prantha",
+      "kind": "typo",
+      "dish": "paratha",
+      "outcome": "suggested",
+      "food": "Plain parantha/paratha",
+      "didYouMean": "plain parantha"
+    },
+    {
+      "phrase": "mooli parantha",
+      "kind": "regional",
+      "dish": "mooli-paratha",
+      "outcome": "matched",
+      "food": "Radish parantha/paratha (Mooli ka parantha/paratha)"
+    },
+    {
+      "phrase": "poori",
+      "kind": "regional",
+      "dish": "puri",
+      "outcome": "matched",
+      "food": "Bread, puri"
+    },
+    {
+      "phrase": "samose",
+      "kind": "hinglish",
+      "dish": "samosa",
+      "outcome": "matched",
+      "food": "Samosa"
+    },
+    {
+      "phrase": "aloo samosa",
+      "kind": "variant",
+      "dish": "samosa",
+      "outcome": "suggested",
+      "food": "Samosas, lamb, baked, homemade",
+      "didYouMean": null
+    },
+    {
+      "phrase": "masala dosai",
+      "kind": "regional",
+      "dish": "masala-dosa",
+      "outcome": "matched",
+      "food": "Dosa, with filling"
+    },
+    {
+      "phrase": "masaala dosa",
+      "kind": "typo",
+      "dish": "masala-dosa",
+      "outcome": "matched",
+      "food": "Dosa, with filling"
+    },
+    {
+      "phrase": "veg pulav",
+      "kind": "hinglish",
+      "dish": "veg-pulao",
+      "outcome": "matched",
+      "food": "Pilau, vegetable, homemade"
+    },
+    {
+      "phrase": "mix veg pulao",
+      "kind": "hinglish",
+      "dish": "veg-pulao",
+      "outcome": "matched",
+      "food": "Mixed vegetable pulao"
+    },
+    {
+      "phrase": "mutton biriyani",
+      "kind": "typo",
+      "dish": "mutton-biryani",
+      "outcome": "matched",
+      "food": "Mutton biryani/biriyani"
+    },
+    {
+      "phrase": "gosht biryani",
+      "kind": "regional",
+      "dish": "mutton-biryani",
+      "outcome": "matched",
+      "food": "Curry, lamb biryani, homemade"
+    },
+    {
+      "phrase": "rajmah",
+      "kind": "typo",
+      "dish": "rajma",
+      "outcome": "matched",
+      "food": "Curry, red kidney bean, Punjabi, homemade"
+    },
+    {
+      "phrase": "rajma curry",
+      "kind": "variant",
+      "dish": "rajma",
+      "outcome": "matched",
+      "food": "Curry, red kidney bean, Punjabi, homemade"
+    },
+    {
+      "phrase": "chiken korma",
+      "kind": "typo",
+      "dish": "chicken-korma",
+      "outcome": "suggested",
+      "food": "Curry, chicken korma, homemade",
+      "didYouMean": "chicken korma"
+    },
+    {
+      "phrase": "murgh korma",
+      "kind": "regional",
+      "dish": "chicken-korma",
+      "outcome": "matched",
+      "food": "Curry, chicken korma, homemade"
+    },
+    {
+      "phrase": "palak panir",
+      "kind": "typo",
+      "dish": "palak-paneer",
+      "outcome": "matched",
+      "food": "Palak Paneer"
+    },
+    {
+      "phrase": "panir",
+      "kind": "typo",
+      "dish": "paneer",
+      "outcome": "matched",
+      "food": "Cheese, paneer"
+    },
+    {
+      "phrase": "kheere ka raita",
+      "kind": "hinglish",
+      "dish": "cucumber-raita",
+      "outcome": "matched",
+      "food": "Cucumber raita (Kheere ka raita)"
+    },
+    {
+      "phrase": "kakdi raita",
+      "kind": "regional",
+      "dish": "cucumber-raita",
+      "outcome": "matched",
+      "food": "Cucumber raita (Kheere ka raita)"
+    },
+    {
+      "phrase": "anda curry",
+      "kind": "hinglish",
+      "dish": "egg-curry",
+      "outcome": "matched",
+      "food": "Egg curry (Anda curry)"
+    },
+    {
+      "phrase": "machli curry",
+      "kind": "hinglish",
+      "dish": "fish-curry",
+      "outcome": "matched",
+      "food": "Fish curry (Machli curry)"
+    },
+    {
+      "phrase": "mixed veg curry",
+      "kind": "variant",
+      "dish": "veg-curry",
+      "outcome": "matched",
+      "food": "Curry, vegetable, frozen mixed vegetables, homemade"
+    },
+    {
+      "phrase": "aloo gobhi",
+      "kind": "regional",
+      "dish": "aloo-gobi",
+      "outcome": "matched",
+      "food": "Potato cauliflower (Aloo gobhi)"
+    },
+    {
+      "phrase": "gobi aloo sabzi",
+      "kind": "hinglish",
+      "dish": "aloo-gobi",
+      "outcome": "matched",
+      "food": "Curry, cauliflower and potato, homemade"
+    },
+    {
+      "phrase": "aloo mutter",
+      "kind": "regional",
+      "dish": "aloo-matar",
+      "outcome": "matched",
+      "food": "Curry, potato and pea, homemade"
+    },
+    {
+      "phrase": "matar aloo ki sabzi",
+      "kind": "hinglish",
+      "dish": "aloo-matar",
+      "outcome": "matched",
+      "food": "Pea potato curry (Aloo matar)"
+    },
+    {
+      "phrase": "sabut moong",
+      "kind": "hinglish",
+      "dish": "whole-moong",
+      "outcome": "matched",
+      "food": "Green gram whole with baghar (Sabut moong dal with tadka)"
+    },
+    {
+      "phrase": "dhuli moong dal",
+      "kind": "hinglish",
+      "dish": "moong-dal",
+      "outcome": "matched",
+      "food": "Washed moong dal (Dhuli moong ki dal)"
+    },
+    {
+      "phrase": "yellow moong daal",
+      "kind": "typo",
+      "dish": "moong-dal",
+      "outcome": "matched",
+      "food": "Washed moong dal (Dhuli moong ki dal)"
+    },
+    {
+      "phrase": "burfi",
+      "kind": "regional",
+      "dish": "barfi",
+      "outcome": "matched",
+      "food": "Plain burfi (Burfi)"
+    },
+    {
+      "phrase": "veg fried rice",
+      "kind": "variant",
+      "dish": "veg-fried-rice",
+      "outcome": "wrong-suggestion",
+      "food": "Rice, white, with vegetables, soy-based sauce, NS as to fat",
+      "didYouMean": null
+    },
+    {
+      "phrase": "chicken chowmein",
+      "kind": "regional",
+      "dish": "chicken-chow-mein",
+      "outcome": "matched",
+      "food": "Chicken chowmein"
+    },
+    {
+      "phrase": "chicken chowmin",
+      "kind": "typo",
+      "dish": "chicken-chow-mein",
+      "outcome": "suggested",
+      "food": "Chicken chowmein",
+      "didYouMean": "chicken chowmein"
+    },
+    {
+      "phrase": "anda bhurji",
+      "kind": "hinglish",
+      "dish": "scrambled-eggs",
+      "outcome": "matched",
+      "food": "Scrambled egg (Ande ki bhurji)"
+    },
+    {
+      "phrase": "egg bhurji",
+      "kind": "hinglish",
+      "dish": "scrambled-eggs",
+      "outcome": "matched",
+      "food": "Scrambled egg (Ande ki bhurji)"
+    },
+    {
+      "phrase": "chole",
+      "kind": "hinglish",
+      "dish": "chole",
+      "outcome": "matched",
+      "food": "Curry, chick pea, whole and tomato, Punjabi, with vegetable oil, homemade"
+    },
+    {
+      "phrase": "2 roti and aloo gobi",
+      "kind": "multi",
+      "dish": "chapati",
+      "outcome": "matched",
+      "food": "Bread, chapati or roti, plain, commercially prepared"
+    },
+    {
+      "phrase": "2 roti and aloo gobi",
+      "kind": "multi",
+      "dish": "aloo-gobi",
+      "outcome": "matched",
+      "food": "Curry, cauliflower and potato, homemade"
+    },
+    {
+      "phrase": "1 katori rajma with 2 chapati",
+      "kind": "multi",
+      "dish": "rajma",
+      "outcome": "matched",
+      "food": "Curry, red kidney bean, Punjabi, homemade"
+    },
+    {
+      "phrase": "1 katori rajma with 2 chapati",
+      "kind": "multi",
+      "dish": "chapati",
+      "outcome": "matched",
+      "food": "Bread, chapati or roti, plain, commercially prepared"
+    },
+    {
+      "phrase": "masala dosa, sambar",
+      "kind": "multi",
+      "dish": "masala-dosa",
+      "outcome": "matched",
+      "food": "Dosa, with filling"
+    },
+    {
+      "phrase": "masala dosa, sambar",
+      "kind": "multi",
+      "dish": "sambar",
+      "outcome": "matched",
+      "food": "Sambar, vegetable stew"
+    },
+    {
+      "phrase": "2 paratha with raita",
+      "kind": "multi",
+      "dish": "paratha",
+      "outcome": "matched",
+      "food": "Bread, paratha"
+    },
+    {
+      "phrase": "2 paratha with raita",
+      "kind": "multi",
+      "dish": "cucumber-raita",
+      "outcome": "matched",
+      "food": "Cucumber raita (Kheere ka raita)"
+    },
+    {
+      "phrase": "veg pulao and boondi raita",
+      "kind": "multi",
+      "dish": "veg-pulao",
+      "outcome": "matched",
+      "food": "Pilau, vegetable, homemade"
+    },
+    {
+      "phrase": "anda curry with 3 roti",
+      "kind": "multi",
+      "dish": "egg-curry",
+      "outcome": "matched",
+      "food": "Egg curry (Anda curry)"
+    },
+    {
+      "phrase": "anda curry with 3 roti",
+      "kind": "multi",
+      "dish": "chapati",
+      "outcome": "matched",
+      "food": "Bread, chapati or roti, plain, commercially prepared"
+    },
+    {
+      "phrase": "matar ki sabzi",
+      "kind": "hinglish",
+      "dish": "pea curry|matar ki sabzi",
+      "outcome": "matched",
+      "food": "Pea curry (Matar ki sabzi)"
+    },
+    {
+      "phrase": "aloo matar",
+      "kind": "hinglish",
+      "dish": "aloo-matar",
+      "outcome": "matched",
+      "food": "Curry, potato and pea, homemade"
+    },
+    {
+      "phrase": "gobi aloo",
+      "kind": "hinglish",
+      "dish": "aloo-gobi",
+      "outcome": "matched",
+      "food": "Curry, cauliflower and potato, homemade"
+    },
+    {
+      "phrase": "aloo gobi",
+      "kind": "hinglish",
+      "dish": "aloo-gobi",
+      "outcome": "matched",
+      "food": "Curry, cauliflower and potato, homemade"
+    },
+    {
+      "phrase": "palak paneer",
+      "kind": "hinglish",
+      "dish": "palak-paneer",
+      "outcome": "matched",
+      "food": "Palak Paneer"
+    },
+    {
+      "phrase": "mattar paneer",
+      "kind": "regional",
+      "dish": "matar paneer|pea paneer",
+      "outcome": "matched",
+      "food": "Pea paneer curry (Matar paneer)"
+    },
+    {
+      "phrase": "mutter paneer",
+      "kind": "regional",
+      "dish": "matar paneer|pea paneer",
+      "outcome": "matched",
+      "food": "Pea paneer curry (Matar paneer)"
+    },
+    {
+      "phrase": "jira aloo",
+      "kind": "typo",
+      "dish": "jeera aloo",
+      "outcome": "matched",
+      "food": "Jeera aloo (potatoes tempered with cumin)"
+    },
+    {
+      "phrase": "bengan bharta",
+      "kind": "regional",
+      "dish": "brinjal bhartha|baingan ka bhartha",
+      "outcome": "matched",
+      "food": "Brinjal bhartha (Baingan ka bhartha)"
+    },
+    {
+      "phrase": "kheera raita",
+      "kind": "regional",
+      "dish": "cucumber-raita",
+      "outcome": "matched",
+      "food": "Cucumber raita (Kheere ka raita)"
+    },
+    {
+      "phrase": "murg biryani",
+      "kind": "regional",
+      "dish": "chicken",
+      "outcome": "matched",
+      "food": "Biryani, chicken, takeaway"
+    },
+    {
+      "phrase": "daal",
+      "kind": "typo",
+      "dish": "^dal$|dahl|dhal",
+      "outcome": "matched",
+      "food": "Dal"
+    },
+    {
+      "phrase": "dhal",
+      "kind": "regional",
+      "dish": "^dal$|dahl|dhal",
+      "outcome": "matched",
+      "food": "Dal"
+    },
+    {
+      "phrase": "paneer bhurji",
+      "kind": "hinglish",
+      "dish": "paneer bhurji",
+      "outcome": "matched",
+      "food": "Paneer bhurji (scrambled paneer with onion and tomato)"
+    },
+    {
+      "phrase": "aloo ki sabzi",
+      "kind": "hinglish",
+      "dish": "aloo ki sabzi|potato curry",
+      "outcome": "matched",
+      "food": "Potato curry (Aloo ki sabzi)"
+    },
+    {
+      "phrase": "palak",
+      "kind": "hinglish",
+      "dish": "^(?!.*paneer).*(spinach|palak)",
+      "outcome": "matched",
+      "food": "Spinach, cooked, boiled, drained, without salt"
+    },
+    {
+      "phrase": "aloo paneer",
+      "kind": "hinglish",
+      "dish": "(no right food in catalog)",
+      "outcome": "correctly-unlogged",
+      "food": null
+    },
+    {
+      "phrase": "dal makhani",
+      "kind": "hinglish",
+      "dish": "dal makhani|black gram, whole and red kidney bean",
+      "outcome": "matched",
+      "food": "Curry, black gram, whole and red kidney bean, homemade"
+    },
+    {
+      "phrase": "2 mattar paneer and 3 phulka",
+      "kind": "multi",
+      "dish": "chapati",
+      "outcome": "matched",
+      "food": "Chapati/Roti"
+    }
+  ]
+}

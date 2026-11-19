@@ -1,0 +1,2884 @@
+{
+  "set": "A",
+  "version": "1",
+  "title": "Consensus references: dishes listed by at least two independent food-composition sources",
+  "rules": [
+    "Independent families: usda (SR Legacy, FNDDS survey and Foundation share one lineage, so they count once), cofid (UK CoFID 2021), indb (Indian Nutrient Databank published totals, as built into foods.db: deep-fried dishes whose totals count the whole frying oil are left out).",
+    "One reference per family per dish, chosen for the same preparation as the query (homemade over retail where both exist). A ref that names a different preparation is listed under excludedRefs with the reason, never silently dropped.",
+    "This file holds only ids, codes and reasons. Every value comes from the source data at build time (scripts/eval/build-sets.ts); nothing is typed by hand or produced by an AI.",
+    "point: every family within 15% of the highest kcal value (min >= 0.85 * max); the reference is the mean of the families.",
+    "range: families disagree by more than 15% but max <= 1.5 * min; the reference is [min, max] and an estimate inside it scores 0 error.",
+    "excluded: families disagree by more than 1.5x; kept in the output with that reason, never scored.",
+    "hide: catalog foods whose names match this pattern are hidden from the model's candidates, as if the catalog lacked the dish entirely."
+  ],
+  "catalogBuild": "2026-11-19T10:19:26.486Z",
+  "cofidSha256": "436e9445ef2adb2a75f3d7edd51302de3adad25385f9795fc94ba58bd030e97d",
+  "dishes": [
+    {
+      "key": "naan",
+      "query": "naan",
+      "detailed": "plain naan bread, tandoor or oven baked",
+      "hide": "\\bnaan\\b",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2707613,
+          "name": "Bread, naan",
+          "source": "survey",
+          "values": {
+            "calories": 311,
+            "protein": 11.09,
+            "carbs": 50.23,
+            "fat": 7.28
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "11-973",
+          "name": "Bread, naan, retail",
+          "description": "12 samples, including garlic and coriander",
+          "values": {
+            "calories": 285,
+            "protein": 7.8,
+            "carbs": 48.58,
+            "fat": 7.3
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591806,
+          "name": "Naan",
+          "source": "indb",
+          "values": {
+            "calories": 286.45,
+            "protein": 8.052,
+            "carbs": 51.754,
+            "fat": 4.988
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 294.15000000000003,
+        "macros": {
+          "protein": 8.980666666666666,
+          "carbs": 50.187999999999995,
+          "fat": 6.522666666666667
+        },
+        "low": 285,
+        "high": 311
+      }
+    },
+    {
+      "key": "chapati",
+      "query": "chapati",
+      "detailed": "plain whole wheat chapati (roti) made without fat",
+      "hide": "chapati|\\broti\\b|phulka",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 171844,
+          "note": "commercially prepared",
+          "name": "Bread, chapati or roti, plain, commercially prepared",
+          "source": "sr_legacy",
+          "values": {
+            "calories": 297,
+            "protein": 11.25,
+            "carbs": 46.36,
+            "fat": 7.45
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "11-459",
+          "name": "Chapatis, made without fat",
+          "description": "Analysed and calculated values",
+          "values": {
+            "calories": 202,
+            "protein": 7.3,
+            "carbs": null,
+            "fat": 1
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591004,
+          "name": "Chapati/Roti",
+          "source": "indb",
+          "values": {
+            "calories": 202.311,
+            "protein": 5.875,
+            "carbs": 35.65,
+            "fat": 3.561
+          }
+        }
+      ],
+      "excludedRefs": [
+        {
+          "family": "cofid",
+          "code": "11-987",
+          "reason": "made with fat (a different preparation from plain chapati)"
+        }
+      ],
+      "reference": {
+        "kind": "range",
+        "low": 202,
+        "high": 297,
+        "macros": {
+          "protein": 8.141666666666667,
+          "fat": 4.003666666666667
+        }
+      }
+    },
+    {
+      "key": "paratha",
+      "query": "paratha",
+      "detailed": "plain layered whole wheat paratha cooked with fat on a griddle",
+      "hide": "paratha|parantha|prantha",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2707715,
+          "name": "Bread, paratha",
+          "source": "survey",
+          "values": {
+            "calories": 326,
+            "protein": 6.36,
+            "carbs": 45.35,
+            "fat": 13.2
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "11-1104",
+          "name": "Paratha, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 333,
+            "protein": 7.8,
+            "carbs": 46.567,
+            "fat": 14.4
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591005,
+          "name": "Plain parantha/paratha",
+          "source": "indb",
+          "values": {
+            "calories": 298.301,
+            "protein": 5.056,
+            "carbs": 30.692,
+            "fat": 16.858
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 319.1003333333333,
+        "macros": {
+          "protein": 6.405333333333334,
+          "carbs": 40.86966666666667,
+          "fat": 14.819333333333333
+        },
+        "low": 298.301,
+        "high": 333
+      }
+    },
+    {
+      "key": "mooli-paratha",
+      "query": "mooli paratha",
+      "detailed": "radish-stuffed whole wheat paratha",
+      "hide": "paratha|parantha|prantha",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "11-912",
+          "name": "Mooli paratha, homemade",
+          "description": "5 samples, radish filled flatbread",
+          "values": {
+            "calories": 171,
+            "protein": 5.9,
+            "carbs": 35.672,
+            "fat": 2.3
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591007,
+          "name": "Radish parantha/paratha (Mooli ka parantha/paratha)",
+          "source": "indb",
+          "values": {
+            "calories": 183.524,
+            "protein": 3.298,
+            "carbs": 20.542,
+            "fat": 9.528
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 177.262,
+        "macros": {
+          "protein": 4.599,
+          "carbs": 28.107,
+          "fat": 5.914
+        },
+        "low": 171,
+        "high": 183.524
+      }
+    },
+    {
+      "key": "puri",
+      "query": "puri",
+      "detailed": "deep-fried whole wheat puri (poori)",
+      "hide": "\\bpuri\\b|poori",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2707714,
+          "name": "Bread, puri",
+          "source": "survey",
+          "values": {
+            "calories": 409,
+            "protein": 6.84,
+            "carbs": 39.23,
+            "fat": 24.94
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "11-911",
+          "name": "Puri, homemade",
+          "description": "9 samples; 6 homemade, 3 café. Deep fried chapati",
+          "values": {
+            "calories": 366,
+            "protein": 7.2,
+            "carbs": 36.639,
+            "fat": 22.3
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 387.5,
+        "macros": {
+          "protein": 7.02,
+          "carbs": 37.9345,
+          "fat": 23.62
+        },
+        "low": 366,
+        "high": 409
+      }
+    },
+    {
+      "key": "samosa",
+      "query": "vegetable samosa",
+      "detailed": "deep-fried pastry samosa with spiced potato and vegetable filling",
+      "hide": "samosa",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2708730,
+          "name": "Samosa",
+          "source": "survey",
+          "values": {
+            "calories": 310,
+            "protein": 5.14,
+            "carbs": 33.16,
+            "fat": 17.47
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "15-305",
+          "name": "Samosas, vegetable, retail",
+          "description": "5 samples, 3 brands; mixed vegetable filling",
+          "values": {
+            "calories": 217,
+            "protein": 5.1,
+            "carbs": 30.913,
+            "fat": 9.3
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 217,
+        "high": 310,
+        "macros": {
+          "protein": 5.119999999999999,
+          "carbs": 32.0365,
+          "fat": 13.385
+        }
+      }
+    },
+    {
+      "key": "pakora",
+      "query": "vegetable pakora",
+      "detailed": "deep-fried gram flour vegetable fritters (pakora / bhajia)",
+      "hide": "pakora|bhajia|bhaji",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2710066,
+          "name": "Pakora",
+          "source": "survey",
+          "values": {
+            "calories": 125,
+            "protein": 4.92,
+            "carbs": 16.24,
+            "fat": 4.77
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "15-620",
+          "name": "Pakora, vegetable, takeaway and restaurant",
+          "description": "11 samples, 3 from London, 3 from Birmingham, 2 from Leeds and 3 from Bradford, crispy vegetable fitters",
+          "values": {
+            "calories": 293,
+            "protein": 8.4,
+            "carbs": 18.403,
+            "fat": 22
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 125,
+        "high": 293,
+        "reason": "sources differ 2.34x (125-293 kcal/100 g)"
+      }
+    },
+    {
+      "key": "masala-dosa",
+      "query": "masala dosa",
+      "detailed": "rice and urad dal dosa with spiced potato filling",
+      "hide": "dosa",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2709129,
+          "name": "Dosa, with filling",
+          "source": "survey",
+          "values": {
+            "calories": 184,
+            "protein": 5.46,
+            "carbs": 30.8,
+            "fat": 4.27
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591810,
+          "name": "Masala dosa",
+          "source": "indb",
+          "values": {
+            "calories": 164.585,
+            "protein": 3.288,
+            "carbs": 19.567,
+            "fat": 7.84
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 174.29250000000002,
+        "macros": {
+          "protein": 4.374,
+          "carbs": 25.183500000000002,
+          "fat": 6.055
+        },
+        "low": 164.585,
+        "high": 184
+      }
+    },
+    {
+      "key": "plain-dosa",
+      "query": "plain dosa",
+      "detailed": "plain rice and urad dal dosa, no filling",
+      "hide": "dosa",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2708347,
+          "name": "Dosa, plain",
+          "source": "survey",
+          "values": {
+            "calories": 210,
+            "protein": 5.7,
+            "carbs": 37.04,
+            "fat": 4.05
+          }
+        },
+        {
+          "family": "indb",
+          "id": 895602473,
+          "name": "Plain dosa",
+          "source": "indb",
+          "values": {
+            "calories": 380.906,
+            "protein": 10.336,
+            "carbs": 64.079,
+            "fat": 8.431
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 210,
+        "high": 380.906,
+        "reason": "sources differ 1.81x (210-381 kcal/100 g)"
+      }
+    },
+    {
+      "key": "sambar",
+      "query": "sambar",
+      "detailed": "South Indian lentil and vegetable stew with tamarind",
+      "hide": "sambar",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2707430,
+          "name": "Sambar, vegetable stew",
+          "source": "survey",
+          "values": {
+            "calories": 86,
+            "protein": 4.33,
+            "carbs": 11.77,
+            "fat": 2.71
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "12-467",
+          "name": "Sambar, homemade",
+          "description": "6 samples, spicy yellow lentil stew",
+          "values": {
+            "calories": 49,
+            "protein": 3.1,
+            "carbs": 9.602,
+            "fat": 0.9
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591873,
+          "name": "Sambar",
+          "source": "indb",
+          "values": {
+            "calories": 96.918,
+            "protein": 3.35,
+            "carbs": 10.568,
+            "fat": 4.383
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 49,
+        "high": 96.918,
+        "reason": "sources differ 1.98x (49-97 kcal/100 g)"
+      }
+    },
+    {
+      "key": "chicken-biryani",
+      "query": "chicken biryani",
+      "detailed": "chicken biryani, layered spiced rice with chicken",
+      "hide": "biryani|biriyani",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2706538,
+          "name": "Biryani with chicken",
+          "source": "survey",
+          "values": {
+            "calories": 104,
+            "protein": 7.15,
+            "carbs": 13.55,
+            "fat": 2.38
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "19-454",
+          "note": "takeaway",
+          "name": "Biryani, chicken, takeaway",
+          "description": "10 samples, 2 from different establishments in each of 5 regions. Consists of chicken fried in oil with saffron flavoured rice and a curry sauce that contains vegetables and coconut.",
+          "values": {
+            "calories": 163,
+            "protein": 8.5,
+            "carbs": 16.33,
+            "fat": 7.4
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 104,
+        "high": 163,
+        "reason": "sources differ 1.57x (104-163 kcal/100 g)"
+      }
+    },
+    {
+      "key": "mutton-biryani",
+      "query": "mutton biryani",
+      "detailed": "mutton or lamb biryani, layered spiced rice with meat, homemade",
+      "hide": "biryani|biriyani",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2706490,
+          "name": "Biryani with meat",
+          "source": "survey",
+          "values": {
+            "calories": 145,
+            "protein": 8.5,
+            "carbs": 12.19,
+            "fat": 6.79
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "19-591",
+          "name": "Curry, lamb biryani, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 195,
+            "protein": 7.1,
+            "carbs": 19.141,
+            "fat": 9.2
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591744,
+          "name": "Mutton biryani/biriyani",
+          "source": "indb",
+          "values": {
+            "calories": 190.763,
+            "protein": 7.376,
+            "carbs": 22.495,
+            "fat": 7.724
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 145,
+        "high": 195,
+        "macros": {
+          "protein": 7.658666666666666,
+          "carbs": 17.941999999999997,
+          "fat": 7.9046666666666665
+        }
+      }
+    },
+    {
+      "key": "veg-biryani",
+      "query": "vegetable biryani",
+      "detailed": "vegetable biryani, layered spiced rice with vegetables",
+      "hide": "biryani|biriyani",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2708985,
+          "name": "Biryani with vegetables",
+          "source": "survey",
+          "values": {
+            "calories": 109,
+            "protein": 1.93,
+            "carbs": 17.91,
+            "fat": 3.2
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591745,
+          "name": "Vegetable biryani/biriyani",
+          "source": "indb",
+          "values": {
+            "calories": 174.605,
+            "protein": 3.161,
+            "carbs": 18.557,
+            "fat": 9.508
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 109,
+        "high": 174.605,
+        "reason": "sources differ 1.60x (109-175 kcal/100 g)"
+      }
+    },
+    {
+      "key": "veg-pulao",
+      "query": "vegetable pulao",
+      "detailed": "mixed vegetable pulao (pilau), rice cooked with vegetables and whole spices",
+      "hide": "pulao|pilau|pilaf|pulav",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "12-472",
+          "name": "Pilau, vegetable, homemade",
+          "description": "6 samples, containing vegetables",
+          "values": {
+            "calories": 112,
+            "protein": 3.3,
+            "carbs": 22.773,
+            "fat": 1.5
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591716,
+          "name": "Mixed vegetable pulao",
+          "source": "indb",
+          "values": {
+            "calories": 113.049,
+            "protein": 2.723,
+            "carbs": 17.49,
+            "fat": 3.328
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 112.5245,
+        "macros": {
+          "protein": 3.0115,
+          "carbs": 20.1315,
+          "fat": 2.4139999999999997
+        },
+        "low": 112,
+        "high": 113.049
+      }
+    },
+    {
+      "key": "mushroom-pulao",
+      "query": "mushroom pulao",
+      "detailed": "mushroom pulao (pilau), homemade",
+      "hide": "pulao|pilau|pilaf|pulav",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-846",
+          "name": "Pilau, mushroom, homemade",
+          "description": "Recipe. Rice-based dish. Recipe from a personal collection",
+          "values": {
+            "calories": 138,
+            "protein": 2.5,
+            "carbs": 22.28,
+            "fat": 3.5
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591717,
+          "name": "Mushroom pulao",
+          "source": "indb",
+          "values": {
+            "calories": 124.286,
+            "protein": 2.523,
+            "carbs": 19.018,
+            "fat": 4.029
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 131.143,
+        "macros": {
+          "protein": 2.5115,
+          "carbs": 20.649,
+          "fat": 3.7645
+        },
+        "low": 124.286,
+        "high": 138
+      }
+    },
+    {
+      "key": "plain-pulao",
+      "query": "plain pulao",
+      "detailed": "plain pulao (pilau rice), rice cooked in fat with whole spices",
+      "hide": "pulao|pilau|pilaf|pulav",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2709077,
+          "name": "Rice pilaf",
+          "source": "survey",
+          "values": {
+            "calories": 137,
+            "protein": 3.29,
+            "carbs": 24.08,
+            "fat": 3.03
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "11-968",
+          "name": "Rice, pilau, plain, homemade",
+          "description": "Recipe from a personal collection",
+          "values": {
+            "calories": 134,
+            "protein": 2.5,
+            "carbs": 22.749,
+            "fat": 3.7
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591715,
+          "name": "Plain pulao",
+          "source": "indb",
+          "values": {
+            "calories": 140.208,
+            "protein": 2.339,
+            "carbs": 21.816,
+            "fat": 4.622
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 137.06933333333333,
+        "macros": {
+          "protein": 2.7096666666666667,
+          "carbs": 22.881666666666664,
+          "fat": 3.7840000000000003
+        },
+        "low": 134,
+        "high": 140.208
+      }
+    },
+    {
+      "key": "rajma",
+      "query": "rajma",
+      "detailed": "red kidney bean curry (rajma), Punjabi style, medium consistency",
+      "hide": "rajma|kidney bean",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-146",
+          "name": "Curry, red kidney bean, Punjabi, homemade",
+          "description": "Recipe from dietary survey records.  Medium consistency",
+          "values": {
+            "calories": 106,
+            "protein": 4.7,
+            "carbs": 13.034,
+            "fat": 5.6
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591871,
+          "name": "Kidney bean curry (Rajmah curry)",
+          "source": "indb",
+          "values": {
+            "calories": 143.726,
+            "protein": 5.951,
+            "carbs": 16.378,
+            "fat": 5.775
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 106,
+        "high": 143.726,
+        "macros": {
+          "protein": 5.3255,
+          "carbs": 14.706,
+          "fat": 5.6875
+        }
+      }
+    },
+    {
+      "key": "chicken-korma",
+      "query": "chicken korma",
+      "detailed": "chicken korma, homemade, mild creamy yogurt and nut sauce",
+      "hide": "korma",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "19-565",
+          "name": "Curry, chicken korma, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 127,
+            "protein": 14.6,
+            "carbs": 4.639,
+            "fat": 5.1
+          }
+        },
+        {
+          "family": "indb",
+          "id": 895603366,
+          "name": "Chicken korma",
+          "source": "indb",
+          "values": {
+            "calories": 147.958,
+            "protein": 9.831,
+            "carbs": 5.43,
+            "fat": 9.674
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 137.47899999999998,
+        "macros": {
+          "protein": 12.215499999999999,
+          "carbs": 5.0344999999999995,
+          "fat": 7.387
+        },
+        "low": 127,
+        "high": 147.958
+      }
+    },
+    {
+      "key": "palak-paneer",
+      "query": "palak paneer",
+      "detailed": "spinach puree curry with paneer cubes",
+      "hide": "palak|saag|spinach paneer",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2709631,
+          "name": "Palak Paneer",
+          "source": "survey",
+          "values": {
+            "calories": 101,
+            "protein": 5.42,
+            "carbs": 4.28,
+            "fat": 7.02
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878592677,
+          "name": "Spinach paneer (Palak paneer)",
+          "source": "indb",
+          "values": {
+            "calories": 77.683,
+            "protein": 4.034,
+            "carbs": 4.43,
+            "fat": 4.763
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 77.683,
+        "high": 101,
+        "macros": {
+          "protein": 4.727,
+          "carbs": 4.355,
+          "fat": 5.8915
+        }
+      }
+    },
+    {
+      "key": "paneer",
+      "query": "paneer",
+      "detailed": "paneer (fresh Indian cottage cheese), plain",
+      "hide": "paneer",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2705740,
+          "name": "Cheese, paneer",
+          "source": "survey",
+          "values": {
+            "calories": 299,
+            "protein": 15.86,
+            "carbs": 22.46,
+            "fat": 15.52
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "12-495",
+          "name": "Cheese, Paneer",
+          "description": "9 samples, sampled in spring and autumn",
+          "values": {
+            "calories": 328,
+            "protein": 26,
+            "carbs": 0.857,
+            "fat": 24.5
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 313.5,
+        "macros": {
+          "protein": 20.93,
+          "carbs": 11.6585,
+          "fat": 20.009999999999998
+        },
+        "low": 299,
+        "high": 328
+      }
+    },
+    {
+      "key": "cucumber-raita",
+      "query": "cucumber raita",
+      "detailed": "spiced yogurt with grated cucumber",
+      "hide": "raita",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "17-832",
+          "note": "spiced curd/yoghurt raita",
+          "name": "Raita, homemade",
+          "description": "Recipe, spiced curd/yoghurt",
+          "values": {
+            "calories": 57,
+            "protein": 4.4,
+            "carbs": 5.924,
+            "fat": 2.4
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878592861,
+          "name": "Cucumber raita (Kheere ka raita)",
+          "source": "indb",
+          "values": {
+            "calories": 59.125,
+            "protein": 4.037,
+            "carbs": 6.35,
+            "fat": 2.076
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 58.0625,
+        "macros": {
+          "protein": 4.218500000000001,
+          "carbs": 6.1370000000000005,
+          "fat": 2.238
+        },
+        "low": 57,
+        "high": 59.125
+      }
+    },
+    {
+      "key": "sweet-lassi",
+      "query": "sweet lassi",
+      "detailed": "sweetened yogurt drink",
+      "hide": "lassi",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "12-373",
+          "note": "takeaway and retail",
+          "name": "Lassi, sweetened",
+          "description": "5 samples, takeaway and retail",
+          "values": {
+            "calories": 65,
+            "protein": 2.6,
+            "carbs": 11.74,
+            "fat": 0.9
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878590782,
+          "name": "Sweet Lassi (Meethi lassi)",
+          "source": "indb",
+          "values": {
+            "calories": 35.661,
+            "protein": 1.288,
+            "carbs": 6.508,
+            "fat": 0.678
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 35.661,
+        "high": 65,
+        "reason": "sources differ 1.82x (36-65 kcal/100 g)"
+      }
+    },
+    {
+      "key": "kulfi",
+      "query": "kulfi",
+      "detailed": "kulfi, Indian frozen dessert of reduced milk",
+      "hide": "kulfi",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "12-606",
+          "name": "Kulfi, homemade",
+          "description": "Indian ice cream. Recipe",
+          "values": {
+            "calories": 457,
+            "protein": 5.7,
+            "carbs": 13.634,
+            "fat": 42.4
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878593665,
+          "name": "Kulfi",
+          "source": "indb",
+          "values": {
+            "calories": 98.427,
+            "protein": 3.209,
+            "carbs": 11.303,
+            "fat": 4.696
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 98.427,
+        "high": 457,
+        "reason": "sources differ 4.64x (98-457 kcal/100 g)"
+      }
+    },
+    {
+      "key": "upma",
+      "query": "upma",
+      "detailed": "semolina (rava) upma with tempering",
+      "hide": "upma",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2709128,
+          "name": "Upma",
+          "source": "survey",
+          "values": {
+            "calories": 87,
+            "protein": 1.98,
+            "carbs": 13.81,
+            "fat": 2.64
+          }
+        },
+        {
+          "family": "indb",
+          "id": 895601482,
+          "name": "Semolina upma (Suji/Rava upma)",
+          "source": "indb",
+          "values": {
+            "calories": 147.893,
+            "protein": 3.301,
+            "carbs": 16.313,
+            "fat": 7.493
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 87,
+        "high": 147.893,
+        "reason": "sources differ 1.70x (87-148 kcal/100 g)"
+      }
+    },
+    {
+      "key": "egg-curry",
+      "query": "egg curry",
+      "detailed": "boiled eggs in onion-tomato curry, Punjabi style, with oil",
+      "hide": "egg curry|curry, egg|anda curry",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-754",
+          "name": "Curry, egg, with rapeseed oil, homemade",
+          "description": "Recipe. Punjabi dish. Egg, onion and tomato.",
+          "values": {
+            "calories": 149,
+            "protein": 5.3,
+            "carbs": 4.816,
+            "fat": 12.2
+          }
+        },
+        {
+          "family": "indb",
+          "id": 895603426,
+          "name": "Egg curry (Anda curry)",
+          "source": "indb",
+          "values": {
+            "calories": 117.521,
+            "protein": 5.383,
+            "carbs": 4.033,
+            "fat": 8.809
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 117.521,
+        "high": 149,
+        "macros": {
+          "protein": 5.3415,
+          "carbs": 4.4245,
+          "fat": 10.5045
+        }
+      }
+    },
+    {
+      "key": "fish-curry",
+      "query": "fish curry",
+      "detailed": "white fish in onion-tomato curry, homemade",
+      "hide": "fish curry|curry, fish|machli",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2706460,
+          "name": "Fish curry",
+          "source": "survey",
+          "values": {
+            "calories": 93,
+            "protein": 4.94,
+            "carbs": 6.65,
+            "fat": 5.42
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "16-364",
+          "name": "Curry, fish, homemade",
+          "description": "5 samples, containing white fish, onions, tomatoes and spices",
+          "values": {
+            "calories": 139,
+            "protein": 11.3,
+            "carbs": 3.981,
+            "fat": 9.6
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878592771,
+          "name": "Fish curry (Machli curry)",
+          "source": "indb",
+          "values": {
+            "calories": 111.128,
+            "protein": 8.762,
+            "carbs": 3.774,
+            "fat": 6.691
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 93,
+        "high": 139,
+        "macros": {
+          "protein": 8.334000000000001,
+          "carbs": 4.801666666666667,
+          "fat": 7.236999999999999
+        }
+      }
+    },
+    {
+      "key": "veg-curry",
+      "query": "vegetable curry",
+      "detailed": "mixed vegetable and potato curry, homemade",
+      "hide": "vegetable curry|curry, vegetable",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2710067,
+          "name": "Vegetable curry",
+          "source": "survey",
+          "values": {
+            "calories": 86,
+            "protein": 1.6,
+            "carbs": 8.81,
+            "fat": 5.27
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "15-789",
+          "name": "Curry, vegetable, frozen mixed vegetables, homemade",
+          "description": "Recipe. Frozen mixed vegetables and potato.",
+          "values": {
+            "calories": 90,
+            "protein": 2.5,
+            "carbs": null,
+            "fat": 6.1
+          }
+        }
+      ],
+      "excludedRefs": [
+        {
+          "family": "indb",
+          "id": 895603427,
+          "reason": "made with coconut (a different preparation)"
+        }
+      ],
+      "reference": {
+        "kind": "point",
+        "calories": 88,
+        "macros": {
+          "protein": 2.05,
+          "fat": 5.685
+        },
+        "low": 86,
+        "high": 90
+      }
+    },
+    {
+      "key": "aloo-gobi",
+      "query": "aloo gobi",
+      "detailed": "dry potato and cauliflower sabzi",
+      "hide": "gobi|gobhi|cauliflower and potato|potato and cauliflower|potato cauliflower",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-679",
+          "note": "Bangladeshi dry bhaji of cauliflower and potato",
+          "name": "Bhaji, cauliflower and potato, homemade",
+          "description": "Bangladeshi dish. Recipe adapted from literature sources",
+          "values": {
+            "calories": 106,
+            "protein": 3.3,
+            "carbs": 11.817,
+            "fat": 6.8
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591898,
+          "name": "Potato cauliflower (Aloo gobhi)",
+          "source": "indb",
+          "values": {
+            "calories": 106.177,
+            "protein": 1.898,
+            "carbs": 5.991,
+            "fat": 8.126
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 106.08850000000001,
+        "macros": {
+          "protein": 2.5989999999999998,
+          "carbs": 8.904,
+          "fat": 7.462999999999999
+        },
+        "low": 106,
+        "high": 106.177
+      }
+    },
+    {
+      "key": "aloo-matar",
+      "query": "aloo matar",
+      "detailed": "potato and pea curry",
+      "hide": "matar|potato and pea|pea potato|pea and potato",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-781",
+          "name": "Curry, potato and pea, homemade",
+          "description": "Recipe, Bangladeshi dish",
+          "values": {
+            "calories": 92,
+            "protein": 2.7,
+            "carbs": 13.533,
+            "fat": 3.7
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591959,
+          "name": "Pea potato curry (Aloo matar)",
+          "source": "indb",
+          "values": {
+            "calories": 100.923,
+            "protein": 3.483,
+            "carbs": 9.739,
+            "fat": 5.127
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 96.4615,
+        "macros": {
+          "protein": 3.0915,
+          "carbs": 11.636,
+          "fat": 4.4135
+        },
+        "low": 92,
+        "high": 100.923
+      }
+    },
+    {
+      "key": "aloo-methi",
+      "query": "aloo methi",
+      "detailed": "potato with fenugreek leaves, dry",
+      "hide": "methi|fenugreek",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-688",
+          "name": "Bhaji, potato and fenugreek leaves, homemade",
+          "description": "Gujerati dish. Recipe from review of recipe collection",
+          "values": {
+            "calories": 222,
+            "protein": 3.7,
+            "carbs": null,
+            "fat": 15.9
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591902,
+          "name": "Potato fenugreek (Aloo methi)",
+          "source": "indb",
+          "values": {
+            "calories": 135.147,
+            "protein": 2.246,
+            "carbs": 8.468,
+            "fat": 10.041
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 135.147,
+        "high": 222,
+        "reason": "sources differ 1.64x (135-222 kcal/100 g)"
+      }
+    },
+    {
+      "key": "palak-aloo",
+      "query": "palak aloo",
+      "detailed": "spinach and potato, dry",
+      "hide": "palak|spinach and potato",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-695",
+          "name": "Bhaji, spinach and potato, homemade",
+          "description": "Recipe from review of recipe collection",
+          "values": {
+            "calories": 192,
+            "protein": 3.6,
+            "carbs": 14.742,
+            "fat": 14.1
+          }
+        },
+        {
+          "family": "indb",
+          "id": 895603464,
+          "name": "Spinach and potato (Palak aloo)",
+          "source": "indb",
+          "values": {
+            "calories": 57.171,
+            "protein": 1.63,
+            "carbs": 5.912,
+            "fat": 2.82
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 57.171,
+        "high": 192,
+        "reason": "sources differ 3.36x (57-192 kcal/100 g)"
+      }
+    },
+    {
+      "key": "chole",
+      "query": "chole",
+      "detailed": "whole chickpea curry with tomato, Punjabi style",
+      "hide": "chole|chana|channa|chick ?pea",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-107",
+          "name": "Curry, chick pea, whole and tomato, Punjabi, with butter, homemade",
+          "description": "Chick peas, onion and tomato. Recipe from dietary survey records",
+          "values": {
+            "calories": 107,
+            "protein": 5.6,
+            "carbs": 14.22,
+            "fat": 4.3
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591868,
+          "name": "Chickpeas curry (Safed channa curry)",
+          "source": "indb",
+          "values": {
+            "calories": 163.432,
+            "protein": 6.099,
+            "carbs": 19.978,
+            "fat": 6.843
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 107,
+        "high": 163.432,
+        "reason": "sources differ 1.53x (107-163 kcal/100 g)"
+      }
+    },
+    {
+      "key": "whole-moong",
+      "query": "whole moong dal",
+      "detailed": "whole green moong (mung bean) dal, Punjabi style, medium consistency",
+      "hide": "moong|mung",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-490",
+          "name": "Curry, mung bean, whole, Punjabi, homemade",
+          "description": "Recipe, medium consistency",
+          "values": {
+            "calories": 74,
+            "protein": 4.2,
+            "carbs": 9.125,
+            "fat": 2.8
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591841,
+          "name": "Whole moong (Moong ki dal)",
+          "source": "indb",
+          "values": {
+            "calories": 53.699,
+            "protein": 2.249,
+            "carbs": 5.219,
+            "fat": 2.564
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 53.699,
+        "high": 74,
+        "macros": {
+          "protein": 3.2245,
+          "carbs": 7.172000000000001,
+          "fat": 2.682
+        }
+      }
+    },
+    {
+      "key": "moong-dal",
+      "query": "moong dal",
+      "detailed": "split yellow moong dal, thin consistency",
+      "hide": "moong|mung",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-768",
+          "name": "Curry, mung bean dahl, Bengali, homemade",
+          "description": "Recipe. Split mung beans. Thin consistency",
+          "values": {
+            "calories": 74,
+            "protein": 4.2,
+            "carbs": null,
+            "fat": 3.4
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591836,
+          "name": "Washed moong dal (Dhuli moong ki dal)",
+          "source": "indb",
+          "values": {
+            "calories": 50.003,
+            "protein": 2.678,
+            "carbs": 5.907,
+            "fat": 1.681
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 50.003,
+        "high": 74,
+        "macros": {
+          "protein": 3.439,
+          "fat": 2.5404999999999998
+        }
+      }
+    },
+    {
+      "key": "whole-masoor",
+      "query": "whole masoor dal",
+      "detailed": "whole masoor (brown lentil) dal, Punjabi style",
+      "hide": "masoor|lentil",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-766",
+          "name": "Curry, lentil, whole/masoor, Punjabi, homemade",
+          "description": "Recipe, medium consistency",
+          "values": {
+            "calories": 148,
+            "protein": 5.7,
+            "carbs": 12.906,
+            "fat": 8.3
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591842,
+          "name": "Whole masoor (Masoor ki dal)",
+          "source": "indb",
+          "values": {
+            "calories": 54.055,
+            "protein": 2.279,
+            "carbs": 5.375,
+            "fat": 2.518
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 54.055,
+        "high": 148,
+        "reason": "sources differ 2.74x (54-148 kcal/100 g)"
+      }
+    },
+    {
+      "key": "bhindi",
+      "query": "bhindi sabzi",
+      "detailed": "okra stir-fried with onion and spices",
+      "hide": "bhindi|okra",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "15-627",
+          "name": "Curry, bhindi subji, homemade",
+          "description": "6 samples, containing okra, onions, tomatoes and spices",
+          "values": {
+            "calories": 71,
+            "protein": 2.9,
+            "carbs": 12.093,
+            "fat": 4.6
+          }
+        },
+        {
+          "family": "indb",
+          "id": 895603497,
+          "name": "Okra/Lady's fingers fry (Bhindi sabzi/sabji/subji)",
+          "source": "indb",
+          "values": {
+            "calories": 110.808,
+            "protein": 1.83,
+            "carbs": 4.503,
+            "fat": 9.274
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 71,
+        "high": 110.808,
+        "reason": "sources differ 1.56x (71-111 kcal/100 g)"
+      }
+    },
+    {
+      "key": "barfi",
+      "query": "barfi",
+      "detailed": "plain milk barfi (khoya fudge)",
+      "hide": "barfi|burfi",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2705700,
+          "name": "Barfi or Burfi, Indian dessert",
+          "source": "survey",
+          "values": {
+            "calories": 284,
+            "protein": 5.42,
+            "carbs": 40.43,
+            "fat": 11.36
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878593700,
+          "name": "Plain burfi (Burfi)",
+          "source": "indb",
+          "values": {
+            "calories": 408.324,
+            "protein": 9.816,
+            "carbs": 30.884,
+            "fat": 27.964
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 284,
+        "high": 408.324,
+        "macros": {
+          "protein": 7.618,
+          "carbs": 35.657,
+          "fat": 19.662
+        }
+      }
+    },
+    {
+      "key": "gajar-halwa",
+      "query": "gajar halwa",
+      "detailed": "carrot halwa cooked in milk with ghee and sugar",
+      "hide": "halwa|halva",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "17-798",
+          "name": "Halva, carrot, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 354,
+            "protein": 4.8,
+            "carbs": 46.302,
+            "fat": 16.6
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878592925,
+          "name": "Carrot halwa (Gajar ka halwa)",
+          "source": "indb",
+          "values": {
+            "calories": 172.641,
+            "protein": 3.112,
+            "carbs": 18.533,
+            "fat": 9.732
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 172.641,
+        "high": 354,
+        "reason": "sources differ 2.05x (173-354 kcal/100 g)"
+      }
+    },
+    {
+      "key": "suji-halwa",
+      "query": "suji halwa",
+      "detailed": "semolina halwa with ghee and sugar",
+      "hide": "halwa|halva",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "17-799",
+          "name": "Halva, semolina, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 342,
+            "protein": 2.2,
+            "carbs": 46.673,
+            "fat": 16.7
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878592923,
+          "name": "Semolina halwa (Suji ka halwa)",
+          "source": "indb",
+          "values": {
+            "calories": 225.648,
+            "protein": 2.164,
+            "carbs": 24.666,
+            "fat": 13.382
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 225.648,
+        "high": 342,
+        "reason": "sources differ 1.52x (226-342 kcal/100 g)"
+      }
+    },
+    {
+      "key": "veg-fried-rice",
+      "query": "veg fried rice",
+      "detailed": "Chinese-style vegetable fried rice, no meat",
+      "hide": "fried rice",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 167668,
+          "name": "Restaurant, Chinese, fried rice, without meat",
+          "source": "sr_legacy",
+          "values": {
+            "calories": 174,
+            "protein": 4.05,
+            "carbs": 32.79,
+            "fat": 2.96
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591751,
+          "name": "Chinese fried rice",
+          "source": "indb",
+          "values": {
+            "calories": 120.584,
+            "protein": 4.052,
+            "carbs": 13.402,
+            "fat": 5.435
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 120.584,
+        "high": 174,
+        "macros": {
+          "protein": 4.051,
+          "carbs": 23.096,
+          "fat": 4.1975
+        }
+      }
+    },
+    {
+      "key": "chicken-chow-mein",
+      "query": "chicken chow mein",
+      "detailed": "stir-fried noodles with chicken and vegetables",
+      "hide": "chow ?mein",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2706687,
+          "name": "Chicken or turkey chow mein or chop suey with noodles",
+          "source": "survey",
+          "values": {
+            "calories": 131,
+            "protein": 9.91,
+            "carbs": 11.15,
+            "fat": 5.43
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "19-321",
+          "name": "Chow mein, chicken, takeaway",
+          "description": "10 samples",
+          "values": {
+            "calories": 147,
+            "protein": 8.5,
+            "carbs": 13.058,
+            "fat": 7.2
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878591778,
+          "name": "Chicken chowmein",
+          "source": "indb",
+          "values": {
+            "calories": 151.334,
+            "protein": 6.331,
+            "carbs": 13.301,
+            "fat": 8.235
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 143.11133333333333,
+        "macros": {
+          "protein": 8.247,
+          "carbs": 12.503,
+          "fat": 6.954999999999999
+        },
+        "low": 131,
+        "high": 151.334
+      }
+    },
+    {
+      "key": "scrambled-eggs",
+      "query": "scrambled eggs",
+      "detailed": "scrambled eggs without milk",
+      "hide": "scrambled|bhurji",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 172187,
+          "name": "Egg, whole, cooked, scrambled",
+          "source": "sr_legacy",
+          "values": {
+            "calories": 149,
+            "protein": 9.99,
+            "carbs": 1.61,
+            "fat": 10.98
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "12-963",
+          "name": "Eggs, chicken, whole, scrambled, without milk",
+          "description": "Calculated from whole raw eggs (12-937) and old code (12-812)",
+          "values": {
+            "calories": 152,
+            "protein": 14.6,
+            "carbs": 0,
+            "fat": 10.4
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878590883,
+          "note": "Indian style (ande ki bhurji)",
+          "name": "Scrambled egg (Ande ki bhurji)",
+          "source": "indb",
+          "values": {
+            "calories": 155.971,
+            "protein": 10.291,
+            "carbs": 1.352,
+            "fat": 12.212
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 152.32366666666667,
+        "macros": {
+          "protein": 11.627,
+          "carbs": 0.9873333333333334,
+          "fat": 11.197333333333333
+        },
+        "low": 149,
+        "high": 155.971
+      }
+    },
+    {
+      "key": "omelette",
+      "query": "plain omelette",
+      "detailed": "plain egg omelette cooked with a little fat",
+      "hide": "omelet|omlet",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 172185,
+          "name": "Egg, whole, cooked, omelet",
+          "source": "sr_legacy",
+          "values": {
+            "calories": 154,
+            "protein": 10.57,
+            "carbs": 0.64,
+            "fat": 11.66
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "12-946",
+          "name": "Omelette, plain, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 191,
+            "protein": 10.9,
+            "carbs": 0,
+            "fat": 16.4
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878590906,
+          "name": "Plain omelette/omlet",
+          "source": "indb",
+          "values": {
+            "calories": 272.411,
+            "protein": 9.664,
+            "carbs": 0.645,
+            "fat": 25.74
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 154,
+        "high": 272.411,
+        "reason": "sources differ 1.77x (154-272 kcal/100 g)"
+      }
+    },
+    {
+      "key": "shepherds-pie",
+      "query": "shepherd's pie",
+      "detailed": "minced meat topped with mashed potato, homemade",
+      "hide": "shepherd|cottage pie",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2706594,
+          "name": "Shepherd's pie",
+          "source": "survey",
+          "values": {
+            "calories": 123,
+            "protein": 7.64,
+            "carbs": 8.72,
+            "fat": 6.3
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "19-626",
+          "name": "Shepherd's pie, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 107,
+            "protein": 5.9,
+            "carbs": 9.484,
+            "fat": 5.4
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878592743,
+          "name": "Shepherd's pie (with minced meat)",
+          "source": "indb",
+          "values": {
+            "calories": 142.777,
+            "protein": 7.449,
+            "carbs": 8.058,
+            "fat": 8.878
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 107,
+        "high": 142.777,
+        "macros": {
+          "protein": 6.996333333333332,
+          "carbs": 8.754,
+          "fat": 6.859333333333333
+        }
+      }
+    },
+    {
+      "key": "lasagne",
+      "query": "lasagne",
+      "detailed": "beef lasagne with meat sauce and cheese, homemade",
+      "hide": "lasagn",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2708753,
+          "note": "home recipe",
+          "name": "Lasagna with meat, home recipe",
+          "source": "survey",
+          "values": {
+            "calories": 206,
+            "protein": 13.63,
+            "carbs": 13.1,
+            "fat": 10.92
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "19-481",
+          "name": "Lasagne, homemade",
+          "description": "Beef, Recipe",
+          "values": {
+            "calories": 180,
+            "protein": 9.6,
+            "carbs": 14.891,
+            "fat": 9.6
+          }
+        },
+        {
+          "family": "indb",
+          "id": 895602528,
+          "name": "Lasagne with meat sauce",
+          "source": "indb",
+          "values": {
+            "calories": 63.376,
+            "protein": 2.902,
+            "carbs": 5.383,
+            "fat": 3.435
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 63.376,
+        "high": 206,
+        "reason": "sources differ 3.25x (63-206 kcal/100 g)"
+      }
+    },
+    {
+      "key": "chilli-con-carne",
+      "query": "chilli con carne",
+      "detailed": "minced beef and kidney bean chilli",
+      "hide": "chil+i con carne",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 172097,
+          "note": "canned entree",
+          "name": "Chili con carne with beans, canned entree",
+          "source": "sr_legacy",
+          "values": {
+            "calories": 107,
+            "protein": 5.8,
+            "carbs": 13.1,
+            "fat": 3.47
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "19-478",
+          "name": "Chilli con carne, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 120,
+            "protein": 9.2,
+            "carbs": 5.316,
+            "fat": 7.5
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 113.5,
+        "macros": {
+          "protein": 7.5,
+          "carbs": 9.208,
+          "fat": 5.485
+        },
+        "low": 107,
+        "high": 120
+      }
+    },
+    {
+      "key": "cheese-quiche",
+      "query": "cheese quiche",
+      "detailed": "cheese and egg quiche in shortcrust pastry",
+      "hide": "quiche",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2708733,
+          "name": "Cheese quiche, meatless",
+          "source": "survey",
+          "values": {
+            "calories": 365,
+            "protein": 11.91,
+            "carbs": 13.74,
+            "fat": 29.23
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "12-948",
+          "name": "Quiche, cheese and egg, homemade",
+          "description": "Recipe. Ref. Wiles et al. (1980)",
+          "values": {
+            "calories": 305,
+            "protein": 12.5,
+            "carbs": 14.638,
+            "fat": 22.3
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 305,
+        "high": 365,
+        "macros": {
+          "protein": 12.205,
+          "carbs": 14.189,
+          "fat": 25.765
+        }
+      }
+    },
+    {
+      "key": "beef-stew",
+      "query": "beef stew",
+      "detailed": "beef and vegetable stew, homemade",
+      "hide": "stew",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2706592,
+          "name": "Stew, beef",
+          "source": "survey",
+          "values": {
+            "calories": 107,
+            "protein": 8.76,
+            "carbs": 6.29,
+            "fat": 5.07
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "19-473",
+          "name": "Stew, beef, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 105,
+            "protein": 11.9,
+            "carbs": 5.593,
+            "fat": 4.6
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 106,
+        "macros": {
+          "protein": 10.33,
+          "carbs": 5.9415,
+          "fat": 4.835
+        },
+        "low": 105,
+        "high": 107
+      }
+    },
+    {
+      "key": "beef-stroganoff",
+      "query": "beef stroganoff",
+      "detailed": "beef stroganoff in sour cream sauce, without noodles",
+      "hide": "stroganoff",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2706382,
+          "name": "Beef stroganoff",
+          "source": "survey",
+          "values": {
+            "calories": 150,
+            "protein": 10.06,
+            "carbs": 6.21,
+            "fat": 9.33
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "19-551",
+          "name": "Beef Stroganoff, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 171,
+            "protein": 15.3,
+            "carbs": 3.006,
+            "fat": 11.2
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 160.5,
+        "macros": {
+          "protein": 12.68,
+          "carbs": 4.608,
+          "fat": 10.265
+        },
+        "low": 150,
+        "high": 171
+      }
+    },
+    {
+      "key": "ratatouille",
+      "query": "ratatouille",
+      "detailed": "stewed Provencal vegetables with olive oil",
+      "hide": "ratatouille",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2710028,
+          "name": "Ratatouille",
+          "source": "survey",
+          "values": {
+            "calories": 67,
+            "protein": 1.09,
+            "carbs": 5.77,
+            "fat": 4.73
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "15-659",
+          "name": "Ratatouille, homemade",
+          "description": "Recipe adapted from literature sources",
+          "values": {
+            "calories": 82,
+            "protein": 1.2,
+            "carbs": 5.297,
+            "fat": 7
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 67,
+        "high": 82,
+        "macros": {
+          "protein": 1.145,
+          "carbs": 5.5335,
+          "fat": 5.865
+        }
+      }
+    },
+    {
+      "key": "apple-crumble",
+      "query": "apple crumble",
+      "detailed": "baked apple crumble (apple crisp), homemade",
+      "hide": "crumble|crisp",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 169601,
+          "name": "Desserts, apple crisp, prepared-from-recipe",
+          "source": "sr_legacy",
+          "values": {
+            "calories": 161,
+            "protein": 1.75,
+            "carbs": 30.84,
+            "fat": 3.43
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "11-1055",
+          "name": "Crumble, apple, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 201,
+            "protein": 1.7,
+            "carbs": 34.177,
+            "fat": 6.4
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 161,
+        "high": 201,
+        "macros": {
+          "protein": 1.725,
+          "carbs": 32.5085,
+          "fat": 4.915
+        }
+      }
+    },
+    {
+      "key": "coleslaw",
+      "query": "coleslaw",
+      "detailed": "shredded cabbage and carrot in mayonnaise dressing",
+      "hide": "coleslaw",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2709815,
+          "note": "FNDDS generic coleslaw",
+          "name": "Coleslaw",
+          "source": "survey",
+          "values": {
+            "calories": 117,
+            "protein": 0.94,
+            "carbs": 10.45,
+            "fat": 7.98
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "15-635",
+          "note": "retail",
+          "name": "Coleslaw, not low calorie, retail",
+          "description": "8 samples, 7 products",
+          "values": {
+            "calories": 173,
+            "protein": 0.8,
+            "carbs": 7.133,
+            "fat": 16.3
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 117,
+        "high": 173,
+        "macros": {
+          "protein": 0.87,
+          "carbs": 8.7915,
+          "fat": 12.14
+        }
+      }
+    },
+    {
+      "key": "trifle",
+      "query": "trifle",
+      "detailed": "fruit trifle with sponge, custard and cream",
+      "hide": "trifle",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2705701,
+          "name": "Trifle",
+          "source": "survey",
+          "values": {
+            "calories": 169,
+            "protein": 3.52,
+            "carbs": 23.24,
+            "fat": 7.15
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "12-600",
+          "name": "Trifle, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 167,
+            "protein": 2.7,
+            "carbs": 20.305,
+            "fat": 7.9
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 168,
+        "macros": {
+          "protein": 3.1100000000000003,
+          "carbs": 21.7725,
+          "fat": 7.525
+        },
+        "low": 167,
+        "high": 169
+      }
+    },
+    {
+      "key": "scone",
+      "query": "plain scone",
+      "detailed": "plain scone, homemade",
+      "hide": "scone",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2707808,
+          "name": "Scone",
+          "source": "survey",
+          "values": {
+            "calories": 382,
+            "protein": 6.67,
+            "carbs": 48.07,
+            "fat": 18.35
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "11-958",
+          "name": "Scones, plain, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 352,
+            "protein": 7.2,
+            "carbs": 53.452,
+            "fat": 12.7
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 367,
+        "macros": {
+          "protein": 6.9350000000000005,
+          "carbs": 50.760999999999996,
+          "fat": 15.525
+        },
+        "low": 352,
+        "high": 382
+      }
+    },
+    {
+      "key": "cheesecake",
+      "query": "cheesecake",
+      "detailed": "plain baked cheesecake with biscuit base",
+      "hide": "cheesecake",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2707861,
+          "name": "Cheesecake, plain",
+          "source": "survey",
+          "values": {
+            "calories": 399,
+            "protein": 5.29,
+            "carbs": 34.82,
+            "fat": 26.52
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "12-562",
+          "name": "Cheesecake, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 325,
+            "protein": 6.2,
+            "carbs": 24.458,
+            "fat": 22.8
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 325,
+        "high": 399,
+        "macros": {
+          "protein": 5.745,
+          "carbs": 29.639,
+          "fat": 24.66
+        }
+      }
+    },
+    {
+      "key": "guacamole",
+      "query": "guacamole",
+      "detailed": "mashed avocado dip with tomato, onion and lime",
+      "hide": "guacamole",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2709307,
+          "name": "Guacamole, NFS",
+          "source": "survey",
+          "values": {
+            "calories": 155,
+            "protein": 1.95,
+            "carbs": 8.45,
+            "fat": 14.18
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "17-797",
+          "name": "Guacamole, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 128,
+            "protein": 1.4,
+            "carbs": 3.738,
+            "fat": 12.7
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 128,
+        "high": 155,
+        "macros": {
+          "protein": 1.6749999999999998,
+          "carbs": 6.093999999999999,
+          "fat": 13.44
+        }
+      }
+    },
+    {
+      "key": "minestrone",
+      "query": "minestrone soup",
+      "detailed": "minestrone vegetable and pasta soup, homemade",
+      "hide": "minestrone",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2710114,
+          "name": "Soup, minestrone",
+          "source": "survey",
+          "values": {
+            "calories": 40,
+            "protein": 1.71,
+            "carbs": 7.3,
+            "fat": 0.5
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "17-810",
+          "name": "Soup, minestrone, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 60,
+            "protein": 2.1,
+            "carbs": 7.688,
+            "fat": 2.3
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878590975,
+          "name": "Minestrone soup",
+          "source": "indb",
+          "values": {
+            "calories": 42.659,
+            "protein": 9.304,
+            "carbs": 3.715,
+            "fat": 11.087
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "range",
+        "low": 40,
+        "high": 60,
+        "macros": {
+          "protein": 4.371333333333333,
+          "carbs": 6.234333333333333,
+          "fat": 4.6290000000000004
+        }
+      }
+    },
+    {
+      "key": "lentil-soup",
+      "query": "lentil soup",
+      "detailed": "lentil soup, homemade",
+      "hide": "lentil",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2707462,
+          "name": "Soup, lentil",
+          "source": "survey",
+          "values": {
+            "calories": 60,
+            "protein": 3.82,
+            "carbs": 10.2,
+            "fat": 0.69
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "17-808",
+          "name": "Soup, lentil, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 121,
+            "protein": 5.9,
+            "carbs": 13.474,
+            "fat": 4.8
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878590967,
+          "name": "Lentil soup",
+          "source": "indb",
+          "values": {
+            "calories": 31.166,
+            "protein": 9.653,
+            "carbs": 3.945,
+            "fat": 11.679
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 31.166,
+        "high": 121,
+        "reason": "sources differ 3.88x (31-121 kcal/100 g)"
+      }
+    },
+    {
+      "key": "mulligatawny",
+      "query": "mulligatawny soup",
+      "detailed": "spiced lentil and vegetable mulligatawny soup",
+      "hide": "mulligatawny",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "17-813",
+          "name": "Soup, mulligatawny, homemade",
+          "description": "Recipe",
+          "values": {
+            "calories": 90,
+            "protein": 1.9,
+            "carbs": 7.926,
+            "fat": 6.4
+          }
+        },
+        {
+          "family": "indb",
+          "id": 895601603,
+          "name": "Mulligatawny soup",
+          "source": "indb",
+          "values": {
+            "calories": 54.423,
+            "protein": 11.265,
+            "carbs": 8.237,
+            "fat": 13.277
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 54.423,
+        "high": 90,
+        "reason": "sources differ 1.65x (54-90 kcal/100 g)"
+      }
+    },
+    {
+      "key": "spaghetti-bolognese",
+      "query": "spaghetti bolognese",
+      "detailed": "spaghetti with meat bolognese sauce, homemade",
+      "hide": "bolognese",
+      "refs": [
+        {
+          "family": "cofid",
+          "code": "19-628",
+          "name": "Spaghetti bolognese, homemade",
+          "description": "Recipe, including meat, sauce and spaghetti",
+          "values": {
+            "calories": 151,
+            "protein": 8.1,
+            "carbs": 16.823,
+            "fat": 6.1
+          }
+        },
+        {
+          "family": "indb",
+          "id": 895602501,
+          "name": "Spaghetti bolognese",
+          "source": "indb",
+          "values": {
+            "calories": 97.426,
+            "protein": 9.35,
+            "carbs": 10.043,
+            "fat": 9.515
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 97.426,
+        "high": 151,
+        "reason": "sources differ 1.55x (97-151 kcal/100 g)"
+      }
+    },
+    {
+      "key": "cheese-pizza",
+      "query": "cheese pizza",
+      "detailed": "cheese and tomato pizza, regular crust",
+      "hide": "pizza",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 2708614,
+          "note": "restaurant or fast food, crust not stated",
+          "name": "Pizza, cheese, from restaurant or fast food, NS as to type of crust",
+          "source": "survey",
+          "values": {
+            "calories": 266,
+            "protein": 11.39,
+            "carbs": 33.33,
+            "fat": 9.69
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "11-936",
+          "name": "Pizza, cheese and tomato, retail",
+          "description": "11 samples, 10 products, frozen and chilled, all bases, not stuffed crust",
+          "values": {
+            "calories": 272,
+            "protein": 12.2,
+            "carbs": 35.873,
+            "fat": 9.8
+          }
+        },
+        {
+          "family": "indb",
+          "id": 878593825,
+          "name": "Cheese pizza",
+          "source": "indb",
+          "values": {
+            "calories": 249.497,
+            "protein": 5.791,
+            "carbs": 30.625,
+            "fat": 12.435
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "point",
+        "calories": 262.499,
+        "macros": {
+          "protein": 9.793666666666667,
+          "carbs": 33.276,
+          "fat": 10.641666666666667
+        },
+        "low": 249.497,
+        "high": 272
+      }
+    },
+    {
+      "key": "hummus",
+      "query": "hummus",
+      "detailed": "chickpea and tahini dip, homemade",
+      "hide": "hummus|houmous",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 172454,
+          "name": "Hummus, home prepared",
+          "source": "sr_legacy",
+          "values": {
+            "calories": 177,
+            "protein": 4.86,
+            "carbs": 20.12,
+            "fat": 8.59
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "13-556",
+          "name": "Houmous",
+          "description": "Chick pea spread",
+          "values": {
+            "calories": 307,
+            "protein": 6.8,
+            "carbs": 14.476,
+            "fat": 26.7
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 177,
+        "high": 307,
+        "reason": "sources differ 1.73x (177-307 kcal/100 g)"
+      }
+    },
+    {
+      "key": "falafel",
+      "query": "falafel",
+      "detailed": "fried chickpea falafel, homemade",
+      "hide": "falafel",
+      "refs": [
+        {
+          "family": "usda",
+          "id": 172455,
+          "name": "Falafel, home-prepared",
+          "source": "sr_legacy",
+          "values": {
+            "calories": 333,
+            "protein": 13.31,
+            "carbs": 31.84,
+            "fat": 17.8
+          }
+        },
+        {
+          "family": "cofid",
+          "code": "15-795",
+          "name": "Falafel, fried in rapeseed oil, homemade",
+          "description": "Recipe. Middle-Eastern dish. Deep fried chick pea balls.",
+          "values": {
+            "calories": 183,
+            "protein": 6.4,
+            "carbs": 16.617,
+            "fat": 11.2
+          }
+        }
+      ],
+      "excludedRefs": [],
+      "reference": {
+        "kind": "excluded",
+        "low": 183,
+        "high": 333,
+        "reason": "sources differ 1.82x (183-333 kcal/100 g)"
+      }
+    }
+  ],
+  "notCovered": [
+    {
+      "dish": "gulab jamun",
+      "reason": "only CoFID lists it (11-1081 homemade, 11-1083 retail): one family; INDB's fried dishes are left out of the catalog"
+    },
+    {
+      "dish": "idli",
+      "reason": "only USDA lists plain idli; INDB has semolina idli, a different preparation"
+    },
+    {
+      "dish": "tandoori chicken",
+      "reason": "only INDB lists it; CoFID 19-540 is a tandoori chicken curry, a different dish"
+    },
+    {
+      "dish": "chicken curry",
+      "reason": "CoFID 19-322 is an average of five takeaway curries, not comparable to USDA's chicken curry; one family left"
+    },
+    {
+      "dish": "bhatura, rasgulla, malai kofta, kulcha, masala vada, vegetable cutlet",
+      "reason": "no two independent families list the same preparation"
+    }
+  ],
+  "sha256": "3142dbe067f3a94115b25182b277bd4a3daa7a82b91a7df9de6265ea35e62b4c"
+}

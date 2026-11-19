@@ -71,6 +71,27 @@ values fail the catalog sanity checks.
 - **WHEN** a recipe lists an ingredient id that is not in the catalog
 - **THEN** the catalog build fails and names the recipe and the id
 
+### Requirement: INDB dishes that count their frying oil are left out
+The catalog SHALL NOT include an INDB dish whose recipe lists at least 200 ml of oil or ghee and whose published fat
+is at least 30 g per 100 g, since its totals count the frying medium as eaten. The build SHALL record how many it
+left out. A dish name only such a dish had SHALL be unmatched until another source or a cited recipe provides it.
+
+#### Scenario: Poori
+- **WHEN** a caller logs "2 poori"
+- **THEN** the item is the USDA food "Bread, puri", not the INDB poori
+
+#### Scenario: A pickle
+- **WHEN** an INDB pickle's recipe has 250 ml of oil and its published fat is 18 g per 100 g
+- **THEN** the pickle stays in the catalog
+
+### Requirement: INDB piece weights are believable for one piece
+An INDB serving named after a piece SHALL become that piece's portion only when its weight is within the believable
+range for that piece; otherwise it SHALL be the dish's "1 serving" portion.
+
+#### Scenario: Rasgulla
+- **WHEN** INDB's serving for rasgulla is "1 piece" weighing 342 g
+- **THEN** the portion is "1 serving" of 342 g, and no portion claims one piece weighs 342 g
+
 ### Requirement: Documented coverage matches the catalog
 The API documentation SHALL state which nutrients each source covers and how missing values are reported, and SHALL
 NOT claim that every food has every nutrient.

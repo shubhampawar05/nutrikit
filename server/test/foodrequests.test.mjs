@@ -251,7 +251,7 @@ test('a malformed reply is a failed estimate, not a crash', async () => {
   for (const reply of [{}, { foods: null }, { foods: [null, { known: true }] }, { foods: 'nope' }]) {
     const r = await requestEstimates({ name: 'fake', estimateFoods: async () => reply }, ['dal']);
     assert.equal(r.estimates.size, 0, JSON.stringify(reply));
-    assert.deepEqual(r.rejected, [{ query: 'dal', problem: 'no answer for this food' }]);
+    assert.deepEqual(r.rejected, [{ query: 'dal', problem: 'no answer for this food', problems: ['no answer for this food', 'no answer for this food'] }], 'both attempts are kept');
     assert.deepEqual(r.usage, { inputTokens: 0, outputTokens: 0 });
   }
 });

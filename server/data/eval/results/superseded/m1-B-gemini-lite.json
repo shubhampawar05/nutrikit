@@ -1,0 +1,477 @@
+{
+  "config": {
+    "label": "m1-B-gemini-lite",
+    "at": "2026-11-19T10:52:56.867Z",
+    "set": {
+      "name": "B",
+      "version": "1",
+      "sha256": "672847ee435db554614c3955ad6432e961e7ae988178033c3f0e79923131d676",
+      "items": 3
+    },
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "variant": "baseline",
+    "promptVersion": "f2d48adc5786",
+    "runs": 3,
+    "concurrency": 2,
+    "aiTimeoutMs": 60000,
+    "gitCommit": "550fb11",
+    "gitDirty": true,
+    "catalogBuild": "2026-11-19T10:19:26.486Z",
+    "price": {
+      "input": 0.3,
+      "output": 2.5,
+      "source": "https://aistudio.google.com/docs/pricing",
+      "checked": "2026-11-19"
+    }
+  },
+  "across": {
+    "coverage": {
+      "mean": 0.6666666666666666,
+      "min": 0,
+      "max": 1,
+      "runs": 3
+    },
+    "calorieMaeKcal": {
+      "mean": 7.881,
+      "min": 7.175666666666667,
+      "max": 8.586333333333334,
+      "runs": 2
+    },
+    "calorieMape": {
+      "mean": 0.06460920143506246,
+      "min": 0.052099742486897506,
+      "max": 0.07711866038322743,
+      "runs": 2
+    },
+    "calorieMedianError": {
+      "mean": 0.062074347332576614,
+      "min": 0.02454597048808173,
+      "max": 0.0996027241770715,
+      "runs": 2
+    },
+    "within10": {
+      "mean": 0.6666666666666666,
+      "min": 0.6666666666666666,
+      "max": 0.6666666666666666,
+      "runs": 2
+    },
+    "within20": {
+      "mean": 1,
+      "min": 1,
+      "max": 1,
+      "runs": 2
+    },
+    "over50": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "macroMaeGrams.protein": {
+      "mean": 0.5416666666666667,
+      "min": 0.5116666666666667,
+      "max": 0.5716666666666669,
+      "runs": 2
+    },
+    "macroMaeGrams.carbs": {
+      "mean": 3.636333333333333,
+      "min": 3.503,
+      "max": 3.7696666666666663,
+      "runs": 2
+    },
+    "macroMaeGrams.fat": {
+      "mean": 0.8776666666666667,
+      "min": 0.7443333333333335,
+      "max": 1.011,
+      "runs": 2
+    },
+    "matchedCatalog": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 3
+    },
+    "latencyMs.median": {
+      "mean": 4443.5,
+      "min": 3205,
+      "max": 5682,
+      "runs": 2
+    },
+    "latencyMs.p90": {
+      "mean": 4443.5,
+      "min": 3205,
+      "max": 5682,
+      "runs": 2
+    },
+    "tokens.input": {
+      "mean": 289.3333333333333,
+      "min": 0,
+      "max": 434,
+      "runs": 3
+    },
+    "tokens.output": {
+      "mean": 335.3333333333333,
+      "min": 0,
+      "max": 579,
+      "runs": 3
+    },
+    "costUsd": {
+      "mean": 0.0009251333333333333,
+      "min": 0,
+      "max": 0.0015777,
+      "runs": 3
+    }
+  },
+  "matching": null,
+  "runs": [
+    {
+      "run": 1,
+      "summary": {
+        "eligible": 3,
+        "scored": 0,
+        "coverage": 0,
+        "calorieMaeKcal": null,
+        "calorieMape": null,
+        "calorieMedianError": null,
+        "within10": null,
+        "within20": null,
+        "over50": 0,
+        "macroMaeGrams": {
+          "protein": null,
+          "carbs": null,
+          "fat": null
+        },
+        "matchedCatalog": 0,
+        "calls": {
+          "total": 1,
+          "failed": 1,
+          "models": []
+        },
+        "latencyMs": {
+          "median": null,
+          "p90": null,
+          "max": null
+        },
+        "tokens": {
+          "input": 0,
+          "output": 0
+        },
+        "costUsd": 0
+      },
+      "rows": [
+        {
+          "key": "lassi-salted",
+          "query": "salted lassi",
+          "ref": {
+            "kind": "point",
+            "calories": 56.384,
+            "macros": {
+              "protein": 2.76,
+              "carbs": 4.058,
+              "fat": 3.24
+            },
+            "low": 56.384,
+            "high": 56.384
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "lassi-sweet",
+          "query": "lassi",
+          "ref": {
+            "kind": "point",
+            "calories": 84.69,
+            "macros": {
+              "protein": 2.74,
+              "carbs": 11.166,
+              "fat": 3.23
+            },
+            "low": 84.69,
+            "high": 84.69
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "chana-chaat",
+          "query": "chana chaat",
+          "ref": {
+            "kind": "point",
+            "calories": 154.833,
+            "macros": {
+              "protein": 6.535,
+              "carbs": 27.433,
+              "fat": 2.537
+            },
+            "low": 154.833,
+            "high": 154.833
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        }
+      ],
+      "errors": [
+        "AI provider is rate limited; retry later"
+      ]
+    },
+    {
+      "run": 2,
+      "summary": {
+        "eligible": 3,
+        "scored": 3,
+        "coverage": 1,
+        "calorieMaeKcal": 7.175666666666667,
+        "calorieMape": 0.052099742486897506,
+        "calorieMedianError": 0.02454597048808173,
+        "within10": 0.6666666666666666,
+        "within20": 1,
+        "over50": 0,
+        "macroMaeGrams": {
+          "protein": 0.5116666666666667,
+          "carbs": 3.503,
+          "fat": 1.011
+        },
+        "matchedCatalog": 0,
+        "calls": {
+          "total": 1,
+          "failed": 0,
+          "models": [
+            "gemini-3.5-flash-lite"
+          ]
+        },
+        "latencyMs": {
+          "median": 5682,
+          "p90": 5682,
+          "max": 5682
+        },
+        "tokens": {
+          "input": 434,
+          "output": 579
+        },
+        "costUsd": 0.0015777
+      },
+      "rows": [
+        {
+          "key": "lassi-salted",
+          "query": "salted lassi",
+          "ref": {
+            "kind": "point",
+            "calories": 56.384,
+            "macros": {
+              "protein": 2.76,
+              "carbs": 4.058,
+              "fat": 3.24
+            },
+            "low": 56.384,
+            "high": 56.384
+          },
+          "name": "Salted lassi (savory yogurt drink)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 55,
+            "protein": 3.2,
+            "carbs": 4.8,
+            "fat": 2.5
+          },
+          "modelCalories": 55,
+          "servingGrams": 250,
+          "calorieError": 0.02454597048808173
+        },
+        {
+          "key": "lassi-sweet",
+          "query": "lassi",
+          "ref": {
+            "kind": "point",
+            "calories": 84.69,
+            "macros": {
+              "protein": 2.74,
+              "carbs": 11.166,
+              "fat": 3.23
+            },
+            "low": 84.69,
+            "high": 84.69
+          },
+          "name": "Sweet lassi (yogurt drink)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 85,
+            "protein": 2.8,
+            "carbs": 13.5,
+            "fat": 2.2
+          },
+          "modelCalories": 85,
+          "servingGrams": 250,
+          "calorieError": 0.0036604085488251537
+        },
+        {
+          "key": "chana-chaat",
+          "query": "chana chaat",
+          "ref": {
+            "kind": "point",
+            "calories": 154.833,
+            "macros": {
+              "protein": 6.535,
+              "carbs": 27.433,
+              "fat": 2.537
+            },
+            "low": 154.833,
+            "high": 154.833
+          },
+          "name": "Chana chaat (chickpea salad with spices and chutneys)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 135,
+            "protein": 5.5,
+            "carbs": 20,
+            "fat": 3.8
+          },
+          "modelCalories": 135,
+          "servingGrams": 200,
+          "calorieError": 0.12809284842378563
+        }
+      ],
+      "errors": []
+    },
+    {
+      "run": 3,
+      "summary": {
+        "eligible": 3,
+        "scored": 3,
+        "coverage": 1,
+        "calorieMaeKcal": 8.586333333333334,
+        "calorieMape": 0.07711866038322743,
+        "calorieMedianError": 0.0996027241770715,
+        "within10": 0.6666666666666666,
+        "within20": 1,
+        "over50": 0,
+        "macroMaeGrams": {
+          "protein": 0.5716666666666669,
+          "carbs": 3.7696666666666663,
+          "fat": 0.7443333333333335
+        },
+        "matchedCatalog": 0,
+        "calls": {
+          "total": 1,
+          "failed": 0,
+          "models": [
+            "gemini-3.5-flash-lite"
+          ]
+        },
+        "latencyMs": {
+          "median": 3205,
+          "p90": 3205,
+          "max": 3205
+        },
+        "tokens": {
+          "input": 434,
+          "output": 427
+        },
+        "costUsd": 0.0011977000000000001
+      },
+      "rows": [
+        {
+          "key": "lassi-salted",
+          "query": "salted lassi",
+          "ref": {
+            "kind": "point",
+            "calories": 56.384,
+            "macros": {
+              "protein": 2.76,
+              "carbs": 4.058,
+              "fat": 3.24
+            },
+            "low": 56.384,
+            "high": 56.384
+          },
+          "name": "Salted Lassi (Traditional Savoury Yogurt Drink)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 62,
+            "protein": 3.2,
+            "carbs": 5.6,
+            "fat": 3.1
+          },
+          "modelCalories": 62,
+          "servingGrams": 250,
+          "calorieError": 0.0996027241770715
+        },
+        {
+          "key": "lassi-sweet",
+          "query": "lassi",
+          "ref": {
+            "kind": "point",
+            "calories": 84.69,
+            "macros": {
+              "protein": 2.74,
+              "carbs": 11.166,
+              "fat": 3.23
+            },
+            "low": 84.69,
+            "high": 84.69
+          },
+          "name": "Sweet Mango or Plain Lassi",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 85,
+            "protein": 2.5,
+            "carbs": 12.5,
+            "fat": 2.8
+          },
+          "modelCalories": 85,
+          "servingGrams": 250,
+          "calorieError": 0.0036604085488251537
+        },
+        {
+          "key": "chana-chaat",
+          "query": "chana chaat",
+          "ref": {
+            "kind": "point",
+            "calories": 154.833,
+            "macros": {
+              "protein": 6.535,
+              "carbs": 27.433,
+              "fat": 2.537
+            },
+            "low": 154.833,
+            "high": 154.833
+          },
+          "name": "Chana Chaat (Chickpea Salad with Spices and Chutney)",
+          "sameAs": null,
+          "confidence": "high",
+          "estimate": {
+            "calories": 135,
+            "protein": 5.5,
+            "carbs": 19,
+            "fat": 4.2
+          },
+          "modelCalories": 135,
+          "servingGrams": 200,
+          "calorieError": 0.12809284842378563
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

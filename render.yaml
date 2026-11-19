@@ -34,8 +34,10 @@ services:
       # it in production (links in emails are built from it).
       - key: NUTRIKIT_PUBLIC_URL
         sync: false
-      # AI provider: set Claude, or Gemini and/or OpenAI. With both of those, Gemini answers first and OpenAI is the
-      # fallback; models per task are built in. Claude wins when it is set too.
+      # AI provider. GEMINI_API_KEY is the default (free tier; nutrition estimates use gemini-3.5-flash-lite only).
+      # OPENAI_API_KEY is paid and is never used unless NUTRIKIT_OPENAI_FALLBACK is exactly "1" (add that variable by
+      # hand only if you mean to spend OpenAI credit); a key alone sends no request. ANTHROPIC_API_KEY (Claude) is also
+      # paid and, if set, replaces Gemini for every AI task: leave it empty unless that is intended.
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: GEMINI_API_KEY

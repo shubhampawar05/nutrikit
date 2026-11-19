@@ -1,0 +1,1058 @@
+{
+  "config": {
+    "label": "probe-A-gemini-3.5-flash",
+    "at": "2026-11-19T10:59:24.452Z",
+    "set": {
+      "name": "A",
+      "version": "1",
+      "sha256": "3142dbe067f3a94115b25182b277bd4a3daa7a82b91a7df9de6265ea35e62b4c",
+      "items": 41
+    },
+    "provider": "gemini",
+    "model": "gemini-3.5-flash",
+    "variant": "baseline",
+    "promptVersion": "f2d48adc5786",
+    "runs": 1,
+    "concurrency": 2,
+    "aiTimeoutMs": 60000,
+    "gitCommit": "550fb11",
+    "gitDirty": true,
+    "catalogBuild": "2026-11-19T10:19:26.486Z",
+    "price": {
+      "input": null,
+      "output": null,
+      "source": "https://aistudio.google.com/docs/pricing",
+      "checked": "2026-11-19",
+      "note": "not listed on the pricing page (3.5 Flash-Lite, 3.6 Flash and 3.8 Flash are)"
+    }
+  },
+  "across": {
+    "coverage": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 1
+    },
+    "calorieMaeKcal": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "calorieMape": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "calorieMedianError": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "within10": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "within20": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "over50": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 1
+    },
+    "macroMaeGrams.protein": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "macroMaeGrams.carbs": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "macroMaeGrams.fat": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "matchedCatalog": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 1
+    },
+    "latencyMs.median": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "latencyMs.p90": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    },
+    "tokens.input": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 1
+    },
+    "tokens.output": {
+      "mean": 0,
+      "min": 0,
+      "max": 0,
+      "runs": 1
+    },
+    "costUsd": {
+      "mean": null,
+      "min": null,
+      "max": null,
+      "runs": 0
+    }
+  },
+  "matching": null,
+  "runs": [
+    {
+      "run": 1,
+      "summary": {
+        "eligible": 41,
+        "scored": 0,
+        "coverage": 0,
+        "calorieMaeKcal": null,
+        "calorieMape": null,
+        "calorieMedianError": null,
+        "within10": null,
+        "within20": null,
+        "over50": 0,
+        "macroMaeGrams": {
+          "protein": null,
+          "carbs": null,
+          "fat": null
+        },
+        "matchedCatalog": 0,
+        "calls": {
+          "total": 9,
+          "failed": 9,
+          "models": []
+        },
+        "latencyMs": {
+          "median": null,
+          "p90": null,
+          "max": null
+        },
+        "tokens": {
+          "input": 0,
+          "output": 0
+        },
+        "costUsd": null
+      },
+      "rows": [
+        {
+          "key": "naan",
+          "query": "naan",
+          "ref": {
+            "kind": "point",
+            "calories": 294.15000000000003,
+            "macros": {
+              "protein": 8.980666666666666,
+              "carbs": 50.187999999999995,
+              "fat": 6.522666666666667
+            },
+            "low": 285,
+            "high": 311
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "chapati",
+          "query": "chapati",
+          "ref": {
+            "kind": "range",
+            "low": 202,
+            "high": 297,
+            "macros": {
+              "protein": 8.141666666666667,
+              "fat": 4.003666666666667
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "paratha",
+          "query": "paratha",
+          "ref": {
+            "kind": "point",
+            "calories": 319.1003333333333,
+            "macros": {
+              "protein": 6.405333333333334,
+              "carbs": 40.86966666666667,
+              "fat": 14.819333333333333
+            },
+            "low": 298.301,
+            "high": 333
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "mooli-paratha",
+          "query": "mooli paratha",
+          "ref": {
+            "kind": "point",
+            "calories": 177.262,
+            "macros": {
+              "protein": 4.599,
+              "carbs": 28.107,
+              "fat": 5.914
+            },
+            "low": 171,
+            "high": 183.524
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "puri",
+          "query": "puri",
+          "ref": {
+            "kind": "point",
+            "calories": 387.5,
+            "macros": {
+              "protein": 7.02,
+              "carbs": 37.9345,
+              "fat": 23.62
+            },
+            "low": 366,
+            "high": 409
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "samosa",
+          "query": "vegetable samosa",
+          "ref": {
+            "kind": "range",
+            "low": 217,
+            "high": 310,
+            "macros": {
+              "protein": 5.119999999999999,
+              "carbs": 32.0365,
+              "fat": 13.385
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "masala-dosa",
+          "query": "masala dosa",
+          "ref": {
+            "kind": "point",
+            "calories": 174.29250000000002,
+            "macros": {
+              "protein": 4.374,
+              "carbs": 25.183500000000002,
+              "fat": 6.055
+            },
+            "low": 164.585,
+            "high": 184
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "mutton-biryani",
+          "query": "mutton biryani",
+          "ref": {
+            "kind": "range",
+            "low": 145,
+            "high": 195,
+            "macros": {
+              "protein": 7.658666666666666,
+              "carbs": 17.941999999999997,
+              "fat": 7.9046666666666665
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "veg-pulao",
+          "query": "vegetable pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 112.5245,
+            "macros": {
+              "protein": 3.0115,
+              "carbs": 20.1315,
+              "fat": 2.4139999999999997
+            },
+            "low": 112,
+            "high": 113.049
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "mushroom-pulao",
+          "query": "mushroom pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 131.143,
+            "macros": {
+              "protein": 2.5115,
+              "carbs": 20.649,
+              "fat": 3.7645
+            },
+            "low": 124.286,
+            "high": 138
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "plain-pulao",
+          "query": "plain pulao",
+          "ref": {
+            "kind": "point",
+            "calories": 137.06933333333333,
+            "macros": {
+              "protein": 2.7096666666666667,
+              "carbs": 22.881666666666664,
+              "fat": 3.7840000000000003
+            },
+            "low": 134,
+            "high": 140.208
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "rajma",
+          "query": "rajma",
+          "ref": {
+            "kind": "range",
+            "low": 106,
+            "high": 143.726,
+            "macros": {
+              "protein": 5.3255,
+              "carbs": 14.706,
+              "fat": 5.6875
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "chicken-korma",
+          "query": "chicken korma",
+          "ref": {
+            "kind": "point",
+            "calories": 137.47899999999998,
+            "macros": {
+              "protein": 12.215499999999999,
+              "carbs": 5.0344999999999995,
+              "fat": 7.387
+            },
+            "low": 127,
+            "high": 147.958
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "palak-paneer",
+          "query": "palak paneer",
+          "ref": {
+            "kind": "range",
+            "low": 77.683,
+            "high": 101,
+            "macros": {
+              "protein": 4.727,
+              "carbs": 4.355,
+              "fat": 5.8915
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "paneer",
+          "query": "paneer",
+          "ref": {
+            "kind": "point",
+            "calories": 313.5,
+            "macros": {
+              "protein": 20.93,
+              "carbs": 11.6585,
+              "fat": 20.009999999999998
+            },
+            "low": 299,
+            "high": 328
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "cucumber-raita",
+          "query": "cucumber raita",
+          "ref": {
+            "kind": "point",
+            "calories": 58.0625,
+            "macros": {
+              "protein": 4.218500000000001,
+              "carbs": 6.1370000000000005,
+              "fat": 2.238
+            },
+            "low": 57,
+            "high": 59.125
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "egg-curry",
+          "query": "egg curry",
+          "ref": {
+            "kind": "range",
+            "low": 117.521,
+            "high": 149,
+            "macros": {
+              "protein": 5.3415,
+              "carbs": 4.4245,
+              "fat": 10.5045
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "fish-curry",
+          "query": "fish curry",
+          "ref": {
+            "kind": "range",
+            "low": 93,
+            "high": 139,
+            "macros": {
+              "protein": 8.334000000000001,
+              "carbs": 4.801666666666667,
+              "fat": 7.236999999999999
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "veg-curry",
+          "query": "vegetable curry",
+          "ref": {
+            "kind": "point",
+            "calories": 88,
+            "macros": {
+              "protein": 2.05,
+              "fat": 5.685
+            },
+            "low": 86,
+            "high": 90
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "aloo-gobi",
+          "query": "aloo gobi",
+          "ref": {
+            "kind": "point",
+            "calories": 106.08850000000001,
+            "macros": {
+              "protein": 2.5989999999999998,
+              "carbs": 8.904,
+              "fat": 7.462999999999999
+            },
+            "low": 106,
+            "high": 106.177
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "aloo-matar",
+          "query": "aloo matar",
+          "ref": {
+            "kind": "point",
+            "calories": 96.4615,
+            "macros": {
+              "protein": 3.0915,
+              "carbs": 11.636,
+              "fat": 4.4135
+            },
+            "low": 92,
+            "high": 100.923
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "whole-moong",
+          "query": "whole moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 53.699,
+            "high": 74,
+            "macros": {
+              "protein": 3.2245,
+              "carbs": 7.172000000000001,
+              "fat": 2.682
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "moong-dal",
+          "query": "moong dal",
+          "ref": {
+            "kind": "range",
+            "low": 50.003,
+            "high": 74,
+            "macros": {
+              "protein": 3.439,
+              "fat": 2.5404999999999998
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "barfi",
+          "query": "barfi",
+          "ref": {
+            "kind": "range",
+            "low": 284,
+            "high": 408.324,
+            "macros": {
+              "protein": 7.618,
+              "carbs": 35.657,
+              "fat": 19.662
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "veg-fried-rice",
+          "query": "veg fried rice",
+          "ref": {
+            "kind": "range",
+            "low": 120.584,
+            "high": 174,
+            "macros": {
+              "protein": 4.051,
+              "carbs": 23.096,
+              "fat": 4.1975
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "chicken-chow-mein",
+          "query": "chicken chow mein",
+          "ref": {
+            "kind": "point",
+            "calories": 143.11133333333333,
+            "macros": {
+              "protein": 8.247,
+              "carbs": 12.503,
+              "fat": 6.954999999999999
+            },
+            "low": 131,
+            "high": 151.334
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "scrambled-eggs",
+          "query": "scrambled eggs",
+          "ref": {
+            "kind": "point",
+            "calories": 152.32366666666667,
+            "macros": {
+              "protein": 11.627,
+              "carbs": 0.9873333333333334,
+              "fat": 11.197333333333333
+            },
+            "low": 149,
+            "high": 155.971
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "shepherds-pie",
+          "query": "shepherd's pie",
+          "ref": {
+            "kind": "range",
+            "low": 107,
+            "high": 142.777,
+            "macros": {
+              "protein": 6.996333333333332,
+              "carbs": 8.754,
+              "fat": 6.859333333333333
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "chilli-con-carne",
+          "query": "chilli con carne",
+          "ref": {
+            "kind": "point",
+            "calories": 113.5,
+            "macros": {
+              "protein": 7.5,
+              "carbs": 9.208,
+              "fat": 5.485
+            },
+            "low": 107,
+            "high": 120
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "cheese-quiche",
+          "query": "cheese quiche",
+          "ref": {
+            "kind": "range",
+            "low": 305,
+            "high": 365,
+            "macros": {
+              "protein": 12.205,
+              "carbs": 14.189,
+              "fat": 25.765
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "beef-stew",
+          "query": "beef stew",
+          "ref": {
+            "kind": "point",
+            "calories": 106,
+            "macros": {
+              "protein": 10.33,
+              "carbs": 5.9415,
+              "fat": 4.835
+            },
+            "low": 105,
+            "high": 107
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "beef-stroganoff",
+          "query": "beef stroganoff",
+          "ref": {
+            "kind": "point",
+            "calories": 160.5,
+            "macros": {
+              "protein": 12.68,
+              "carbs": 4.608,
+              "fat": 10.265
+            },
+            "low": 150,
+            "high": 171
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "ratatouille",
+          "query": "ratatouille",
+          "ref": {
+            "kind": "range",
+            "low": 67,
+            "high": 82,
+            "macros": {
+              "protein": 1.145,
+              "carbs": 5.5335,
+              "fat": 5.865
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "apple-crumble",
+          "query": "apple crumble",
+          "ref": {
+            "kind": "range",
+            "low": 161,
+            "high": 201,
+            "macros": {
+              "protein": 1.725,
+              "carbs": 32.5085,
+              "fat": 4.915
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "coleslaw",
+          "query": "coleslaw",
+          "ref": {
+            "kind": "range",
+            "low": 117,
+            "high": 173,
+            "macros": {
+              "protein": 0.87,
+              "carbs": 8.7915,
+              "fat": 12.14
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "trifle",
+          "query": "trifle",
+          "ref": {
+            "kind": "point",
+            "calories": 168,
+            "macros": {
+              "protein": 3.1100000000000003,
+              "carbs": 21.7725,
+              "fat": 7.525
+            },
+            "low": 167,
+            "high": 169
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "scone",
+          "query": "plain scone",
+          "ref": {
+            "kind": "point",
+            "calories": 367,
+            "macros": {
+              "protein": 6.9350000000000005,
+              "carbs": 50.760999999999996,
+              "fat": 15.525
+            },
+            "low": 352,
+            "high": 382
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "cheesecake",
+          "query": "cheesecake",
+          "ref": {
+            "kind": "range",
+            "low": 325,
+            "high": 399,
+            "macros": {
+              "protein": 5.745,
+              "carbs": 29.639,
+              "fat": 24.66
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "guacamole",
+          "query": "guacamole",
+          "ref": {
+            "kind": "range",
+            "low": 128,
+            "high": 155,
+            "macros": {
+              "protein": 1.6749999999999998,
+              "carbs": 6.093999999999999,
+              "fat": 13.44
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "minestrone",
+          "query": "minestrone soup",
+          "ref": {
+            "kind": "range",
+            "low": 40,
+            "high": 60,
+            "macros": {
+              "protein": 4.371333333333333,
+              "carbs": 6.234333333333333,
+              "fat": 4.6290000000000004
+            }
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        },
+        {
+          "key": "cheese-pizza",
+          "query": "cheese pizza",
+          "ref": {
+            "kind": "point",
+            "calories": 262.499,
+            "macros": {
+              "protein": 9.793666666666667,
+              "carbs": 33.276,
+              "fat": 10.641666666666667
+            },
+            "low": 249.497,
+            "high": 272
+          },
+          "name": null,
+          "sameAs": null,
+          "confidence": null,
+          "estimate": null,
+          "modelCalories": null,
+          "servingGrams": null,
+          "calorieError": null
+        }
+      ],
+      "errors": [
+        "AI provider is rate limited; retry later",
+        "AI provider is rate limited; retry later",
+        "AI provider error (503)",
+        "AI provider is rate limited; retry later",
+        "AI provider is rate limited; retry later",
+        "AI provider is rate limited; retry later",
+        "AI provider is rate limited; retry later",
+        "AI provider is rate limited; retry later",
+        "AI provider is rate limited; retry later"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "set": "B",
+  "version": "1",
+  "title": "Cited recipes whose finished weight needs no yield assumption",
+  "rules": [
+    "A recipe qualifies only when its cooked weight is sourced. None of the 28 cited recipes states a measured cooked weight; the only defensible ones are dishes with no cooking step, whose finished weight is the weight of what goes in (checked at build time: within 1%).",
+    "Values are the catalog's composed values for the recipe (USDA ingredients, scripts/recipes.mjs), so this set checks recipe-level estimation, not laboratory analysis.",
+    "Every recipe not used is listed with its reason."
+  ],
+  "recipes": [
+    {
+      "file": "lassi-salted.json",
+      "noCooking": "blended yogurt, water, salt and cumin; nothing is cooked, so the finished weight is the weight of what goes in"
+    },
+    {
+      "file": "lassi-sweet.json",
+      "noCooking": "blended yogurt, water, sugar and cardamom; nothing is cooked"
+    },
+    {
+      "file": "chana-chaat.json",
+      "noCooking": "assembled from already-boiled chickpeas and raw vegetables; nothing is cooked"
+    }
+  ],
+  "excludedRecipes": [
+    {
+      "file": "aloo-tikki.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "badam-milk.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "bread-omelette.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "cabbage-sabzi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "chicken-65.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "chicken-tikka-masala.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "dal-baati.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "filter-coffee.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "haldi-doodh.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "jalebi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "jeera-aloo.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "kheer.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "lauki-sabzi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "misal-pav.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "mix-veg-sabzi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "mutton-curry.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "paneer-bhurji.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "pani-puri.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "pav-bhaji.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "poha.json",
+      "reason": "cooked (tempered in oil) and models flattened rice as raw long-grain rice; its cooked weight is not sourced"
+    },
+    {
+      "file": "sabudana-khichdi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "tomato-rice.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "vada-pav.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "veg-momos.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "ven-pongal.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    }
+  ]
+}

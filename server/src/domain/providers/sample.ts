@@ -52,7 +52,7 @@ export const sampleProvider: AIProvider = {
         known: true,
         name: `Sample estimate for "${query}"`,
         per100g: { calories: 150, protein: 5, fat: 6, carbs: 19, fiber: 2, sugar: 3, saturatedFat: 1.5, sodium: 300 },
-        serving: { label: '1 bowl', unit: 'bowl', grams: 200 },
+        serving: { label: '1 bowl', unit: 'bowl', quantity: 1, grams: 200 },
         confidence: 'low' as const,
         sameAs: null,
       })),

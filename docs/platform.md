@@ -136,6 +136,12 @@ When a call uses AI (`ai: true`, or a photo), a missing food is estimated by the
 - **Approve** an estimate you've checked: from then on every caller logging that food gets it, rule-based logging
   included, without an AI call.
 - **Reject** a wrong one: it stops being used and the food isn't estimated again; it stays unmatched.
+- An estimate still **to review** is made again when it goes stale: older than `NUTRIKIT_ESTIMATE_MAX_AGE_DAYS`
+  (30), made by an older prompt or calculation version, or failing a check added since. Only one AI-enabled request
+  does it at a time, and the current estimate is served until the new one has passed every check; the replaced one
+  is kept in the food's history (last 5). A failed attempt keeps the current estimate, is listed with the food's
+  failures, and the food isn't tried again for `NUTRIKIT_REESTIMATE_RETRY_MINUTES` (60). Approved and rejected
+  estimates are never made again automatically.
 - An estimate shown as **Same as** a catalog food means the AI judged them the same dish and that food is logged
   with its own values; adding the request's words as its alias makes the match permanent.
 - Once the catalog covers the food (an alias in `server/data/aliases/recipes.json` or a cited recipe in

@@ -1,5 +1,6 @@
 // Prompts and output schemas shared by the AI providers, so every provider returns the same shapes.
 import { NUTRIENT_KEYS } from '../nutrients.ts';
+import crypto from 'node:crypto';
 import type { AIFoodItem, CatalogCandidate, FoodEstimate, LabelReading } from './index.ts';
 
 // Model output shapes; the API constrains them to FOOD_ITEMS_SCHEMA / LABEL_SCHEMA.
@@ -159,6 +160,8 @@ export function adviceMessage(question: string, context?: string | null) {
 export interface FoodEstimatesOutput { foods: FoodEstimate[] }
 
 const ESTIMATE_NUTRIENTS = ['calories', 'protein', 'fat', 'carbs', 'fiber', 'sugar', 'saturatedFat', 'sodium'] as const;
+/** Nutrients the model may leave unknown (null); the first four are always required. */
+const OPTIONAL_NUTRIENTS = new Set(['fiber', 'sugar', 'saturatedFat', 'sodium']);
 
 export const FOOD_ESTIMATES_SCHEMA = {
   type: 'object',
@@ -179,17 +182,18 @@ export const FOOD_ESTIMATES_SCHEMA = {
             type: 'object',
             additionalProperties: false,
             required: [...ESTIMATE_NUTRIENTS],
-            properties: Object.fromEntries(ESTIMATE_NUTRIENTS.map((k) => [k, { type: 'number' }])),
-            description: 'Per 100 g as eaten: calories kcal; protein, fat, carbs, fiber, sugar, saturatedFat in g; sodium in mg',
+            properties: Object.fromEntries(ESTIMATE_NUTRIENTS.map((k) => [k, { type: OPTIONAL_NUTRIENTS.has(k) ? ['number', 'null'] : 'number' }])),
+            description: 'Per 100 g as eaten: calories kcal; protein, fat, carbs, fiber, sugar, saturatedFat in g; sodium in mg. fiber, sugar, saturatedFat and sodium are null when you cannot estimate them',
           },
           serving: {
             type: 'object',
             additionalProperties: false,
-            required: ['label', 'unit', 'grams'],
+            required: ['label', 'unit', 'quantity', 'grams'],
             properties: {
-              label: { type: 'string', description: 'One typical serving, e.g. "1 bowl", "1 piece", "1 glass"' },
+              label: { type: 'string', description: 'One typical serving, e.g. "1 bowl", "2 idlis", "1 glass"' },
               unit: { type: 'string', description: 'The serving unit alone: bowl, plate, piece, glass, cup, slice, serving' },
-              grams: { type: 'number' },
+              quantity: { type: 'number', description: 'How many of that unit the serving holds: 2 for "2 idlis", 1 for "1 bowl"' },
+              grams: { type: 'number', description: 'The weight of the whole serving in grams (all of its units together)' },
             },
           },
           confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
@@ -215,7 +219,10 @@ Estimating:
 - Give values per 100 g of the food as eaten (cooked, with its usual oil, sugar and accompaniments that are part of
   the dish), based on how it is typically made. For a regional dish, use the most common home-style recipe.
 - Calories must agree with the macronutrients (about 4 kcal per g of protein and carbs, 9 per g of fat).
-- Give one typical single serving in the household unit people use for it, with its weight in grams.
+- Calories, protein, fat and carbs are always required. Give fiber, sugar, saturated fat or sodium as null when you
+  cannot estimate it; never write 0 for an unknown value.
+- Give one typical single serving in the household unit people use for it: its label, the unit, how many of that
+  unit it holds (quantity), and the weight of the whole serving in grams ("2 idlis": quantity 2, grams for both).
 - confidence: high for a well-defined food, medium for a dish whose recipe varies, low when you are unsure what it is.
 - Set known to false, with zeros, when the text is not a food or drink, is too vague to estimate ("something",
   "food"), or is a packaged product you cannot identify. Never invent a food to fill an entry.
@@ -227,3 +234,12 @@ export const estimateMessage = (foods: string[], candidates?: CatalogCandidate[]
   const catalog = list.map((c) => `\n  catalog [${c.id}] ${clean(c.name)}${c.calories == null ? '' : ` (${Math.round(c.calories)} kcal/100 g)`}`).join('');
   return `- ${clean(f)}${catalog}`;
 }).join('\n')}`;
+
+/**
+ * A short, stable id for an estimate prompt: a hash of its system prompt, its message builder and the output schema,
+ * so a stored estimate can be traced to the exact prompt that made it (the evaluation reports the same id).
+ */
+export const promptVersionOf = (prompt: { system: string; message: (...args: never[]) => string }) =>
+  crypto.createHash('sha256').update(prompt.system).update(prompt.message.toString()).update(JSON.stringify(FOOD_ESTIMATES_SCHEMA)).digest('hex').slice(0, 12);
+/** The version of the estimate prompt logging uses. */
+export const ESTIMATE_PROMPT_VERSION = promptVersionOf({ system: ESTIMATE_SYSTEM, message: estimateMessage });

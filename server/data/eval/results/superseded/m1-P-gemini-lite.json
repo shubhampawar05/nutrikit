@@ -1,0 +1,602 @@
+{
+  "config": {
+    "label": "m1-P-gemini-lite",
+    "at": "2026-11-19T10:54:32.503Z",
+    "set": {
+      "name": "P",
+      "version": "1",
+      "sha256": "faf0ed6679060e7e02332f32aa08e701b85d9198428176aa40445d53db5e0852",
+      "items": 13
+    },
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "variant": "baseline",
+    "promptVersion": "f2d48adc5786",
+    "runs": 3,
+    "concurrency": 2,
+    "aiTimeoutMs": 60000,
+    "gitCommit": "550fb11",
+    "gitDirty": true,
+    "catalogBuild": "2026-11-19T10:19:26.486Z",
+    "price": {
+      "input": 0.3,
+      "output": 2.5,
+      "source": "https://aistudio.google.com/docs/pricing",
+      "checked": "2026-11-19"
+    }
+  },
+  "across": {
+    "coverage": {
+      "mean": 0.923076923076923,
+      "min": 0.7692307692307693,
+      "max": 1,
+      "runs": 3
+    },
+    "maeGrams": {
+      "mean": 33.12820512820513,
+      "min": 32,
+      "max": 34.84615384615385,
+      "runs": 3
+    },
+    "medianRelativeError": {
+      "mean": 0.3196004993757802,
+      "min": 0.29213483146067415,
+      "max": 0.3333333333333333,
+      "runs": 3
+    },
+    "within25": {
+      "mean": 0.3384615384615384,
+      "min": 0.23076923076923078,
+      "max": 0.4,
+      "runs": 3
+    },
+    "over2x": {
+      "mean": 1.6666666666666667,
+      "min": 1,
+      "max": 2,
+      "runs": 3
+    },
+    "latencyMs.median": {
+      "mean": 4140.5,
+      "min": 3279,
+      "max": 5540.5,
+      "runs": 3
+    },
+    "tokens.input": {
+      "mean": 1162.3333333333333,
+      "min": 875,
+      "max": 1306,
+      "runs": 3
+    },
+    "tokens.output": {
+      "mean": 2253,
+      "min": 1869,
+      "max": 2447,
+      "runs": 3
+    },
+    "costUsd": {
+      "mean": 0.0059812,
+      "min": 0.004935,
+      "max": 0.0065093,
+      "runs": 3
+    }
+  },
+  "matching": null,
+  "runs": [
+    {
+      "run": 1,
+      "summary": {
+        "eligible": 13,
+        "scored": 13,
+        "coverage": 1,
+        "maeGrams": 34.84615384615385,
+        "medianRelativeError": 0.3333333333333333,
+        "within25": 0.23076923076923078,
+        "over2x": 2,
+        "calls": {
+          "total": 3,
+          "failed": 0,
+          "models": [
+            "gemini-3.5-flash-lite"
+          ]
+        },
+        "latencyMs": {
+          "median": 3602,
+          "p90": 4345,
+          "max": 4345
+        },
+        "tokens": {
+          "input": 1306,
+          "output": 2443
+        },
+        "costUsd": 0.0064993
+      },
+      "rows": [
+        {
+          "phrase": "1 chapati",
+          "ref": 68,
+          "grams": 40,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 40
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 naan",
+          "ref": 177,
+          "grams": 90,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 90
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 paratha",
+          "ref": 70,
+          "grams": 60,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 60
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 puri",
+          "ref": 36,
+          "grams": 25,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 25
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 idli",
+          "ref": 38,
+          "grams": 80,
+          "serving": {
+            "label": "2 pieces",
+            "unit": "piece",
+            "grams": 80
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 samosa",
+          "ref": 100,
+          "grams": 60,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 60
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 plain dosa",
+          "ref": 80,
+          "grams": 100,
+          "serving": {
+            "label": "1 dosa",
+            "unit": "piece",
+            "grams": 100
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 masala dosa",
+          "ref": 267,
+          "grams": 180,
+          "serving": {
+            "label": "1 dosa",
+            "unit": "piece",
+            "grams": 180
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 vada",
+          "ref": 30,
+          "grams": 50,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 50
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 barfi",
+          "ref": 45,
+          "grams": 30,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 30
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 ladoo",
+          "ref": 60,
+          "grams": 40,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 40
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 pakora",
+          "ref": 12,
+          "grams": 75,
+          "serving": {
+            "label": "3 pieces",
+            "unit": "piece",
+            "grams": 75
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 scone",
+          "ref": 70,
+          "grams": 60,
+          "serving": {
+            "label": "1 scone",
+            "unit": "piece",
+            "grams": 60
+          },
+          "sameAs": null
+        }
+      ],
+      "errors": []
+    },
+    {
+      "run": 2,
+      "summary": {
+        "eligible": 13,
+        "scored": 13,
+        "coverage": 1,
+        "maeGrams": 32.53846153846154,
+        "medianRelativeError": 0.3333333333333333,
+        "within25": 0.38461538461538464,
+        "over2x": 2,
+        "calls": {
+          "total": 3,
+          "failed": 0,
+          "models": [
+            "gemini-3.5-flash-lite"
+          ]
+        },
+        "latencyMs": {
+          "median": 3279,
+          "p90": 4303,
+          "max": 4303
+        },
+        "tokens": {
+          "input": 1306,
+          "output": 2447
+        },
+        "costUsd": 0.0065093
+      },
+      "rows": [
+        {
+          "phrase": "1 chapati",
+          "ref": 68,
+          "grams": 40,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 40
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 naan",
+          "ref": 177,
+          "grams": 90,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 90
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 paratha",
+          "ref": 70,
+          "grams": 60,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 60
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 puri",
+          "ref": 36,
+          "grams": 30,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 30
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 idli",
+          "ref": 38,
+          "grams": 80,
+          "serving": {
+            "label": "2 pieces",
+            "unit": "piece",
+            "grams": 80
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 samosa",
+          "ref": 100,
+          "grams": 75,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 75
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 plain dosa",
+          "ref": 80,
+          "grams": 100,
+          "serving": {
+            "label": "1 dosa",
+            "unit": "piece",
+            "grams": 100
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 masala dosa",
+          "ref": 267,
+          "grams": 180,
+          "serving": {
+            "label": "1 dosa",
+            "unit": "piece",
+            "grams": 180
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 vada",
+          "ref": 30,
+          "grams": 60,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 60
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 barfi",
+          "ref": 45,
+          "grams": 30,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 30
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 ladoo",
+          "ref": 60,
+          "grams": 40,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 40
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 pakora",
+          "ref": 12,
+          "grams": 60,
+          "serving": {
+            "label": "3 pieces",
+            "unit": "piece",
+            "grams": 60
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 scone",
+          "ref": 70,
+          "grams": 75,
+          "serving": {
+            "label": "1 scone",
+            "unit": "piece",
+            "grams": 75
+          },
+          "sameAs": null
+        }
+      ],
+      "errors": []
+    },
+    {
+      "run": 3,
+      "summary": {
+        "eligible": 13,
+        "scored": 10,
+        "coverage": 0.7692307692307693,
+        "maeGrams": 32,
+        "medianRelativeError": 0.29213483146067415,
+        "within25": 0.4,
+        "over2x": 1,
+        "calls": {
+          "total": 3,
+          "failed": 1,
+          "models": [
+            "gemini-3.5-flash-lite"
+          ]
+        },
+        "latencyMs": {
+          "median": 5540.5,
+          "p90": 6036,
+          "max": 6036
+        },
+        "tokens": {
+          "input": 875,
+          "output": 1869
+        },
+        "costUsd": 0.004935
+      },
+      "rows": [
+        {
+          "phrase": "1 chapati",
+          "ref": 68,
+          "grams": 40,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 40
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 naan",
+          "ref": 177,
+          "grams": 90,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 90
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 paratha",
+          "ref": 70,
+          "grams": 60,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 60
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 puri",
+          "ref": 36,
+          "grams": 30,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 30
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 idli",
+          "ref": 38,
+          "grams": 80,
+          "serving": {
+            "label": "2 pieces",
+            "unit": "piece",
+            "grams": 80
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 samosa",
+          "ref": 100,
+          "grams": 75,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 75
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 plain dosa",
+          "ref": 80,
+          "grams": 100,
+          "serving": {
+            "label": "1 dosa",
+            "unit": "piece",
+            "grams": 100
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 masala dosa",
+          "ref": 267,
+          "grams": 200,
+          "serving": {
+            "label": "1 masala dosa",
+            "unit": "piece",
+            "grams": 200
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 vada",
+          "ref": 30,
+          "grams": 50,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 50
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 barfi",
+          "ref": 45,
+          "grams": 30,
+          "serving": {
+            "label": "1 piece",
+            "unit": "piece",
+            "grams": 30
+          },
+          "sameAs": null
+        },
+        {
+          "phrase": "1 ladoo",
+          "ref": 60,
+          "grams": null,
+          "serving": null,
+          "sameAs": null
+        },
+        {
+          "phrase": "1 pakora",
+          "ref": 12,
+          "grams": null,
+          "serving": null,
+          "sameAs": null
+        },
+        {
+          "phrase": "1 scone",
+          "ref": 70,
+          "grams": null,
+          "serving": null,
+          "sameAs": null
+        }
+      ],
+      "errors": [
+        "AI provider is rate limited; retry later"
+      ]
+    }
+  ]
+}

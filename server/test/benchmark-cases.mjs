@@ -50,7 +50,8 @@ export const CASES = [
   { input: 'frozen yogurt', food: /^Frozen yogurt/ },
 
   // Indian foods
-  { input: '2 rotis', food: /chapati or roti/, grams: [100, 150] },
+  // Home roti (INDB Chapati/Roti, 36 g each; CoFID agrees on 202 kcal/100 g), not USDA's commercial chapati (audit P0-3).
+  { input: '2 rotis', food: /^Chapati\/Roti$/, grams: [65, 80] },
   { input: '1 naan', food: /naan/i },
   { input: '2 idli', food: /^Idli/ },
   { input: '1 dosa', food: /^Dosa/ },
@@ -96,7 +97,8 @@ export const CASES = [
   { input: '1 serving pongal', food: /^Ven pongal/, grams: [320, 335] },
   { input: '1 dal baati', food: /^Dal baati/, grams: [560, 580] },
   { input: '1 katori kadai paneer', food: /^Kadhai Paneer$/, grams: [230, 245] },
-  { input: '1 katori malai kofta', food: /^Paneer kofta curry$/, grams: [230, 245] },
+  // INDB's kofta curries count the frying oil as eaten (72 g fat per 100 g) and are left out of the catalog.
+  { input: '1 katori malai kofta', food: /kofta/i, gap: 'malai kofta (INDB value counts the frying oil)' },
   { input: '1 katori baingan bharta', food: /^Brinjal bhartha/, grams: [230, 245] },
   { input: '1 glass nimbu pani', food: /^Lemonade$/, grams: [230, 245] },
   // Portions: katori (taken in cups) and bowl
@@ -128,7 +130,10 @@ export const CASES = [
   { input: 'chiken curry', unmatched: true, didYouMean: 'chicken curry' },
 
   // Dishes the catalog doesn't have yet (need licensed recipes)
-  { input: '1 gulab jamun', food: /Gulab Jamun/ },
+  // INDB's gulab jamun counts the frying oil as eaten and is left out; no other source has it yet.
+  { input: '1 gulab jamun', food: /gulab jamun/i, gap: 'gulab jamun (INDB value counts the frying oil)' },
+  { input: '2 poori', food: /^Bread, puri/, grams: [60, 85] },
+  { input: '1 medu vada', food: /^Vada$/ },
   { input: '1 glass lassi', food: /^Lassi, sweet/ },
   { input: '1 glass chaas', food: /^Lassi.*salted/i },
   { input: '1 masala dosa', food: /^Dosa, with filling/ },
@@ -136,7 +141,8 @@ export const CASES = [
   { input: 'a plate of pav bhaji', food: /Pav bhaji/ },
   { input: '1 cup kheer', food: /^Kheer \(rice pudding\)/ },
   { input: '1 jalebi', food: /^Jalebi/ },
-  { input: '1 rasgulla', food: /^Rasgulla/ },
+  // INDB's only weight is a 342 g recipe serving (several pieces with syrup): flagged until a cited piece weight exists (audit P0-5).
+  { input: '1 rasgulla', food: /^Rasgulla/, gap: 'rasgulla piece weight (INDB serving is a recipe yield)' },
   { input: '1 dhokla', food: /^Instant dhokla|Dhokla/ },
   { input: '1 cup halwa', food: /halwa/i },
   { input: '1 cup poha', food: /Poha \(flattened rice/ },

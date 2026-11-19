@@ -1,0 +1,405 @@
+{
+  "set": "C",
+  "version": "2",
+  "title": "Real-world spellings of set A dishes: Hinglish, typos, regional names and multi-item meals",
+  "rules": [
+    "Phrases are inputs only. Each one names the set A dish it means (`dish`); its reference is that dish's set A reference, so no new reference value is introduced.",
+    "Production food_requests were not read for this version: the local database holds only 3 test phrases (dabeli, khandvi, kulcha) and none has a set A reference. A later version can add production phrases with the owner's approval.",
+    "Two separate scores: matching (does rules-based logging match a food of the same dish without any AI?) and density (the AI estimate for the phrase's food words against the dish reference, with the dish hidden from the catalog).",
+    "Multi-item phrases (`items`) are scored for matching only, one expected dish per item.",
+    "v2: `expect` (a pattern for the logged food's name) makes a phrase's correct answer exact where its dish's name pattern is too broad (\"murgh korma\" must be chicken korma, not any korma). `dish: null` phrases are scored for matching only. `expect: null` means the catalog has no correct food: the phrase must not be logged (a suggestion is fine)."
+  ],
+  "aVersion": "1",
+  "aSha256": "3142dbe067f3a94115b25182b277bd4a3daa7a82b91a7df9de6265ea35e62b4c",
+  "phrases": [
+    {
+      "text": "nan",
+      "dish": "naan",
+      "kind": "typo"
+    },
+    {
+      "text": "naan bread",
+      "dish": "naan",
+      "kind": "variant"
+    },
+    {
+      "text": "chapathi",
+      "dish": "chapati",
+      "kind": "regional"
+    },
+    {
+      "text": "phulka",
+      "dish": "chapati",
+      "kind": "regional"
+    },
+    {
+      "text": "roti",
+      "dish": "chapati",
+      "kind": "hinglish"
+    },
+    {
+      "text": "parantha",
+      "dish": "paratha",
+      "kind": "regional"
+    },
+    {
+      "text": "plain prantha",
+      "dish": "paratha",
+      "kind": "typo"
+    },
+    {
+      "text": "mooli parantha",
+      "dish": "mooli-paratha",
+      "kind": "regional"
+    },
+    {
+      "text": "poori",
+      "dish": "puri",
+      "kind": "regional"
+    },
+    {
+      "text": "samose",
+      "dish": "samosa",
+      "kind": "hinglish",
+      "expect": "samosa"
+    },
+    {
+      "text": "aloo samosa",
+      "dish": "samosa",
+      "kind": "variant",
+      "expect": "samosa"
+    },
+    {
+      "text": "masala dosai",
+      "dish": "masala-dosa",
+      "kind": "regional"
+    },
+    {
+      "text": "masaala dosa",
+      "dish": "masala-dosa",
+      "kind": "typo"
+    },
+    {
+      "text": "veg pulav",
+      "dish": "veg-pulao",
+      "kind": "hinglish"
+    },
+    {
+      "text": "mix veg pulao",
+      "dish": "veg-pulao",
+      "kind": "hinglish"
+    },
+    {
+      "text": "mutton biriyani",
+      "dish": "mutton-biryani",
+      "kind": "typo"
+    },
+    {
+      "text": "gosht biryani",
+      "dish": "mutton-biryani",
+      "kind": "regional",
+      "expect": "mutton|lamb"
+    },
+    {
+      "text": "rajmah",
+      "dish": "rajma",
+      "kind": "typo"
+    },
+    {
+      "text": "rajma curry",
+      "dish": "rajma",
+      "kind": "variant"
+    },
+    {
+      "text": "chiken korma",
+      "dish": "chicken-korma",
+      "kind": "typo",
+      "expect": "chicken korma"
+    },
+    {
+      "text": "murgh korma",
+      "dish": "chicken-korma",
+      "kind": "regional",
+      "expect": "chicken korma"
+    },
+    {
+      "text": "palak panir",
+      "dish": "palak-paneer",
+      "kind": "typo",
+      "expect": "palak paneer|spinach paneer"
+    },
+    {
+      "text": "panir",
+      "dish": "paneer",
+      "kind": "typo",
+      "expect": "paneer"
+    },
+    {
+      "text": "kheere ka raita",
+      "dish": "cucumber-raita",
+      "kind": "hinglish"
+    },
+    {
+      "text": "kakdi raita",
+      "dish": "cucumber-raita",
+      "kind": "regional",
+      "expect": "cucumber|kheere"
+    },
+    {
+      "text": "anda curry",
+      "dish": "egg-curry",
+      "kind": "hinglish"
+    },
+    {
+      "text": "machli curry",
+      "dish": "fish-curry",
+      "kind": "hinglish"
+    },
+    {
+      "text": "mixed veg curry",
+      "dish": "veg-curry",
+      "kind": "variant"
+    },
+    {
+      "text": "aloo gobhi",
+      "dish": "aloo-gobi",
+      "kind": "regional",
+      "expect": "aloo gobhi|cauliflower and potato|potato cauliflower"
+    },
+    {
+      "text": "gobi aloo sabzi",
+      "dish": "aloo-gobi",
+      "kind": "hinglish",
+      "expect": "aloo gobhi|cauliflower and potato|potato cauliflower"
+    },
+    {
+      "text": "aloo mutter",
+      "dish": "aloo-matar",
+      "kind": "regional",
+      "expect": "pea potato|potato and pea|aloo matar"
+    },
+    {
+      "text": "matar aloo ki sabzi",
+      "dish": "aloo-matar",
+      "kind": "hinglish",
+      "expect": "pea potato|potato and pea|aloo matar"
+    },
+    {
+      "text": "sabut moong",
+      "dish": "whole-moong",
+      "kind": "hinglish"
+    },
+    {
+      "text": "dhuli moong dal",
+      "dish": "moong-dal",
+      "kind": "hinglish"
+    },
+    {
+      "text": "yellow moong daal",
+      "dish": "moong-dal",
+      "kind": "typo",
+      "expect": "moong|mung"
+    },
+    {
+      "text": "burfi",
+      "dish": "barfi",
+      "kind": "regional"
+    },
+    {
+      "text": "veg fried rice",
+      "dish": "veg-fried-rice",
+      "kind": "variant"
+    },
+    {
+      "text": "chicken chowmein",
+      "dish": "chicken-chow-mein",
+      "kind": "regional"
+    },
+    {
+      "text": "chicken chowmin",
+      "dish": "chicken-chow-mein",
+      "kind": "typo",
+      "expect": "chicken chow ?mein"
+    },
+    {
+      "text": "anda bhurji",
+      "dish": "scrambled-eggs",
+      "kind": "hinglish"
+    },
+    {
+      "text": "egg bhurji",
+      "dish": "scrambled-eggs",
+      "kind": "hinglish"
+    },
+    {
+      "text": "chole",
+      "dish": "chole",
+      "kind": "hinglish"
+    },
+    {
+      "text": "2 roti and aloo gobi",
+      "kind": "multi",
+      "items": [
+        "chapati",
+        "aloo-gobi"
+      ]
+    },
+    {
+      "text": "1 katori rajma with 2 chapati",
+      "kind": "multi",
+      "items": [
+        "rajma",
+        "chapati"
+      ]
+    },
+    {
+      "text": "masala dosa, sambar",
+      "kind": "multi",
+      "items": [
+        "masala-dosa",
+        "sambar"
+      ]
+    },
+    {
+      "text": "2 paratha with raita",
+      "kind": "multi",
+      "items": [
+        "paratha",
+        "cucumber-raita"
+      ]
+    },
+    {
+      "text": "veg pulao and boondi raita",
+      "kind": "multi",
+      "items": [
+        "veg-pulao",
+        null
+      ]
+    },
+    {
+      "text": "anda curry with 3 roti",
+      "kind": "multi",
+      "items": [
+        "egg-curry",
+        "chapati"
+      ]
+    },
+    {
+      "text": "matar ki sabzi",
+      "dish": null,
+      "kind": "hinglish",
+      "expect": "pea curry|matar ki sabzi"
+    },
+    {
+      "text": "aloo matar",
+      "dish": "aloo-matar",
+      "kind": "hinglish",
+      "expect": "pea potato|potato and pea|aloo matar"
+    },
+    {
+      "text": "gobi aloo",
+      "dish": "aloo-gobi",
+      "kind": "hinglish",
+      "expect": "aloo gobhi|cauliflower and potato|potato cauliflower"
+    },
+    {
+      "text": "aloo gobi",
+      "dish": "aloo-gobi",
+      "kind": "hinglish",
+      "expect": "aloo gobhi|cauliflower and potato|potato cauliflower"
+    },
+    {
+      "text": "palak paneer",
+      "dish": "palak-paneer",
+      "kind": "hinglish",
+      "expect": "palak paneer|spinach paneer"
+    },
+    {
+      "text": "mattar paneer",
+      "dish": null,
+      "kind": "regional",
+      "expect": "matar paneer|pea paneer"
+    },
+    {
+      "text": "mutter paneer",
+      "dish": null,
+      "kind": "regional",
+      "expect": "matar paneer|pea paneer"
+    },
+    {
+      "text": "jira aloo",
+      "dish": null,
+      "kind": "typo",
+      "expect": "jeera aloo"
+    },
+    {
+      "text": "bengan bharta",
+      "dish": null,
+      "kind": "regional",
+      "expect": "brinjal bhartha|baingan ka bhartha"
+    },
+    {
+      "text": "kheera raita",
+      "dish": "cucumber-raita",
+      "kind": "regional",
+      "expect": "cucumber|kheere"
+    },
+    {
+      "text": "murg biryani",
+      "dish": null,
+      "kind": "regional",
+      "expect": "chicken"
+    },
+    {
+      "text": "daal",
+      "dish": null,
+      "kind": "typo",
+      "expect": "^dal$|dahl|dhal"
+    },
+    {
+      "text": "dhal",
+      "dish": null,
+      "kind": "regional",
+      "expect": "^dal$|dahl|dhal"
+    },
+    {
+      "text": "paneer bhurji",
+      "dish": null,
+      "kind": "hinglish",
+      "expect": "paneer bhurji"
+    },
+    {
+      "text": "aloo ki sabzi",
+      "dish": null,
+      "kind": "hinglish",
+      "expect": "aloo ki sabzi|potato curry"
+    },
+    {
+      "text": "palak",
+      "dish": null,
+      "kind": "hinglish",
+      "expect": "^(?!.*paneer).*(spinach|palak)"
+    },
+    {
+      "text": "aloo paneer",
+      "dish": null,
+      "kind": "hinglish",
+      "expect": null
+    },
+    {
+      "text": "dal makhani",
+      "dish": null,
+      "kind": "hinglish",
+      "expect": "dal makhani|black gram, whole and red kidney bean"
+    },
+    {
+      "text": "2 mattar paneer and 3 phulka",
+      "kind": "multi",
+      "items": [
+        null,
+        "chapati"
+      ]
+    }
+  ],
+  "sha256": "fd88644a7f6b5981e6087d0c39fd21a6c2f7e3bc9df9a093273db896c2acb593"
+}

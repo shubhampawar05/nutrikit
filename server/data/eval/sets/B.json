@@ -1,0 +1,188 @@
+{
+  "set": "B",
+  "version": "1",
+  "title": "Cited recipes whose finished weight needs no yield assumption",
+  "rules": [
+    "A recipe qualifies only when its cooked weight is sourced. None of the 28 cited recipes states a measured cooked weight; the only defensible ones are dishes with no cooking step, whose finished weight is the weight of what goes in (checked at build time: within 1%).",
+    "Values are the catalog's composed values for the recipe (USDA ingredients, scripts/recipes.mjs), so this set checks recipe-level estimation, not laboratory analysis.",
+    "Every recipe not used is listed with its reason."
+  ],
+  "catalogBuild": "2026-11-19T10:19:26.486Z",
+  "dishes": [
+    {
+      "key": "lassi-salted",
+      "query": "salted lassi",
+      "detailed": "Lassi, salted",
+      "hide": "salted lassi|chaas|mattha",
+      "noCooking": "blended yogurt, water, salt and cumin; nothing is cooked, so the finished weight is the weight of what goes in",
+      "source": {
+        "name": "Indian Nutrient Databank (ASC022 Lassi salted)",
+        "license": "Ingredient amounts from INDB recipes.xlsx; nutrients composed from USDA (CC0). Confirm INDB redistribution before public deployment.",
+        "url": "https://doi.org/10.1016/j.cdnut.2024.103790"
+      },
+      "id": 900000007,
+      "reference": {
+        "kind": "point",
+        "calories": 56.384,
+        "macros": {
+          "protein": 2.76,
+          "carbs": 4.058,
+          "fat": 3.24
+        },
+        "low": 56.384,
+        "high": 56.384
+      }
+    },
+    {
+      "key": "lassi-sweet",
+      "query": "lassi",
+      "detailed": "Lassi, sweet",
+      "hide": "lassi|sweet lassi|meethi lassi",
+      "noCooking": "blended yogurt, water, sugar and cardamom; nothing is cooked",
+      "source": {
+        "name": "Indian Nutrient Databank (ASC021 Sweet Lassi)",
+        "license": "Ingredient amounts from INDB recipes.xlsx; nutrients composed from USDA (CC0). Confirm INDB redistribution before public deployment.",
+        "url": "https://doi.org/10.1016/j.cdnut.2024.103790"
+      },
+      "id": 900000006,
+      "reference": {
+        "kind": "point",
+        "calories": 84.69,
+        "macros": {
+          "protein": 2.74,
+          "carbs": 11.166,
+          "fat": 3.23
+        },
+        "low": 84.69,
+        "high": 84.69
+      }
+    },
+    {
+      "key": "chana-chaat",
+      "query": "chana chaat",
+      "detailed": "Chana chaat (chickpea salad with onion, tomato and chaat masala)",
+      "hide": "chana chaat|chole chaat|chickpea chaat",
+      "noCooking": "assembled from already-boiled chickpeas and raw vegetables; nothing is cooked",
+      "source": {
+        "name": "Hebbar's Kitchen (hebbarskitchen.com)",
+        "license": "Ingredient amounts as listed in the cited recipe, converted to grams; nutrients composed from USDA FoodData Central (CC0)",
+        "url": "https://hebbarskitchen.com/chana-chaat-recipe-chole-chaat-recipe/"
+      },
+      "id": 900000052,
+      "reference": {
+        "kind": "point",
+        "calories": 154.833,
+        "macros": {
+          "protein": 6.535,
+          "carbs": 27.433,
+          "fat": 2.537
+        },
+        "low": 154.833,
+        "high": 154.833
+      }
+    }
+  ],
+  "excludedRecipes": [
+    {
+      "file": "aloo-tikki.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "badam-milk.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "bread-omelette.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "cabbage-sabzi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "chicken-65.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "chicken-tikka-masala.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "dal-baati.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "filter-coffee.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "haldi-doodh.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "jalebi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "jeera-aloo.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "kheer.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "lauki-sabzi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "misal-pav.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "mix-veg-sabzi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "mutton-curry.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "paneer-bhurji.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "pani-puri.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "pav-bhaji.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "poha.json",
+      "reason": "cooked (tempered in oil) and models flattened rice as raw long-grain rice; its cooked weight is not sourced"
+    },
+    {
+      "file": "sabudana-khichdi.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "tomato-rice.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "vada-pav.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "veg-momos.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    },
+    {
+      "file": "ven-pongal.json",
+      "reason": "cooked dish whose cooked weight is an assumption in the recipe notes (steam, frying or simmering loss), not a sourced measurement"
+    }
+  ],
+  "sha256": "672847ee435db554614c3955ad6432e961e7ae988178033c3f0e79923131d676"
+}

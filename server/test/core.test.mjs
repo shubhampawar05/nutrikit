@@ -39,13 +39,13 @@ test('search ranks the generic, as-eaten food first', () => {
 });
 
 test('search prefers whole-word matches over prefix matches', () => {
-  // "roti" prefix-matches "rotisserie"; the bread is what people mean.
-  assert.match(top('roti'), /chapp?att?i or roti/);
-  assert.match(top('rotis'), /chapp?att?i or roti/);
+  // "roti" prefix-matches "rotisserie"; the bread is what people mean: the home roti (audit P0-3).
+  assert.match(top('roti'), /^Chapati\/Roti$/);
+  assert.match(top('rotis'), /^Chapati\/Roti$/);
   assert.match(top('rotisserie chicken'), /rotisserie/i);
   assert.match(top('bana'), /^Banana/); // a partial word still finds the food
   const r = logText('2 rotis and a bowl of dal');
-  assert.deepEqual(r.items.map((i) => i.food.name.split(',')[0]), ['Bread', 'Dal']);
+  assert.deepEqual(r.items.map((i) => i.food.name.split(',')[0]), ['Chapati/Roti', 'Dal']);
 });
 
 test('resolvePortion converts mass, volume, counts and drinks', () => {

@@ -2,7 +2,9 @@
 // with strict JSON-schema outputs. Uses fetch, so it needs no SDK. Two endpoints, used alone or together:
 //   GEMINI_API_KEY  Google Gemini's OpenAI-compatible endpoint, with built-in models per task for the free tier.
 //   OPENAI_API_KEY  OpenAI, or any OpenAI-compatible endpoint at OPENAI_BASE_URL (Azure, OpenRouter, Ollama, Gemini).
-// With both, Gemini answers first and OpenAI is the fallback.
+//                   Paid: used only when NUTRIKIT_OPENAI_FALLBACK is exactly "1" (see openaiAllowed). A key alone, or
+//                   any other value ("0", "true"), never sends a request, so there is no silent paid fallback.
+// With both and the opt-in, Gemini answers first and OpenAI is the fallback.
 //
 // Each capability has its own list of models, tried in order (Gemini's, then OpenAI's): a model that is busy, rate
 // limited, gone or slow hands the call to the next one, so a strong model can do the heavy work while lighter ones
@@ -36,8 +38,25 @@ export const GEMINI_MODELS: Record<AICapability, string[]> = {
   readLabel: GEMINI_HEAVY,
   parseMeal: GEMINI_LIGHT,
   advise: GEMINI_LIGHT,
-  estimateFoods: GEMINI_HEAVY,
+  // Nutrition estimates: Flash-Lite only. It was the most accurate, fastest and cheapest model measured (M1/M2 report),
+  // and gemini-3.5-flash failed 16 of 18 calls for this key, so every estimate waited on it before falling back.
+  estimateFoods: ['gemini-3.5-flash-lite'],
 };
+
+/**
+ * True only when paid OpenAI calls are explicitly enabled: NUTRIKIT_OPENAI_FALLBACK is exactly "1". An OPENAI_API_KEY
+ * by itself, or NUTRIKIT_OPENAI_FALLBACK set to anything else ("0", "true", "yes", empty), keeps OpenAI off.
+ */
+export const openaiAllowed = (env: NodeJS.ProcessEnv = process.env): boolean => env.NUTRIKIT_OPENAI_FALLBACK === '1';
+
+/**
+ * Whether OPENAI_API_KEY may be used: always when OPENAI_BASE_URL is Gemini's own endpoint (that key is a Gemini key),
+ * otherwise only with the explicit opt-in.
+ */
+export function openaiKeyUsable(env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!env.OPENAI_API_KEY) return false;
+  return isGemini((env.OPENAI_BASE_URL || OPENAI_URL).replace(/\/+$/, '')) || openaiAllowed(env);
+}
 const isGemini = (baseUrl: string): boolean => {
   try { return new URL(baseUrl).hostname === 'generativelanguage.googleapis.com'; } catch { return false; }
 };
@@ -72,6 +91,7 @@ const modelList = (value: string | undefined): string[] | null => {
 type ContentPart = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } };
 
 interface ChatCompletion {
+  model?: string;
   choices: { finish_reason: string; message: { content: string | null; refusal?: string | null } }[];
   usage?: { prompt_tokens: number; completion_tokens: number };
 }
@@ -122,7 +142,8 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
     });
   }
   const openaiKey = process.env.OPENAI_API_KEY;
-  if (openaiKey) {
+  // OpenAI (or any other paid endpoint behind OPENAI_API_KEY) only with the explicit opt-in; never by default.
+  if (openaiKey && openaiKeyUsable()) {
     const baseUrl = (process.env.OPENAI_BASE_URL || OPENAI_URL).replace(/\/+$/, '');
     const gemini = isGemini(baseUrl); // Gemini set up through OPENAI_BASE_URL gets its built-in models too
     endpoints.push({
@@ -130,7 +151,11 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
       ...modelsFor('NUTRIKIT_OPENAI_MODEL', (task) => (gemini ? GEMINI_MODELS[task] : [DEFAULT_MODEL])),
     });
   }
-  if (!endpoints.length) throw new Error('NUTRIKIT_AI_PROVIDER=openai needs OPENAI_API_KEY or GEMINI_API_KEY');
+  if (!endpoints.length) {
+    throw new Error(openaiKey
+      ? 'OPENAI_API_KEY is set but paid OpenAI calls are off: set GEMINI_API_KEY, or NUTRIKIT_OPENAI_FALLBACK=1 to allow OpenAI'
+      : 'NUTRIKIT_AI_PROVIDER=openai needs GEMINI_API_KEY (or OPENAI_API_KEY with NUTRIKIT_OPENAI_FALLBACK=1)');
+  }
   // Each task's list: the first endpoint's models, then the fallback endpoint's.
   const routes = Object.fromEntries(TASKS.map((task) =>
     [task, endpoints.flatMap(({ endpoint, models }) => models[task].map((model): Route => ({ model, endpoint })))])) as Record<AICapability, Route[]>;
@@ -175,7 +200,7 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
   }
 
   // T is the shape `schema` describes; strict structured outputs guarantee the JSON matches it.
-  async function call<T>(task: AICapability, name: string, system: string, content: ContentPart[], schema: object, deadline?: AbortSignal): Promise<{ data: T; usage: AIUsage; model: string }> {
+  async function call<T>(task: AICapability, name: string, system: string, content: ContentPart[], schema: object, deadline?: AbortSignal): Promise<{ data: T; usage: AIUsage; model: string; modelVersion?: string }> {
     const signal = deadline ?? aiDeadline();
     const total = timeLeft(signal);
     const list = routes[task];
@@ -193,7 +218,7 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
           messages: [{ role: 'system', content: system }, { role: 'user', content }],
         });
         const { data, usage } = read<T>(response);
-        return { data: data, usage: addUsage(spent, usage), model };
+        return { data: data, usage: addUsage(spent, usage), model, modelVersion: response.model };
       } catch (err) {
         if (last || signal.aborted) throw withUsage(err, spent);
         const e = err as Error & { fallback?: boolean; retryOther?: boolean; code?: string; status?: number; usage?: AIUsage };
@@ -287,9 +312,9 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
       return { ...out, usage };
     },
 
-    async estimateFoods({ foods, candidates, signal }) {
-      const { data: out, usage, model } = await call<FoodEstimatesOutput>('estimateFoods', 'food_estimates', ESTIMATE_SYSTEM, [{ type: 'text', text: estimateMessage(foods, candidates) }], FOOD_ESTIMATES_SCHEMA, signal);
-      return { foods: out.foods, usage, model };
+    async estimateFoods({ foods, candidates, signal, prompt }) {
+      const { data: out, usage, model, modelVersion } = await call<FoodEstimatesOutput>('estimateFoods', 'food_estimates', prompt?.system ?? ESTIMATE_SYSTEM, [{ type: 'text', text: (prompt?.message ?? estimateMessage)(foods, candidates) }], FOOD_ESTIMATES_SCHEMA, signal);
+      return { foods: out.foods, usage, model, ...(modelVersion && modelVersion !== model ? { modelVersion } : {}) };
     },
   };
 }

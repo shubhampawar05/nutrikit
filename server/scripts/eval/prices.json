@@ -1,0 +1,11 @@
+{
+  "note": "USD per 1M tokens, standard paid tier. A null price means the provider's pricing page did not list the model when checked; cost is then reported as unknown, never guessed. Calls made on a free tier cost nothing, but the paid price is what matters for production.",
+  "models": {
+    "gpt-5-mini": { "input": 0.25, "output": 2.0, "source": "https://developers.openai.com/api/docs/pricing", "checked": "2026-11-19" },
+    "gemini-3.5-flash": { "input": null, "output": null, "source": "https://aistudio.google.com/docs/pricing", "checked": "2026-11-19", "note": "not listed on the pricing page (3.5 Flash-Lite, 3.6 Flash and 3.8 Flash are)" },
+    "gemini-3.5-flash-lite": { "input": 0.3, "output": 2.5, "source": "https://aistudio.google.com/docs/pricing", "checked": "2026-11-19" },
+    "gemini-3.1-flash-lite": { "input": 0.25, "output": 1.5, "source": "https://aistudio.google.com/docs/pricing", "checked": "2026-11-19" },
+    "gemini-3.6-flash": { "input": 0.75, "output": 3.75, "source": "https://aistudio.google.com/docs/pricing", "checked": "2026-11-19", "note": "price through 2026-12-31; from 2027-01-01 input 1.50, output 7.50 (output includes thinking tokens)" },
+    "gemini-3.8-flash": { "input": 0.75, "output": 3.75, "source": "https://aistudio.google.com/docs/pricing", "checked": "2026-11-19", "note": "price through 2026-12-31; from 2027-01-01 input 1.50, output 7.50 (output includes thinking tokens)" }
+  }
+}
