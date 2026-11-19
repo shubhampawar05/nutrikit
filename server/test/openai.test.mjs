@@ -16,8 +16,9 @@ function completion(json, extra = {}) {
 const stub = http.createServer(async (req, res) => {
   let raw = '';
   for await (const chunk of req) raw += chunk;
-  requests.push({ path: req.url, auth: req.headers.authorization, body: JSON.parse(raw) });
-  const answer = reply(requests.length);
+  const sent = JSON.parse(raw);
+  requests.push({ path: req.url, auth: req.headers.authorization, body: sent });
+  const answer = reply(requests.length, sent);
   if (answer.hang) return; // never answers: the provider's deadline has to end the call
   const { status, body, headers } = answer;
   res.writeHead(status, { 'content-type': 'application/json', ...headers });
@@ -31,6 +32,7 @@ before(async () => {
   process.env.OPENAI_BASE_URL = `http://127.0.0.1:${stub.address().port}/v1/`;
   process.env.NUTRIKIT_OPENAI_MODEL = 'gpt-test';
   delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.GEMINI_API_KEY;
   delete process.env.NUTRIKIT_AI_PROVIDER;
   const { getProvider } = await import('../src/domain/providers/index.ts');
   provider = await getProvider();
@@ -157,4 +159,154 @@ test('a shared deadline with little time left is measured as such: a longer Retr
 test('an answer that is not JSON is a 502 that still carries its usage', async () => {
   reply = () => ({ status: 200, body: { choices: [{ finish_reason: 'stop', message: { content: 'Sure! Here is rice.', refusal: null } }], usage: { prompt_tokens: 9, completion_tokens: 4 } } });
   await assert.rejects(provider.parseMeal({ text: 'x' }), (err) => err.status === 502 && /malformed/.test(err.message) && err.usage?.inputTokens === 9);
+});
+
+// Models per task, tried in order: a second provider built with its own env, so the tests above keep one model.
+const estimate = (query) => completion({ foods: [{ query, known: true, name: query, per100g: { calories: 100, protein: 1, fat: 1, carbs: 1, fiber: 1, sugar: 1, saturatedFat: 1, sodium: 1 }, serving: { label: '1 bowl', unit: 'bowl', grams: 200 }, confidence: 'high', sameAs: null }] });
+
+async function routedProvider(env) {
+  const saved = {};
+  for (const [k, v] of Object.entries(env)) { saved[k] = process.env[k]; process.env[k] = v; }
+  try {
+    const { createOpenAIProvider } = await import('../src/domain/providers/openai.ts');
+    return await createOpenAIProvider();
+  } finally {
+    for (const [k, v] of Object.entries(saved)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  }
+}
+
+test('each task uses its own models, and the rest use NUTRIKIT_OPENAI_MODEL', async () => {
+  const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_TEXT: 'light', NUTRIKIT_OPENAI_MODEL_ESTIMATE: ' big , small ' });
+  assert.deepEqual(p.models.parseMeal, ['light']);
+  assert.deepEqual(p.models.estimateFoods, ['big', 'small']);
+  assert.deepEqual(p.models.advise, ['gpt-test']);
+  assert.equal(p.model, 'gpt-test');
+  reply = () => ({ status: 200, body: completion({ meal: null, notes: '', items: [] }) });
+  await p.parseMeal({ text: 'tea' });
+  assert.equal(requests.at(-1).body.model, 'light');
+  reply = () => ({ status: 200, body: completion({ answer: 'ok', declined: false }) });
+  await p.advise({ question: 'fiber?' });
+  assert.equal(requests.at(-1).body.model, 'gpt-test');
+});
+
+test('a busy or rate-limited model hands the call to the next one at once, which is reported as the model', async () => {
+  const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_ESTIMATE: 'big,small' });
+  for (const status of [503, 429, 404]) {
+    const start = requests.length;
+    reply = (n, body) => (body.model === 'big'
+      ? { status, body: { error: { message: 'busy' } }, headers: { 'retry-after': '5' } }
+      : { status: 200, body: estimate('dal') });
+    const out = await p.estimateFoods({ foods: ['dal'] });
+    assert.deepEqual(requests.slice(start).map((r) => r.body.model), ['big', 'small'], `after ${status}`);
+    assert.equal(out.model, 'small');
+    assert.equal(out.foods[0].name, 'dal');
+  }
+});
+
+test('a model that is too slow is left after NUTRIKIT_AI_FALLBACK_AFTER_MS for the next one', async () => {
+  const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_ESTIMATE: 'big,small', NUTRIKIT_AI_FALLBACK_AFTER_MS: '200' });
+  reply = (n, body) => (body.model === 'big' ? { hang: true } : { status: 200, body: estimate('poha') });
+  const started = Date.now();
+  const out = await p.estimateFoods({ foods: ['poha'] });
+  assert.equal(out.model, 'small');
+  assert.ok(Date.now() - started < 1500, `took ${Date.now() - started} ms`);
+});
+
+test('errors another model would share are not handed on, and the last model still retries', async () => {
+  const p = await routedProvider({ NUTRIKIT_OPENAI_MODEL_TEXT: 'big,small' });
+  let start = requests.length;
+  reply = () => ({ status: 401, body: { error: { message: 'bad key' } } });
+  await assert.rejects(p.parseMeal({ text: 'x' }), { status: 503, message: /credentials/ });
+  assert.equal(requests.length - start, 1);
+
+  start = requests.length;
+  let smallCalls = 0;
+  reply = (n, body) => (body.model === 'big' || ++smallCalls === 1
+    ? { status: 503, body: { error: { message: 'busy' } }, headers: { 'retry-after': '0' } }
+    : { status: 200, body: completion({ meal: null, notes: '', items: [] }) });
+  await p.parseMeal({ text: 'x' });
+  assert.deepEqual(requests.slice(start).map((r) => r.body.model), ['big', 'small', 'small']);
+});
+
+test('on Gemini with no model set, heavy and light tasks get built-in models; variables still win', async () => {
+  const gemini = { OPENAI_BASE_URL: 'https://generativelanguage.googleapis.com/v1beta/openai', NUTRIKIT_OPENAI_MODEL: '' };
+  const p = await routedProvider(gemini);
+  assert.deepEqual(p.models.parseMeal, ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite']);
+  assert.deepEqual(p.models.advise, ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite']);
+  for (const task of ['recognizeMeal', 'readLabel', 'estimateFoods']) {
+    assert.deepEqual(p.models[task], ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'], task);
+  }
+  assert.equal(p.model, 'gemini-3.1-flash-lite');
+  const custom = await routedProvider({ ...gemini, NUTRIKIT_OPENAI_MODEL_PHOTO: 'my-model' });
+  assert.deepEqual(custom.models.recognizeMeal, ['my-model']);
+  assert.deepEqual(custom.models.readLabel, ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']);
+  const all = await routedProvider({ ...gemini, NUTRIKIT_OPENAI_MODEL: 'one' });
+  assert.deepEqual(all.models.estimateFoods, ['one']);
+  // Not Gemini: the OpenAI default, as before.
+  const openai = await routedProvider({ OPENAI_BASE_URL: 'https://api.openai.com/v1', NUTRIKIT_OPENAI_MODEL: '' });
+  assert.deepEqual(openai.models.estimateFoods, ['gpt-5-mini']);
+});
+
+// Gemini first, OpenAI as the fallback: both endpoints are the stub, told apart by path and key.
+const both = () => ({ GEMINI_API_KEY: 'g-test', GEMINI_BASE_URL: `http://127.0.0.1:${stub.address().port}/gemini/`, NUTRIKIT_OPENAI_MODEL: 'gpt-test' });
+
+test('with GEMINI_API_KEY and OPENAI_API_KEY, each task tries its Gemini models, then OpenAI', async () => {
+  const p = await routedProvider(both());
+  assert.deepEqual(p.models.parseMeal, ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gpt-test']);
+  assert.deepEqual(p.models.estimateFoods, ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gpt-test']);
+  assert.equal(p.model, 'gemini-3.1-flash-lite');
+
+  let start = requests.length;
+  reply = () => ({ status: 200, body: completion({ meal: null, notes: '', items: [] }) });
+  await p.parseMeal({ text: 'tea' });
+  assert.deepEqual(requests.slice(start).map((r) => [r.path, r.auth, r.body.model]), [['/gemini/chat/completions', 'Bearer g-test', 'gemini-3.1-flash-lite']]);
+
+  start = requests.length;
+  reply = (n, body) => (body.model.startsWith('gemini')
+    ? { status: 503, body: { error: { message: 'high demand' } } }
+    : { status: 200, body: estimate('upma') });
+  const out = await p.estimateFoods({ foods: ['upma'] });
+  assert.equal(out.model, 'gpt-test');
+  assert.deepEqual(requests.slice(start).map((r) => r.path), ['/gemini/chat/completions', '/gemini/chat/completions', '/gemini/chat/completions', '/v1/chat/completions']);
+  assert.equal(requests.at(-1).auth, 'Bearer sk-test');
+});
+
+test('when Gemini refuses the key, OpenAI is asked next, skipping the other Gemini models', async () => {
+  const p = await routedProvider(both());
+  const start = requests.length;
+  reply = (n, body) => (body.model.startsWith('gemini')
+    ? { status: 403, body: { error: { message: 'permission denied' } } }
+    : { status: 200, body: completion({ answer: 'ok', declined: false }) });
+  const out = await p.advise({ question: 'fiber?' });
+  assert.equal(out.answer, 'ok');
+  // A refused key would be refused for Gemini's other models too: OpenAI is asked next.
+  assert.deepEqual(requests.slice(start).map((r) => r.body.model), ['gemini-3.1-flash-lite', 'gpt-test']);
+});
+
+test('slow models share the deadline, so the OpenAI fallback still has time to answer', async () => {
+  process.env.NUTRIKIT_AI_TIMEOUT_MS = '1200';
+  try {
+    const p = await routedProvider(both());
+    reply = (n, body) => (body.model.startsWith('gemini') ? { hang: true } : { status: 200, body: estimate('poha') });
+    const started = Date.now();
+    const out = await p.estimateFoods({ foods: ['poha'] });
+    assert.equal(out.model, 'gpt-test');
+    assert.ok(Date.now() - started < 1200, `took ${Date.now() - started} ms`);
+  } finally {
+    delete process.env.NUTRIKIT_AI_TIMEOUT_MS;
+  }
+});
+
+test('GEMINI_API_KEY alone uses Gemini with its built-in models', async () => {
+  const saved = process.env.OPENAI_API_KEY;
+  delete process.env.OPENAI_API_KEY;
+  try {
+    const p = await routedProvider({ ...both(), NUTRIKIT_OPENAI_MODEL: '' });
+    assert.deepEqual(p.models.readLabel, ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']);
+    assert.deepEqual(p.models.advise, ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite']);
+    const custom = await routedProvider({ ...both(), NUTRIKIT_GEMINI_MODEL_TEXT: 'gemini-x' });
+    assert.deepEqual(custom.models.parseMeal, ['gemini-x']);
+  } finally {
+    process.env.OPENAI_API_KEY = saved;
+  }
 });

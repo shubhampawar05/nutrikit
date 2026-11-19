@@ -29,7 +29,7 @@ function fail(err: unknown): CallToolResult {
   const code = e.code ? ` (${e.code})` : '';
   const hint = e.code === 'quota_exceeded' ? ' The monthly token allowance is used up.'
     : e.status === 401 ? ' Check NUTRIKIT_API_KEY.'
-    : e.code === 'ai_provider_unavailable' ? ' This needs ANTHROPIC_API_KEY or OPENAI_API_KEY set on the Nutrikit server.'
+    : e.code === 'ai_provider_unavailable' ? ' This needs ANTHROPIC_API_KEY, OPENAI_API_KEY or GEMINI_API_KEY set on the Nutrikit server.'
     : e.code === 'network_error' ? ' Is the Nutrikit server running? Check NUTRIKIT_BASE_URL.'
     : e.code === 'timeout' ? ' The Nutrikit server did not answer in time.'
     : '';

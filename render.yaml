@@ -34,8 +34,11 @@ services:
       # it in production (links in emails are built from it).
       - key: NUTRIKIT_PUBLIC_URL
         sync: false
-      # AI provider: set one of these (Claude wins when both are set).
+      # AI provider: set Claude, or Gemini and/or OpenAI. With both of those, Gemini answers first and OpenAI is the
+      # fallback; models per task are built in. Claude wins when it is set too.
       - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
         sync: false
       - key: OPENAI_API_KEY
         sync: false

@@ -62,6 +62,8 @@ export interface CatalogCandidate { id: number; name: string; calories: number |
 export interface FoodEstimates {
   foods: FoodEstimate[];
   usage: AIUsage;
+  /** The model that answered, when the provider tries more than one; else the provider's `model`. */
+  model?: string;
 }
 
 export interface AdvisorReply {
@@ -74,7 +76,10 @@ export interface AdvisorReply {
 
 export interface AIProvider {
   name: string;
+  /** The main model (the first one tried). */
   model?: string;
+  /** Models per capability, in the order they are tried, for providers that route tasks to different models. */
+  models?: Partial<Record<AICapability, string[]>>;
   recognizeMeal?(args: ImageInput & { hint?: string | null }): Promise<MealRecognition>;
   readLabel?(args: ImageInput): Promise<LabelReading>;
   parseMeal?(args: { text: string }): Promise<MealRecognition>;
@@ -129,7 +134,7 @@ let active: AIProvider | undefined;
 export async function getProvider(): Promise<AIProvider> {
   if (active) return active;
   const name = process.env.NUTRIKIT_AI_PROVIDER
-    || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : process.env.OPENAI_API_KEY ? 'openai' : 'none');
+    || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY ? 'openai' : 'none');
   if (name === 'anthropic') {
     const { createAnthropicProvider } = await import('./anthropic.ts');
     active = await createAnthropicProvider();
