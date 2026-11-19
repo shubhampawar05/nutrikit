@@ -45,11 +45,9 @@ export function Admin() {
   const ids = tabIds(TABS_PREFIX, tab);
 
   return (
-    <main className="wrap dash">
-      <div className="dash-head">
-        <div>
-          <h1>Operator console</h1>
-        </div>
+    <main className="wrap admin">
+      <div className="admin-head">
+        <h1>Operator console</h1>
         <button className="btn btn-ghost btn-sm" type="button" onClick={() => signOut()}>Sign out</button>
       </div>
       <TabList
@@ -58,7 +56,7 @@ export function Admin() {
         onChange={(id) => setTab(id as Tab)}
         label="Admin sections"
         prefix={TABS_PREFIX}
-        className="pg-tabs"
+        className="admin-tabs"
         tabClassName="pg-tab"
         onlySelectedPanel
       />
