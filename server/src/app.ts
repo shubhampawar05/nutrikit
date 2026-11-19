@@ -4,6 +4,8 @@ import type { Writable } from 'node:stream';
 import Fastify, { LogController, type FastifyInstance } from 'fastify';
 import swagger from '@fastify/swagger';
 import { createSql } from './pg.ts';
+import { setAILog } from './domain/providers/index.ts';
+import { aiConfigProblem } from './domain/providers/openai.ts';
 import { pruneExpired } from './domain/accounts.ts';
 import { HttpError, IMAGE_TYPES, MAX_JSON, contentType } from './http.ts';
 import { errorHandling } from './plugins/errors.ts';
@@ -65,8 +67,10 @@ const REDACT = ['req.headers.authorization', 'req.headers.cookie', 'req.headers[
  * on any. Outside production, development defaults apply instead.
  */
 export function configProblems(env: NodeJS.ProcessEnv = process.env): string[] {
-  if (env.NODE_ENV !== 'production') return [];
-  const problems: string[] = [];
+  // Wrong in any environment: a key would be sent to the wrong company.
+  const ai = aiConfigProblem(env);
+  if (env.NODE_ENV !== 'production') return ai ? [ai] : [];
+  const problems: string[] = ai ? [ai] : [];
   // Access tokens must survive a database reset and verify on every instance.
   if (!env.NUTRIKIT_TOKEN_SECRET) problems.push('NUTRIKIT_TOKEN_SECRET is required when NODE_ENV=production (e.g. `openssl rand -hex 32`)');
   // Email links (password reset, invitations, verification) must never be built from a request's Host header.
@@ -91,6 +95,7 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
     ajv: { customOptions: { coerceTypes: true } },
   });
 
+  setAILog(app.log); // model fallbacks are logged with the requests
   const sql = createSql(opts.databaseUrl);
   app.decorate('sql', sql);
   const pruning = setInterval(() => {

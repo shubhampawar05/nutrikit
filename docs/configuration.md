@@ -28,14 +28,58 @@ Enables photo logging, label photos and `ai: true` text parsing. Without a provi
 
 | Variable | Default | What it's for |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | – | Use Claude (wins if both keys are set) |
-| `OPENAI_API_KEY` | – | Use OpenAI |
-| `NUTRIKIT_AI_PROVIDER` | auto | Force `anthropic`, `openai` or `none` |
+| `ANTHROPIC_API_KEY` | – | Use Claude (wins if it is set with the keys below) |
+| `GEMINI_API_KEY` | – | Use Google Gemini, with built-in models per task. With `OPENAI_API_KEY` too, Gemini answers first and OpenAI is the fallback |
+| `OPENAI_API_KEY` | – | Use OpenAI (or the endpoint at `OPENAI_BASE_URL`) |
+| `NUTRIKIT_AI_PROVIDER` | auto | Force `anthropic`, `openai` (OpenAI and/or Gemini) or `none` |
 | `NUTRIKIT_ANTHROPIC_MODEL` | `claude-opus-5-5` | Claude model |
 | `NUTRIKIT_ANTHROPIC_EFFORT` | `medium` | `low` … `max` |
-| `NUTRIKIT_OPENAI_MODEL` | `gpt-5-mini` | OpenAI model (needs vision and structured outputs) |
-| `NUTRIKIT_AI_TIMEOUT_MS` | `60000` | Deadline for one AI call, retries included; past it the API answers `504 ai_timeout` and charges nothing |
-| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | Any OpenAI-compatible endpoint: Azure, OpenRouter, Ollama |
+| `NUTRIKIT_GEMINI_MODEL` | built-in, below | Gemini models for every task, comma-separated and tried in order |
+| `NUTRIKIT_OPENAI_MODEL` | `gpt-5-mini` | OpenAI model (needs vision and structured outputs), or a comma-separated list tried in order |
+| `NUTRIKIT_GEMINI_MODEL_<TASK>`, `NUTRIKIT_OPENAI_MODEL_<TASK>` | the variable above | Models for one task. `<TASK>` is `PHOTO` (meal photos), `LABEL` (label photos), `TEXT` (text parsing), `ADVICE` or `ESTIMATE` (foods the catalog lacks) |
+| `NUTRIKIT_AI_FALLBACK_AFTER_MS` | `20000` | The most time a model gets before the next one in its list is tried (`0`: move on at once) |
+| `NUTRIKIT_AI_COOLDOWN_MS` | `60000` | How long a busy, rate-limited, retired or too-slow model is skipped (`0`: never) |
+| `NUTRIKIT_AI_TIMEOUT_MS` | `60000` | Deadline for one AI call, retries and fallbacks included; past it the API answers `504 ai_timeout` and charges nothing |
+| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | Any OpenAI-compatible endpoint: Azure, OpenRouter, Ollama, Gemini |
+
+### Gemini, with OpenAI as the fallback
+
+```
+GEMINI_API_KEY=<key from Google AI Studio>
+OPENAI_API_KEY=<OpenAI key>      # optional: answers when no Gemini model can
+```
+
+Each task has a list of models, tried in order: Gemini's, then OpenAI's. A strong model does the heavy work and
+light ones the rest, chosen for Gemini's free tier, where the newest models are often busy:
+
+| Tasks | Gemini models, in order | Then |
+|---|---|---|
+| Text parsing, advice | `gemini-3.1-flash-lite`, `gemini-3.5-flash-lite` | `NUTRIKIT_OPENAI_MODEL` |
+| Meal photos, label photos, estimates | `gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` | `NUTRIKIT_OPENAI_MODEL` |
+
+What moves a call to the next model:
+
+- **Busy (`5xx`), rate limited (`429`), unknown (`404`), unreachable or too slow:** the next model answers at once,
+  without retries, and this model is skipped for `NUTRIKIT_AI_COOLDOWN_MS`, so an overloaded model doesn't cost every
+  call its wait or spend free-tier quota on answers nobody reads.
+- **Rejected (`400`), truncated, empty or malformed answer:** the next model is asked (a `400` may be that model's own
+  limit). Tokens spent on a failed answer are charged with the call.
+- **A refused key (`401`/`403`) or other error:** the rest of that endpoint's models would fail the same way, so OpenAI
+  is asked next; without it, the error is the answer.
+- **A refusal** (the model declines the request) is the answer: no other model is asked.
+
+The last model is retried as usual. Time: a model waits at most `NUTRIKIT_AI_FALLBACK_AFTER_MS`. With OpenAI as the
+fallback, Gemini's models share half of `NUTRIKIT_AI_TIMEOUT_MS` and OpenAI always keeps the other half; otherwise the
+models share the time left evenly. Each fallback is logged at `warn` (`AI model failed; falling back to openai`), so a
+spent free tier shows in the logs before it shows on the OpenAI bill. Estimates record the model that answered
+(Admin → Missing foods).
+
+With `GEMINI_API_KEY` set, `OPENAI_BASE_URL` must not point at Gemini (it would send your OpenAI key to Google): the
+server refuses to start that way.
+
+Set the model variables above to replace the built-in lists, e.g. when Google retires a model, without a code
+change. Gemini also works through `OPENAI_API_KEY` with `OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`
+(same built-in models), but then there is no OpenAI fallback.
 
 ## Payments (optional)
 

@@ -214,7 +214,7 @@ export async function requestEstimates(provider: AIProvider, queries: string[], 
       if (!problem) {
         estimates.set(key, {
           name: same ? same.name : e.name, per100g: e.per100g, serving: e.serving, confidence: e.confidence,
-          provider: provider.name, model: provider.model ?? null, at: new Date().toISOString(), sameAs: same ? { id: same.id, name: same.name } : null,
+          provider: provider.name, model: out?.model ?? provider.model ?? null, at: new Date().toISOString(), sameAs: same ? { id: same.id, name: same.name } : null,
         });
       }
       // "Not a food" is an answer, not a mistake: it is not asked again.
