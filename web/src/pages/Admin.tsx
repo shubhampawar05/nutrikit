@@ -48,7 +48,6 @@ export function Admin() {
     <main className="wrap dash">
       <div className="dash-head">
         <div>
-          <span className="kicker">Admin</span>
           <h1>Operator console</h1>
         </div>
         <button className="btn btn-ghost btn-sm" type="button" onClick={() => signOut()}>Sign out</button>

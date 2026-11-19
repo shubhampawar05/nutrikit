@@ -6,10 +6,9 @@ import { CONTACT_EMAIL, OPERATOR, UPDATED } from '../legal.ts';
 
 const Contact = () => <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>;
 
-function LegalPage({ kicker, title, children }: { kicker: string; title: string; children: ReactNode }) {
+function LegalPage({ title, children }: { title: string; children: ReactNode }) {
   return (
     <main className="wrap legal">
-      <span className="kicker">{kicker}</span>
       <h1>{title}</h1>
       <p className="muted">Last updated {UPDATED}</p>
       {children}
@@ -19,7 +18,7 @@ function LegalPage({ kicker, title, children }: { kicker: string; title: string;
 
 export function Privacy() {
   return (
-    <LegalPage kicker="Legal" title="Privacy policy">
+    <LegalPage title="Privacy policy">
       <p className="lead">
         This policy explains what {OPERATOR} collects when you use this website and its API, why, who else handles it,
         and how to see or delete it. We collect only what we need to run the service. We don't sell your data and we
@@ -155,7 +154,7 @@ export function Privacy() {
 
 export function Terms() {
   return (
-    <LegalPage kicker="Legal" title="Terms of use">
+    <LegalPage title="Terms of use">
       <p className="lead">
         These terms apply to the {OPERATOR} website, developer dashboard and API (the "service"). By creating an account or
         using an API key you agree to them. Our <Link to="/privacy">privacy policy</Link> explains how we handle your data.

@@ -303,8 +303,8 @@ export function Playground() {
     <main className="wrap pg">
       <div className="pg-head">
         <div>
-          <span className="kicker">Playground</span>
           <h1>Try every endpoint.</h1>
+          <p className="muted">Pick an endpoint, send a request, inspect the result.</p>
         </div>
         <div className="pg-auth" aria-live="polite">
           {authView === 'checking' ? <span className="muted small">Checking sign-in…</span>
@@ -352,7 +352,7 @@ export function Playground() {
             {current.fields.map(fieldControl)}
             <div className="pg-send">
               <button className="btn btn-primary" type="submit" disabled={busy}>{busy ? 'Sending… ' : 'Send request '}<span className="arrow">→</span></button>
-              <span className="muted small">{current.method} · {current.cost}</span>
+              <span className="muted small"><kbd>⌘/Ctrl</kbd> + <kbd>Enter</kbd></span>
             </div>
           </form>
         </section>
@@ -378,7 +378,7 @@ export function Playground() {
             {out.kind === 'empty' ? (
               <div className="pg-empty">
                 <Icon name={current.icon} />
-                <p>Send the request to see the result.<br /><span className="muted small">Tip: <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd> sends from anywhere.</span></p>
+                <p>Send the request to see the result.</p>
               </div>
             ) : out.kind === 'error' ? <ErrorBox status={out.status} body={out.body} authView={authView} />
               : out.kind === 'unpreviewable' ? <Unpreviewable status={out.status} onShowJson={() => setView('json')} /> : (

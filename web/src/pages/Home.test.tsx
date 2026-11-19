@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { renderPage } from '../test-utils.tsx';
 import { Home } from './Home.tsx';
 
@@ -148,7 +148,7 @@ describe('Home', () => {
     }));
     renderPage(<Home />);
     await screen.findByText('Curry, red kidney bean');
-    expect(screen.getByText('UK CoFID 2021')).toBeTruthy(); // not "USDA FoodData Central"
+    expect(within(document.querySelector<HTMLElement>('.demo-foot')!).getByText('UK CoFID 2021')).toBeTruthy(); // not "USDA FoodData Central"
     const cholesterol = [...document.querySelectorAll('.nf-row')].find((r) => r.textContent?.startsWith('Cholesterol'));
     expect(cholesterol?.querySelector('.tick')?.textContent).toBe('—'); // unknown, not 0 mg
 

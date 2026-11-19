@@ -1,146 +1,175 @@
-// Homepage: hero with the live meal → Nutrition Facts demo, input types, features, code samples.
+// Homepage: live demo hero, input types, the wider feature set, data sources, developer tools, production features, call to action.
+import { useEffect, useRef, type CSSProperties } from 'react';
 import { Link } from 'react-router';
-import { Icon } from '../components/Icon.tsx';
+import { Icon, type IconName } from '../components/Icon.tsx';
 import { Demo } from './home/Demo.tsx';
 import { CodeSamples } from './home/CodeSamples.tsx';
-import { BARCODE_BITS } from './home/demo.ts';
 import { PAYMENTS_VISIBLE } from '../features.ts';
 
+const INPUTS: { icon: IconName; title: string; text: string }[] = [
+  { icon: 'text', title: 'Text', text: 'Split, matched and sized from a sentence.' },
+  { icon: 'mic', title: 'Voice', text: 'Speech recognised on-device.' },
+  { icon: 'camera', title: 'Photo', text: 'Every food on the plate, weighed.' },
+  { icon: 'barcode', title: 'Barcode', text: 'EAN and UPC across millions of products.' },
+  { icon: 'label', title: 'Label', text: 'Nutrition Facts, per serving and 100 g.' },
+];
+
+/** Adds .in to each .reveal element the first time it scrolls into view. */
+function useReveal() {
+  const root = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const els = [...(root.current?.querySelectorAll<HTMLElement>('.reveal') ?? [])];
+    if (typeof IntersectionObserver === 'undefined') {
+      els.forEach((el) => el.classList.add('in'));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    }, { rootMargin: '0px 0px -10% 0px' });
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+  return root;
+}
+
+const SOURCES: [string, string, string][] = [
+  ['USDA FoodData Central', 'Foundation, SR Legacy and survey foods', 'Public domain'],
+  ['Indian Nutrient Databank', 'About 1,000 Indian dishes — dals, sabzis, rotis', 'Anuvaad INDB'],
+  ['UK CoFID 2021', '511 dishes USDA lacks, many South Asian', 'Open Government Licence'],
+  ['Open Food Facts', 'Packaged products by barcode and name', 'ODbL'],
+];
+
+const PLATFORM: { icon: IconName; title: string; text: string }[] = [
+  { icon: 'code', title: 'Free test keys', text: 'Same responses, fixed AI results and a separate allowance, so CI runs cost nothing.' },
+  { icon: 'key', title: 'Access tokens', text: 'Swap your secret key for a one-hour token and ship that in browser and mobile apps.' },
+  { icon: 'chart', title: 'Usage you can see', text: 'Each response states its token cost; the dashboard breaks usage down by day and endpoint.' },
+  { icon: 'shield', title: 'Teams and roles', text: 'Keys and usage belong to a team. Invite owners, admins and developers.' },
+];
+
 export function Home() {
+  const root = useReveal();
   return (
-    <main>
-      {/* Hero: the product, working */}
+    <main ref={root}>
       <section className="hero">
         <div className="wrap hero-grid">
           <div>
-            <span className="kicker">Nutrition API</span>
             <h1>Describe a meal.<br />Get the <em>nutrition label</em>.</h1>
-            <p className="lead">Nutrikit turns what people type, say, snap or scan into matched foods, real portions and up to 33 nutrients — through one API key and a tiny SDK.</p>
+            <p className="lead">Turn what people type, say, snap or scan into matched foods, real portions and 33 nutrients — with one API key.</p>
             <div className="cta-row">
               <Link className="btn btn-primary" to="/signup">Get a free API key <span className="arrow">→</span></Link>
-              <Link className="btn btn-ghost" to="/docs">Read the docs</Link>
+              <Link className="btn btn-ghost" to="/playground">Open the playground</Link>
             </div>
-            <div className="hero-note">
-              <span><Icon name="check" />2,000 free tokens a month</span>
-              <span><Icon name="check" />No card</span>
-              <span><Icon name="check" />Key in 30 seconds</span>
-            </div>
+            <p className="hero-note"><Icon name="check" />2,000 free tokens a month · no card</p>
           </div>
-
           <Demo />
         </div>
       </section>
 
-      {/* Inputs */}
-      <section className="wrap" id="how" aria-label="Input types">
-        <div className="modes">
-          <div className="mode"><Icon name="text" /><b>Text</b><span>“A bowl of oatmeal and a coffee” — split, matched and sized.</span></div>
-          <div className="mode"><Icon name="mic" /><b>Voice</b><span>Speech recognised on-device; filler words removed.</span></div>
-          <div className="mode"><Icon name="camera" /><b>Photo</b><span>Each food on the plate, with an estimated weight.</span></div>
-          <div className="mode"><Icon name="barcode" /><b>Barcode</b><span>EAN and UPC lookups across millions of products.</span></div>
-          <div className="mode"><Icon name="label" /><b>Label</b><span>Nutrition Facts text or photo, per serving and per 100 g.</span></div>
+      <section className="wrap section" id="how" aria-labelledby="how-title">
+        <div className="section-head reveal">
+          <h2 id="how-title">Every way people log food.</h2>
+          <p className="lead">One endpoint per input. Ranking, unit conversion and portion sizes are handled for you.</p>
+        </div>
+        <ul className="inputs reveal" style={{ '--d': '80ms' } as CSSProperties}>
+          {INPUTS.map((i) => (
+            <li key={i.title}><Icon name={i.icon} /><b>{i.title}</b><span>{i.text}</span></li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="wrap section" aria-labelledby="more-title">
+        <div className="section-head reveal">
+          <h2 id="more-title">More than a food log.</h2>
+          <p className="lead">The pieces a nutrition feature grows into, on the same key.</p>
+        </div>
+        <div className="features">
+          <article className="feature reveal">
+            <Icon name="search" />
+            <h3>Search and portions</h3>
+            <p>The everyday, as-eaten food ranks first. Ask for any amount — grams, cups, slices — and get every nutrient for it.</p>
+            <div className="mock" aria-hidden="true">
+              <div className="mock-q"><Icon name="search" />banana</div>
+              <div className="mock-row hi"><span>Banana, raw</span><small>1 medium · 118 g</small></div>
+              <div className="mock-row"><span>Banana, baked</span><small>100 g</small></div>
+              <div className="mock-row"><span>Banana chips</span><small>1 oz · 28 g</small></div>
+            </div>
+          </article>
+          <article className="feature reveal" style={{ '--d': '80ms' } as CSSProperties}>
+            <Icon name="calendar" />
+            <h3>Meal plans</h3>
+            <p>One to seven days for a calorie target, six diets and foods to avoid. The same seed always returns the same plan.</p>
+            <div className="mock" aria-hidden="true">
+              <div className="mock-row"><small>Breakfast</small><span>Greek yogurt, oats, berries</span><b>420</b></div>
+              <div className="mock-row"><small>Lunch</small><span>Rajma, rice, salad</span><b>610</b></div>
+              <div className="mock-row"><small>Dinner</small><span>Tofu stir-fry, noodles</span><b>690</b></div>
+              <div className="mock-foot"><span>Vegetarian · day 1</span><span>1,720 / 1,800 kcal</span></div>
+            </div>
+          </article>
+          <article className="feature reveal" style={{ '--d': '160ms' } as CSSProperties}>
+            <Icon name="leaf" />
+            <h3>Nutrition advisor</h3>
+            <p>Short, practical answers that use what the person logged today. Medical questions are declined and pointed to a professional.</p>
+            <div className="mock" aria-hidden="true">
+              <div className="mock-bubble you">High-protein vegetarian breakfast?</div>
+              <div className="mock-bubble">A Greek yogurt bowl with oats and seeds, or paneer bhurji on toast — both land around 25 g of protein.</div>
+            </div>
+          </article>
         </div>
       </section>
 
-      {/* What you can build */}
-      <section className="block">
-        <div className="wrap">
-          <div className="section-head">
-            <span className="kicker">What's inside</span>
-            <h2>The boring, hard parts of food logging — <em>done</em>.</h2>
-            <p className="lead">Food databases, unit conversion and portion sizes are where nutrition features get stuck. Nutrikit handles them so your app can focus on people.</p>
+      <section className="wrap section" aria-labelledby="data-title">
+        <div className="data-grid">
+          <div className="reveal">
+            <h2 id="data-title">Food from more of the world.</h2>
+            <p className="lead">Open, citable sources — including the Indian and British dishes most US databases miss. Every result says where it came from.</p>
+            <dl className="stats">
+              <div><dt>Foods with full profiles</dt><dd>13,359</dd></div>
+              <div><dt>Household portions</dt><dd>30,512</dd></div>
+              <div><dt>Nutrients with % DV</dt><dd>33</dd></div>
+            </dl>
           </div>
-
-          <div className="bento">
-            <article className="tile span-4">
-              <h3>Search that knows “banana” means a banana.</h3>
-              <p>Ranking tuned for logging puts the everyday, as-eaten food first — not banana pudding or banana chips.</p>
-              <div className="mini art" aria-hidden="true">
-                <div className="mini-search"><Icon name="search" />banana<span className="caret"></span></div>
-                <div className="mini-result top"><span>Banana, raw</span><small>122 kcal · 1 banana</small></div>
-                <div className="mini-result"><span>Banana, baked</span><small>Bananas</small></div>
-                <div className="mini-result"><span>Bananas, overripe, raw</span><small>Bananas</small></div>
-              </div>
-            </article>
-
-            <article className="tile span-2 tomato">
-              <h3>Portions in plain language.</h3>
-              <p>Say it how people say it. Get grams back.</p>
-              <div className="convert art" aria-hidden="true" style={{ color: 'var(--ink)' }}>
-                <div className="convert-row"><b>1½ cups rice</b><span className="to">→ 237 g</span></div>
-                <div className="convert-row"><b>a handful of almonds</b><span className="to">→ 28 g</span></div>
-                <div className="convert-row"><b>12 oz orange juice</b><span className="to">→ 372 g</span></div>
-              </div>
-            </article>
-
-            <article className="tile span-2 dark">
-              <h3>Photos, plated.</h3>
-              <p>Every food on the plate, weighed by eye.</p>
-              <div className="plate art" aria-hidden="true">
-                <div className="ring"></div>
-                <i className="food salmon"></i><i className="food rice"></i><i className="food broccoli"></i>
-                <span className="tag" style={{ top: 22, left: 8 }}>salmon · 150 g</span>
-                <span className="tag" style={{ top: 96, right: 2 }}>rice · 158 g</span>
-                <span className="tag" style={{ bottom: 14, left: 22 }}>broccoli · 78 g</span>
-              </div>
-            </article>
-
-            <article className="tile span-2">
-              <h3>Scan the packet.</h3>
-              <p>Barcodes resolve to brand, serving size and nutrients.</p>
-              <div className="art" aria-hidden="true">
-                <div className="barcode">
-                  {[...BARCODE_BITS].map((b, n) => <i key={n} style={{ flex: 1, opacity: b === '1' ? 1 : 0 }}></i>)}
-                </div>
-                <p className="mono small muted" style={{ marginTop: 8, letterSpacing: '.3em' }}>3 017624 010701</p>
-              </div>
-            </article>
-
-            <article className="tile span-2">
-              <h3>Plans that add up.</h3>
-              <p>1–7 days for a calorie target and six diets.</p>
-              <div className="plan-mini art" aria-hidden="true">
-                <div><span>Breakfast</span><span>Greek yogurt, berries</span><span>480</span></div>
-                <div><span>Lunch</span><span>Lentil soup, apple</span><span>640</span></div>
-                <div><span>Dinner</span><span>Tofu stir-fry, rice</span><span>720</span></div>
-              </div>
-            </article>
-          </div>
+          <ul className="sources reveal" style={{ '--d': '100ms' } as CSSProperties}>
+            {SOURCES.map(([name, what, licence]) => (
+              <li key={name}><div><b>{name}</b><span>{what}</span></div><small>{licence}</small></li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      {/* Developers */}
-      <section className="wrap">
-        <div className="dev">
+      <section className="wrap section">
+        <div className="dev reveal">
           <div>
-            <span className="kicker">For developers</span>
-            <h2>Five minutes from key to <em style={{ color: 'var(--butter)' }}>first meal</em>.</h2>
-            <p>A REST API with an OpenAPI spec, and a dependency-free SDK for browsers and Node.</p>
+            <h2>Five minutes from key to first meal.</h2>
+            <p>A REST API with an OpenAPI 3.1 spec, and a dependency-free SDK for browsers and Node.</p>
             <ul>
-              <li><Icon name="bolt" /><div><b>Every call has a price tag</b>Responses carry <code>X-Tokens-Charged</code>, so cost is never a surprise.</div></li>
-              <li><Icon name="key" /><div><b>Safe for apps</b>Swap your secret key for a 1-hour access token and ship that instead.</div></li>
-              <li><Icon name="shield" /><div><b>Open, citable data</b>USDA FoodData Central and Open Food Facts — no black box.</div></li>
+              <li><Icon name="mic" /><span>On-device voice and barcode capture in the SDK.</span></li>
+              <li><Icon name="bolt" /><span>An MCP server, so Claude and other agents can log meals.</span></li>
+              <li><Icon name="code" /><span>OpenAPI spec for clients in any language.</span></li>
             </ul>
+            <Link className="text-link" to="/docs">Read the docs <span className="arrow">→</span></Link>
           </div>
           <CodeSamples />
         </div>
       </section>
 
-      {/* Figures */}
-      <section className="block">
-        <div className="wrap">
-          <div className="figures">
-            <div className="figure"><b>13,359</b><span>foods with full nutrient profiles</span></div>
-            <div className="figure"><b>30,512</b><span>household portions — cups, slices, pieces</span></div>
-            <div className="figure"><b>33</b><span>nutrients, each with % daily value</span></div>
-            <div className="figure"><b>1</b><span>key for all of it</span></div>
-          </div>
+      <section className="wrap section" aria-labelledby="platform-title">
+        <div className="section-head reveal">
+          <h2 id="platform-title">Ready for production.</h2>
         </div>
+        <ul className="platform reveal">
+          {PLATFORM.map((f) => (
+            <li key={f.title}><Icon name={f.icon} /><b>{f.title}</b><span>{f.text}</span></li>
+          ))}
+        </ul>
       </section>
 
-      <section className="wrap closing">
+      <section className="wrap closing reveal">
         <h2>Ship the nutrition feature <em>this week</em>.</h2>
-        <p className="lead" style={{ margin: '0 auto 28px' }}>{PAYMENTS_VISIBLE ? 'Free plan, no card. Upgrade only when your users show up.' : 'Free plan, no card.'}</p>
+        <p className="lead">{PAYMENTS_VISIBLE ? 'Free plan, no card. Upgrade only when your users show up.' : 'Free plan, no card.'}</p>
         <div className="cta-row">
           <Link className="btn btn-primary" to="/signup">Create your free account <span className="arrow">→</span></Link>
           {PAYMENTS_VISIBLE ? <Link className="btn btn-ghost" to="/pricing">See pricing</Link> : null}

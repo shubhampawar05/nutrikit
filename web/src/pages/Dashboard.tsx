@@ -110,7 +110,6 @@ export function Dashboard() {
     <main className="wrap dash">
       <div className="dash-head">
         <div>
-          <span className="kicker">Dashboard</span>
           <h1>Hi, <span>{account.user.name}</span></h1>
           <p className="muted" style={{ margin: 0 }}>
             <span>{account.user.email}</span> · <span className="badge ok">{account.plan.name} plan</span> · <span className="badge">{ROLE_NAMES[account.team.role]}</span>

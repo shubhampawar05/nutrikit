@@ -188,7 +188,7 @@ export function Demo() {
           <h4>Matched foods</h4>
           <div><Items view={view} onRespell={respell} /></div>
         </div>
-        <NutritionLabel totals={totals} count={count} changed={changed} />
+        <div className="demo-nf"><NutritionLabel totals={totals} count={count} changed={changed} /></div>
       </div>
       <div className="demo-foot"><span>{meta}</span><span>{sourceText(view.kind === 'result' ? view.result.items : [])}</span></div>
     </div>

@@ -44,7 +44,6 @@ describe('Playground', () => {
     stubFetch(() => json({}), false);
     renderPage(<Playground />, { path: '/playground' });
     expect(screen.getByRole('heading', { level: 1, name: 'Try every endpoint.' })).toBeTruthy();
-    expect(screen.getByText('Playground')).toBeTruthy();
     expect(screen.getByRole('navigation', { name: 'Endpoints' })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 2, name: 'Log from text' })).toBeTruthy();
     expect(screen.getByText('Send the request to see the result.')).toBeTruthy();
