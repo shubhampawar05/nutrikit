@@ -148,6 +148,13 @@ test('a wait between retries ends when the deadline does', async () => {
   assert.ok(Date.now() - started < 600, `took ${Date.now() - started} ms`);
 });
 
+test('a 429 for an account with no credit is reported as such and not retried', async () => {
+  const start = requests.length;
+  reply = () => ({ status: 429, body: { error: { message: 'You have no credits remaining.', code: 'credit_balance_exhausted' } }, headers: { 'retry-after': '1' } });
+  await assert.rejects(provider.parseMeal({ text: 'x' }), { status: 503, message: /no credit left/ });
+  assert.equal(requests.length - start, 1, 'no retry');
+});
+
 test('a shared deadline with little time left is measured as such: a longer Retry-After is answered at once', async () => {
   // The second estimate attempt shares the first one's deadline; only 300 ms of the 60 s remain.
   const { aiDeadline } = await import('../src/domain/providers/index.ts');

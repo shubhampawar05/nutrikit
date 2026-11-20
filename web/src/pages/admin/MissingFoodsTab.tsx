@@ -11,10 +11,22 @@ const REQUEST_FILTERS: { value: FoodRequestStatus | 'all'; label: string }[] = [
 ];
 const ESTIMATE_BADGE = { pending: ['warn', 'to review'], approved: ['ok', 'approved'], rejected: ['', 'rejected'] } as const;
 
+/** The latest replaced estimate and the latest rejected answer, so an operator sees why the estimate changed. */
+function EstimateTrail({ r }: { r: FoodRequest }) {
+  const last = r.estimateHistory?.[0];
+  const failed = r.estimateFailures?.[0];
+  return (
+    <>
+      {last ? <span className="muted small admin-sub">Replaced {fmtDate(last.replacedAt)}: {last.reason} (was {last.estimate.name}, {fmt(Math.round(last.estimate.per100g.calories))} kcal/100 g){r.estimateHistory!.length > 1 ? ` · ${r.estimateHistory!.length} earlier estimates kept` : ''}</span> : null}
+      {failed ? <span className="muted small admin-sub">Last rejected answer {fmtDate(failed.at)}: {failed.problem}</span> : null}
+    </>
+  );
+}
+
 /** An AI estimate in one line: its name, energy and macros per 100 g, and its serving. */
 function EstimateSummary({ r }: { r: FoodRequest }) {
   const e = r.estimate;
-  if (!e) return <span className="muted">none yet</span>;
+  if (!e) return <><span className="muted">none yet</span><EstimateTrail r={r} /></>;
   const [cls, label] = ESTIMATE_BADGE[r.estimateStatus as keyof typeof ESTIMATE_BADGE] ?? ['', r.estimateStatus];
   const n = e.per100g;
   if (e.sameAs) {
@@ -23,6 +35,7 @@ function EstimateSummary({ r }: { r: FoodRequest }) {
         <span className={`badge ${cls}`}>{label}</span> Same as <b>{e.sameAs.name}</b>
         <span className="muted small admin-sub">Logged with this catalog food's own values. Consider adding “{r.phrase}” as its alias.</span>
         <span className="muted small admin-sub">Used {fmt(r.estimateUses)} {r.estimateUses === 1 ? 'time' : 'times'} · {e.provider}{e.model ? ` ${e.model}` : ''}</span>
+        <EstimateTrail r={r} />
       </>
     );
   }
@@ -33,6 +46,7 @@ function EstimateSummary({ r }: { r: FoodRequest }) {
         {fmt(Math.round(n.calories))} kcal · P {n.protein} g · C {n.carbs} g · F {n.fat} g per 100 g · {e.serving.label} = {fmt(Math.round(e.serving.grams))} g · {e.confidence} confidence
       </span>
       <span className="muted small admin-sub">Used {fmt(r.estimateUses)} {r.estimateUses === 1 ? 'time' : 'times'} · {e.provider}{e.model ? ` ${e.model}` : ''}</span>
+      <EstimateTrail r={r} />
     </>
   );
 }
@@ -51,6 +65,22 @@ export function MissingFoodsTab() {
     },
     onError: (err) => toast(message(err)),
   });
+  const redo = useMutation({
+    mutationFn: (r: FoodRequest) => adminApi.reestimateFoodRequest(r.id),
+    onSuccess: (row) => {
+      toast(`New estimate for “${row.phrase}”: ${row.estimate?.name ?? 'made'}. Review it before approving.`);
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'food-requests'] });
+    },
+    onError: (err) => {
+      toast(message(err));
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'food-requests'] });
+    },
+  });
+  const reestimate = (r: FoodRequest) => {
+    const was = r.estimateStatus === 'approved' ? ' It is approved now; the new estimate goes back to review and the current one is kept in its history.' : r.estimate ? ' The current estimate is kept in its history.' : '';
+    if (window.confirm(`Ask the AI again for “${r.phrase}”? This makes one AI call.${was}`)) redo.mutate(r);
+  };
+  const busy = update.isPending || redo.isPending;
   const act = (r: FoodRequest, change: Parameters<typeof adminApi.updateFoodRequest>[1], done: string) => update.mutate({ r, change, done });
   const approve = (r: FoodRequest) => {
     if (window.confirm(`Approve the estimate for “${r.phrase}”? Every caller logging it will get these values, without an AI call, until you reject it.`)) {
@@ -92,14 +122,15 @@ export function MissingFoodsTab() {
                 <td><EstimateSummary r={r} /></td>
                 <td>
                   <div className="row admin-actions">
-                    {r.estimate && r.estimateStatus !== 'approved' ? <button className="btn btn-primary btn-sm" type="button" disabled={update.isPending} aria-label={`Approve estimate for ${r.phrase}`} onClick={() => approve(r)}>Approve</button> : null}
-                    {r.estimate && r.estimateStatus !== 'rejected' ? <button className="btn btn-ghost btn-sm" type="button" disabled={update.isPending} aria-label={`Reject estimate for ${r.phrase}`} onClick={() => act(r, { estimateStatus: 'rejected' }, `Estimate for “${r.phrase}” rejected`)}>Reject</button> : null}
+                    {r.estimate && r.estimateStatus !== 'approved' ? <button className="btn btn-primary btn-sm" type="button" disabled={busy} aria-label={`Approve estimate for ${r.phrase}`} onClick={() => approve(r)}>Approve</button> : null}
+                    {r.estimate && r.estimateStatus !== 'rejected' ? <button className="btn btn-ghost btn-sm" type="button" disabled={busy} aria-label={`Reject estimate for ${r.phrase}`} onClick={() => act(r, { estimateStatus: 'rejected' }, `Estimate for “${r.phrase}” rejected`)}>Reject</button> : null}
+                    <button className="btn btn-ghost btn-sm" type="button" disabled={busy} aria-label={`Re-estimate ${r.phrase}`} onClick={() => reestimate(r)}>{redo.isPending && redo.variables?.id === r.id ? 'Asking AI…' : r.estimate ? 'Re-estimate' : 'Estimate'}</button>
                     {r.status === 'open' ? (
                       <>
-                        <button className="btn btn-ghost btn-sm" type="button" disabled={update.isPending} aria-label={`Mark ${r.phrase} resolved`} onClick={() => act(r, { status: 'resolved' }, `“${r.phrase}” marked resolved`)}>Resolved</button>
-                        <button className="btn btn-ghost btn-sm" type="button" disabled={update.isPending} aria-label={`Ignore ${r.phrase}`} onClick={() => act(r, { status: 'ignored' }, `“${r.phrase}” ignored`)}>Ignore</button>
+                        <button className="btn btn-ghost btn-sm" type="button" disabled={busy} aria-label={`Mark ${r.phrase} resolved`} onClick={() => act(r, { status: 'resolved' }, `“${r.phrase}” marked resolved`)}>Resolved</button>
+                        <button className="btn btn-ghost btn-sm" type="button" disabled={busy} aria-label={`Ignore ${r.phrase}`} onClick={() => act(r, { status: 'ignored' }, `“${r.phrase}” ignored`)}>Ignore</button>
                       </>
-                    ) : <button className="btn btn-ghost btn-sm" type="button" disabled={update.isPending} aria-label={`Reopen ${r.phrase}`} onClick={() => act(r, { status: 'open' }, `“${r.phrase}” reopened`)}>Reopen</button>}
+                    ) : <button className="btn btn-ghost btn-sm" type="button" disabled={busy} aria-label={`Reopen ${r.phrase}`} onClick={() => act(r, { status: 'open' }, `“${r.phrase}” reopened`)}>Reopen</button>}
                   </div>
                 </td>
               </tr>

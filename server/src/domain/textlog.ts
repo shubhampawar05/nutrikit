@@ -211,6 +211,15 @@ function matchesDish(phrase: string): boolean {
 // portion of at least 3 g is used (1 tsp sugar, 1 fl oz milk); without one, the cap itself in grams.
 const RICH_ADD_ON = /\b(sugar|syrup|honey|jam|jelly|marmalade|butter|ghee|margarine|oil|mayonnaise|cream|dressing|sauce|ketchup|catsup|chutney)\b/i;
 
+// Only these are add-ons after "with" (audit P1-3). A staple or dish ("egg curry with rice", "idli with sambar") is
+// eaten as its own serving, not a spoonful: it gets its usual portion. Matched on the food's main name, before the
+// first comma or bracket, so "Yogurt, whole milk" is yogurt and not milk.
+const LIGHT_ADD_ON = /\b(milk|creamer|lemon|lime|ice|salt|pepper|pickle|achar|cheese|cinnamon|jaggery|gur|masala|spices?|herbs?|mint|coriander|cilantro|onions?|chilli|chili|garlic|ginger|seeds?|nuts?|raisins?|\w*berr(y|ies)|toppings?|whipped)\b/i;
+export const isAddOn = (foodName: string) => {
+  const head = foodName.split(/[,(]/)[0];
+  return RICH_ADD_ON.test(head) || LIGHT_ADD_ON.test(head);
+};
+
 function addOnPortion(food: Pick<Food, 'name' | 'portions'>): ResolvedPortion {
   const cap = RICH_ADD_ON.test(food.name) ? 15 : 60;
   const fits = food.portions
@@ -274,7 +283,7 @@ export function resolvePhrase(ph: Phrase, { alternatives = 3 }: { alternatives?:
     best = getFood(pick.id)!;
   }
   let portion: ResolvedPortion;
-  if (ph.addOn && ph.quantity == null && !ph.unit) {
+  if (ph.addOn && ph.quantity == null && !ph.unit && isAddOn(best.name)) {
     portion = addOnPortion(best);
   } else {
     portion = resolvePortion(best, ph.quantity, ph.unit);

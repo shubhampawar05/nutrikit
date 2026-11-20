@@ -14,50 +14,57 @@ Each milestone ends with its exit check. The next one starts only after it passe
 
 ## M1. Benchmark (eval only, no product change)
 
-- [ ] 1.1 Set A, consensus references:
+Done 2026-11-19: sets A, B, C, P under `server/data/eval/sets/` (versioned, hashed), `scripts/eval-estimates.ts`,
+`scripts/eval/`, tests in `test/eval-benchmark.test.mjs`, results in `server/data/eval/results/`. Numbers and limits
+in `m1-m2-final-report.md`. Set C phrases were written, not exported from production (report §1, limitation 6).
+
+- [x] 1.1 Set A, consensus references:
   - a script lists dishes present in at least 2 independent sources (USDA FNDDS/survey, CoFID, INDB, cited
     published analyses) and keeps those agreeing within 15% on kcal
   - the rest get a reference range, kept only when both ends are sourced
   - every row records its sources, their ids and the preparation
   - no value is typed by hand or produced by an AI
-- [ ] 1.2 Set B: audit the 28 cited recipes and keep only those with a sourced cooked weight. Record why each one
+- [x] 1.2 Set B: audit the 28 cited recipes and keep only those with a sourced cooked weight. Record why each one
   is dropped.
-- [ ] 1.3 Set C: real phrases from `food_requests` (exported locally) that resolve to an A or B reference, plus
+- [x] 1.3 Set C: real phrases from `food_requests` (exported locally) that resolve to an A or B reference, plus
   realistic spellings of the same dishes (Hinglish, typos, regional names, multi-item). Each phrase records its
   expected food.
-- [ ] 1.4 Set P: piece and bowl weights from published household-measure sources, each with its citation.
-- [ ] 1.5 Extend `eval-estimates.ts`:
+- [x] 1.4 Set P: piece and bowl weights from published household-measure sources, each with its citation.
+- [x] 1.5 Extend `eval-estimates.ts`:
   - `--set A|B|C|P`, `--runs 3`
   - matching accuracy (C), density metrics (A, B), portion MAE (P)
   - metrics: calorie MAE, MAPE and median; within ±10% and ±20%; over 50%; protein, carbs and fat MAE; coverage
   - mean ± spread across runs
   - per-dish rows saved
-- [ ] 1.6 Tests: metric arithmetic, and set integrity (every row has sources; there are no duplicates).
-- [ ] 1.6a Versioning, so results stay reproducible:
+- [x] 1.6 Tests: metric arithmetic, and set integrity (every row has sources; there are no duplicates).
+- [x] 1.6a Versioning, so results stay reproducible:
   - every benchmark set carries a `version` and a content hash
   - every result file records the set versions and hashes, `promptVersion` (a hash of the system prompt and
     schema), provider, models, run count, git commit and the catalog build
   - result files are committed under `server/data/eval/results/`
-- [ ] 1.7 **Exit check:** run today's pipeline (Gemini default) 3× and record the "before" numbers and the noise band
+- [x] 1.7 **Exit check:** (before numbers and noise band: report §1-2, summarised in `docs/platform.md`) run today's pipeline (Gemini default) 3× and record the "before" numbers and the noise band
   in `docs/platform.md`.
 
 ## M2. Provider and lever experiments (each isolated, same inputs)
 
-- [ ] 2.1 Compare Gemini and gpt-5-mini, 3 runs each:
+- [x] 2.1 Compare Gemini and gpt-5-mini, 3 runs each:
   - identical prompts, inputs, catalog candidates and output schema
   - one pinned model per provider, with no silent fallback inside a run
   - record accuracy, latency per call, token usage, and cost from a dated, cited price table
-- [ ] 2.2 Reference anchoring: candidates carry kcal *and* protein, carbs and fat; the prompt asks the model to
+- [x] 2.2 Reference anchoring: candidates carry kcal *and* protein, carbs and fat; the prompt asks the model to
   reason from them.
-- [ ] 2.3 3-sample median, as an isolated experiment, with its token cost reported.
-- [ ] 2.4 Variant questions: the model names the preparation choice that changes the value most; scored on dishes
+- [ ] 2.3 3-sample median, as an isolated experiment, with its token cost reported. **Blocked, not run** (2026-11-20):
+  the `median3` variant is implemented in `eval-estimates.ts`; the run on gpt-5-mini got no answer because the
+  OpenAI account has no credit (`credit_balance_exhausted`; $0 spent). The report ranks it lowest priority, so it is
+  left for when credit (or a paced free-tier Gemini run, 81 calls) is available. Nothing ships on it.
+- [x] 2.4 Variant questions (run; no gain, but only on rate-limited runs, report §7): the model names the preparation choice that changes the value most; scored on dishes
   where the choice is given vs not.
-- [ ] 2.4a Gemini model reliability:
+- [x] 2.4a Gemini model reliability:
   - every listed Gemini model, 3 runs, one call at a time and paced, so rate limits from parallel runs don't
     distort the result
   - repeated-call failure rate, latency, accuracy and cost from a verified, dated price table
   - no routing change until the report is reviewed
-- [ ] 2.5 **Exit check:** keep a change only if its improvement exceeds the M1 noise band without lowering coverage.
+- [x] 2.5 **Exit check:** (no lever kept; estimates moved to gemini-3.5-flash-lite only, report §8.2) keep a change only if its improvement exceeds the M1 noise band without lowering coverage.
   Record every result, kept or not, in `docs/platform.md`.
 
 ## M3. Portion validation
@@ -73,11 +80,13 @@ Each milestone ends with its exit check. The next one starts only after it passe
     to be one.
   - **Scope:** no change to catalog portions or to any other portion path.
   - **Regression tests:** idli, pakora, roti/chapati, puri, samosa, a bowl food, and an ambiguous old label.
-- [ ] 3.1 Move `PIECES` into a shared module, `server/src/domain/portions.ts`, used by the catalog build and by
+- [x] 3.1 (Done: `server/src/domain/portions.ts` is the runtime module; the build's copy in `indb-totals.mjs` is kept
+  in step by `test/nutrition-correctness.test.mjs`.) Move `PIECES` into a shared module, `server/src/domain/portions.ts`, used by the catalog build and by
   runtime code.
-- [ ] 3.2 An AI serving outside its food's range is never accepted silently. Use the catalog's verified serving for
+- [x] 3.2 (Done 2026-11-20: `estimateItem` checks a counted AI piece against `pieceRange`; an implausible one is
+  asked about with the reason, never logged. Since P1-1 the AI gives no grams for an amount.) An AI serving outside its food's range is never accepted silently. Use the catalog's verified serving for
   that unit when one exists; otherwise flag the item (`portionMethod` / warning) and fall back to 100 g or ask.
-- [ ] 3.3 Regression tests: poori, samosa, masala vada, vegetable cutlet, gulab jamun, rasgulla, bhatura, malai
+- [x] 3.3 (Done 2026-11-20: `test/ai-portion-range.test.mjs`.) Regression tests: poori, samosa, masala vada, vegetable cutlet, gulab jamun, rasgulla, bhatura, malai
   kofta, chole, dal, roti, kulcha. Test inputs come from fake providers; expected outcomes are range checks, not
   hard-coded nutrient values.
 
@@ -98,7 +107,7 @@ Tests: `test/estimate-provenance.test.mjs`.
 
 ## M5. Estimate reuse
 
-Done 2026-11-19 except 5.5 (operator re-estimate action, not requested for this milestone): `staleReason`,
+Done 2026-11-19; 5.5 done 2026-11-20: `staleReason`,
 atomic claim/replace/release in `foodrequests.ts`, migration 010; tests in `test/estimate-reuse.test.mjs`.
 
 - [x] 5.1 Re-evaluate a pending estimate on its next `ai:true` use when it is stale (older than
@@ -113,7 +122,8 @@ atomic claim/replace/release in `foodrequests.ts`, migration 010; tests in `test
   - two callers re-estimating at once can't both replace it or lose history
   - the write never touches `approved` or `rejected` rows
 - [x] 5.4 A failed re-estimation (AI error, timeout, failed checks) keeps the previous estimate in use, unchanged.
-- [ ] 5.5 Add an operator "re-estimate" action. Approved and rejected estimates are never changed automatically.
+- [x] 5.5 (Done 2026-11-20: `reestimateFoodRequest`, `POST /v1/admin/food-requests/:id/reestimate`, a Re-estimate
+  button in /admin; tests in `test/operator-reestimate.test.mjs`.) Add an operator "re-estimate" action. Approved and rejected estimates are never changed automatically.
 - [x] 5.6 Tests:
   - stale, outdated, suspicious and approved/rejected cases
   - failure keeps the old estimate
@@ -140,7 +150,7 @@ atomic claim/replace/release in `foodrequests.ts`, migration 010; tests in `test
 
 ## M6. Structured recipe estimation (conditional, not scheduled)
 
-- [ ] 6.1 Only if M2 leaves recipe assumptions as the dominant error:
+- [x] 6.1 Not triggered: M2 did not leave recipe assumptions as the dominant error (report §8.1). Only if M2 leaves recipe assumptions as the dominant error:
   - an eval-only experiment where the model gives raw whole-recipe ingredients plus a cooked yield range
   - the existing composer (`scripts/recipes.mjs`) computes the values
   - it is compared on sets A and B
@@ -148,8 +158,8 @@ atomic claim/replace/release in `foodrequests.ts`, migration 010; tests in `test
 
 ## Wrap-up
 
-- [ ] 7.1 Full test suite passes, including the API, SDK and MCP regression tests.
-- [ ] 7.2 Final report:
+- [x] 7.1 Full test suite passes, including the API, SDK and MCP regression tests (2026-11-20, see the report's §11).
+- [x] 7.2 Final report (`m1-m2-final-report.md`, with the 2026-11-20 wrap-up in §11):
   - files changed
   - before and after per set
   - the Gemini vs gpt-5-mini comparison

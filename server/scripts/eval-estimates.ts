@@ -54,6 +54,7 @@ const { getProvider } = await import('../src/domain/providers/index.ts');
 const { promptVersionOf } = await import('../src/domain/providers/prompts.ts');
 const { MAX_ESTIMATES_PER_CALL, catalogCandidates, estimateItem, phraseParts, requestEstimates, requestKey } = await import('../src/domain/foodrequests.ts');
 const { logText } = await import('../src/domain/textlog.ts');
+const { unsupportedAmount } = await import('../src/domain/units.ts');
 const { ANCHORED, BASELINE_PROMPT, VARIANTS } = await import('./eval/variants.ts');
 const M = await import('./eval/metrics.ts');
 type StoredEstimate = import('../src/domain/foodrequests.ts').StoredEstimate;
@@ -206,7 +207,9 @@ for (let run = 1; run <= RUNS; run++) {
     rows = items.map((it) => {
       const e = got.get(it.key) ?? null;
       const item = e ? estimateItem(it.key, e, it.amount!) : null;
-      return { phrase: it.key, ref: it.refGrams!, grams: item?.grams ?? null, serving: e?.serving ?? null, sameAs: e?.sameAs?.name ?? null };
+      // An amount logging would ask about (an implausible piece weight) is no answer, not 0 g.
+      const asked = item != null && unsupportedAmount(item.portionMethod);
+      return { phrase: it.key, ref: it.refGrams!, grams: asked ? null : item?.grams ?? null, ...(asked ? { asked: item!.portionBasis } : {}), serving: e?.serving ?? null, sameAs: e?.sameAs?.name ?? null };
     });
     summary = M.portionSummary(rows);
   } else {

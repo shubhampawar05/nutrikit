@@ -266,7 +266,13 @@ export async function createOpenAIProvider(): Promise<AIProvider> {
           throw fail(`AI provider error (unreadable response: ${(err as Error).message})`, 502);
         }
       }
-      const detail = ((await res.json().catch(() => null)) as { error?: { message?: string } } | null)?.error?.message ?? res.statusText;
+      const failure = ((await res.json().catch(() => null)) as { error?: { message?: string; code?: string } } | null)?.error;
+      const detail = failure?.message ?? res.statusText;
+      // A 429 for an account with no credit left is not a rate limit: retrying can't help, and the operator has to
+      // add credit (OpenAI: insufficient_quota, credit_balance_exhausted). Another endpoint may still answer.
+      if (res.status === 429 && /^(insufficient_quota|credit_balance_exhausted)$/.test(failure?.code ?? '')) {
+        throw busy('AI provider account has no credit left; add credit or use another provider', 503);
+      }
       const retryAfter = Number(res.headers.get('retry-after'));
       const wait = retryAfter > 0 ? retryAfter * 1000 : 500 * 2 ** attempt;
       // A Retry-After the deadline can't cover is not waited for: the error below is answered now.
