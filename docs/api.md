@@ -12,7 +12,7 @@ A copy is checked in at [server/docs/openapi.json](../server/docs/openapi.json) 
 | Portion nutrients | `GET /v1/foods/{id}/nutrients?quantity=&unit=` | 1 | Converts "2 medium", "1.5 cups", "12 fl oz" to grams; adds % daily value |
 | Text logging | `POST /v1/log/text` | 5 | Rule-based parser; `ai: true` uses the AI provider for free-form text |
 | Voice logging | `POST /v1/log/voice` | 5 | The device transcribes; the server cleans filler words and logs it |
-| Photo logging | `POST /v1/log/photo` | 20 | AI lists the foods with gram estimates, then matches each to the catalog |
+| Photo logging | `POST /v1/log/photo` | 20 | AI lists the foods with their quantity and unit, then matches each to the catalog |
 | Barcodes | `GET /v1/barcodes/{ean}` | 5 | The server's local Open Food Facts export first ([packaged foods](#packaged-foods)), then the live Open Food Facts API (cached for 30 days). Label values that contradict each other are withheld and explained in `issues` |
 | Packaged-food search | `GET /v1/barcodes/search?q=&country=` | 1 | Products sold in India (`in`) or the US (`us`) by name or brand, from the local export. A product sold under several barcodes is one result, with all of them in `barcodes`. `503 packaged_foods_unavailable` where the server has none loaded |
 | Nutrition labels | `POST /v1/labels/parse` | 5 (text) / 20 (photo) | Parses US FDA labels; photos are read by the AI provider |
@@ -81,14 +81,31 @@ setup is in [mcp/README.md](../mcp/README.md).
 
 - Nutrients are USDA averages, or UK CoFID values for dishes USDA lacks; branded products come from crowd-sourced
   Open Food Facts. Not medical advice.
-- Portions fall back in order: stated unit → household portion → volume conversion → water density → 100 g.
+- Portions fall back in order: stated unit → household portion → volume conversion → 100 g.
   Each item's `portionMethod` says which was used.
-- A katori has no standard size, so it is taken in US cups: small ¾ cup, medium 1 cup (the default) and large
-  1½ cups. These are Nutrikit's own conventions. It is weighed through the food's own density, from its USDA volume
-  portion (`volume-conversion`: a medium katori of dal is 240 g), or as water when the food has none
-  (`density-estimate`), never one weight for every food. `portionBasis` says how the katori was taken.
-  A bowl has no standard size: it is the food's own bowl portion when it has one, otherwise one cup of the food
-  (`portionBasis` says "bowl, taken as 1 cup"), never one of its pieces.
+- A volume (cup, ml, glass, katori, spoon) is weighed only through the food's own cited density: a USDA household
+  volume portion (`volume-conversion`: a cup of dal is 240 g). A known volume is not a known weight, so a food without
+  one (CoFID dishes, INDB and recipe dishes whose "cup" or "glass" is a serving weight, AI estimates) is never weighed
+  as water or by its serving: text logging lists the phrase as unmatched, as given, with the food in `suggestions`
+  and a `note` ("no cited density for …, so 1 katori can't be weighed; give the amount in grams"), and
+  `/v1/foods/{id}/nutrients` answers 400 `unsupported_unit`. Grams are always taken as given.
+- A katori is 200 ml (ICMR-NIN Dietary Guidelines 2024): a katori of dal is 203 g. `portionBasis` says how the
+  katori was taken. A small or large katori has no single published size and is asked about the same way.
+  A cup is always the 236.6 ml USDA cup.
+- A bowl has no standard size. Nutrikit takes it as a provisional 200 ml: a product assumption, not a claim that
+  every household bowl holds 200 ml. It is weighed only through the food's USDA density and always labelled:
+  `portionMethod` `assumed-bowl`, `portionBasis` "bowl, provisionally 200 ml (a Nutrikit assumption, not a measured
+  bowl)" (a bowl of dal is 203 g). A food's own "bowl" portion is never used as a bowl size (USDA's are packaged
+  products, INDB's and recipes' are serving weights, an AI estimate's is its own figure), so a bowl of a food with no
+  USDA density is asked about like any other unsupported volume.
+- A glass and a mug are each a provisional 250 ml, on the same terms: a Nutrikit assumption, not a measured
+  capacity, weighed only through a USDA density and labelled `assumed-glass` or `assumed-mug` (`portionBasis`
+  "glass, provisionally 250 ml (a Nutrikit assumption, not a measured glass)"; a glass of milk is 258 g). A food's own
+  glass serving (lassi's recipe "1 glass = 250 g", INDB's "1 tall glass") is never used, and a glass is never a cup.
+- A plate has no standard size and is asked about ("a plate has no standard size, so 1 plate of Idli can't be
+  weighed; give the amount in grams or pieces"), never the food's own or default serving. The one exception is plain
+  cooked white rice: 200 ml through USDA density, from NIN's 1-cup serving of rice, labelled `assumed-plate` (a plate
+  of rice is 134 g). A piece count ("2 idli") is not a plate.
 - An add-on without an amount ("with sugar", "with milk") is a spoonful or a splash: at most 15 g for sugars,
   fats and sauces, 60 g for anything else (`portionMethod` `add-on-smallest-portion`, or `add-on-cap` when the
   food has no portion that small).
@@ -135,6 +152,17 @@ setup is in [mcp/README.md](../mcp/README.md).
   values from the two.
 - Diet filters work from food names, so treat them as best effort.
 - Photo and label recognition are only as good as the AI provider.
+- **The AI never decides a weight.** With `ai: true` (text, voice) and for photos, the AI names each food and reads
+  its quantity and unit; the same portion rules as rule-based logging weigh it, or ask when they can't (a plate of
+  biryani, a katori of kheer). The AI gives no grams. A weight the person states in grams or kilograms ("150 g rice",
+  "0.5 kg rice", "100 grams kheer") is read from their own text or voice transcript, independently of the AI, and
+  logged at exactly that weight (`portionBasis` "150 g, as stated (…)"), even when the AI read it as "1 serving".
+  A stated weight that can't be read (a range, "a few grams") or matched to one food is listed back in `unmatched`
+  as written, and the matching item is asked about rather than logged at a default serving. Katori, bowl, glass and
+  plate keep their own rules. AI quantities are bounded by unit: up to 10 kg, 10 litres or 1000 of anything counted.
+  A photo's amount is the AI's own reading: it is asked about when the AI is unsure of the count or the unit
+  (`"serving"`), and a logged photo item's `portionBasis` starts "amount read from the photo by AI (… confidence)",
+  with `confidence` no higher than the AI's.
 
 ## Missing data
 
@@ -233,8 +261,8 @@ from the UK's *McCance and Widdowson's Composition of Foods Integrated Dataset 2
 - **Names:** CoFID names dishes in English ("Curry, red kidney bean, Punjabi, homemade"). Common Indian names
   (rajma, chole, masoor dal, toor dal, khichdi, aloo gobi…) are aliases from a reviewed list
   ([server/data/aliases/cofid.json](../server/data/aliases/cofid.json)), each with a public reference.
-- **No household portions:** CoFID doesn't give cup or bowl weights, so "1 cup rajma" uses water density
-  (`portionMethod: "density-estimate"`) and "rajma" alone is 100 g (`default-100g`). Give grams for an exact amount.
+- **No household portions:** CoFID doesn't give cup or bowl weights, so "1 cup rajma" is not weighed (the dish is
+  suggested and the amount asked for) and "rajma" alone is 100 g (`default-100g`). Give grams for an exact amount.
 - **Rebuilding the catalog** needs the CoFID workbook from
   [gov.uk](https://www.gov.uk/government/publications/composition-of-foods-integrated-dataset-cofid) in
   `server/data/raw/cofid/`; the build checks its SHA-256 and builds without CoFID (with a warning) if it's missing.

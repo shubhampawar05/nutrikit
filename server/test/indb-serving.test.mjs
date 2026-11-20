@@ -1,5 +1,5 @@
 // INDB serving names: a dish's own serving ("1 tall glass", "1 idli") becomes its portion only when the weight is
-// believable for the name. A typed cup or glass stays the standard 236.6 ml; spoons, bowls and plates use INDB's weight.
+// believable for the name. A typed volume (cup, glass, spoon) is weighed only through a USDA density, never INDB's weight.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { countsFryingOil, indbServing } from '../scripts/indb-totals.mjs';
@@ -48,13 +48,16 @@ test('a dish whose recipe deep-fries in at least 200 ml and is published at 30 g
 test('the catalog carries INDB serving names, and text logging uses them', async () => {
   const named = foods().prepare("SELECT count(*) c FROM portions p JOIN foods f ON f.id = p.food_id WHERE f.source = 'indb' AND p.label <> '1 serving'").get().c;
   assert.ok(named >= 650, `${named} INDB dishes with a named serving`);
-  // The dish's own serving is its default; a typed glass stays the standard 236.6 ml.
+  // The dish's own serving is its default. An INDB serving is a serving weight from a recipe yield, not a density,
+  // so a typed volume (a glass, a tablespoon) is not weighed: the dish is offered and the amount asked for.
   const [plain] = (await logText('aam panna')).items;
   assert.equal(plain.food.source, 'indb');
   assert.equal(plain.portionBasis, '1 tall glass');
   assert.equal(Math.round(plain.grams), 268);
-  const [glass] = (await logText('1 glass aam panna')).items;
-  assert.ok(glass.grams > 230 && glass.grams < 245, `${glass.grams} g`);
-  const [spoon] = (await logText('1 tbsp mint chutney')).items;
-  assert.equal(spoon.portionBasis, '1 tablespoon');
+  for (const phrase of ['1 glass aam panna', '1 tbsp mint chutney']) {
+    const r = await logText(phrase);
+    assert.equal(r.items.length, 0, phrase);
+    assert.equal(r.unmatched[0].suggestions[0].id > 0, true, phrase);
+    assert.match(r.unmatched[0].note, /no cited density/, phrase);
+  }
 });

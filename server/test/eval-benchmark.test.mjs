@@ -79,7 +79,7 @@ test('portionSummary and helpers', () => {
 });
 
 test('built sets: versioned, hashed, and every scored reference is traceable to two independent families', () => {
-  for (const name of ['A', 'B', 'C', 'P']) {
+  for (const name of ['A', 'B', 'C', 'P', 'D']) {
     const set = load(name);
     assert.ok(set.version, `${name} has a version`);
     const { sha256, ...body } = set;

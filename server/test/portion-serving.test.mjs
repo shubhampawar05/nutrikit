@@ -71,7 +71,8 @@ test('single-unit servings behave exactly as before', () => {
   assert.equal(logged('1 samosa', { label: '1 piece', unit: 'piece', quantity: 1, grams: 100 }).grams, 100);
   assert.equal(logged('2 samosa', { label: '1 piece', unit: 'piece', grams: 100 }).grams, 200);
   const dal = { label: '1 bowl', unit: 'bowl', grams: 250 };
-  assert.equal(logged('1 bowl dal', dal).grams, 250);
+  // A bowl of an estimated dish is not weighed: the estimate's "1 bowl" is its own serving weight, not a bowl density.
+  assert.equal(logged('1 bowl dal', dal).portionMethod, 'ai-estimate-unsupported-density');
   assert.equal(logged('dal', dal).grams, 250);
   assert.equal(logged('100 g dal', dal).grams, 100, 'a mass is a mass');
 });
@@ -79,7 +80,8 @@ test('single-unit servings behave exactly as before', () => {
 test('another unit than the serving\'s own still means the whole serving, as before', () => {
   const idli = { label: '2 idlis', unit: 'piece', quantity: 2, grams: 80 };
   assert.equal(logged('1 serving idli', idli).grams, 80);
-  assert.equal(logged('1 plate idli', idli).grams, 80);
+  // A plate is never the estimate's serving: no source defines a plate (portion-logging-v2 increment 5).
+  assert.equal(logged('1 plate idli', idli).portionMethod, 'ai-estimate-unsupported-measure');
 });
 
 test('an unclear old label is used whole, as before, and flagged instead of assumed to be one', () => {
@@ -89,9 +91,10 @@ test('an unclear old label is used whole, as before, and flagged instead of assu
     assert.equal(item.portionMethod, 'ai-estimate-unclear-serving-count');
     assert.match(item.portionBasis, /count is unclear/);
   }
+  // An AI parse's grams can't be passed any more (audit P1-1): an extra field is ignored, the unclear flag stays.
   const given = estimateItem('1 vada', estimate({ label: 'a few pieces', unit: 'piece', grams: 90 }), { quantity: 1, unit: 'piece', grams: 45 });
-  assert.equal(given.grams, 45, "an AI parse's own grams still win");
-  assert.equal(given.portionMethod, 'provided-grams', 'and need no flag');
+  assert.equal(given.grams, 90, "an AI parse's grams never win");
+  assert.equal(given.portionMethod, 'ai-estimate-unclear-serving-count');
 });
 
 test('the schema asks for the count and the whole weight; a bad count is rejected', () => {

@@ -105,6 +105,31 @@ const portions = pSrc.portions.map((p: { phrase: string; dish: string; hide?: st
 });
 const P = write('P', { set: 'P', version: pSrc.version, title: pSrc.title, rules: pSrc.rules, catalogBuild: catalogBuild(), portions });
 
+// --- Set D: everyday regression gate (expected behavior per phrase; see D.source.json rules)
+const dSrc = read('D.source.json');
+const allNames = (foods().prepare('SELECT name FROM foods').all() as { name: string }[]).map((r) => r.name);
+const phrasesSeen = new Set<string>();
+for (const c of dSrc.cases) {
+  if (phrasesSeen.has(c.phrase)) throw new Error(`set D lists "${c.phrase}" twice`);
+  phrasesSeen.add(c.phrase);
+  if (!['log', 'suggest', 'flag'].includes(c.expect?.behavior)) throw new Error(`set D "${c.phrase}": behavior must be log, suggest or flag`);
+  if (c.expect.behavior === 'log' && !c.expect.items?.length) throw new Error(`set D "${c.phrase}": a log case needs items`);
+  if (c.expect.ask && (c.expect.behavior !== 'log' || !c.expect.ask.every((a: string) => typeof a === 'string' && a))) throw new Error(`set D "${c.phrase}": ask lists foods to ask about in a log case`);
+  if (c.expect.uncertain !== undefined && (c.expect.uncertain !== true || !c.expect.ask?.length)) throw new Error(`set D "${c.phrase}": uncertain is true, only on a log case that asks about a food`);
+  for (const it of c.expect.items ?? []) {
+    const re = new RegExp(it.food, 'i');
+    if (!allNames.some((n) => re.test(n))) throw new Error(`set D "${c.phrase}": no catalog food matches ${it.food}, so the case can't expect it to be logged`);
+    // Each alternative must name a catalog food on its own, so a misspelt alternative can't hide behind a valid one.
+    for (const alt of it.food.split('|')) {
+      if (!allNames.some((n) => new RegExp(alt, 'i').test(n))) throw new Error(`set D "${c.phrase}": alternative ${alt} matches no catalog food`);
+    }
+    if (it.grams && !(it.grams[0] <= it.grams[1])) throw new Error(`set D "${c.phrase}": bad grams range`);
+  }
+  if (c.expect.behavior === 'log' && !c.rationale) throw new Error(`set D "${c.phrase}": needs a rationale`);
+}
+const D = write('D', { set: 'D', version: dSrc.version, title: dSrc.title, rules: dSrc.rules, catalogBuild: catalogBuild(), cases: dSrc.cases });
+console.log(`D v${D.version}: ${dSrc.cases.length} cases sha256 ${D.sha256.slice(0, 12)}`);
+
 const kinds = (ds: { reference: { kind: string } }[]) => Object.fromEntries(['point', 'range', 'excluded'].map((k) => [k, ds.filter((d) => d.reference.kind === k).length]));
 console.log(`A v${A.version}: ${dishes.length} dishes ${JSON.stringify(kinds(dishes))} sha256 ${A.sha256.slice(0, 12)}`);
 console.log(`B v${B.version}: ${recipes.length} recipes (${bSrc.excludedRecipes.length} excluded) sha256 ${B.sha256.slice(0, 12)}`);

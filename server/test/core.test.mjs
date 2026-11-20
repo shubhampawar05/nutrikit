@@ -65,6 +65,7 @@ test('resolvePortion converts mass, volume, counts and drinks', () => {
 test('resolvePortion never uses a dry-yield portion as a volume', () => {
   const grits = {
     name: 'Grits, NFS',
+    source: 'survey',
     portions: [
       { label: '1 cup, dry, yields', amount: 1, unit: 'cup', grams: 965 },
       { label: '1 cup, cooked', amount: 1, unit: 'cup', grams: 240 },
@@ -72,6 +73,9 @@ test('resolvePortion never uses a dry-yield portion as a volume', () => {
   };
   assert.equal(resolvePortion(grits, 1, 'cup').grams, 240);
   assert.equal(resolvePortion(grits, 2, 'tbsp').grams, 30, 'converted through the cooked cup');
+  // The same portions on a food from a source without measured household volumes give no density.
+  assert.equal(resolvePortion({ ...grits, source: 'indb' }, 1, 'cup').method, 'unsupported-density');
+  assert.equal(resolvePortion({ name: 'Unknown dish', portions: [] }, 1, 'cup').method, 'unsupported-density', 'never water density');
 });
 
 test('a bare count prefers the regular size over small, mini or thin', () => {

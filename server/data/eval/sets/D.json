@@ -1,0 +1,3039 @@
+{
+  "set": "D",
+  "version": "2",
+  "title": "Everyday regression gate: the right food, a plausible amount, or a safe refusal",
+  "rules": [
+    "Each case says what SHOULD happen (behavior log / suggest / flag), not what happens today.",
+    "Outcomes: correct (the right foods and, where a range is given, the right amount; an amount marked assumption must be visibly labelled as an assumption); safely uncertain (nothing wrong logged; a food is listed unmatched instead of logged); incorrect (a wrong food, an amount out of range, an assumed amount not labelled, a food logged where it should be asked about, a lost user amount, or a food silently dropped).",
+    "Measures (not interchangeable): katori = 200 ml (ICMR-NIN 2024 Annexure I). Bowl = 200 ml and glass = 250 ml, both PROVISIONAL owner assumptions that a logged item must label. A bare 'cup' is always the USDA standard cup (236.6 ml; the food's own USDA '1 cup' portion). The NIN serving cup (200 ml) is used only by the named NIN plate-serving assumptions, never for a bare 'cup'.",
+    "Volume to grams only through the food's own cited density (its USDA cup portion). Recipe portions that are importer or authoring defaults (every INDB recipe's '1 cup = 240 g'; the lassi and kheer recipes) are not cited densities. No cited density: the case expects flag.",
+    "Plates: no universal plate weight, and no source defines a plate. Only plain cooked rice has an assumption: NIN's 1-cup (200 ml) serving quantity for rice, whose calories agree with USDA cooked rice, logged as a labelled Nutrikit assumption. Every other plate expects flag, including idli and upma, whose NIN quantities disagree with USDA's weight or energy for the same food (owner decision 2026-11-19).",
+    "Sweets: published piece ranges (rasgulla 15.7-43.4 g, gulab jamun 24.2-44.4 g) are plausibility bounds only, never defaults: an unsupported piece count expects flag. User-given grams are used as given.",
+    "Food patterns are exact, reviewed catalog names (anchored); a broad pattern must not hide a wrong match. Every 'log' pattern must match a catalog food (checked at build).",
+    "Known incorrect cases are listed in test/everyday-gate.test.mjs with their finding.",
+    "A case marked uncertain is one whose best achievable outcome is safely uncertain: when the app behaves exactly as expected (logs what it should and asks about the rest), it scores safely uncertain, never correct automatic logging."
+  ],
+  "catalogBuild": "2026-11-19T10:19:26.486Z",
+  "cases": [
+    {
+      "phrase": "vegetable fried rice",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, fried, meatless$|^Chinese fried rice$"
+          }
+        ]
+      },
+      "rationale": "Fried rice without meat; must never be 'Rissoles, brown rice, fried in vegetable oil'.",
+      "source": "catalog: FNDDS 'Rice, fried, meatless', INDB 'Chinese fried rice'",
+      "regression": "P0-2 rissoles"
+    },
+    {
+      "phrase": "veg fried rice",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, fried, meatless$|^Chinese fried rice$"
+          }
+        ]
+      },
+      "rationale": "'veg' abbreviates vegetable; same food as above.",
+      "source": "catalog",
+      "regression": "P0-2 rissoles"
+    },
+    {
+      "phrase": "egg fried rice",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, fried, meatless$|^Rice, fried, NFS$|^Chinese fried rice$"
+          }
+        ]
+      },
+      "rationale": "A fried rice; never a meat/shrimp roll.",
+      "source": "catalog: FNDDS 'Rice, fried, …'",
+      "regression": "P0-2"
+    },
+    {
+      "phrase": "plain rice",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, cooked, NFS$"
+          }
+        ]
+      },
+      "rationale": "Indian English for steamed white rice; never rice crackers.",
+      "source": "catalog: FNDDS 'Rice, cooked, NFS'",
+      "regression": "P0-2"
+    },
+    {
+      "phrase": "bread butter",
+      "category": "regression",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "Two foods with no separator; must not log a peanut-butter sandwich.",
+      "regression": "P0-2"
+    },
+    {
+      "phrase": "tortilla chips",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Tortilla chips, plain$|^Tortilla chips, yellow, plain, salted$"
+          }
+        ]
+      },
+      "rationale": "Never sweet potato chips.",
+      "source": "catalog",
+      "regression": "P0-2 chips synonym"
+    },
+    {
+      "phrase": "corn chips",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Corn chips, plain$|^Corn chips, plain \\(Fritos\\)$"
+          }
+        ]
+      },
+      "rationale": "Never sweet potato chips.",
+      "source": "catalog",
+      "regression": "P0-2 chips synonym"
+    },
+    {
+      "phrase": "french toast",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^French toast, NFS$"
+          }
+        ]
+      },
+      "rationale": "Egg-dipped bread, not toasted French bread.",
+      "source": "catalog: FNDDS 'French toast, NFS'",
+      "regression": "P0-2 toast synonym"
+    },
+    {
+      "phrase": "apple pie",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pie, apple$|^Pie, apple, prepared from recipe$|^Pie, apple, commercially prepared, enriched flour$|^Pie, apple, commercially prepared, unenriched flour$|^Pie, apple, fast food$"
+          }
+        ]
+      },
+      "rationale": "The pie, never 'Apple pie filling'.",
+      "source": "catalog: SR/FNDDS 'Pie, apple'",
+      "regression": "P0-2 product form"
+    },
+    {
+      "phrase": "roti sabzi",
+      "category": "regression",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "Two foods (roti and a sabzi) with no separator: must never log roti alone and drop the sabzi.",
+      "regression": "P0-1"
+    },
+    {
+      "phrase": "roti",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$",
+            "grams": [
+              32.4,
+              39.6
+            ]
+          }
+        ]
+      },
+      "rationale": "Home roti, not USDA's commercial chapati (2 roti was 404 kcal).",
+      "source": "INDB 878591004 'Chapati/Roti' 1 chapati = 36 g, 202 kcal/100 g; CoFID 11-459 agrees on 202 kcal/100 g",
+      "regression": "P0-3"
+    },
+    {
+      "phrase": "1 roti",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$",
+            "grams": [
+              32.4,
+              39.6
+            ]
+          }
+        ]
+      },
+      "rationale": "Home roti, not USDA's commercial chapati (2 roti was 404 kcal).",
+      "source": "INDB 878591004 'Chapati/Roti' 1 chapati = 36 g, 202 kcal/100 g; CoFID 11-459 agrees on 202 kcal/100 g",
+      "regression": "P0-3"
+    },
+    {
+      "phrase": "2 roti",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$",
+            "grams": [
+              64.8,
+              79.2
+            ]
+          }
+        ]
+      },
+      "rationale": "Home roti, not USDA's commercial chapati (2 roti was 404 kcal).",
+      "source": "INDB 878591004 'Chapati/Roti' 1 chapati = 36 g, 202 kcal/100 g; CoFID 11-459 agrees on 202 kcal/100 g",
+      "regression": "P0-3"
+    },
+    {
+      "phrase": "1.5 roti",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$",
+            "grams": [
+              48.6,
+              59.4
+            ]
+          }
+        ]
+      },
+      "rationale": "Home roti, not USDA's commercial chapati (2 roti was 404 kcal).",
+      "source": "INDB 878591004 'Chapati/Roti' 1 chapati = 36 g, 202 kcal/100 g; CoFID 11-459 agrees on 202 kcal/100 g",
+      "regression": "P0-3"
+    },
+    {
+      "phrase": "3 rotis",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$",
+            "grams": [
+              97.2,
+              118.8
+            ]
+          }
+        ]
+      },
+      "rationale": "Home roti, not USDA's commercial chapati (2 roti was 404 kcal).",
+      "source": "INDB 878591004 'Chapati/Roti' 1 chapati = 36 g, 202 kcal/100 g; CoFID 11-459 agrees on 202 kcal/100 g",
+      "regression": "P0-3"
+    },
+    {
+      "phrase": "2 chapati",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$",
+            "grams": [
+              64.8,
+              79.2
+            ]
+          }
+        ]
+      },
+      "rationale": "Home roti, not USDA's commercial chapati (2 roti was 404 kcal).",
+      "source": "INDB 878591004 'Chapati/Roti' 1 chapati = 36 g, 202 kcal/100 g; CoFID 11-459 agrees on 202 kcal/100 g",
+      "regression": "P0-3"
+    },
+    {
+      "phrase": "1 phulka",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$",
+            "grams": [
+              32.4,
+              39.6
+            ]
+          }
+        ]
+      },
+      "rationale": "Home roti, not USDA's commercial chapati (2 roti was 404 kcal).",
+      "source": "INDB 878591004 'Chapati/Roti' 1 chapati = 36 g, 202 kcal/100 g; CoFID 11-459 agrees on 202 kcal/100 g",
+      "regression": "P0-3"
+    },
+    {
+      "phrase": "chapathi",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$",
+            "grams": [
+              32.4,
+              39.6
+            ]
+          }
+        ]
+      },
+      "rationale": "Home roti, not USDA's commercial chapati (2 roti was 404 kcal).",
+      "source": "INDB 878591004 'Chapati/Roti' 1 chapati = 36 g, 202 kcal/100 g; CoFID 11-459 agrees on 202 kcal/100 g",
+      "regression": "P0-3"
+    },
+    {
+      "phrase": "chicken",
+      "category": "regression",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No single defensible food (part, cooking); never 'Chicken, ground, raw'.",
+      "regression": "P0-4"
+    },
+    {
+      "phrase": "1 piece chicken",
+      "category": "regression",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No single defensible food (part, cooking); never 'Chicken, ground, raw'.",
+      "regression": "P0-4"
+    },
+    {
+      "phrase": "100 g chicken",
+      "category": "regression",
+      "expect": {
+        "behavior": "suggest",
+        "preserve": "100 g"
+      },
+      "rationale": "No defensible chicken variant: suggest and keep the user's 100 g in what is listed back.",
+      "regression": "P0-4"
+    },
+    {
+      "phrase": "chicken and rice",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, cooked, NFS$"
+          }
+        ]
+      },
+      "rationale": "The rice is logged; the chicken is asked about (listed unmatched), never ground raw chicken.",
+      "source": "catalog",
+      "regression": "P0-4"
+    },
+    {
+      "phrase": "rasgulla",
+      "category": "regression",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "The catalog's only weight is a recipe-yield serving (rasgulla 342 g): flag, never log it as pieces.",
+      "regression": "P0-5"
+    },
+    {
+      "phrase": "1 rasgulla",
+      "category": "regression",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "The catalog's only weight is a recipe-yield serving (rasgulla 342 g): flag, never log it as pieces.",
+      "regression": "P0-5"
+    },
+    {
+      "phrase": "2 rasgulla",
+      "category": "regression",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "The catalog's only weight is a recipe-yield serving (rasgulla 342 g): flag, never log it as pieces.",
+      "regression": "P0-5"
+    },
+    {
+      "phrase": "1 rasmalai",
+      "category": "regression",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "The catalog's only weight is a recipe-yield serving (rasgulla 342 g): flag, never log it as pieces.",
+      "regression": "P0-5"
+    },
+    {
+      "phrase": "kulfi",
+      "category": "regression",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "The catalog's only weight is a recipe-yield serving (rasgulla 342 g): flag, never log it as pieces.",
+      "regression": "P0-5"
+    },
+    {
+      "phrase": "60 g rasgulla",
+      "category": "regression",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rasgulla$",
+            "grams": [
+              60,
+              60
+            ]
+          }
+        ]
+      },
+      "rationale": "A weight given in grams is used as given.",
+      "source": "user-given grams",
+      "regression": "P0-5"
+    },
+    {
+      "phrase": "idli",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Idli$",
+            "grams": [
+              34.2,
+              41.8
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2708346 portion '1 item' = 38 g"
+    },
+    {
+      "phrase": "3 idli",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Idli$",
+            "grams": [
+              102.6,
+              125.4
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2708346 portion '1 item' = 38 g"
+    },
+    {
+      "phrase": "2 idli",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Idli$",
+            "grams": [
+              68.4,
+              83.6
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2708346 portion '1 item' = 38 g"
+    },
+    {
+      "phrase": "1 samosa",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Samosa$",
+            "grams": [
+              90,
+              110
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2708730 portion '1 regular/large' = 100 g"
+    },
+    {
+      "phrase": "4 samosas",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Samosa$",
+            "grams": [
+              360,
+              440
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2708730 portion '1 regular/large' = 100 g"
+    },
+    {
+      "phrase": "samosa",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Samosa$",
+            "grams": [
+              90,
+              110
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2708730 portion '1 regular/large' = 100 g"
+    },
+    {
+      "phrase": "1 dosa",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dosa, plain$",
+            "grams": [
+              72,
+              88
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2708347 portion '1 medium' = 80 g"
+    },
+    {
+      "phrase": "2 dosa",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dosa, plain$",
+            "grams": [
+              144,
+              176
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2708347 portion '1 medium' = 80 g"
+    },
+    {
+      "phrase": "1 paratha",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Bread, paratha$|^Plain parantha/paratha$",
+            "grams": [
+              63,
+              77
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2707715 portion '1 paratha' = 70 g"
+    },
+    {
+      "phrase": "2 puri",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Bread, puri$",
+            "grams": [
+              64.8,
+              79.2
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2707714 portion '1 puri' = 36 g"
+    },
+    {
+      "phrase": "1 vada",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Vada$",
+            "grams": [
+              27,
+              33
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2709130 portion '1 item, any size' = 30 g"
+    },
+    {
+      "phrase": "1 masala dosa",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dosa, with filling$",
+            "grams": [
+              240.3,
+              293.7
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2709129 portion '1 medium' = 267 g"
+    },
+    {
+      "phrase": "1 banana",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Banana, raw$",
+            "grams": [
+              113.4,
+              138.6
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2709224 portion '1 banana' = 126 g"
+    },
+    {
+      "phrase": "1 large apple",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Apple, raw$",
+            "grams": [
+              217.8,
+              266.2
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2709215 portion '1 large' = 242 g"
+    },
+    {
+      "phrase": "2 slices bread",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Bread, white$",
+            "grams": [
+              50.4,
+              61.6
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2707598 portion '1 medium or regular slice' = 28 g"
+    },
+    {
+      "phrase": "1 large egg",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Egg, whole, raw$|^Egg, whole, cooked, NS as to cooking method$",
+            "grams": [
+              45,
+              55
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2707152 portion '1 egg' = 50 g"
+    },
+    {
+      "phrase": "2 eggs",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Egg, whole, raw$|^Egg, whole, cooked, NS as to cooking method$",
+            "grams": [
+              90,
+              110
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2707152 portion '1 egg' = 50 g"
+    },
+    {
+      "phrase": "2 slices toast",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Bread, white, toasted$",
+            "grams": [
+              45,
+              55
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2707599 portion '1 medium or regular slice' = 25 g"
+    },
+    {
+      "phrase": "10 almonds",
+      "category": "pieces",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Almonds, NFS$",
+            "grams": [
+              10.8,
+              13.2
+            ]
+          }
+        ]
+      },
+      "rationale": "A count of a piece food: count x the cited piece weight.",
+      "source": "USDA FNDDS/SR 2707485 portion '1 nut' = 1.2 g"
+    },
+    {
+      "phrase": "1 cup dal",
+      "category": "measures",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dal$",
+            "grams": [
+              228,
+              252
+            ]
+          }
+        ]
+      },
+      "rationale": "\"cup\" here is the USDA standard cup (236.6 ml), never the 200 ml NIN serving cup or a katori: grams are the food's own USDA \"1 cup\" portion.",
+      "source": "USDA FNDDS/SR 2707427 portion '1 cup' = 240 g"
+    },
+    {
+      "phrase": "1 glass milk",
+      "category": "measures",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Milk, NFS$|^Milk, whole$",
+            "grams": [
+              244.9,
+              270.7
+            ],
+            "assumption": true
+          }
+        ]
+      },
+      "rationale": "A glass is provisionally 250 ml; grams from milk's density; shown as an assumption.",
+      "source": "Owner decision (glass 250 ml); USDA FNDDS 2705384 Milk 1 cup = 244 g"
+    },
+    {
+      "phrase": "200 ml milk",
+      "category": "measures",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Milk, NFS$|^Milk, whole$",
+            "grams": [
+              196,
+              216.6
+            ]
+          }
+        ]
+      },
+      "rationale": "A metric volume converted through the food's own density (its USDA \"1 cup\" portion of 236.6 ml), never 1 ml = 1 g.",
+      "source": "USDA FNDDS/SR 2705384 portion '1 cup' = 244 g; 200 ml = 0.845 cup"
+    },
+    {
+      "phrase": "1 tbsp oil",
+      "category": "measures",
+      "expect": {
+        "behavior": "suggest",
+        "preserve": "1 tbsp"
+      },
+      "rationale": "The catalog has 76 oils and no generic cooking oil, so no oil is defensible: suggest and ask which oil, keeping the user's 1 tbsp (owner decision 2026-11-19, serving-reference.md D8). Palm oil is not accepted.",
+      "source": "Owner decision 2026-11-19; NIN 2024 tbsp = 15 ml"
+    },
+    {
+      "phrase": "2 tsp sugar",
+      "category": "measures",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Sugar, NFS$",
+            "grams": [
+              8,
+              8.8
+            ]
+          }
+        ]
+      },
+      "rationale": "A household or metric measure converted through the food's own portion.",
+      "source": "USDA FNDDS/SR 2710257 portion '1 teaspoon' = 4.2 g x 2"
+    },
+    {
+      "phrase": "500 ml water",
+      "category": "measures",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Water, NFS$",
+            "grams": [
+              481.8,
+              532.6
+            ]
+          }
+        ]
+      },
+      "rationale": "A metric volume converted through the food's own density (its USDA \"1 cup\" portion of 236.6 ml), never 1 ml = 1 g.",
+      "source": "USDA FNDDS/SR 2710706 portion '1 cup' = 240 g; 500 ml = 2.113 cups"
+    },
+    {
+      "phrase": "1 glass lassi",
+      "category": "measures",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "A glass is provisionally 250 ml, but lassi has no cited density (its recipe portions are unsourced defaults): flag and ask."
+    },
+    {
+      "phrase": "2 cups tea",
+      "category": "measures",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Tea, hot, leaf, black$",
+            "grams": [
+              456,
+              504
+            ]
+          }
+        ]
+      },
+      "rationale": "\"cup\" here is the USDA standard cup (236.6 ml), never the 200 ml NIN serving cup or a katori: grams are the food's own USDA \"1 cup\" portion.",
+      "source": "USDA FNDDS/SR 2710488 portion '1 cup' = 240 g x 2"
+    },
+    {
+      "phrase": "100g paneer",
+      "category": "measures",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Cheese, paneer$",
+            "grams": [
+              95,
+              105
+            ]
+          }
+        ]
+      },
+      "rationale": "A household or metric measure converted through the food's own portion.",
+      "source": "user-given grams"
+    },
+    {
+      "phrase": "1 cup curd",
+      "category": "measures",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Yogurt, whole milk, plain$",
+            "grams": [
+              232.8,
+              257.2
+            ]
+          }
+        ]
+      },
+      "rationale": "\"cup\" here is the USDA standard cup (236.6 ml), never the 200 ml NIN serving cup or a katori: grams are the food's own USDA \"1 cup\" portion.",
+      "source": "USDA 'Yogurt, whole milk, plain' 1 cup = 245 g"
+    },
+    {
+      "phrase": "1 plate idli",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "NIN 2011 Annexure 8 (p.106) gives \"Idli 2 pieces, 150 kcal\" as the quantity for one serving, not a plate; and its 150 kcal implies about 117 g of USDA idli, not the 76 g that 2 x USDA's 38 g piece gives. The count and the weight describe different preparations, so the plate is asked about. Owner decision 2026-11-19 (increment 5), correcting the earlier approval.",
+      "source": "NIN Dietary Guidelines for Indians 2011, Annexure 8 p.106 (\"Quantity for one serving\"), cup = 200 ml p.109; USDA FNDDS 2708346 Idli / 2709128 Upma"
+    },
+    {
+      "phrase": "1 plate biryani",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "No cited plate or serving for biryani: flag the amount and ask, never a universal plate weight."
+    },
+    {
+      "phrase": "half plate biryani",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "No cited plate for biryani: flag the amount and ask, never a universal plate weight."
+    },
+    {
+      "phrase": "1 plate rice",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, cooked, NFS$",
+            "grams": [
+              126.9,
+              140.2
+            ],
+            "assumption": true
+          }
+        ]
+      },
+      "rationale": "No measured plate. NIN's serving quantity for rice is \"1 cup\" of 200 ml (NIN 2011 Annexure 8 p.106, cup p.109); its 170 kcal agrees with USDA cooked rice at 200 ml (about 132 g against 134 g). Logged as a labelled Nutrikit assumption; NIN does not define a plate.",
+      "source": "NIN Dietary Guidelines 2011 Annexure 8 \"Rice 1 cup\"; NIN serving cup = 200 ml (p.109); USDA FNDDS 2708402 Rice, cooked 1 cup (236.6 ml) = 158 g"
+    },
+    {
+      "phrase": "1 plate poha",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "NIN's poha serving is 1 NIN serving cup (200 ml), but no source gives cooked poha's density: flag the amount and ask, never a universal plate weight."
+    },
+    {
+      "phrase": "1 plate upma",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "NIN 2011 Annexure 8 (p.106) gives \"Upma 1 cup, 270 kcal\" for one serving, not a plate; its 270 kcal implies about 310 g of USDA upma (87 kcal/100 g), not the 144 g that 200 ml of USDA upma weighs. The sources disagree more than 2x, so the plate is asked about. Owner decision 2026-11-19 (increment 5), correcting the earlier approval.",
+      "source": "NIN Dietary Guidelines for Indians 2011, Annexure 8 p.106 (\"Quantity for one serving\"), cup = 200 ml p.109; USDA FNDDS 2708346 Idli / 2709128 Upma"
+    },
+    {
+      "phrase": "1 plate pav bhaji",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "Pav bhaji plate UNKNOWN in the serving reference: flag the amount and ask, never a universal plate weight."
+    },
+    {
+      "phrase": "1 bowl dal",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dal$",
+            "grams": [
+              192.7,
+              213
+            ],
+            "assumption": true
+          }
+        ]
+      },
+      "rationale": "A bowl is provisionally 200 ml; the logged item must say the amount is an assumption.",
+      "source": "Owner decision 2026-11-19 (bowl provisional 200 ml); USDA FNDDS 2707427 Dal 1 cup = 240 g"
+    },
+    {
+      "phrase": "1 katori dal",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dal$",
+            "grams": [
+              192.7,
+              213
+            ]
+          }
+        ]
+      },
+      "rationale": "A katori is 200 ml (NIN katori, not a cup); grams from dal's own density, not 1 ml = 1 g.",
+      "source": "ICMR-NIN Dietary Guidelines 2024, Annexure I: medium katori 200 ml; USDA FNDDS 2707427 Dal 1 cup (236.6 ml) = 240 g"
+    },
+    {
+      "phrase": "1 small katori dal",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "NIN gives two small katori sizes (155 and 115 ml); the amount is ambiguous: flag and ask."
+    },
+    {
+      "phrase": "2 katori rice",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, cooked, NFS$",
+            "grams": [
+              253.8,
+              280.5
+            ]
+          }
+        ]
+      },
+      "rationale": "Two 200 ml (NIN katori, not a cup) katoris; grams from cooked rice's own density.",
+      "source": "ICMR-NIN Dietary Guidelines 2024, Annexure I: medium katori 200 ml; USDA FNDDS 2708402 Rice, cooked 1 cup = 158 g"
+    },
+    {
+      "phrase": "1 bowl rice",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, cooked, NFS$",
+            "grams": [
+              126.9,
+              140.2
+            ],
+            "assumption": true
+          }
+        ]
+      },
+      "rationale": "Provisional 200 ml bowl, shown as an assumption.",
+      "source": "Owner decision (bowl 200 ml); USDA FNDDS 2708402"
+    },
+    {
+      "phrase": "1 bowl curd",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Yogurt, whole milk, plain$",
+            "grams": [
+              196.7,
+              217.5
+            ],
+            "assumption": true
+          }
+        ]
+      },
+      "rationale": "Provisional 200 ml bowl, shown as an assumption.",
+      "source": "Owner decision (bowl 200 ml); USDA FNDDS 2705418 yogurt 1 cup = 245 g"
+    },
+    {
+      "phrase": "1 katori kheer",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "A 200 ml katori, but kheer has no cited density: the recipe's \"1 cup = 240 g\" is a default every INDB recipe gets (scripts/indb.mjs), and firni is a different dish. Flag and ask."
+    },
+    {
+      "phrase": "1 bowl sambar",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Sambar, vegetable stew$",
+            "grams": [
+              199.2,
+              220.1
+            ],
+            "assumption": true
+          }
+        ]
+      },
+      "rationale": "Provisional 200 ml bowl, shown as an assumption.",
+      "source": "Owner decision (bowl 200 ml); USDA FNDDS 2707430 Sambar 1 cup = 248 g"
+    },
+    {
+      "phrase": "1 katori rajma",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "A 200 ml katori, but no cited density for this rajma (CoFID entry has no portion; INDB serving is a recipe yield): flag."
+    },
+    {
+      "phrase": "1 bowl sweet corn soup",
+      "category": "plates-bowls",
+      "expect": {
+        "behavior": "flag"
+      },
+      "rationale": "No cited density for this soup; the INDB \"1 bowl\" is a recipe yield, not a portion: flag."
+    },
+    {
+      "phrase": "chicken fried rice",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, fried, with chicken$"
+          }
+        ]
+      },
+      "rationale": "FNDDS has chicken fried rice; a CoFID chicken stir-fry is a different dish.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "fried rice",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, fried, NFS$"
+          }
+        ]
+      },
+      "rationale": "generic fried rice",
+      "source": "catalog"
+    },
+    {
+      "phrase": "veg noodles",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Vegetable chowmein$"
+          }
+        ]
+      },
+      "rationale": "vegetable noodles",
+      "source": "catalog"
+    },
+    {
+      "phrase": "hakka noodles",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Vegetable chowmein$"
+          }
+        ]
+      },
+      "rationale": "Indo-Chinese noodles",
+      "source": "catalog"
+    },
+    {
+      "phrase": "paneer tikka",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Paneer shaslik/tikka$"
+          }
+        ]
+      },
+      "rationale": "grilled paneer",
+      "source": "catalog"
+    },
+    {
+      "phrase": "chicken tikka",
+      "category": "dishes",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "The catalog has only chicken tikka masala (a curry); dry tikka is a different dish: suggest.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "fish fry",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Fish, NS as to type, fried$"
+          }
+        ]
+      },
+      "rationale": "fried fish (reviewed: Indian \"fish fry\" is fried fish; FNDDS generic fried fish)",
+      "source": "catalog"
+    },
+    {
+      "phrase": "egg roll",
+      "category": "dishes",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "\"Egg roll\" names two different foods; the catalog has only Chinese-style rolls: suggest.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "veg burger",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Veggie burger, on bun$"
+          }
+        ]
+      },
+      "rationale": "burger on a bun",
+      "source": "catalog"
+    },
+    {
+      "phrase": "chicken sandwich",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chicken sandwich$|^Chicken sandwich \\(toasted\\)$"
+          }
+        ]
+      },
+      "rationale": "sandwich",
+      "source": "catalog"
+    },
+    {
+      "phrase": "veg sandwich",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Vegetable sandwich on white$|^Vegetable sandwich on wheat$"
+          }
+        ]
+      },
+      "rationale": "sandwich",
+      "source": "catalog"
+    },
+    {
+      "phrase": "cold coffee",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Cold coffee \\(with cream\\)$|^Cold coffee with ice cream$|^Iced Coffee, brewed$"
+          }
+        ]
+      },
+      "rationale": "iced coffee drink",
+      "source": "catalog"
+    },
+    {
+      "phrase": "green tea",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Tea, hot, leaf, green$"
+          }
+        ]
+      },
+      "rationale": "hot green tea",
+      "source": "catalog"
+    },
+    {
+      "phrase": "black coffee",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Coffee, brewed$"
+          }
+        ]
+      },
+      "rationale": "black coffee is brewed coffee without milk",
+      "source": "catalog"
+    },
+    {
+      "phrase": "lemon rice",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Lemon rice \\(Pulihora, Elumichai sadam, Chitranna\\)$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "curd rice",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Curd rice \\(Dahi bhaat/Dahi chawal/ Perugu annam/Daddojanam/Thayir saadam\\)$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "tomato soup",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Soup, tomato$"
+          }
+        ]
+      },
+      "rationale": "soup",
+      "source": "catalog"
+    },
+    {
+      "phrase": "sweet corn soup",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Sweet corn soup$"
+          }
+        ]
+      },
+      "rationale": "soup",
+      "source": "catalog"
+    },
+    {
+      "phrase": "fruit salad",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Fruit salad, fresh or raw, excluding citrus fruits, no dressing$|^Fruit salad, fresh or raw, including citrus fruits, no dressing$"
+          }
+        ]
+      },
+      "rationale": "fresh/canned fruit salad, not the marshmallow variant",
+      "source": "catalog"
+    },
+    {
+      "phrase": "chocolate cake",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chocolate cake$|^Cake, chocolate, prepared from recipe without frosting$|^Cake, chocolate, commercially prepared with chocolate frosting, in-store bakery$"
+          }
+        ]
+      },
+      "rationale": "cake",
+      "source": "catalog"
+    },
+    {
+      "phrase": "ice cream",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Ice cream, NFS$"
+          }
+        ]
+      },
+      "rationale": "ice cream",
+      "source": "catalog"
+    },
+    {
+      "phrase": "peanut butter sandwich",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Peanut butter sandwich, NFS$"
+          }
+        ]
+      },
+      "rationale": "sandwich",
+      "source": "catalog"
+    },
+    {
+      "phrase": "aloo paratha",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Potato parantha/paratha \\(Aloo ka parantha/paratha\\)$"
+          }
+        ]
+      },
+      "rationale": "stuffed paratha",
+      "source": "catalog"
+    },
+    {
+      "phrase": "gobi paratha",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Cauliflower parantha/paratha \\(Phoolgobhi ka parantha/paratha\\)$"
+          }
+        ]
+      },
+      "rationale": "stuffed paratha",
+      "source": "catalog"
+    },
+    {
+      "phrase": "paneer paratha",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Paneer parantha/paratha$"
+          }
+        ]
+      },
+      "rationale": "stuffed paratha",
+      "source": "catalog"
+    },
+    {
+      "phrase": "chicken biryani",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Biryani with chicken$|^Biryani, chicken, takeaway$"
+          }
+        ]
+      },
+      "rationale": "biryani",
+      "source": "catalog"
+    },
+    {
+      "phrase": "potato chips",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Potato chips, NFS$"
+          }
+        ]
+      },
+      "rationale": "crisps",
+      "source": "catalog"
+    },
+    {
+      "phrase": "banana chips",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Banana chips$"
+          }
+        ]
+      },
+      "rationale": "chips",
+      "source": "catalog"
+    },
+    {
+      "phrase": "chicken wings",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chicken wing, NS as to cooking method$"
+          }
+        ]
+      },
+      "rationale": "wings",
+      "source": "catalog"
+    },
+    {
+      "phrase": "fish curry",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Fish curry$|^Fish curry \\(Machli curry\\)$|^Curry, fish, homemade$"
+          }
+        ]
+      },
+      "rationale": "curry",
+      "source": "catalog"
+    },
+    {
+      "phrase": "prawn curry",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Prawn curry \\(with coconut\\) \\(Jhinga curry\\)$"
+          }
+        ]
+      },
+      "rationale": "curry",
+      "source": "catalog"
+    },
+    {
+      "phrase": "mutton curry",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Mutton curry \\(home-style Indian goat curry\\)$"
+          }
+        ]
+      },
+      "rationale": "curry",
+      "source": "catalog"
+    },
+    {
+      "phrase": "chicken 65",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chicken 65 \\(spicy deep-fried chicken\\)$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "jalebi",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Jalebi \\(fermented batter, fried and soaked in syrup\\)$"
+          }
+        ]
+      },
+      "rationale": "sweet",
+      "source": "catalog"
+    },
+    {
+      "phrase": "masala chai",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Tea, hot, with milk$"
+          }
+        ]
+      },
+      "rationale": "milk tea",
+      "source": "catalog"
+    },
+    {
+      "phrase": "orange juice",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Orange juice, 100%, NFS$"
+          }
+        ]
+      },
+      "rationale": "juice",
+      "source": "catalog"
+    },
+    {
+      "phrase": "coconut water",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Coconut water, unsweetened$"
+          }
+        ]
+      },
+      "rationale": "drink",
+      "source": "catalog"
+    },
+    {
+      "phrase": "buttermilk",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Buttermilk$|^Lassi \\(salted\\)$"
+          }
+        ]
+      },
+      "rationale": "drink",
+      "source": "catalog"
+    },
+    {
+      "phrase": "sprouts salad",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Sprouted moong salad$"
+          }
+        ]
+      },
+      "rationale": "salad",
+      "source": "catalog"
+    },
+    {
+      "phrase": "peanuts",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Peanuts, NFS$"
+          }
+        ]
+      },
+      "rationale": "nuts",
+      "source": "catalog"
+    },
+    {
+      "phrase": "almonds",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Almonds, NFS$"
+          }
+        ]
+      },
+      "rationale": "nuts",
+      "source": "catalog"
+    },
+    {
+      "phrase": "pasta",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pasta, cooked$"
+          }
+        ]
+      },
+      "rationale": "pasta",
+      "source": "catalog"
+    },
+    {
+      "phrase": "white sauce pasta",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pasta with cream sauce, home recipe$|^Pasta with cream sauce, restaurant$|^Pasta with cream sauce, ready-to-heat$"
+          }
+        ]
+      },
+      "rationale": "pasta",
+      "source": "catalog"
+    },
+    {
+      "phrase": "pizza",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pizza, cheese, from restaurant or fast food, NS as to type of crust$"
+          }
+        ]
+      },
+      "rationale": "pizza",
+      "source": "catalog"
+    },
+    {
+      "phrase": "1 slice pizza",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pizza, cheese, from restaurant or fast food, NS as to type of crust$"
+          }
+        ]
+      },
+      "rationale": "pizza slice",
+      "source": "catalog"
+    },
+    {
+      "phrase": "french fries",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Potato, french fries, NFS$"
+          }
+        ]
+      },
+      "rationale": "fries",
+      "source": "catalog"
+    },
+    {
+      "phrase": "momos",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Veg momos \\(steamed dumplings with cabbage filling\\)$"
+          }
+        ]
+      },
+      "rationale": "dumplings",
+      "source": "catalog"
+    },
+    {
+      "phrase": "chilli chicken",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chilli chicken$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "dal fry",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dal$"
+          }
+        ]
+      },
+      "rationale": "dal (reviewed: USDA \"Dal\" is tempered lentil dal (search PHRASES maps dal fry/tadka to it))",
+      "source": "catalog"
+    },
+    {
+      "phrase": "dal tadka",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dal$"
+          }
+        ]
+      },
+      "rationale": "dal (reviewed: as dal fry)",
+      "source": "catalog"
+    },
+    {
+      "phrase": "jeera rice",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Cumin pulao \\(Jeera/Zeera pulao\\)$"
+          }
+        ]
+      },
+      "rationale": "rice",
+      "source": "catalog"
+    },
+    {
+      "phrase": "brown rice",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, brown, cooked, NS as to fat$|^Rice, brown, cooked, no added fat$"
+          }
+        ]
+      },
+      "rationale": "rice",
+      "source": "catalog"
+    },
+    {
+      "phrase": "oats",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Oats, raw$|^Oats, whole grain, rolled, old fashioned$|^Oats, whole grain, steel cut$|^Oats \\(Includes foods for USDA's Food Distribution Program\\)$"
+          }
+        ]
+      },
+      "rationale": "oats",
+      "source": "catalog"
+    },
+    {
+      "phrase": "toast",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Bread, white, toasted$"
+          }
+        ]
+      },
+      "rationale": "toast",
+      "source": "catalog"
+    },
+    {
+      "phrase": "omelette",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Omelette, plain, homemade$"
+          }
+        ]
+      },
+      "rationale": "omelette",
+      "source": "catalog"
+    },
+    {
+      "phrase": "boiled egg",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Egg, whole, boiled or poached$"
+          }
+        ]
+      },
+      "rationale": "egg",
+      "source": "catalog"
+    },
+    {
+      "phrase": "egg bhurji",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Scrambled egg \\(Ande ki bhurji\\)$|^Egg, whole, cooked, scrambled$"
+          }
+        ]
+      },
+      "rationale": "egg",
+      "source": "catalog"
+    },
+    {
+      "phrase": "poha",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Poha$|^Poha \\(flattened rice with onion and peanuts\\)$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "upma",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Upma$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "uttapam",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Uttapam$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "khichdi",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Khichadi, with butter ghee$|^Plain khitchdi \\(Plain khichri/khichdi\\)$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "pav bhaji",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pav bhaji$|^Pav bhaji \\(vegetable mash with buttered rolls\\)$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "vada pav",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Vada pav \\(potato fritter in a bun with chutneys\\)$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "pani puri",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pani puri \\(hollow puris with potato filling and spiced water\\)$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "dhokla",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Instant dhokla$|^Dhokla$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "thepla",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Methi thepla$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "butter chicken",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Butter chicken$"
+          }
+        ]
+      },
+      "rationale": "curry",
+      "source": "catalog"
+    },
+    {
+      "phrase": "chicken tikka masala",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chicken tikka masala$"
+          }
+        ]
+      },
+      "rationale": "curry",
+      "source": "catalog"
+    },
+    {
+      "phrase": "chicken curry",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chicken curry$"
+          }
+        ]
+      },
+      "rationale": "curry",
+      "source": "catalog"
+    },
+    {
+      "phrase": "mac and cheese",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Macaroni or noodles with cheese$|^Macaroni or noodles with cheese, from restaurant$"
+          }
+        ]
+      },
+      "rationale": "dish",
+      "source": "catalog"
+    },
+    {
+      "phrase": "spring roll",
+      "category": "dishes",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "Veg or meat is unknown and only a meat roll exists: suggest.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "tandoori chicken",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Tandoori chicken$"
+          }
+        ]
+      },
+      "rationale": "the dry dish, not a tandoori chicken curry",
+      "source": "catalog"
+    },
+    {
+      "phrase": "sabzi",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Mixed vegetable sabzi \\(semi-dry Indian mixed vegetables\\)$"
+          }
+        ]
+      },
+      "rationale": "generic sabzi",
+      "source": "catalog"
+    },
+    {
+      "phrase": "salad",
+      "category": "dishes",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Lettuce, salad with assorted vegetables including tomatoes and/or carrots, no dressing$|^Lettuce, salad with assorted vegetables excluding tomatoes and carrots, no dressing$"
+          }
+        ]
+      },
+      "rationale": "green salad",
+      "source": "catalog"
+    },
+    {
+      "phrase": "matar ki sabzi",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pea curry \\(Matar ki sabzi\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "matar aloo ki sabzi",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pea potato curry \\(Aloo matar\\)$|^Curry, potato and pea, homemade$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "aloo ki sabzi",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Potato curry \\(Aloo ki sabzi\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "aloo gobi",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Potato cauliflower \\(Aloo gobhi\\)$|^Curry, cauliflower and potato, homemade$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food. (reviewed: INDB aloo gobhi, or the CoFID dish the reviewed alias \"aloo gobi\" names)",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "gobi aloo",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Potato cauliflower \\(Aloo gobhi\\)$|^Curry, cauliflower and potato, homemade$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food. (as aloo gobi)",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "aloo gobhi",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Potato cauliflower \\(Aloo gobhi\\)$|^Curry, cauliflower and potato, homemade$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food. (as aloo gobi)",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "murgh korma",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Curry, chicken korma, homemade$|^Chicken korma$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "gosht biryani",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Mutton biryani/biriyani$|^Curry, lamb biryani, homemade$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "kakdi raita",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Cucumber raita \\(Kheere ka raita\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "kheera raita",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Cucumber raita \\(Kheere ka raita\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "kheere ka raita",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Cucumber raita \\(Kheere ka raita\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "palak paneer",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Palak Paneer$|^Spinach paneer \\(Palak paneer\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "palak panir",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Palak Paneer$|^Spinach paneer \\(Palak paneer\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "palak",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Spinach, cooked, boiled, drained, without salt$|^Spinach, cooked, boiled, drained, with salt$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "panir",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Cheese, paneer$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "mattar paneer",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pea paneer curry \\(Matar paneer\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "mutter paneer",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pea paneer curry \\(Matar paneer\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "jira aloo",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Jeera aloo \\(potatoes tempered with cumin\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "bengan bharta",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Brinjal bhartha \\(Baingan ka bhartha\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "anda curry",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Egg curry \\(Anda curry\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "anda bhurji",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Scrambled egg \\(Ande ki bhurji\\)$|^Egg, whole, cooked, scrambled$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "daal",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dal$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "dhal",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dal$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "yellow moong daal",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Washed moong dal \\(Dhuli moong ki dal\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "samose",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Samosa$|^Samosas, vegetable, retail$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "masala dosai",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dosa, with filling$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "masaala dosa",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dosa, with filling$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "nan",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Bread, naan$|^Naan$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "mix veg pulao",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Mixed vegetable pulao$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "rajma",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Curry, red kidney bean, Punjabi, homemade$|^Kidney bean curry \\(Rajmah curry\\)$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "dal makhani",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dal makhani$|^Curry, black gram, whole and red kidney bean, homemade$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "chole",
+      "category": "hinglish",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Curry, chick pea, whole and tomato, Punjabi, with vegetable oil, homemade$|^Curry, chick pea, whole and tomato, Punjabi, with butter, homemade$"
+          }
+        ]
+      },
+      "rationale": "A romanised spelling, Hindi name or regional name of a catalog food.",
+      "source": "catalog (M7.3 equivalences)"
+    },
+    {
+      "phrase": "chiken korma",
+      "category": "typos",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "A typing mistake: a didYouMean suggestion, never a guess."
+    },
+    {
+      "phrase": "chicken chowmin",
+      "category": "typos",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "A typing mistake: a didYouMean suggestion, never a guess."
+    },
+    {
+      "phrase": "plain prantha",
+      "category": "typos",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "A typing mistake: a didYouMean suggestion, never a guess."
+    },
+    {
+      "phrase": "1 cup panner",
+      "category": "typos",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "A typing mistake: a didYouMean suggestion, never a guess."
+    },
+    {
+      "phrase": "panner",
+      "category": "typos",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "A typing mistake: a didYouMean suggestion, never a guess."
+    },
+    {
+      "phrase": "gulab jamun",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "kachori",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "bhel puri",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "sev puri",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "dahi puri",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "chole bhature",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "paneer butter masala",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "khandvi",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "egg biryani",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "veg thali",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "margherita pizza",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "muesli",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "aloo paneer",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "aloo samosa",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "bread jam",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "red sauce pasta",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "boiled chana",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "roasted chana",
+      "category": "no-right-food",
+      "expect": {
+        "behavior": "suggest"
+      },
+      "rationale": "No catalog food is this dish (or no defensible single one): suggest, never log a different food."
+    },
+    {
+      "phrase": "2 roti, 1 dal",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$"
+          },
+          {
+            "food": "^Dal$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "2 roti and 1 bowl dal",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Chapati/Roti$"
+          },
+          {
+            "food": "^Dal$",
+            "grams": [
+              192.7,
+              213
+            ],
+            "assumption": true
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped. The bowl is the provisional 200 ml bowl, labelled as an assumption; dal grams from its own density.",
+      "source": "Owner decision 2026-11-19 (bowl provisional 200 ml); USDA FNDDS 2707427 Dal 1 cup = 240 g; INDB 878591004 Chapati/Roti"
+    },
+    {
+      "phrase": "dal, rice and salad",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dal$"
+          },
+          {
+            "food": "^Rice, cooked, NFS$"
+          },
+          {
+            "food": "^Lettuce, salad with assorted vegetables including tomatoes and/or carrots, no dressing$|^Lettuce, salad with assorted vegetables excluding tomatoes and carrots, no dressing$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "tea with milk and sugar",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Tea, hot, leaf, black$"
+          },
+          {
+            "food": "^Milk, NFS$|^Milk, whole$"
+          },
+          {
+            "food": "^Sugar, NFS$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "coffee with sugar",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Coffee, brewed$"
+          },
+          {
+            "food": "^Sugar, NFS$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "idli with sambar",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Idli$"
+          },
+          {
+            "food": "^Sambar, vegetable stew$|^Sambar, homemade$|^Sambar$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "dosa with chutney",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dosa, plain$"
+          },
+          {
+            "food": "^Chutney$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "tea and biscuits",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Tea, hot, leaf, black$"
+          }
+        ],
+        "ask": [
+          "biscuits?"
+        ],
+        "uncertain": true
+      },
+      "rationale": "Tea and biscuits is culturally ambiguous. The catalog's generic Cookie, NFS entry (492 kcal/100 g) has materially different nutritional values from the available Indian biscuit entries (Sweet plain biscuit 381, Marie biscuit 406). Do not automatically select it or substitute Marie or sweet plain biscuits. Log tea independently and ask the user which biscuits they ate, keeping the phrase. This is safely uncertain, not an incorrect food match. Owner decision 2026-11-20.",
+      "source": "Owner decision 2026-11-20; catalog: survey 2707899 Cookie, NFS; INDB Sweet plain biscuit; survey Marie biscuit"
+    },
+    {
+      "phrase": "rice and beans",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Rice, cooked, NFS$"
+          },
+          {
+            "food": "^Beans, NFS$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "bread and butter",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Bread, white$"
+          },
+          {
+            "food": "^Butter, NFS$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "2 paratha with raita",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Bread, paratha$|^Plain parantha/paratha$"
+          }
+        ],
+        "ask": [
+          "raita"
+        ],
+        "uncertain": true
+      },
+      "rationale": "Log the 2 parathas. \"Raita\" names one of 23 raitas in the catalog (cucumber, onion, mint, potato, fruit raitas and others) and there is no generic raita entry, so no raita is defensible: ask which raita rather than logging cucumber raita, and list it back, never dropped. Safely uncertain, not correct automatic logging of every food (owner decisions 2026-11-19, serving-reference.md D8, and 2026-11-20).",
+      "source": "Owner decision 2026-11-19; catalog"
+    },
+    {
+      "phrase": "masala dosa, sambar",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Dosa, with filling$"
+          },
+          {
+            "food": "^Sambar, vegetable stew$|^Sambar, homemade$|^Sambar$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "anda curry with 3 roti",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Egg curry \\(Anda curry\\)$"
+          },
+          {
+            "food": "^Chapati/Roti$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    },
+    {
+      "phrase": "2 mattar paneer and 3 phulka",
+      "category": "multi",
+      "expect": {
+        "behavior": "log",
+        "items": [
+          {
+            "food": "^Pea paneer curry \\(Matar paneer\\)$"
+          },
+          {
+            "food": "^Chapati/Roti$"
+          }
+        ]
+      },
+      "rationale": "Every food in the meal is logged; none is silently dropped.",
+      "source": "catalog"
+    }
+  ],
+  "sha256": "4a8b8693c1c41c8a6d7ac42904cb3b0ed916a8426d27a2c81b3473738996d4ef"
+}

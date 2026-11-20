@@ -13,12 +13,20 @@ const UNICODE_FRACTIONS: Record<string, number> = lookup({ '½': 0.5, '⅓': 1 /
 
 const MASS: Record<string, number> = lookup({ g: 1, gram: 1, grams: 1, gr: 1, kg: 1000, kilogram: 1000, kilograms: 1000, mg: 0.001, oz: 28.3495, ounce: 28.3495, ounces: 28.3495, lb: 453.592, lbs: 453.592, pound: 453.592, pounds: 453.592 });
 // Volumes in US cups.
-const VOLUME: Record<string, number> = lookup({ cup: 1, cups: 1, c: 1, tbsp: 1 / 16, tablespoon: 1 / 16, tablespoons: 1 / 16, tbs: 1 / 16, tsp: 1 / 48, teaspoon: 1 / 48, teaspoons: 1 / 48, 'fl oz': 1 / 8, ml: 1 / 236.588, milliliter: 1 / 236.588, milliliters: 1 / 236.588, l: 4.22675, liter: 4.22675, liters: 4.22675, pint: 2, pints: 2, glass: 1, glasses: 1, mug: 1.5, mugs: 1.5 });
+const VOLUME: Record<string, number> = lookup({ cup: 1, cups: 1, c: 1, tbsp: 1 / 16, tablespoon: 1 / 16, tablespoons: 1 / 16, tbs: 1 / 16, tsp: 1 / 48, teaspoon: 1 / 48, teaspoons: 1 / 48, 'fl oz': 1 / 8, ml: 1 / 236.588, milliliter: 1 / 236.588, milliliters: 1 / 236.588, l: 4.22675, liter: 4.22675, liters: 4.22675, pint: 2, pints: 2 });
+// A glass and a mug have no standard size. Each is taken as a provisional 250 ml: a Nutrikit assumption, not a measured
+// household capacity, weighed only through the food's cited USDA density and labelled (portion-logging-v2 D1).
+const PROVISIONAL_ML = 250;
+const glass = { unit: 'glass', method: 'assumed-glass', basis: 'glass, provisionally 250 ml (a Nutrikit assumption, not a measured glass)' };
+const mug = { unit: 'mug', method: 'assumed-mug', basis: 'mug, provisionally 250 ml (a Nutrikit assumption, not a measured mug)' };
+const PROVISIONAL: Record<string, { unit: string; method: string; basis: string }> = lookup({ glass, glasses: glass, mug, mugs: mug });
 const COUNT: Record<string, string> = lookup({ slice: 'slice', slices: 'slice', piece: 'piece', pieces: 'piece', serving: 'serving', servings: 'serving', small: 'small', medium: 'medium', large: 'large', extra: 'extra', bowl: 'bowl', bowls: 'bowl', can: 'can', cans: 'can', bottle: 'bottle', bottles: 'bottle', bar: 'bar', bars: 'bar', scoop: 'scoop', scoops: 'scoop', handful: 'handful', handfuls: 'handful', stick: 'stick', sticks: 'stick', strip: 'strip', strips: 'strip', fillet: 'fillet', fillets: 'fillet', patty: 'patty', patties: 'patty', link: 'link', links: 'link', packet: 'packet', packets: 'packet', package: 'package', container: 'container', plate: 'plate', plates: 'plate', sandwich: 'sandwich', wedge: 'wedge', wedges: 'wedge', clove: 'clove', cloves: 'clove', leaf: 'leaf', leaves: 'leaf', jar: 'jar' });
 
 export type CanonicalUnit =
   | { kind: 'mass'; unit: string; grams: number }
-  | { kind: 'volume'; unit: string; cups: number; basis?: string } // basis: an Indian measure's volume and source
+  // basis: an Indian measure's volume and source; assumed: the portionMethod of a provisional size (a glass, a mug)
+  | { kind: 'volume'; unit: string; cups: number; basis?: string; assumed?: string }
+  | { kind: 'unsupported'; unit: string; note: string } // a measure with no supported size ("small katori"): asked for
   | { kind: 'count'; unit: string };
 
 /** A unit word as a mass (with grams), a volume (with US cups) or a count unit; null when it is not a unit. */
@@ -27,8 +35,11 @@ export function canonicalUnit(word: string | null | undefined): CanonicalUnit | 
   const w = word.toLowerCase().replace(/\.$/, '');
   if (w in MASS) return { kind: 'mass', unit: w === 'gram' || w === 'grams' || w === 'gr' ? 'g' : w, grams: MASS[w] };
   if (w in VOLUME) return { kind: 'volume', unit: w, cups: VOLUME[w] };
+  const provisional = PROVISIONAL[w];
+  if (provisional) return { kind: 'volume', unit: provisional.unit, cups: PROVISIONAL_ML / 236.588, basis: provisional.basis, assumed: provisional.method };
   const measure = utensil(w);
-  if (measure) return { kind: 'volume', unit: w.replace(/s$/, ''), cups: measure.ml / 236.588, basis: measure.basis };
+  if (measure && measure.ml == null) return { kind: 'unsupported', unit: w.replace(/s$/, ''), note: measure.basis };
+  if (measure) return { kind: 'volume', unit: w.replace(/s$/, ''), cups: measure.ml! / 236.588, basis: measure.basis };
   if (w in COUNT) return { kind: 'count', unit: COUNT[w] };
   return null;
 }
@@ -94,7 +105,15 @@ export interface PortionFood {
   name: string;
   category?: string | null;
   portions?: Portion[] | null;
+  /** The food's data source: only USDA's measured household volumes give a density (see volumePortion). */
+  source?: string | null;
 }
+
+// Sources whose volume portions ("1 cup = 240 g") are measured household measures, so they give a food's density.
+// INDB and recipe "cup"/"glass" portions are serving weights (an INDB "1 ice-cream cup" is 371 g; every INDB recipe
+// gets a default "1 cup = 240 g"), CoFID dishes have no portions, and an AI estimate's serving is the AI's own figure:
+// none is a density (openspec/changes/portion-logging-v2/serving-reference.md, D2 and D7).
+const DENSITY_SOURCES = new Set(['survey', 'sr_legacy', 'foundation']);
 
 
 // Typical servings for foods sold by size whose catalog entry has no size portions (USDA FNDDS fast-food sizes).
@@ -105,14 +124,20 @@ const SIZE_SERVINGS: [RegExp, Record<Size, number>][] = [
   [/\bfrench fries\b/i, { small: 71, medium: 117, large: 154 }],
 ];
 /**
- * A volume of a food in grams. A portion in the same unit wins; otherwise the food's own volume portion gives its
- * density ("1 cup dal = 240 g", `volume-conversion`); without one, water density is assumed (`density-estimate`).
+ * A volume of a food in grams, only through the food's own cited density: a USDA volume portion. A portion in the same
+ * unit wins; otherwise the food's own volume portion gives its density ("1 cup dal = 240 g", `volume-conversion`).
+ * A food with no cited density gets no grams (UNSUPPORTED_DENSITY): a known volume is not a known weight, so water
+ * density, a recipe yield or a serving weight is never used instead.
  * "1 cup, dry, yields" weighs the cooked result of a dry cup (740 g for barley), so it is never a volume of this food.
  * `basis` (an Indian measure's volume and source) leads the returned portion text.
  */
-function volumePortion(portions: Portion[], q: number, unitName: string, cups: number, basis?: string): ResolvedPortion {
+function volumePortion(food: PortionFood, q: number, unitName: string, cups: number, basis?: string): ResolvedPortion {
+  const portions = food.portions || [];
   const perUnit = (p: Portion) => p.grams / (p.amount || 1);
   const label = (via?: string) => [basis, via].filter(Boolean).join('; ') || null;
+  const amount = `${q} ${unitName}`;
+  const unsupported: ResolvedPortion = { grams: 0, quantity: q, unit: unitName, portion: `no cited density for ${food.name}, so ${amount} can't be weighed; give the amount in grams`, method: UNSUPPORTED_DENSITY };
+  if (!DENSITY_SOURCES.has(food.source ?? '')) return unsupported;
   const volumes = portions.filter((p) => !YIELDS.test(p.label));
   const same = !basis && volumes.find((p) => p.unit === unitName || (unitName === 'cups' && p.unit === 'cup'));
   if (same) return { grams: q * perUnit(same), quantity: q, unit: unitName, portion: same.label, method: 'portion' };
@@ -121,9 +146,36 @@ function volumePortion(portions: Portion[], q: number, unitName: string, cups: n
     const gramsPerCup = perUnit(vol) / VOLUME_PORTIONS[vol.unit as string];
     return { grams: q * cups * gramsPerCup, quantity: q, unit: unitName, portion: label(vol.label), method: 'volume-conversion' };
   }
-  // No density data for this food: assume water-like density (1 cup = 236.6 g).
-  return { grams: q * cups * 236.588, quantity: q, unit: unitName, portion: label(), method: 'density-estimate' };
+  // No volume portion: no density, so no grams (never water density).
+  return unsupported;
 }
+
+/** The method of a portion that has no grams because its measure has no supported size: never logged. */
+export const UNSUPPORTED_MEASURE = 'unsupported-measure';
+/** A bowl: a provisional volume, not a measured size (see resolvePortion). */
+const BOWL_ML = 200;
+const BOWL_BASIS = 'bowl, provisionally 200 ml (a Nutrikit assumption, not a measured bowl)';
+/** The method of a bowl logged at the provisional 200 ml: the amount is an assumption and says so. */
+export const ASSUMED_BOWL = 'assumed-bowl';
+/**
+ * A plate has no standard size, and no source defines one. The single exception is plain cooked rice: NIN's serving
+ * quantity for rice is "1 cup" of 200 ml (Dietary Guidelines for Indians 2011, Annexure 8 p.106, cup p.109), and its
+ * 170 kcal agrees with USDA cooked rice at that volume (about 132 g against 134 g). So a plate of plain cooked rice is
+ * taken as 200 ml, a Nutrikit assumption labelled `assumed-plate`; NIN doesn't call it a plate. Idli and upma are not
+ * included: NIN's quantities for them disagree with USDA's weight or energy for the same food (idli 2 pieces imply
+ * about 117 g, not 76 g; upma 1 cup implies about 310 g, not 144 g), so their plates are asked about
+ * (portion-logging-v2 D3).
+ */
+const PLATE_RICE_ML = 200;
+const PLAIN_RICE = (name: string) => /^Rice, /.test(name) && /\bcooked\b/.test(name)
+  && !/\b(uncooked|brown|wild|fat added|made with|with milk|honey|coconut|glutinous|Puerto Rican|instant|as ingredient)\b/i.test(name);
+const PLATE_RICE_BASIS = 'plate of rice, taken as 200 ml (a Nutrikit assumption from NIN\'s 1-cup serving of rice, NIN 2011; NIN does not define a plate)';
+/** The method of a plate of plain cooked rice logged at the assumed 200 ml. */
+export const ASSUMED_PLATE = 'assumed-plate';
+/** The method of a portion that has no grams because the food has no cited density for a volume: never logged. */
+export const UNSUPPORTED_DENSITY = 'unsupported-density';
+/** True for a portion (or an item's portionMethod, with any prefix) that has no supported grams and must not be logged. */
+export const unsupportedAmount = (method: string) => method.endsWith(UNSUPPORTED_MEASURE) || method.endsWith(UNSUPPORTED_DENSITY);
 
 /**
  * Resolve a quantity + unit for a food into grams: a mass, a volume (through the food's density), a household
@@ -146,13 +198,36 @@ export function resolvePortion(food: PortionFood, quantity: number | null | unde
     const oz = portions.find((p) => p.unit === 'oz');
     return { grams: q * (oz ? perUnit(oz) : 28.35), quantity: q, unit: 'handful', portion: oz?.label || null, method: 'estimate-1oz' };
   }
-  if (unit?.kind === 'volume') return volumePortion(portions, q, unit.unit, unit.cups, unit.basis);
+  if (unit?.kind === 'volume') {
+    // With a basis, a food's own portion in the same unit (an INDB "1 glass = 349 g") is never used as the measure.
+    const p = volumePortion(food, q, unit.unit, unit.cups, unit.basis);
+    return unit.assumed && p.method === 'volume-conversion' ? { ...p, method: unit.assumed } : p;
+  }
+  // No supported size: no grams. Callers must not log it (UNSUPPORTED_MEASURE); the note says what to give instead.
+  if (unit?.kind === 'unsupported') return { grams: 0, quantity: q, unit: unit.unit, portion: unit.note, method: UNSUPPORTED_MEASURE };
+  // A bowl has no standard size. It is taken as a provisional 200 ml (a Nutrikit assumption, not a claim about any
+  // household bowl), weighed only through the food's cited USDA density and labelled `assumed-bowl`. A food's own
+  // "bowl" portion is never used: USDA's are packaged products ("1 KFC Bowl"), INDB's and recipes' are serving
+  // weights (sweet corn soup 392 g), and an AI estimate's is its own figure (portion-logging-v2 D1, D2).
+  // A plate: never the food's own "plate" serving or its default serving; only plain cooked rice has an assumption.
+  if (unit?.unit === 'plate') {
+    if (DENSITY_SOURCES.has(food.source ?? '') && PLAIN_RICE(food.name)) {
+      const p = volumePortion(food, q, 'plate', PLATE_RICE_ML / 236.588, PLATE_RICE_BASIS);
+      return p.method === UNSUPPORTED_DENSITY ? p : { ...p, method: ASSUMED_PLATE };
+    }
+    return { grams: 0, quantity: q, unit: 'plate', portion: `a plate has no standard size, so ${q} plate of ${food.name} can't be weighed; give the amount in grams or pieces`, method: UNSUPPORTED_MEASURE };
+  }
+  if (unit?.unit === 'bowl') {
+    const p = volumePortion(food, q, 'bowl', BOWL_ML / 236.588, BOWL_BASIS);
+    return p.method === UNSUPPORTED_DENSITY ? p : { ...p, method: ASSUMED_BOWL };
+  }
   // "butter", "honey", "2 ketchup": a spread, fat, sweetener or condiment named without a unit is a spoonful, not
   // its catalog default (often 1 cup: 224 g of butter).
   const spoon = !unit && spoonful(food);
   if (spoon) {
-    const p = volumePortion(portions, q, spoon, VOLUME_PORTIONS[spoon]);
-    return { ...p, method: p.method === 'portion' ? 'spoonful' : `spoonful-${p.method}` };
+    const p = volumePortion(food, q, spoon, VOLUME_PORTIONS[spoon]);
+    // The spoon is Nutrikit's own choice, not the user's amount: without a density, the food's own portions below apply.
+    if (p.method !== UNSUPPORTED_DENSITY) return { ...p, method: p.method === 'portion' ? 'spoonful' : `spoonful-${p.method}` };
   }
   if (unit?.kind === 'count') {
     const wanted = unit.unit;
@@ -164,9 +239,6 @@ export function resolvePortion(food: PortionFood, quantity: number | null | unde
       const match = matches.find((p) => /\b(medium|regular)\b/i.test(p.label)) || matches[0];
       if (match) return { grams: q * perUnit(match), quantity: q, unit: wanted, portion: match.label, method: 'portion' };
     }
-    // A bowl the food has no bowl portion for is a cup of it (no standard bowl size exists), never one of its
-    // pieces: "1 bowl chips" is not one chip.
-    if (wanted === 'bowl') return volumePortion(portions, q, 'bowl', 1, 'bowl, taken as 1 cup (236.6 ml)');
   }
   // A size the food has no portion for ("medium fries"): a typical serving of that size where one is known.
   const size = unit?.kind === 'count' && SIZES.includes(unit.unit) ? unit.unit as Size : null;

@@ -17,7 +17,8 @@ const only = (text) => {
 };
 
 test('a fat, sweetener or condiment named without an amount is a spoonful, not a cup', () => {
-  for (const [text, max] of [['butter', 15], ['ghee', 15], ['oil', 15], ['olive oil', 15], ['honey', 21], ['jam', 21],
+  // Bare "oil" is asked about (76 oils, no generic one; owner decision): see food-matching-review.test.mjs.
+  for (const [text, max] of [['butter', 15], ['ghee', 15], ['olive oil', 15], ['mustard oil', 15], ['honey', 21], ['jam', 21],
     ['ketchup', 20], ['mayonnaise', 15], ['maple syrup', 21], ['sugar', 5]]) {
     const item = only(text);
     assert.ok(item.grams > 2 && item.grams <= max, `${text}: ${item.grams} g`);

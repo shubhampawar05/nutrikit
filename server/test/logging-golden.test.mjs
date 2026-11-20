@@ -9,7 +9,7 @@ const GOLDEN = {
   '2 rotis and dal': [['Chapati/Roti', 72], ['Dal', 240]], // home roti (audit P0-3)
   'rice with ghee': [['Rice, cooked, NFS', 158], ['Ghee, clarified butter', 14]],
   'a handful of almonds': [['Almonds, NFS', 28.4]],
-  'a bowl of oatmeal with blueberries': [['Oatmeal, NFS', 240], ['Blueberries, raw', null]],
+  'a bowl of oatmeal with blueberries': [['Oatmeal, NFS', 203], ['Blueberries, raw', null]], // provisional 200 ml bowl
   'toast with jam': [['Bread, white, toasted', 25], ['Jam', 14]],
   '1 cup rice, chicken curry': [['Rice, cooked, NFS', 158], ['Chicken curry', 240]],
   '2 eggs, a slice of whole wheat toast and a cup of coffee with milk': [['Egg, whole, raw', 100], ['Bread, whole wheat, toasted', 33], ['Coffee, brewed', 240], ['Milk, NFS', 30.5]],

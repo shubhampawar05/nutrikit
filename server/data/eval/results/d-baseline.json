@@ -1,0 +1,2816 @@
+{
+  "set": {
+    "version": "2",
+    "sha256": "4a8b8693c1c41c8a6d7ac42904cb3b0ed916a8426d27a2c81b3473738996d4ef"
+  },
+  "summary": {
+    "cases": 217,
+    "correct": 207,
+    "safelyUncertain": 10,
+    "incorrect": 0,
+    "knownIncorrect": 0,
+    "unexpectedIncorrect": 0,
+    "byCategory": {
+      "regression": {
+        "cases": 28,
+        "correct": 24,
+        "safelyUncertain": 4,
+        "incorrect": 0
+      },
+      "pieces": {
+        "cases": 19,
+        "correct": 19,
+        "safelyUncertain": 0,
+        "incorrect": 0
+      },
+      "measures": {
+        "cases": 10,
+        "correct": 10,
+        "safelyUncertain": 0,
+        "incorrect": 0
+      },
+      "plates-bowls": {
+        "cases": 17,
+        "correct": 17,
+        "safelyUncertain": 0,
+        "incorrect": 0
+      },
+      "dishes": {
+        "cases": 74,
+        "correct": 70,
+        "safelyUncertain": 4,
+        "incorrect": 0
+      },
+      "hinglish": {
+        "cases": 32,
+        "correct": 32,
+        "safelyUncertain": 0,
+        "incorrect": 0
+      },
+      "typos": {
+        "cases": 5,
+        "correct": 5,
+        "safelyUncertain": 0,
+        "incorrect": 0
+      },
+      "no-right-food": {
+        "cases": 18,
+        "correct": 18,
+        "safelyUncertain": 0,
+        "incorrect": 0
+      },
+      "multi": {
+        "cases": 14,
+        "correct": 12,
+        "safelyUncertain": 2,
+        "incorrect": 0
+      }
+    }
+  },
+  "knownIncorrect": {},
+  "judged": [
+    {
+      "phrase": "vegetable fried rice",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "vegetable fried rice"
+      ],
+      "regression": "P0-2 rissoles",
+      "outcome": "safely-uncertain",
+      "why": "not logged, listed instead: vegetable fried rice"
+    },
+    {
+      "phrase": "veg fried rice",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "veg fried rice"
+      ],
+      "regression": "P0-2 rissoles",
+      "outcome": "safely-uncertain",
+      "why": "not logged, listed instead: veg fried rice"
+    },
+    {
+      "phrase": "egg fried rice",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "egg fried rice"
+      ],
+      "regression": "P0-2",
+      "outcome": "safely-uncertain",
+      "why": "not logged, listed instead: egg fried rice"
+    },
+    {
+      "phrase": "plain rice",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Rice, cooked, NFS",
+          "grams": 158
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-2",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "bread butter",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "bread butter"
+      ],
+      "regression": "P0-2",
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "tortilla chips",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Tortilla chips, plain",
+          "grams": 57
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-2 chips synonym",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "corn chips",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Corn chips, plain",
+          "grams": 57
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-2 chips synonym",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "french toast",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "French toast, NFS",
+          "grams": 65
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-2 toast synonym",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "apple pie",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "apple pie"
+      ],
+      "regression": "P0-2 product form",
+      "outcome": "safely-uncertain",
+      "why": "not logged, listed instead: apple pie"
+    },
+    {
+      "phrase": "roti sabzi",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "roti sabzi"
+      ],
+      "regression": "P0-1",
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "roti",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 36
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-3",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 roti",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 36
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-3",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 roti",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 72
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-3",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1.5 roti",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 54
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-3",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "3 rotis",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 108
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-3",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 chapati",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 72
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-3",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 phulka",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 36
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-3",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chapathi",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 36
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-3",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chicken",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "chicken"
+      ],
+      "regression": "P0-4",
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "1 piece chicken",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "1 piece chicken"
+      ],
+      "regression": "P0-4",
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "100 g chicken",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "100 g chicken"
+      ],
+      "regression": "P0-4",
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "chicken and rice",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Rice, cooked, NFS",
+          "grams": 158
+        }
+      ],
+      "unmatched": [
+        "chicken"
+      ],
+      "regression": "P0-4",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "rasgulla",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "rasgulla"
+      ],
+      "regression": "P0-5",
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "1 rasgulla",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "1 rasgulla"
+      ],
+      "regression": "P0-5",
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "2 rasgulla",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "2 rasgulla"
+      ],
+      "regression": "P0-5",
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "1 rasmalai",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "1 rasmalai"
+      ],
+      "regression": "P0-5",
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "kulfi",
+      "category": "regression",
+      "logged": [],
+      "unmatched": [
+        "kulfi"
+      ],
+      "regression": "P0-5",
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "60 g rasgulla",
+      "category": "regression",
+      "logged": [
+        {
+          "food": "Rasgulla",
+          "grams": 60
+        }
+      ],
+      "unmatched": [],
+      "regression": "P0-5",
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "idli",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Idli",
+          "grams": 38
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "3 idli",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Idli",
+          "grams": 114
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 idli",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Idli",
+          "grams": 76
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 samosa",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Samosa",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "4 samosas",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Samosa",
+          "grams": 400
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "samosa",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Samosa",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 dosa",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Dosa, plain",
+          "grams": 80
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 dosa",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Dosa, plain",
+          "grams": 160
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 paratha",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Bread, paratha",
+          "grams": 70
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 puri",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Bread, puri",
+          "grams": 72
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 vada",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Vada",
+          "grams": 30
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 masala dosa",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Dosa, with filling",
+          "grams": 267
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 banana",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Banana, raw",
+          "grams": 126
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 large apple",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Apple, raw",
+          "grams": 242
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 slices bread",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Bread, white",
+          "grams": 56
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 large egg",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Egg, whole, raw",
+          "grams": 50
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 eggs",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Egg, whole, raw",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 slices toast",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Bread, white, toasted",
+          "grams": 50
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "10 almonds",
+      "category": "pieces",
+      "logged": [
+        {
+          "food": "Almonds, NFS",
+          "grams": 12
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 cup dal",
+      "category": "measures",
+      "logged": [
+        {
+          "food": "Dal",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 glass milk",
+      "category": "measures",
+      "logged": [
+        {
+          "food": "Milk, NFS",
+          "grams": 257.8
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food, labelled assumed amount"
+    },
+    {
+      "phrase": "200 ml milk",
+      "category": "measures",
+      "logged": [
+        {
+          "food": "Milk, NFS",
+          "grams": 206.3
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 tbsp oil",
+      "category": "measures",
+      "logged": [],
+      "unmatched": [
+        "1 tbsp oil"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "2 tsp sugar",
+      "category": "measures",
+      "logged": [
+        {
+          "food": "Sugar, NFS",
+          "grams": 8.4
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "500 ml water",
+      "category": "measures",
+      "logged": [
+        {
+          "food": "Water, NFS",
+          "grams": 507.2
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 glass lassi",
+      "category": "measures",
+      "logged": [],
+      "unmatched": [
+        "1 glass lassi"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "2 cups tea",
+      "category": "measures",
+      "logged": [
+        {
+          "food": "Tea, hot, leaf, black",
+          "grams": 480
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "100g paneer",
+      "category": "measures",
+      "logged": [
+        {
+          "food": "Cheese, paneer",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 cup curd",
+      "category": "measures",
+      "logged": [
+        {
+          "food": "Yogurt, whole milk, plain",
+          "grams": 245
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 plate idli",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "1 plate idli"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "1 plate biryani",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "1 plate biryani"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "half plate biryani",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "half plate biryani"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "1 plate rice",
+      "category": "plates-bowls",
+      "logged": [
+        {
+          "food": "Rice, cooked, NFS",
+          "grams": 133.6
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food, labelled assumed amount"
+    },
+    {
+      "phrase": "1 plate poha",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "1 plate poha"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "1 plate upma",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "1 plate upma"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "1 plate pav bhaji",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "1 plate pav bhaji"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "1 bowl dal",
+      "category": "plates-bowls",
+      "logged": [
+        {
+          "food": "Dal",
+          "grams": 202.9
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food, labelled assumed amount"
+    },
+    {
+      "phrase": "1 katori dal",
+      "category": "plates-bowls",
+      "logged": [
+        {
+          "food": "Dal",
+          "grams": 202.9
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 small katori dal",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "1 small katori dal"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "2 katori rice",
+      "category": "plates-bowls",
+      "logged": [
+        {
+          "food": "Rice, cooked, NFS",
+          "grams": 267.1
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 bowl rice",
+      "category": "plates-bowls",
+      "logged": [
+        {
+          "food": "Rice, cooked, NFS",
+          "grams": 133.6
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food, labelled assumed amount"
+    },
+    {
+      "phrase": "1 bowl curd",
+      "category": "plates-bowls",
+      "logged": [
+        {
+          "food": "Yogurt, whole milk, plain",
+          "grams": 207.1
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food, labelled assumed amount"
+    },
+    {
+      "phrase": "1 katori kheer",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "1 katori kheer"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "1 bowl sambar",
+      "category": "plates-bowls",
+      "logged": [
+        {
+          "food": "Sambar, vegetable stew",
+          "grams": 209.6
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food, labelled assumed amount"
+    },
+    {
+      "phrase": "1 katori rajma",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "1 katori rajma"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "1 bowl sweet corn soup",
+      "category": "plates-bowls",
+      "logged": [],
+      "unmatched": [
+        "1 bowl sweet corn soup"
+      ],
+      "outcome": "correct",
+      "why": "flagged"
+    },
+    {
+      "phrase": "chicken fried rice",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Rice, fried, with chicken",
+          "grams": 198
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "fried rice",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Rice, fried, NFS",
+          "grams": 198
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "veg noodles",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Vegetable chowmein",
+          "grams": 300
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "hakka noodles",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Vegetable chowmein",
+          "grams": 300
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "paneer tikka",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Paneer shaslik/tikka",
+          "grams": 439
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chicken tikka",
+      "category": "dishes",
+      "logged": [],
+      "unmatched": [
+        "chicken tikka"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "fish fry",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Fish, NS as to type, fried",
+          "grams": 270
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "egg roll",
+      "category": "dishes",
+      "logged": [],
+      "unmatched": [
+        "egg roll"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "veg burger",
+      "category": "dishes",
+      "logged": [],
+      "unmatched": [
+        "veg burger"
+      ],
+      "outcome": "safely-uncertain",
+      "why": "not logged, listed instead: veg burger"
+    },
+    {
+      "phrase": "chicken sandwich",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Chicken sandwich",
+          "grams": 58
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "veg sandwich",
+      "category": "dishes",
+      "logged": [],
+      "unmatched": [
+        "veg sandwich"
+      ],
+      "outcome": "safely-uncertain",
+      "why": "not logged, listed instead: veg sandwich"
+    },
+    {
+      "phrase": "cold coffee",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Cold coffee (with cream)",
+          "grams": 251
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "green tea",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Tea, hot, leaf, green",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "black coffee",
+      "category": "dishes",
+      "logged": [],
+      "unmatched": [
+        "black coffee"
+      ],
+      "outcome": "safely-uncertain",
+      "why": "not logged, listed instead: black coffee"
+    },
+    {
+      "phrase": "lemon rice",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Lemon rice (Pulihora, Elumichai sadam, Chitranna)",
+          "grams": 319
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "curd rice",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Curd rice (Dahi bhaat/Dahi chawal/ Perugu annam/Daddojanam/Thayir saadam)",
+          "grams": 216
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "tomato soup",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Soup, tomato",
+          "grams": 245
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "sweet corn soup",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Sweet corn soup",
+          "grams": 392
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "fruit salad",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Fruit salad, fresh or raw, including citrus fruits, no dressing",
+          "grams": 150
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chocolate cake",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Chocolate cake",
+          "grams": 59
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "ice cream",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Ice cream, NFS",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "peanut butter sandwich",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Peanut butter sandwich, NFS",
+          "grams": 92
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "aloo paratha",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Potato parantha/paratha (Aloo ka parantha/paratha)",
+          "grams": 93
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "gobi paratha",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Cauliflower parantha/paratha (Phoolgobhi ka parantha/paratha)",
+          "grams": 102
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "paneer paratha",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Paneer parantha/paratha",
+          "grams": 85
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chicken biryani",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Biryani, chicken, takeaway",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "potato chips",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Potato chips, NFS",
+          "grams": 57
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "banana chips",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Banana chips",
+          "grams": 72
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chicken wings",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Chicken wing, NS as to cooking method",
+          "grams": 35
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "fish curry",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Fish curry",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "prawn curry",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Prawn curry (with coconut) (Jhinga curry)",
+          "grams": 286
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "mutton curry",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Mutton curry (home-style Indian goat curry)",
+          "grams": 230
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chicken 65",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Chicken 65 (spicy deep-fried chicken)",
+          "grams": 178
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "jalebi",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Jalebi (fermented batter, fried and soaked in syrup)",
+          "grams": 50
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "masala chai",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Tea, hot, with milk",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "orange juice",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Orange juice, 100%, NFS",
+          "grams": 209
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "coconut water",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Coconut water, unsweetened",
+          "grams": 206
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "buttermilk",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Buttermilk",
+          "grams": 244
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "sprouts salad",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Sprouted moong salad",
+          "grams": 204
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "peanuts",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Peanuts, NFS",
+          "grams": 28.4
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "almonds",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Almonds, NFS",
+          "grams": 28.4
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "pasta",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Pasta, cooked",
+          "grams": 140
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "white sauce pasta",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Pasta with cream sauce, home recipe",
+          "grams": 250
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "pizza",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Pizza, cheese, from restaurant or fast food, NS as to type of crust",
+          "grams": 691
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "1 slice pizza",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Pizza, cheese, from restaurant or fast food, NS as to type of crust",
+          "grams": 86
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "french fries",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Potato, french fries, NFS",
+          "grams": 60
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "momos",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Veg momos (steamed dumplings with cabbage filling)",
+          "grams": 24
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chilli chicken",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Chilli chicken",
+          "grams": 387
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "dal fry",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Dal",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "dal tadka",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Dal",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "jeera rice",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Cumin pulao (Jeera/Zeera pulao)",
+          "grams": 271
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "brown rice",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Rice, brown, cooked, no added fat",
+          "grams": 195
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "oats",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Oats, raw",
+          "grams": 80
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "toast",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Bread, white, toasted",
+          "grams": 25
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "omelette",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Omelette, plain, homemade",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "boiled egg",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Egg, whole, boiled or poached",
+          "grams": 50
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "egg bhurji",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Scrambled egg (Ande ki bhurji)",
+          "grams": 70
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "poha",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Poha (flattened rice with onion and peanuts)",
+          "grams": 150
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "upma",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Upma",
+          "grams": 170
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "uttapam",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Uttapam",
+          "grams": 68
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "khichdi",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Khichadi, with butter ghee",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "pav bhaji",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Pav bhaji",
+          "grams": 581
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "vada pav",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Vada pav (potato fritter in a bun with chutneys)",
+          "grams": 127
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "pani puri",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Pani puri (hollow puris with potato filling and spiced water)",
+          "grams": 284
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "dhokla",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Instant dhokla",
+          "grams": 42
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "thepla",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Methi thepla",
+          "grams": 36
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "butter chicken",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Butter chicken",
+          "grams": 275
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chicken tikka masala",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Chicken tikka masala",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chicken curry",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Chicken curry",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "mac and cheese",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Macaroni or noodles with cheese",
+          "grams": 230
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "spring roll",
+      "category": "dishes",
+      "logged": [],
+      "unmatched": [
+        "spring roll"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "tandoori chicken",
+      "category": "dishes",
+      "logged": [],
+      "unmatched": [
+        "tandoori chicken"
+      ],
+      "outcome": "safely-uncertain",
+      "why": "not logged, listed instead: tandoori chicken"
+    },
+    {
+      "phrase": "sabzi",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Mixed vegetable sabzi (semi-dry Indian mixed vegetables)",
+          "grams": 150
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "salad",
+      "category": "dishes",
+      "logged": [
+        {
+          "food": "Lettuce, salad with assorted vegetables including tomatoes and/or carrots, no dressing",
+          "grams": 73
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "matar ki sabzi",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Pea curry (Matar ki sabzi)",
+          "grams": 277
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "matar aloo ki sabzi",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Pea potato curry (Aloo matar)",
+          "grams": 277
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "aloo ki sabzi",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Potato curry (Aloo ki sabzi)",
+          "grams": 202
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "aloo gobi",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Curry, cauliflower and potato, homemade",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "gobi aloo",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Curry, cauliflower and potato, homemade",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "aloo gobhi",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Potato cauliflower (Aloo gobhi)",
+          "grams": 176
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "murgh korma",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Curry, chicken korma, homemade",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "gosht biryani",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Curry, lamb biryani, homemade",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "kakdi raita",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Cucumber raita (Kheere ka raita)",
+          "grams": 153
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "kheera raita",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Cucumber raita (Kheere ka raita)",
+          "grams": 153
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "kheere ka raita",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Cucumber raita (Kheere ka raita)",
+          "grams": 153
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "palak paneer",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Palak Paneer",
+          "grams": 200
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "palak panir",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Palak Paneer",
+          "grams": 200
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "palak",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Spinach, cooked, boiled, drained, without salt",
+          "grams": 180
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "panir",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Cheese, paneer",
+          "grams": 246
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "mattar paneer",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Pea paneer curry (Matar paneer)",
+          "grams": 277
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "mutter paneer",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Pea paneer curry (Matar paneer)",
+          "grams": 277
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "jira aloo",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Jeera aloo (potatoes tempered with cumin)",
+          "grams": 120
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "bengan bharta",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Brinjal bhartha (Baingan ka bhartha)",
+          "grams": 326
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "anda curry",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Egg curry (Anda curry)",
+          "grams": 152
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "anda bhurji",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Scrambled egg (Ande ki bhurji)",
+          "grams": 70
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "daal",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Dal",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "dhal",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Dal",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "yellow moong daal",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Washed moong dal (Dhuli moong ki dal)",
+          "grams": 277
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "samose",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Samosa",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "masala dosai",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Dosa, with filling",
+          "grams": 267
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "masaala dosa",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Dosa, with filling",
+          "grams": 267
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "nan",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Bread, naan",
+          "grams": 177
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "mix veg pulao",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Mixed vegetable pulao",
+          "grams": 438
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "rajma",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Curry, red kidney bean, Punjabi, homemade",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "dal makhani",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Curry, black gram, whole and red kidney bean, homemade",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chole",
+      "category": "hinglish",
+      "logged": [
+        {
+          "food": "Curry, chick pea, whole and tomato, Punjabi, with vegetable oil, homemade",
+          "grams": 100
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "chiken korma",
+      "category": "typos",
+      "logged": [],
+      "unmatched": [
+        "chiken korma"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "chicken chowmin",
+      "category": "typos",
+      "logged": [],
+      "unmatched": [
+        "chicken chowmin"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "plain prantha",
+      "category": "typos",
+      "logged": [],
+      "unmatched": [
+        "plain prantha"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "1 cup panner",
+      "category": "typos",
+      "logged": [],
+      "unmatched": [
+        "1 cup panner"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "panner",
+      "category": "typos",
+      "logged": [],
+      "unmatched": [
+        "panner"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "gulab jamun",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "gulab jamun"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "kachori",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "kachori"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "bhel puri",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "bhel puri"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "sev puri",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "sev puri"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "dahi puri",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "dahi puri"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "chole bhature",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "chole bhature"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "paneer butter masala",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "paneer butter masala"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "khandvi",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "khandvi"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "egg biryani",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "egg biryani"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "veg thali",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "veg thali"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "margherita pizza",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "margherita pizza"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "muesli",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "muesli"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "aloo paneer",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "aloo paneer"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "aloo samosa",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "aloo samosa"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "bread jam",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "bread jam"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "red sauce pasta",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "red sauce pasta"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "boiled chana",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "boiled chana"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "roasted chana",
+      "category": "no-right-food",
+      "logged": [],
+      "unmatched": [
+        "roasted chana"
+      ],
+      "outcome": "correct",
+      "why": "suggested"
+    },
+    {
+      "phrase": "2 roti, 1 dal",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 72
+        },
+        {
+          "food": "Dal",
+          "grams": 240
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 roti and 1 bowl dal",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Chapati/Roti",
+          "grams": 72
+        },
+        {
+          "food": "Dal",
+          "grams": 202.9
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food, labelled assumed amount"
+    },
+    {
+      "phrase": "dal, rice and salad",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Dal",
+          "grams": 240
+        },
+        {
+          "food": "Rice, cooked, NFS",
+          "grams": 158
+        },
+        {
+          "food": "Lettuce, salad with assorted vegetables including tomatoes and/or carrots, no dressing",
+          "grams": 73
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "tea with milk and sugar",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Tea, hot, leaf, black",
+          "grams": 240
+        },
+        {
+          "food": "Milk, NFS",
+          "grams": 30.5
+        },
+        {
+          "food": "Sugar, NFS",
+          "grams": 4.2
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "coffee with sugar",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Coffee, brewed",
+          "grams": 240
+        },
+        {
+          "food": "Sugar, NFS",
+          "grams": 4.2
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "idli with sambar",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Idli",
+          "grams": 38
+        },
+        {
+          "food": "Sambar, vegetable stew",
+          "grams": 60
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "dosa with chutney",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Dosa, plain",
+          "grams": 80
+        },
+        {
+          "food": "Chutney",
+          "grams": 15
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "tea and biscuits",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Tea, hot, leaf, black",
+          "grams": 240
+        }
+      ],
+      "unmatched": [
+        "biscuits"
+      ],
+      "outcome": "safely-uncertain",
+      "why": "as expected: logged what it could, asked about biscuits?"
+    },
+    {
+      "phrase": "rice and beans",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Rice, cooked, NFS",
+          "grams": 158
+        },
+        {
+          "food": "Beans, NFS",
+          "grams": 185
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "bread and butter",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Bread, white",
+          "grams": 28
+        },
+        {
+          "food": "Butter, NFS",
+          "grams": 14
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 paratha with raita",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Bread, paratha",
+          "grams": 140
+        }
+      ],
+      "unmatched": [
+        "raita"
+      ],
+      "outcome": "safely-uncertain",
+      "why": "as expected: logged what it could, asked about raita"
+    },
+    {
+      "phrase": "masala dosa, sambar",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Dosa, with filling",
+          "grams": 267
+        },
+        {
+          "food": "Sambar, vegetable stew",
+          "grams": 248
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "anda curry with 3 roti",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Egg curry (Anda curry)",
+          "grams": 152
+        },
+        {
+          "food": "Chapati/Roti",
+          "grams": 108
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    },
+    {
+      "phrase": "2 mattar paneer and 3 phulka",
+      "category": "multi",
+      "logged": [
+        {
+          "food": "Pea paneer curry (Matar paneer)",
+          "grams": 554
+        },
+        {
+          "food": "Chapati/Roti",
+          "grams": 108
+        }
+      ],
+      "unmatched": [],
+      "outcome": "correct",
+      "why": "right food and amount"
+    }
+  ]
+}

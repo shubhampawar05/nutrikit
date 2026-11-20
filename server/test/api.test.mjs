@@ -57,6 +57,43 @@ test('search, food detail and portion nutrients', async () => {
   assert.equal(g.nutrients.calories.amount, food.per100g.calories);
   assert.equal((await call('/v1/foods/999999999')).status, 404);
   assert.equal((await call(`/v1/foods/${id}/nutrients?grams=-5`)).status, 400);
+  const unsized = await call(`/v1/foods/${id}/nutrients?quantity=1&unit=small%20katori`);
+  assert.equal(unsized.status, 400, 'a small katori has no supported size: an error, never 0 g');
+  assert.equal((await unsized.json()).error.code, 'unsupported_unit');
+  const kheer = (await (await call('/v1/foods/search?q=kheer&limit=5')).json()).results.find((f) => f.name === 'Kheer (rice pudding)');
+  const noDensity = await call(`/v1/foods/${kheer.id}/nutrients?quantity=1&unit=katori`);
+  assert.equal(noDensity.status, 400, 'kheer has no cited density: an error, never grams');
+  const err = (await noDensity.json()).error;
+  assert.equal(err.code, 'unsupported_unit');
+  assert.match(err.message, /no cited density for Kheer \(rice pudding\), so 1 katori can't be weighed/);
+  assert.equal((await (await call(`/v1/foods/${kheer.id}/nutrients?grams=150`)).json()).grams, 150, 'grams still work');
+  const kheerBowl = await call(`/v1/foods/${kheer.id}/nutrients?quantity=1&unit=bowl`);
+  assert.equal(kheerBowl.status, 400, 'a bowl of kheer: its "small bowl" serving is not a bowl size');
+  assert.equal((await kheerBowl.json()).error.code, 'unsupported_unit');
+  const dalId = (await (await call('/v1/foods/search?q=dal&limit=5')).json()).results.find((f) => f.name === 'Dal').id;
+  const dalBowl = await (await call(`/v1/foods/${dalId}/nutrients?quantity=1&unit=bowl`)).json();
+  assert.equal(dalBowl.grams, 202.9);
+  assert.equal(dalBowl.portionMethod, 'assumed-bowl');
+  const milkId = (await (await call('/v1/foods/search?q=milk&limit=10')).json()).results.find((f) => f.name === 'Milk, NFS').id;
+  const milkGlass = await (await call(`/v1/foods/${milkId}/nutrients?quantity=1&unit=glass`)).json();
+  assert.equal(milkGlass.grams, 257.8);
+  assert.equal(milkGlass.portionMethod, 'assumed-glass');
+  assert.match(milkGlass.portionBasis, /^glass, provisionally 250 ml \(a Nutrikit assumption/);
+  assert.equal((await (await call(`/v1/foods/${milkId}/nutrients?quantity=2&unit=mugs`)).json()).portionMethod, 'assumed-mug');
+  const kheerGlass = await call(`/v1/foods/${kheer.id}/nutrients?quantity=1&unit=glass`);
+  assert.equal(kheerGlass.status, 400);
+  assert.match((await kheerGlass.json()).error.message, /so 1 glass can't be weighed/);
+  const riceId = (await (await call('/v1/foods/search?q=rice&limit=10')).json()).results.find((f) => f.name === 'Rice, cooked, NFS').id;
+  const ricePlate = await (await call(`/v1/foods/${riceId}/nutrients?quantity=1&unit=plate`)).json();
+  assert.equal(ricePlate.grams, 133.6);
+  assert.equal(ricePlate.portionMethod, 'assumed-plate');
+  const idliId = (await (await call('/v1/foods/search?q=idli&limit=10')).json()).results.find((f) => f.name === 'Idli').id;
+  const idliPlate = await call(`/v1/foods/${idliId}/nutrients?quantity=1&unit=plate`);
+  assert.equal(idliPlate.status, 400, 'a plate of idli has no supported weight');
+  const idliErr = (await idliPlate.json()).error;
+  assert.equal(idliErr.code, 'unsupported_unit');
+  assert.match(idliErr.message, /a plate has no standard size, so 1 plate of Idli can't be weighed/);
+  assert.equal((await (await call(`/v1/foods/${idliId}/nutrients?quantity=2&unit=piece`)).json()).grams, 76, 'pieces still work');
   assert.equal((await call('/v1/foods/search')).status, 400);
   assert.equal((await call('/v1/foods/search?q=egg&limit=500')).status, 400);
 });
@@ -95,8 +132,10 @@ test('photo logging with a provider: validation, matching and AI metering', asyn
   assert.equal(body.provider, 'fake');
   assert.equal(body.meal, 'lunch');
   assert.equal(body.items.length, 3);
-  assert.equal(body.items[0].grams, 150);
-  assert.equal(body.items[0].portionMethod, 'provided-grams');
+  // The AI's 150 g is ignored (audit P1-1): the portion rules weigh "1 piece", and the photo origin stays visible.
+  assert.equal(body.items[0].grams, 60);
+  assert.notEqual(body.items[0].portionMethod, 'provided-grams');
+  assert.match(body.items[0].portionBasis, /^amount read from the photo by AI \(high confidence\)/);
   assert.match(body.items[1].food.name, /^Rice, white, cooked/);
   assert.equal(body.items[0].recognition.confidence, 'high');
   assert.equal(body.usage, undefined, 'provider token usage is not leaked to clients');
@@ -150,7 +189,7 @@ test('AI text parsing goes through the provider', async () => {
   const r = await (await call('/v1/log/text', { method: 'POST', body: { text: 'a cup of oatmeal', ai: true } })).json();
   assert.equal(r.provider, 'fake');
   assert.equal(r.meal, 'breakfast');
-  assert.equal(r.items[0].grams, 234);
+  assert.equal(r.items[0].grams, 240, "USDA oatmeal's own cup, never the AI's 234 g (audit P1-1)");
 });
 
 test('barcode endpoint validates codes', async () => {
