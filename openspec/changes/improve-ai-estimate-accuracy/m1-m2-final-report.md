@@ -344,3 +344,19 @@ tier; no OpenAI calls):
 | Variant question, clean, 3 runs | The only lever not measured cleanly | 27 |
 | 3-sample median, 3 runs | Lowest priority: anchoring showed prompt-side levers move little | 81 |
 | **Recommended minimum** | the first three checks | **54** |
+
+## 11. Wrap-up (2026-11-20)
+
+- **Done since §10:** M3.1-3.3 (an AI piece weight outside the food's believable range is asked about, never logged;
+  `test/ai-portion-range.test.mjs`), M5.5 (operator re-estimate: `POST /v1/admin/food-requests/:id/reestimate` and
+  a Re-estimate button in /admin; the new estimate goes back to review and the old one into the history;
+  `test/operator-reestimate.test.mjs`), P1-3 (add-on caps only for real add-ons; `test/logging.test.mjs`), and the
+  estimate routing in §8.2 (gemini-3.5-flash-lite only).
+- **Provider errors:** an OpenAI 429 for an account with no credit (`insufficient_quota`, `credit_balance_exhausted`)
+  is now reported as "no credit left" and not retried, instead of "rate limited".
+- **2.3 3-sample median: still missing.** The run on gpt-5-mini (set A, 3 runs) got no answer: the OpenAI account has
+  no credit. $0 spent; the empty result was not kept. It remains the lowest-priority lever.
+- **Tests (measured):** typecheck clean; server, web and MCP unit suites pass; Set D 207 correct, 10 safely
+  uncertain, 0 incorrect, 0 unexpected (frozen baseline unchanged).
+- **Limitations unchanged:** set C phrases are written rather than exported from production; set P is single-source;
+  benchmark accuracy is not a guarantee for users (§1).

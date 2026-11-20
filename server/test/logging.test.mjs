@@ -22,6 +22,14 @@ test('other unquantified add-ons are capped at 60 g', () => {
   between(item('a bowl of oatmeal with blueberries', 1).grams, 3, 60, 'blueberries');
 });
 
+test('P1-3: a staple or dish after "with" gets its own serving, not the add-on cap', () => {
+  assert.ok(item('egg curry with rice', 1).grams >= 100, 'rice with egg curry');
+  assert.ok(item('idli with sambar', 1).grams > 60, 'sambar with idli');
+  assert.ok(item('roti with dal', 1).grams > 60, 'dal with roti');
+  between(item('coffee with sugar', 1).grams, 3, 15, 'sugar is still a spoonful');
+  between(item('dosa with chutney', 1).grams, 3, 15, 'chutney is still a spoonful');
+});
+
 test('a stated amount beats the add-on cap', () => {
   const sugar = item('tea with 2 tbsp sugar', 1);
   assert.equal(sugar.quantity, 2);

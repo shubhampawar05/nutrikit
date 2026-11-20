@@ -142,6 +142,11 @@ When a call uses AI (`ai: true`, or a photo), a missing food is estimated by the
   is kept in the food's history (last 5). A failed attempt keeps the current estimate, is listed with the food's
   failures, and the food isn't tried again for `NUTRIKIT_REESTIMATE_RETRY_MINUTES` (60). Approved and rejected
   estimates are never made again automatically.
+- **Re-estimate** asks the AI again for one food, whatever its status (one AI call, not charged to any account). A
+  new estimate that passes every check replaces the current one, which is kept in the history with the reason
+  `operator re-estimate (was <status>)`, and goes back to **to review**: an approved food answers callers again only
+  after you approve the new estimate. A failed or rejected answer leaves the current estimate and its status as they
+  were and is listed with the food's failures. A food with no estimate yet shows **Estimate** instead.
 - An estimate shown as **Same as** a catalog food means the AI judged them the same dish and that food is logged
   with its own values; adding the request's words as its alias makes the match permanent.
 - Once the catalog covers the food (an alias in `server/data/aliases/recipes.json` or a cited recipe in
@@ -153,28 +158,41 @@ When a call uses AI (`ai: true`, or a photo), a missing food is estimated by the
 curl https://<host>/v1/admin/food-requests?status=open -H "Authorization: Bearer $NUTRIKIT_ADMIN_TOKEN"
 curl -X PATCH https://<host>/v1/admin/food-requests/12 -H "Authorization: Bearer $NUTRIKIT_ADMIN_TOKEN" \
   -H "Content-Type: application/json" -d '{"estimateStatus": "approved"}'
+curl -X POST https://<host>/v1/admin/food-requests/12/reestimate -H "Authorization: Bearer $NUTRIKIT_ADMIN_TOKEN"
 ```
 
 ### Measuring AI estimates
 
-`npm run eval:estimates -w server -- --label <name>` asks the configured AI provider to estimate 100 INDB dishes as if
-the catalog lacked them, through the same code logging uses, and scores the answers against INDB's published values
-(results in `server/data/eval/<name>.json`; only `baseline.json` is committed, so record a run's numbers in the table
-below). Run it before and after changing the prompt, model or method. Two
-identical runs differ by about 3-4 points, and INDB is one home recipe per dish (often lighter than typical), so
-compare large differences only.
+The benchmark sets live in `server/data/eval/sets/` (built by `npm run eval:sets -w server`, each with a version and
+content hash): **A** consensus references (dishes found in 2+ of USDA, CoFID and INDB), **B** cited recipes, **C**
+real-world spellings, **P** piece and bowl weights, and **D** the everyday logging gate.
 
-| Run (gpt-5-mini) | Median calorie error | Within 20% | Notes |
-|---|---|---|---|
-| `baseline` | 30.7% | 35% | estimates only |
-| `validated` | 34% | 30% | + arithmetic checks; none failed in this run |
-| `near-match` | 35.8% | 28% | + catalog matches: 11 dishes matched at 20% median error, vs 38% for estimated ones |
-| `recipe` (not kept) | 38.7% | 30% | AI's ingredients composed from USDA values: 34.5% vs the AI's own 32.6% on the same 54 dishes |
+```bash
+npm run eval:estimates -w server -- --provider gemini --model gemini-3.5-flash-lite --set A --runs 3 --concurrency 1 --pace 4000 --label <name>
+node --import tsx server/scripts/eval/report.ts <baseline-label> <label>
+npm run eval:everyday -w server
+```
 
-Against our cited recipes (`--source recipe`, 28 dishes) the AI's own figures were 17.4% off at the median and
-the composed recipes 20.1%. Both methods' errors correlate at 0.98-0.99, because both come from the model's idea of
-the recipe, so composing from ingredients was dropped; it also made answers long enough to time out. The AI is much
-closer to typical recipes (about 17%) than to INDB's lighter home recipes (about 33%).
+Each run goes through the same `requestEstimates()` / `estimateItem()` that logging uses, with the dish hidden from the
+catalog, and writes `server/data/eval/results/<label>.json` with the set versions, prompt version, models, git commit,
+latency, tokens and cost. `--provider openai` needs `NUTRIKIT_OPENAI_FALLBACK=1`, as in the app. Pace Gemini free-tier
+runs (one call at a time); concurrent calls hit 429s.
+
+Before numbers (2026-11-19, set A point dishes, 3 runs; full detail in
+`openspec/changes/improve-ai-estimate-accuracy/m1-m2-final-report.md`):
+
+| Model | Median calorie error | Spread across runs | Median latency | Calls failed |
+|---|---|---|---|---|
+| gemini-3.5-flash-lite (production estimates) | 8.8% | 6.7-10.2% | ~3 s | 0 of 93 paced |
+| gpt-5-mini | 14.3% | 11.2-16.9% | 29-38 s | 1 of 66 (timeout) |
+| gemini-3.5-flash | – | – | – | 16 of 18 (dropped for estimates) |
+
+The noise band is about 3-5 points: a change counts only if it beats that without lowering coverage. Reference
+anchoring (-1.0 pt) and the variant question (-0.2 pt) did not, so the single-step prompt stays. The 3-sample median
+was not run (the OpenAI account had no credit on 2026-11-20). The older INDB-only numbers (30.7% median error) mixed
+AI error with INDB's light home recipes and are superseded.
+
+Set D (everyday gate, frozen at 217 cases): 207 correct, 10 safely uncertain, 0 incorrect.
 
 ## Security in place
 

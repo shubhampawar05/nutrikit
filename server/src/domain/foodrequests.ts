@@ -14,7 +14,8 @@ import { ESTIMATE_PROMPT_VERSION, promptVersionOf } from './providers/prompts.ts
 import { getFood } from './db.ts';
 import { ambiguousBare, searchFoods } from './search.ts';
 import { logText, splitMealText, type EstimateBasis, type LoggedItem, type TextLog, type Unmatched } from './textlog.ts';
-import { canonicalUnit, resolvePortion, unsupportedAmount } from './units.ts';
+import { canonicalUnit, resolvePortion, unsupportedAmount, UNSUPPORTED_MEASURE } from './units.ts';
+import { countsPieces, pieceRange } from './portions.ts';
 import { scaleNutrients, sumNutrients } from './nutrients.ts';
 
 export type RequestStatus = 'open' | 'resolved' | 'ignored';
@@ -322,6 +323,20 @@ export function estimateItem(input: string, estimate: StoredEstimate, amount: { 
   const food = { name: estimate.name, portions };
   const portion = resolvePortion(food, amount.quantity, amount.unit);
   const grams = Math.round(portion.grams * 10) / 10;
+  // A count of a piece food whose AI weight can't be one piece ("2 gulab jamun" from a "1 piece = 200 g" serving) is
+  // never logged at that weight (task M3.2): the amount is asked about, like a catalog food's (textlog.ts, P0-5).
+  const range = pieceRange(estimate.name);
+  if (range && portion.quantity > 0 && !['mass', 'volume-conversion'].includes(portion.method) && countsPieces(amount.unit, estimate.name)) {
+    const each = portion.grams / portion.quantity;
+    if (each < range.low || each > range.high) {
+      return {
+        input, food: { id: 0, name: estimate.name, source: 'ai-estimate' }, quantity: portion.quantity, unit: portion.unit, grams: 0,
+        portionBasis: `the AI's serving for "${estimate.name}" works out to ${Math.round(each)} g a piece, not believable for one piece (${range.low}-${range.high} g); give the weight in grams`,
+        portionMethod: `ai-estimate-implausible-piece-${UNSUPPORTED_MEASURE}`,
+        confidence: 'low', nutrients: {}, alternatives: [], basis,
+      };
+    }
+  }
   // A serving whose count can't be read is used whole, as before, and said to be unclear rather than taken as one.
   const unclear = count.unclear != null;
   return {
@@ -615,6 +630,52 @@ export async function updateFoodRequest(sql: Sql, id: number, change: { status?:
       estimate_reviewed_at = CASE WHEN ${change.estimateStatus ?? null}::text IS NOT NULL AND estimate IS NOT NULL THEN now() ELSE estimate_reviewed_at END
     WHERE id = ${id} RETURNING ${ROW(sql)}`;
   return row ?? null;
+}
+
+export type ReestimateResult =
+  | { ok: true; request: FoodRequest }
+  | { ok: false; code: 'not_found' | 'not_estimable' | 'ai_unavailable' | 'estimate_rejected' | 'estimate_changed' | 'ai_failed'; message: string; problems?: string[] };
+
+/**
+ * Operator re-estimate (task M5.5): asks the AI again for one food request, whatever its estimate status. A new
+ * estimate that passes every check replaces the current one, which moves to the history (at most 5) with the reason
+ * "operator re-estimate"; the request goes back to pending, so an approved or rejected food is reviewed again before
+ * it answers for every caller. A failed or rejected answer changes nothing but the failure list. The write is
+ * conditional on the row still holding the estimate that was read, so a concurrent re-estimate or review wins.
+ * Automatic re-estimation (coverUnknowns) still never touches approved or rejected estimates.
+ */
+export async function reestimateFoodRequest(sql: Sql, id: number, provider: AIProvider): Promise<ReestimateResult> {
+  const [row] = await sql<{ phrase: string; example: string; estimate: StoredEstimate | null }[]>`SELECT phrase, example, estimate FROM food_requests WHERE id = ${id}`;
+  if (!row) return { ok: false, code: 'not_found', message: 'no food request with this id' };
+  if (ambiguousBare(row.phrase)) return { ok: false, code: 'not_estimable', message: `“${row.phrase}” names several foods; it is asked about, never estimated` };
+  if (!provider.estimateFoods) return { ok: false, code: 'ai_unavailable', message: 'no AI provider is configured' };
+  const oldAt = row.estimate?.at ?? null;
+  const failure = (problem: string): EstimateFailure => ({ at: new Date().toISOString(), provider: provider.name, model: provider.model ?? null, promptVersion: ESTIMATE_PROMPT_VERSION, problem });
+  let out: Awaited<ReturnType<typeof requestEstimates>>;
+  try {
+    out = await requestEstimates(provider, [row.phrase], [catalogCandidates(row.phrase)]);
+  } catch (err) {
+    await saveFailures(sql, row.phrase, row.example, [failure(`operator re-estimate failed: ${(err as Error).message}`)]);
+    return { ok: false, code: 'ai_failed', message: `the AI did not answer: ${(err as Error).message}` };
+  }
+  const e = out.estimates.get(requestKey(row.phrase));
+  if (!e) {
+    const problems = out.rejected.flatMap((r) => r.problems);
+    await saveFailures(sql, row.phrase, row.example, [...problems].reverse().map((p) => failure(`operator re-estimate rejected: ${p}`)));
+    return { ok: false, code: 'estimate_rejected', message: 'the new answer failed the checks; the current estimate is unchanged', problems };
+  }
+  const updated = await sql<FoodRequest[]>`UPDATE food_requests SET
+      estimate_history = CASE WHEN estimate IS NULL THEN estimate_history ELSE (SELECT coalesce(jsonb_agg(h), '[]'::jsonb) FROM (
+        SELECT h FROM jsonb_array_elements(jsonb_build_array(jsonb_build_object(
+          'estimate', estimate, 'provider', estimate->'provider', 'model', estimate->'model',
+          'promptVersion', estimate->'promptVersion', 'calcVersion', estimate->'calcVersion', 'estimatedAt', estimate->'at',
+          'replacedAt', to_jsonb(now()), 'reason', to_jsonb(('operator re-estimate (was ' || estimate_status || ')')::text))) || estimate_history) h LIMIT ${MAX_HISTORY}) kept) END,
+      estimate = ${sql.json(e as never)}, estimate_status = 'pending', estimate_reviewed_at = NULL,
+      reestimate_claimed_at = NULL, reestimate_after = NULL
+    WHERE id = ${id} AND (estimate->>'at') IS NOT DISTINCT FROM ${oldAt}
+    RETURNING ${ROW(sql)}`;
+  if (!updated.length) return { ok: false, code: 'estimate_changed', message: 'the estimate changed while the AI was answering; reload and try again' };
+  return { ok: true, request: updated[0] };
 }
 
 /** Counts for the admin overview. */

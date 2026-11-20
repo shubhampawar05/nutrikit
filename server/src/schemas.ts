@@ -27,7 +27,7 @@ export function registerSchemas(app: FastifyInstance) {
 
 const ERRORS: Record<number, string> = {
   400: 'Invalid request', 401: 'Missing, invalid or expired credentials', 403: 'Credential not allowed for this operation',
-  404: 'Not found', 413: 'Payload too large', 422: 'Input could not be processed',
+  404: 'Not found', 409: 'Conflict with a concurrent change; reload and try again', 413: 'Payload too large', 422: 'Input could not be processed',
   429: 'Rate limit or monthly token allowance exceeded', 501: 'AI provider not configured',
   502: 'Upstream source failed', 503: 'Service or AI provider unavailable', 504: 'AI provider did not answer in time (ai_timeout); nothing is charged',
 };

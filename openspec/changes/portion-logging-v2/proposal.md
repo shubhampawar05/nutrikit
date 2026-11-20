@@ -118,11 +118,15 @@ Set D v2 is frozen at 217 cases, sha256 `4a8b8693c1c4…` (`server/data/eval/set
 uncertain, 0 known incorrect, 0 unexpected (`server/data/eval/results/d-baseline.json`). Expectations are not changed to
 improve scores; a new case goes to the food-logging benchmark or a unit test, or into a reviewed Set D v3.
 
-## Then (not started)
+## Status (2026-11-20)
 
-- Implement the adopted serving rules.
-- All "pending v2" measure and plate cases are cleared and P1-1 is done. Next, as separate workstreams: the 11
-  food-matching findings and the two data findings (idli, upma).
-- Address P1-2 (plates), P1-3 (add-on caps), P1-1 (AI grams contract), the remaining bare-word ambiguity and admin
-  estimate history.
-- Each change passes the gate.
+Done: the adopted serving rules (increments 1-5), P1-1 (increment 6), the 11 food-matching findings (increment 7),
+fish and chips (increment 8), admin estimate history and the operator re-estimate action (improve-ai-estimate-accuracy
+5.5), and P1-3: an unquantified "with X" is capped only when X is an add-on (sugar, milk, butter, chutney, cheese,
+berries ...); a staple or dish ("egg curry with rice", "idli with sambar") gets its own serving
+(`isAddOn` in `textlog.ts`, test in `test/logging.test.mjs`). Set D after all of this: 207 correct, 10 safely
+uncertain, 0 incorrect, 0 unexpected (unchanged from the frozen baseline).
+
+Open, by design (data, not code; nothing is to be fixed by inventing a weight): the D9 data findings (idli piece
+weight, upma energy, tandoori chicken serving) need a cited source, and the CoFID-promotion ranking behind "chicken
+wings" stays pinned per phrase.

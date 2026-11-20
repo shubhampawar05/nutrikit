@@ -6,7 +6,8 @@ import { errors } from '../schemas.ts';
 import { isAdmin, createKey, revokeKey } from '../domain/auth.ts';
 import { overview, listAccounts, listPayments, listKeysWithOwners } from '../domain/admin.ts';
 import { PLANS, listUpgradeRequests, setPlan } from '../domain/accounts.ts';
-import { foodRequestCounts, listFoodRequests, updateFoodRequest } from '../domain/foodrequests.ts';
+import { foodRequestCounts, listFoodRequests, reestimateFoodRequest, updateFoodRequest } from '../domain/foodrequests.ts';
+import { getProvider } from '../domain/providers/index.ts';
 
 export async function adminRoutes(fastify: FastifyInstance) {
   const app = fastify.withTypeProvider<TypeBoxTypeProvider>();
@@ -102,6 +103,21 @@ export async function adminRoutes(fastify: FastifyInstance) {
     const row = await updateFoodRequest(sql, req.params.id, req.body);
     if (!row) throw new HttpError(404, 'not_found', 'no food request with this id');
     return row;
+  });
+
+  app.post('/v1/admin/food-requests/:id/reestimate', {
+    schema: {
+      summary: 'Ask the AI again for a food request (admin)',
+      description: 'Makes a new AI estimate for this food, whatever its current status. One that passes every check replaces the current estimate, which is kept in `estimateHistory`; the request goes back to pending review. A failed or rejected answer leaves the current estimate unchanged and is listed in `estimateFailures`. Not charged to any account.',
+      security,
+      params: Type.Object({ id: Type.Integer({ minimum: 1 }) }),
+      response: { 200: { description: 'The updated request', type: 'object' }, ...errors(400, 401, 404, 409, 422, 502, 503) },
+    },
+  }, async (req) => {
+    const out = await reestimateFoodRequest(sql, req.params.id, await getProvider());
+    if (out.ok) return out.request;
+    const status = { not_found: 404, not_estimable: 400, ai_unavailable: 503, estimate_rejected: 422, estimate_changed: 409, ai_failed: 502 }[out.code];
+    throw new HttpError(status, out.code, out.problems?.length ? `${out.message}: ${out.problems.join('; ')}` : out.message);
   });
 
   app.get('/v1/admin/accounts', {

@@ -94,6 +94,10 @@ export interface FoodRequest {
     /** The catalog food the AI judged to be this same dish; it is logged with that food's own values. */
     sameAs?: { id: number; name: string } | null;
   } | null;
+  /** Rejected AI answers that left the food without a new estimate, newest first (at most 5). */
+  estimateFailures?: { at: string; provider: string; model: string | null; problem: string }[];
+  /** The estimates this one replaced, newest first (at most 5), with why each was replaced. */
+  estimateHistory?: { provider: string | null; model: string | null; estimatedAt: string | null; replacedAt: string; reason: string; estimate: { name: string; per100g: { calories: number } } }[];
 }
 
 interface FoodRequestCounts { open: number; pendingEstimates: number; approvedEstimates: number }
@@ -116,4 +120,6 @@ export const adminApi = {
   },
   updateFoodRequest: (id: number, change: { status?: FoodRequestStatus; note?: string | null; estimateStatus?: 'approved' | 'rejected' }) =>
     admin<FoodRequest>('PATCH', `/food-requests/${id}`, change),
+  /** Asks the AI again for this food; a new estimate goes back to pending review, the old one into the history. */
+  reestimateFoodRequest: (id: number) => admin<FoodRequest>('POST', `/food-requests/${id}/reestimate`),
 };

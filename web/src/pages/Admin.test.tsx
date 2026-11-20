@@ -69,6 +69,7 @@ function stubAdmin() {
     if (path === '/keys/key_1' && method === 'DELETE') return json(200, { revoked: 'key_1' });
     if (path === '/accounts/acct_1/plan' && method === 'POST') return json(200, { account: 'acct_1', plan: 'enterprise' });
     if (path === '/food-requests' && method === 'GET') return json(200, { requests: foodRequests, counts: { open: 3, pendingEstimates: 2, approvedEstimates: 0 } });
+    if (path === '/food-requests/7/reestimate' && method === 'POST') return json(200, { ...foodRequests[0], estimate: { ...foodRequests[0].estimate, name: 'Sabudana khichdi, new' }, estimateHistory: [{ provider: 'openai', model: 'gpt-5-mini', estimatedAt: '2026-11-17T00:00:00Z', replacedAt: '2026-11-20T00:00:00Z', reason: 'operator re-estimate (was pending)', estimate: foodRequests[0].estimate }] });
     if (path === '/food-requests/7' && method === 'PATCH') return json(200, { ...foodRequests[0], ...JSON.parse(String(init?.body)) });
     return json(404, { error: { code: 'not_found', message: 'not found' } });
   });
@@ -247,5 +248,18 @@ describe('Admin console', () => {
     });
     expect(await screen.findByText('Estimate for “sabudana khichdi” approved')).toBeTruthy();
     expect(fetchMock.mock.calls.some(([u]) => String(u) === '/v1/admin/food-requests?status=open')).toBe(true);
+  });
+
+  it('re-estimates a missing food after confirmation and shows the replaced estimate', async () => {
+    const fetchMock = stubAdmin();
+    const confirm = vi.fn((_text?: string) => true);
+    vi.stubGlobal('confirm', confirm);
+    renderPage(<Admin />);
+    await signIn();
+    fireEvent.click(await screen.findByRole('tab', { name: 'Missing foods' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Re-estimate sabudana khichdi' }));
+    expect(String(confirm.mock.calls[0]?.[0])).toMatch(/one AI call/);
+    await waitFor(() => expect(fetchMock.mock.calls.some(([u, i]) => String(u) === '/v1/admin/food-requests/7/reestimate' && i?.method === 'POST')).toBe(true));
+    expect(await screen.findByText(/New estimate for “sabudana khichdi”: Sabudana khichdi, new/)).toBeTruthy();
   });
 });
